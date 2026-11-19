@@ -251,63 +251,48 @@ If this document and repository state disagree, inspect the source and correct t
 - Feature branch: `gold-star-v2-complete-architecture`
 - PR: [#1732 — Gold Star v2: operational question contracts across Guide routes](https://github.com/GeraldDaquila/living-archive-backend/pull/1732)
 - PR state at last check: open, draft, unmerged; mergeable reported true.
-- Last verified branch head at this checkpoint: `8302badcd8689d4b619e4508f69978036e139199`
-- Last verified base: `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`
-- Existing checkpoint changed three files; specialist adapter was restored to its protected original content.
+- Current branch head before this checkpoint documentation update: `9c8b019f0e9a13816a2c1de55f8f1571c7f3ec7c`
+- Current PR head after this documentation update: verify from GitHub PR metadata.
+- Base: `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`
+- Specialist adapter source remains unchanged and protected.
 
 ### Implemented checkpoint
 
-- Conservative shared question-contract foundation.
+- Conservative shared question-contract foundation; unknown and mixed-intent states remain unresolved rather than overclassified.
 - Explicit no-handoff/no-follow-up/no-external-research constraint detection.
-- Unknown and mixed-intent states preserved; no claim of semantic certification.
-- Shared contract consumed by the ordinary composer and shared response-floor evaluator.
-- Added `gold_star_answer_envelope.py` v1.0: privacy-conscious answer state, route class, provider/model presence, provenance presence, route capability, specialist capability, doorway separation, and frozen-answer governance metadata.
-- Integrated answer-envelope construction and schema validation into `gold_star_response_floor.py`; completed answers, structured handoffs, errors, and incomplete responses are distinguished.
-- Added `gold_star_route_capabilities.py` with bounded declarations for every currently observed Guide route source (14 identifiers) and all five registered specialist identities.
-- Reconciled the route capability registry against literal `route_source` values in `main.py`; a regression test now detects future route additions or removals that are not reflected in the registry.
-- Guide-owned Systems and Formation hub requests now receive the shared question contract, route capability declaration, and specialist capability declaration through `guide_context`. The specialist adapter module itself remains unchanged and hash-protected.
-- Added explicit `route_source` identity to both Systems and Formation specialist handoff response paths so the final envelope can attribute them consistently.
-- Added regression tests for route registry coverage, specialist declarations, specialist context preservation through the hub, Guide runtime wiring, and separate specialist provenance in the answer envelope.
-- Extended the Gold Star v2 CI workflow to compile the changed runtime modules and run the new route/specialist tests.
-- All capability metadata explicitly disclaims semantic competence certification. Unknown routes and specialists remain unknown.
+- Shared contract consumed by ordinary Guide composition and shared response-floor evaluation.
+- Versioned answer envelope distinguishes completed answers, structured handoffs, errors, and incomplete responses.
+- Added `gold_star_route_capabilities.py` with bounded declarations for all 14 currently observed Guide route-source identifiers and all five registered specialist identities.
+- Reconciled the route capability registry against literal `route_source` values in `main.py`; a regression test detects future route additions/removals not reflected in the registry.
+- Guide-owned Systems and Formation specialist hub requests receive the shared question contract, route capability declaration, and specialist capability declaration through `guide_context`.
+- Both Systems and Formation specialist handoff response paths expose explicit route identity.
+- Answer envelope records route and specialist declarations separately.
+- Regression tests cover route-registry reconciliation, specialist declarations, hub-context preservation, Guide runtime wiring, unknown capabilities, fail-closed routes, and envelope attribution.
+- The specialist adapter implementation itself was not modified.
 
-### Verified CI at the current checkpoint head
+### CI status
 
-Against `8302badcd8689d4b619e4508f69978036e139199`:
-- Gold Star v2 shared-contract regressions: PASS (run 44452179930).
-- General Guide Composition Contract: PASS (run 44452179903).
-- v487 production validation, all workflow steps: PASS (run 44452179892).
-- USE Preflight Integrity: PASS (run 44452179949).
-- Provider health regression: PASS (run 44452180087).
-- Guide Woody Mocked UI Continuity Contract: PASS (run 44452179927).
+- Previous answer-envelope checkpoint `8302badcd8689d4b619e4508f69978036e139199` passed its six listed CI workflows.
+- The current route/specialist implementation added new tests and changed the Guide runtime. GitHub Actions workflows were created for the current code, but the runs observed during this session remained queued; they have not yet completed. Do not report this newer implementation as test-passed.
+- Static repository reconciliation confirmed that the 14 literal route sources in `main.py` match the 14 route declarations in `gold_star_route_capabilities.py`. This is a source audit, not a substitute for CI execution.
 
-These are CI results, not proof of route-wide capability declarations, semantic answer quality, human calibration, live browser acceptance, or production release.
+CI success is not proof of semantic answer quality, human calibration, live browser acceptance, or production release.
 
-### Verified CI at the previous head
+### Not yet completed
 
-The following runs were reported successful against `c88d9e81eb2cc01f637985fdbeb51975d93ad801`:
-- Gold Star v2 shared-contract regressions (runs 44451100082 and 44451094603).
-- Provider health regression (run 44451100176).
-- Guide Woody Mocked UI Continuity Contract (run 44451100126).
-- v487 production validation, all 51 validation steps (run 44451100275).
-
-These are historical checkpoint results. Recheck CI after any new commit. They do not constitute full Gold Star v2 completion, human calibration, browser acceptance, or production release.
-
-### Not yet completed at this checkpoint
-
-- Remaining WP1 work: verify contract/capability consumption for all deterministic and safety routes, not only ordinary composition and the Systems/Formation specialist hub paths; test every route's actual handoff/answer state at the final visitor boundary.
-- WP2 evidence-aware validation and bounded repair.
-- WP3 real paired captures and human/evaluator calibration.
-- WP4 governed learning/elevation loop.
-- WP5 primary/secondary live browser acceptance and controlled release.
+- Remaining WP1: verify shared-contract/capability consumption for every deterministic and safety route at both orchestration and final visitor boundaries; test actual answer/handoff state and route/specialist provenance.
+- WP2: evidence-aware validation and bounded repair.
+- WP3: real paired captures and human/evaluator calibration.
+- WP4: governed learning/elevation loop.
+- WP5: primary/secondary live browser acceptance and controlled release.
 
 ### Production status
 
-No production merge or deployment is authorized by this charter. The previous PR checkpoint was open and unmerged. Verify current deployment state from Render before making any live-status claim.
+No production merge or deployment is authorized. The PR remains open and unmerged. Verify current deployment state from Render before making any live-status claim.
 
 ### Immediate next action
 
-Complete the remaining WP1 integration by verifying the shared contract and capability declarations on every deterministic and safety route at both orchestration and final visitor boundaries. Ensure handoffs remain handoffs, fail-closed paths do not claim answer capability, and every completed answer carries correct route/specialist provenance. Wait for all CI runs on the current head to finish; repair any failures and rerun before marking this checkpoint verified. Only then close WP1 and begin WP2.
+First allow the current CI queue to complete. Repair any failing test or integration before further code expansion. Then finish WP1 by verifying all deterministic and safety route paths, ensuring that handoffs remain handoffs, fail-closed paths do not claim answer capability, and every completed answer carries correct route/specialist provenance. Only after these checks pass should WP1 close and WP2 begin.
 
 ## 10. Definition of completion
 
