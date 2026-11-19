@@ -10,7 +10,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-from personal_reference_resolution import (\n    PERSONAL_REFERENCE_VERSION,\n    is_personal_reference_question,\n    is_teaching_conflict_reference,\n)
+from personal_reference_resolution import (
+    PERSONAL_REFERENCE_VERSION,
+    is_personal_reference_question,
+    is_teaching_conflict_reference,
+)
 
 VERSION = "1.2"
 
