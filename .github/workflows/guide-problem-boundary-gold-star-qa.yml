@@ -88,6 +88,7 @@ jobs:
               ]
               for question in questions:
                   result = ask(question)
+                  print("PROBLEM_BOUNDARY_API_PAYLOAD", json.dumps(result, ensure_ascii=False)[:4000])
                   answer = str(result.get("response") or "")
                   doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
                   assert len(answer) > 700, (question, len(answer), answer[:250])
