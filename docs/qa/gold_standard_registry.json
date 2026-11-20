@@ -7615,9 +7615,62 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star registry elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-power-responsibility-proportional-accountability",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between power and responsibility?",
+      "expected_response": "Power and responsibility are connected because the ability to influence what happens creates a corresponding need to account for how that influence is used and what effects it has. Power is not limited to holding a formal position or issuing decisions: it can also operate through control of information, access, resources, attention, relationships, or the choices available to other people. Responsibility concerns how a person or institution answers for the use of that influence and for consequences within its meaningful sphere of control.\n\nThe relationship is proportional, but not a simple equation. The more influence someone has over an outcome, the stronger the reason to explain decisions, consider who may be affected, respect other people's agency, and correct preventable harm. Formal authority can make these duties visible, but quiet or informal influence can carry responsibility too. At the same time, responsibility should not be assigned as though someone controlled conditions they could not reasonably change. A fair account distinguishes a person's actual influence, knowledge, role, and capacity from outcomes imposed by wider constraints.\n\nThis connection also works in the other direction: responsibility gives power its proper limits and purpose. Without accountability, influence can become arbitrary or self-serving; without enough agency or authority to act, responsibility can become an unfair burden rather than a meaningful obligation. The practical test is to ask: who can shape this decision or condition, who will experience its effects, what can the influential person reasonably do, and how can those affected question, correct, or seek an explanation? The aim is not to eliminate power, but to make its exercise answerable and proportionate to its reach.",
+      "expected_doorway": {
+        "title": "Leadership Foundations",
+        "url": "https://geralddaquila.com/leadership-foundations/",
+        "rationale": "The live Continue Exploring card identifies leadership as a human systems function through self-governance, relationships, responsibility, governance, pressure, and decision making."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "The user reviewed the exact live Guide response, received a 9.6/10 Gold Star recommendation, and explicitly instructed “elevate to gold star registry!” on 2026-11-20. Approval covers the preserved answer and its bounded transferable discipline.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "power_responsibility_proportional_accountability",
+      "transferable_lesson": "Explain power and responsibility as a reciprocal, proportional relationship. Trace formal and informal influence over decisions, information, resources, relationships, and available options; scale answerability to actual influence, knowledge, role, and capacity; consider affected people's agency and preventable harm; preserve the boundary where wider constraints limit control; and show how accountability gives influence legitimate limits and purpose. Offer a practical test that identifies who can shape the condition, who experiences its effects, what action is reasonably available, and how affected people can question or seek correction.",
+      "transfer_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions.",
+      "known_theme": "power, influence, responsibility, accountability, proportionality, formal and informal authority, affected parties, agency, capacity, wider constraints, correction",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "power_responsibility_proportional_accountability",
+        "transferable_discipline": "Explain power and responsibility as a reciprocal, proportional relationship. Trace formal and informal influence over decisions, information, resources, relationships, and available options; scale answerability to actual influence, knowledge, role, and capacity; consider affected people's agency and preventable harm; preserve the boundary where wider constraints limit control; and show how accountability gives influence legitimate limits and purpose. Offer a practical test that identifies who can shape the condition, who experiences its effects, what action is reasonably available, and how affected people can question or seek correction.",
+        "abstention_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions."
+      },
+      "assertions": [
+        "Answer the relationship directly: influence over what happens creates a corresponding responsibility to account for how that influence is used and its effects.",
+        "Recognize power through formal authority and informal influence over information, access, resources, attention, relationships, and other people's available choices.",
+        "Scale responsibility to actual influence, knowledge, role, and capacity; do not assign control over conditions a person could not reasonably change.",
+        "Show the reciprocal function of responsibility: accountability gives power legitimate limits and purpose.",
+        "Make affected people's agency, preventable harm, explanation, challenge, and correction visible through a practical accountability test.",
+        "Do not turn proportional responsibility into unlimited liability or transfer this exact answer and doorway to unrelated questions."
+      ],
+      "user_approved_at": "2026-11-20",
+      "elevation_approval_evidence": "The user supplied the exact live Guide question and rendered answer in a screenshot, received a 9.6/10 assessment and Gold Star recommendation, and explicitly instructed “elevate to gold star registry!” on 2026-11-20.",
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing question and complete rendered answer, followed by explicit Gold Star registry-elevation instruction.",
+        "source_date": "2026-11-20",
+        "live_surface": "The Guide visitor-facing search response",
+        "review_assessment": "Assistant assessment: 9.6/10. This is an assessment score, not a user-supplied numerical rating.",
+        "evidence_boundary": "The screenshot establishes the exact question, answer, and visible Leadership Foundations continuation card. The destination URL was independently verified against the published WordPress page. This record does not claim that the answer was produced by an exact-answer deterministic runtime path."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star registry elevation but did not separately request a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "2026-11-20: Added gs-2026-11-20-reflexive-institutional-critique as a user-approved, runtime-active qualitative contributor after live Guide review and explicit elevation. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested. Registry/review parity and audit counts reconciled.",
+  "last_reconciliation_note": "2026-11-20: Added gs-2026-11-20-power-responsibility-proportional-accountability as a user-approved, runtime-active qualitative contributor after live Guide review and explicit elevation. The exact answer and verified Leadership Foundations doorway are preserved; exact-answer authority and deterministic fallback remain disabled. Registry/review parity and audit counts reconciled.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7747,15 +7800,15 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 119,
-    "registry_record_count": 157,
-    "review_reconciliation": "Canonical approved inventory is 119 records; registry record count is 157. 117 approved records are active qualitative quality contributors with matching reviews; one approved exact-query-only successor and one superseded historical duplicate remain separately governed. The reflexive institutional-critique exemplar contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled.",
+    "approved_gold_star_count": 120,
+    "registry_record_count": 158,
+    "review_reconciliation": "Canonical approved inventory is 120 records; registry record count is 158. 118 approved records are active qualitative quality contributors with matching reviews; one approved exact-query-only successor and one superseded historical duplicate remain separately governed. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts. The power/responsibility exemplar contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 119 approved Gold Stars; 39 assigned display serials #56–#94; 80 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the new reflexive institutional-critique exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 80,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 120 approved Gold Stars; 39 assigned display serials #56–#94; 81 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the power/responsibility exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 81,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 117,
+    "active_quality_contributor_count": 118,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1
@@ -7857,17 +7910,17 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 119,
-    "registry_record_count": 157,
-    "review_reconciliation": "Canonical approved inventory is 119 records; registry record count is 157. 117 approved records are active qualitative quality contributors with matching reviews; one approved exact-query-only successor and one superseded historical duplicate remain separately governed. The reflexive institutional-critique exemplar contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled.",
+    "approved_gold_star_count": 120,
+    "registry_record_count": 158,
+    "review_reconciliation": "Canonical approved inventory is 120 records; registry record count is 158. 118 approved records are active qualitative quality contributors with matching reviews; one approved exact-query-only successor and one superseded historical duplicate remain separately governed. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts. The power/responsibility exemplar contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 119 approved Gold Stars; 39 assigned display serials #56–#94; 80 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the new reflexive institutional-critique exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 80,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 120 approved Gold Stars; 39 assigned display serials #56–#94; 81 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the power/responsibility exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 81,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 117,
+    "active_quality_contributor_count": 118,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 0
+    "pending_approval_evidence_count": 1
   }
 }
