@@ -33,6 +33,7 @@ def test_complete_answer_is_not_rewritten():
     result = contract.apply_event_pattern_structure_boundary(QUERY, {"response": answer})
     assert result["response"] == answer
     assert "event_pattern_structure_contract" not in result
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
 
 def test_unrelated_payload_is_unchanged():
     payload = {"response": "An unrelated answer."}
