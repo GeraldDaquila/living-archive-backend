@@ -989,7 +989,7 @@ body.page,
     }catch(e){if(!text.textContent.trim())text.textContent=answer;}
     var doorway=terminalOmission?null:(payload.recommendation||payload.authoritative_doorway||payload.canonical_doorway||payload.doorway||payload.canonical_recommendation||payload.archive_doorway||null);
     /* This observer supplements the primary renderer; it must never erase its doorway. */
-    if(recommendation&&doorway&&typeof doorway==='object'&&window.LivingArchiveAnswerDoorway&&!primaryDoorway){
+    if(recommendation&&doorway&&typeof doorway==='object'&&window.LivingArchiveAnswerDoorway&&!existingRecommendation){
       var rationale=typeof doorway.rationale==='string'?doorway.rationale.trim():'';
       var rendered=window.LivingArchiveAnswerDoorway.render(recommendation,{
         title:doorway.title,
