@@ -9,9 +9,10 @@ def test_transformation_rebranding_question_gets_bounded_substantive_recovery():
     assert "decision rights" in response
     assert "incentives" in response
     assert "durable" in response
-    assert "not presented as a synthesis" in response
-    assert "related continuation, not evidence for this answer" in response
-    assert "no canonical doorway has been inferred" not in response
+    assert "not presented as a synthesis" not in response
+    assert "related continuation, not evidence for this answer" not in response
+    assert "services were unavailable" not in response
+    assert "decision rights" in response
     assert "does not substantiate this general-knowledge answer" in result["basis_explanation"]
 
 
@@ -115,8 +116,11 @@ def test_transformation_rebranding_selects_the_reviewed_learning_and_correctabil
     assert finalized["doorway_title"] == doorway["title"]
     assert finalized["doorway_url"] == doorway["url"]
     assert finalized["response_provenance"]["class"] == "visitor_failure_recovery"
-    assert "not presented as a synthesis of verified Living Archive sources" in finalized["response"]
-    assert "related continuation, not evidence for this answer" in finalized["response"]
+    assert "not presented as a synthesis of verified Living Archive sources" not in finalized["response"]
+    assert "related continuation, not evidence for this answer" not in finalized["response"]
+    assert "services were unavailable" not in finalized["response"]
+    assert "related continuation, not the evidence source" not in doorway["rationale"]
+    assert "change how the system acts" in doorway["rationale"]
 
 
 def test_transformation_rebranding_doorway_respects_explicit_no_handoff():
