@@ -1130,6 +1130,15 @@
       "qualifying_context": "Visitors asking how The Guide should explain a systemic or structural issue simply, accessibly, or in plain language, including close paraphrases.",
       "abstention_boundary": "Apply to requests asking how to explain a systemic or structural issue simply or in plain language, including close paraphrases. Do not use this answer as a substitute for explaining a specific issue with its own evidence, context, affected parties, and causal uncertainty. Do not reduce systemic conditions to one cause or one person's mistake, list every possible mechanism, present inference as established fact, or prescribe leverage without understanding the situation. Do not transfer this exact wording or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
+      "question": "What is the role of trust in community stewardship?",
+      "reasoning_family": "community_trust_stewardship_cooperation",
+      "transferable_discipline": "Explain trust in community stewardship as the confidence that enables people to rely on one another and act with care, while stewardship is the shared responsibility to care for what people depend on. Use a concrete shared undertaking to show how trust supports cooperation and stewardship sustains it over time. Keep the general explanation complete before offering a relevant canonical continuation.",
+      "qualifying_context": "Visitors asking about the role, purpose, or relationship of trust and stewardship in community life, including shared responsibilities, mutual reliance, and sustained cooperation.",
+      "abstention_boundary": "Apply only to questions about the role or relationship of trust and stewardship in community life, including close paraphrases. Do not transfer the exact answer or doorway to generic trust definitions, organizational trust repair, interpersonal trust, reciprocity, or unrelated governance questions. Do not imply trust is blind, guaranteed, or sufficient without observable conduct and accountability. Do not treat the Trust Architecture doorway as evidence for the general explanation or as a substitute for answering.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

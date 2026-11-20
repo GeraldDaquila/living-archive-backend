@@ -1425,7 +1425,7 @@
     },
     {
       "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
-      "status": "CANDIDATE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What is the role of trust in community stewardship?",
       "expected_response": "Trust helps people in a community rely on one another. It gives people confidence that others will do their part and act with care. Stewardship is the shared responsibility to care for what people depend on.\n\nThink of a shared garden. Trust means people can count on one another to show up and do their part. Stewardship is tending the garden so it remains healthy for everyone. Trust makes cooperation possible; stewardship helps that cooperation endure.",
@@ -1444,19 +1444,53 @@
         "Use ordinary, humane language; avoid decorative emoji, machine-like jargon, and unsolicited Glossary routing."
       ],
       "provenance": {
+        "source": "Historical visitor-response candidate preserved in the canonical registry and fixture; the user explicitly approved this exact candidate for Gold Star elevation on 2026-11-20.",
         "source_date": "2026-10-24",
-        "source": "Historical visitor-response candidate recovered in the existing PR #840 registration work and preserved as a reviewable candidate fixture.",
+        "approval_date": "2026-11-20",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "evidence_boundary": "The historical answer wording is retained as a candidate reference. The current status remains CANDIDATE: no Gold Star elevation or runtime activation is asserted. The current canonical doorway is taken from the merged Trust doorway contract in PR #1808; it is separate from the general-knowledge answer.",
-        "source_path": "docs/qa/gold_standard_registry.json",
-        "source_ref": "main",
-        "implementation_pr": "https://github.com/GeraldDaquila/living-archive-backend/pull/1808",
-        "implementation_merge_commit": "cde12d316f30b78392d8665622cba1fe7a041a1c"
+        "source_path": "tests/fixtures/general_guide_trust_community_stewardship_candidate.json",
+        "source_ref": "aa4cbea52313028d4e5422b9361248fc46c50ae9",
+        "approval_record": "User instruction: “approved. elevate as gold star in registry”.",
+        "implementation_prs": [
+          1808,
+          1813
+        ],
+        "implementation_commits": [
+          "cde12d316f30b78392d8665622cba1fe7a041a1c",
+          "aa4cbea52313028d4e5422b9361248fc46c50ae9"
+        ],
+        "evidence_boundary": "The exact answer wording is preserved from the historical candidate fixture and explicitly approved by the user. PR #1813 restores the verified Trust Architecture doorway at the final visitor boundary; both production API services were verified returning that doorway after deployment. This approval authorizes bounded structural learning only, not exact-answer authority or deterministic fallback."
       },
       "rating": null,
-      "rating_out_of_10": null,
-      "freeze_policy": "Candidate reference only. Do not promote to USER_APPROVED_GOLD_STANDARD or activate runtime transfer until the user explicitly approves the exact answer and bounded learning discipline.",
-      "doorway_status": "VERIFIED_CANONICAL_DESTINATION"
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT CANDIDATE ANSWER REVIEWED; BOUNDED COMMUNITY-TRUST LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "On 2026-11-20, after the exact Trust community stewardship candidate, its canonical Trust Architecture doorway, and bounded learning discipline were presented for review, the user explicitly replied: “approved. elevate as gold star in registry”. This authorizes Gold Star elevation of this exact answer and its bounded transferable discipline.",
+      "runtime_transfer": true,
+      "reasoning_family": "community_trust_stewardship_cooperation",
+      "transferable_lesson": "Explain trust in community stewardship as the confidence that enables people to rely on one another and act with care, while stewardship is the shared responsibility to care for what people depend on. Use a concrete shared undertaking to show how trust supports cooperation and stewardship sustains it over time. Keep the general explanation complete before offering a relevant canonical continuation.",
+      "transfer_boundary": "Apply only to questions about the role or relationship of trust and stewardship in community life, including close paraphrases. Do not transfer the exact answer or doorway to generic trust definitions, organizational trust repair, interpersonal trust, reciprocity, or unrelated governance questions. Do not imply trust is blind, guaranteed, or sufficient without observable conduct and accountability. Do not treat the Trust Architecture doorway as evidence for the general explanation or as a substitute for answering.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_quality_governance_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "community_trust_stewardship_cooperation",
+        "transferable_discipline": "Explain trust in community stewardship as the confidence that enables people to rely on one another and act with care, while stewardship is the shared responsibility to care for what people depend on. Use a concrete shared undertaking to show how trust supports cooperation and stewardship sustains it over time. Keep the general explanation complete before offering a relevant canonical continuation.",
+        "abstention_boundary": "Apply only to questions about the role or relationship of trust and stewardship in community life, including close paraphrases. Do not transfer the exact answer or doorway to generic trust definitions, organizational trust repair, interpersonal trust, reciprocity, or unrelated governance questions. Do not imply trust is blind, guaranteed, or sufficient without observable conduct and accountability. Do not treat the Trust Architecture doorway as evidence for the general explanation or as a substitute for answering."
+      },
+      "user_approved_at": "2026-11-20",
+      "approval_date": "2026-11-20",
+      "approval_evidence": "User explicitly approved Gold Star elevation of the exact Trust community stewardship candidate on 2026-11-20.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false,
+      "known_theme": "community trust, stewardship, shared responsibility, mutual reliance, cooperation, accountability, shared resources, community care",
+      "rating_out_of_10": 9.5,
+      "review_assessment": "Assistant assessment: 9.5/10 for directness, accessible community-level framing, a concrete shared-garden analogy, clear distinction between trust and stewardship, and a verified relevant continuation. The answer is intentionally concise; its transfer boundary prevents overgeneralizing this exemplar to unrelated trust questions."
     },
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
@@ -8133,7 +8167,7 @@
       "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "2026-11-20: User approved the exact complicated-versus-complex answer. Frozen as USER_APPROVED_GOLD_STANDARD, with exact-answer authority and transferable reasoning lesson. Production activation still awaits passing CI, merge, and runtime verification.",
+  "last_reconciliation_note": "2026-11-20: User explicitly approved the Trust community stewardship candidate for Gold Star elevation. The exact candidate answer is frozen as USER_APPROVED_GOLD_STANDARD with a verified Trust Architecture doorway and bounded structural-learning discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8263,20 +8297,20 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 128,
+    "approved_gold_star_count": 129,
     "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 128 records: 126 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One other structural candidate remains pending live review and is excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 128 approved Gold Stars; 39 assigned display serials #56–#94; 89 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
-    "unassigned_approved_gold_star_count": 89,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
+    "unassigned_approved_gold_star_count": 90,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 126,
+    "active_quality_contributor_count": 127,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-20-systemic-explanation-accessibility approved by user 2026-11-20"
+    "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8375,19 +8409,19 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 128,
+    "approved_gold_star_count": 129,
     "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 128 records: 126 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One other structural candidate remains pending live review and is excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 128 approved Gold Stars; 39 assigned display serials #56–#94; 89 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
-    "unassigned_approved_gold_star_count": 89,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
+    "unassigned_approved_gold_star_count": 90,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 126,
+    "active_quality_contributor_count": 127,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-20-systemic-explanation-accessibility approved by user 2026-11-20"
+    "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
   }
 }

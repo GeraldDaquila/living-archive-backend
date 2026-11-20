@@ -1,7 +1,7 @@
 {
   "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
-  "status": "CANDIDATE",
-  "purpose": "Reviewable historical visitor-response candidate. This fixture preserves the recovered wording without asserting Gold Star approval or runtime activation.",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "purpose": "User-approved Gold Star exemplar. The exact answer is frozen; only its bounded community-trust reasoning discipline may contribute to structural learning.",
   "query": "What is the role of trust in community stewardship?",
   "expected_response": "Trust helps people in a community rely on one another. It gives people confidence that others will do their part and act with care. Stewardship is the shared responsibility to care for what people depend on.\n\nThink of a shared garden. Trust means people can count on one another to show up and do their part. Stewardship is tending the garden so it remains healthy for everyone. Trust makes cooperation possible; stewardship helps that cooperation endure.",
   "expected_doorway": {
@@ -18,5 +18,13 @@
     "Keep this answer distinct from the subsequent reciprocity question; do not reuse the reciprocity answer or its neighbor-helping example.",
     "Use ordinary, humane language; avoid decorative emoji, machine-like jargon, and unsolicited Glossary routing."
   ],
-  "approval_boundary": "Candidate only. Explicit user approval of this exact answer and its bounded learning discipline is still required before Gold Star elevation."
+  "approval_boundary": "The user explicitly approved this exact answer and its bounded learning discipline for Gold Star elevation on 2026-11-20. Exact-answer authority and deterministic fallback remain disabled.",
+  "approval": {
+    "approved_by": "user",
+    "approved_at": "2026-11-20",
+    "evidence": "approved. elevate as gold star in registry",
+    "runtime_transfer": true,
+    "exact_answer_authority": false,
+    "deterministic_fallback_eligible": false
+  }
 }
