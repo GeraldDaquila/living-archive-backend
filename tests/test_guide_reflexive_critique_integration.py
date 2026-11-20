@@ -17,7 +17,7 @@ def test_composer_uses_non_defensive_critique_contract_and_original_question():
     source = Path("general_guide_composition.py").read_text(encoding="utf-8")
     assert 'question_contract.get("institutional_critique", {}).get("detected")' in source
     assert "The visitor is asking you to examine the Living Archive's own worldview" in source
-    assert 'f"Visitor question:\n{question}\n\n"' in source
+    assert r'f"Visitor question:\n{question}\n\n"' in source
 
 
 def test_question_contract_keeps_critique_distinct_from_archive_description():
