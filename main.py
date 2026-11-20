@@ -10754,6 +10754,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     context_data["_canonical_glossary_checked"] = True
     context_data["_canonical_glossary_documents"] = glossary_documents
     context_data["_canonical_glossary_instruction"] = glossary_instruction
+    if _reflexive_critique_plan:
+        context_data["_reflexive_institutional_critique"] = _reflexive_critique_plan
+        print("The Guide answer mode: task=reflexive_institutional_critique, answer_first=true, retrieval_role=evidence_only, doorway_authority=existing_gates")
 
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
