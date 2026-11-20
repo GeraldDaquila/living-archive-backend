@@ -2,7 +2,7 @@ name: Guide Simple Systemic Explanation Gold Star QA
 
 on:
   push:
-    branches: [gold-star-systemic-explanation-accessibility-reconciled-20261120]
+    branches: [gold-star-systemic-explanation-accessibility-reconciled-20261120, fix/institutional-learning-first-response-20261121]
   pull_request:
     branches: [main]
     paths:
