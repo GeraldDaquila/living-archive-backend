@@ -274,6 +274,9 @@
     },
     "guide_archive_coverage_gap_evidence_governance": {
       "description": "Separate verified Archive coverage from retrieval outcomes; distinguish direct, adjacent, verified absence after bounded checks, and retrieval or source-verification failure."
+    },
+    "guide_answer_first_and_independently_evidenced_doorway_selection": {
+      "description": "Separate substantive answer composition from independently evidenced canonical doorway selection; distinguish verified destinations, completed no-match, retrieval failure, unevaluated selection, and authorized omission."
     }
   },
   "entries": [
@@ -1275,13 +1278,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to questions about Archive coverage, resource verification, retrieval outcomes, and when The Guide may state that the Archive does not directly address a question. Do not infer corpus-wide absence from a failed search or limited source check. Do not transfer the exact answer to unrelated questions, and do not force a doorway onto meta-policy explanations."
+    },
+    {
+      "benchmark_id": "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20",
+      "question": "What counts as evidence, interpretation, hypothesis, and normative judgment?",
+      "family": "guide_answer_first_and_independently_evidenced_doorway_selection",
+      "structural_lesson": "Keep substantive answer formation independent from resource retrieval while evaluating doorway selection independently. Record whether a canonical destination was verified, no relevant destination survived completed bounded checks, retrieval or source verification failed, selection was not evaluated, or omission was authorized under the existing contract. Never treat an absent link as evidence of intentional restraint. Preserve existing relevance, access, risk, refusal, and omission boundaries.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not infer that the original missing doorway was intentional; its original state remains NOT_EVALUATED. Do not expand omission authority, force a doorway onto meta-policy questions, transfer the exact answer or clinic-access example to unrelated queries, or override existing relevance, access, risk, refusal, and source-verification rules."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "42e20edb13dc5184bff32816bb481df0b21c8396",
-    "qualitative_transfer_review_entries": 115,
-    "general_purpose_runtime_transfer_records": 111,
-    "map_entries": 111
+    "registry_content_sha": "e72de0dc237ee6c573a9af8a5e227ad21cd4a33a",
+    "qualitative_transfer_review_entries": 116,
+    "general_purpose_runtime_transfer_records": 112,
+    "map_entries": 112
   }
 }
