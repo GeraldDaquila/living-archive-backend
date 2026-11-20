@@ -6,7 +6,7 @@ def test_good_faith_archive_worldview_critique_is_recognized():
     p = build_reflexive_critique_plan(q)
     assert p and p["mode"] == "reflexive_institutional_critique"
     assert p["original_query_preserved"] is True
-    assert "independent validation" in p["retrieval_query"]
+    assert "not independent proof" in p["retrieval_query"]
     assert p["task_class"] == "answer_first_critical_evaluation"
     assert "define_good_faith_critique_in_direct_answer_to_the_visitor" in p["answer_requirements"]
     assert p["response_contract"]["retrieval_role"] == "evidence_for_application_not_a_substitute_for_the_answer"
@@ -26,3 +26,14 @@ def test_general_worldview_critique_is_not_misclassified():
 
 def test_archive_resource_search_is_not_misclassified():
     assert build_reflexive_critique_plan("Where can I find the Archive’s worldview article?") is None
+
+def test_critical_evaluation_wording_variants_are_answer_tasks():
+    variants = [
+        "How should we critically assess the Archive’s underlying assumptions?",
+        "What are the strongest limitations of the Living Archive’s worldview?",
+        "How could someone fairly challenge the Archive’s philosophical foundations?",
+    ]
+    for query in variants:
+        plan = build_reflexive_critique_plan(query)
+        assert plan is not None, query
+        assert plan["task_class"] == "answer_first_critical_evaluation"

@@ -10895,8 +10895,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # limitations, and counterarguments. Preserve the visitor's original query
     # for composition and canonical doorway adjudication.
     _reflexive_critique_plan = _build_reflexive_critique_plan(query)
-    if _reflexive_critique_plan and not correction_subject and not source_trace_request:
-        resource_query = _reflexive_critique_plan["retrieval_query"]
+    if _reflexive_critique_plan:
+        # Reflexive critique is an answer/evaluation task, never a subject-
+        # discovery task. Discovery composition is allowed to replace prose
+        # with a resource summary, which would silently bypass the critique
+        # contract after successful composition.
+        discovery_subject = ""
+        if not correction_subject and not source_trace_request:
+            resource_query = _reflexive_critique_plan["retrieval_query"]
+        print(
+            "The Guide critique routing boundary: answer_task=true, "
+            "subject_discovery=false, resource_summary_override=false"
+        )
     # Check the published Glossary before vector/canonical Archive retrieval.
     # Carry the exact source snapshot into composition to avoid a second fetch.
     glossary_documents, glossary_instruction = general_guide_composition.resolve_glossary_context(query)
