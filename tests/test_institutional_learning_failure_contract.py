@@ -33,6 +33,76 @@ def test_adjacent_questions_do_not_trigger_the_bounded_recovery():
     assert not any(is_institutional_learning_failure_question(q) for q in queries)
 
 
+def test_semantic_contract_classifies_family_and_rejects_nonanswers():
+    from gold_star_semantic_contract import classify_question, evaluate_semantic_contract
+
+    assert classify_question(LIVE_QUESTION)["type"] == "institutional_learning_failure"
+    weak = "Your question asks why organizations repeat failures they publicly acknowledge."
+    rejected = evaluate_semantic_contract(LIVE_QUESTION, {"ok": True, "response": weak})
+    assert rejected["status"] == "fail"
+    assert rejected["hard_failures"]
+
+    good = build_institutional_learning_failure_response()
+    accepted = evaluate_semantic_contract(LIVE_QUESTION, {"ok": True, "response": good})
+    assert accepted["status"] == "review_required"
+    assert all(check["passed"] for check in accepted["checks"])
+
+
+def test_v2_floor_enforces_only_the_bounded_supported_semantic_family():
+    from gold_star_response_floor import evaluate_response_floor, apply_response_floor_boundary
+
+    weak = "Your question asks why organizations repeat failures they publicly acknowledge."
+    rejected = evaluate_response_floor(
+        LIVE_QUESTION,
+        {"ok": True, "query": LIVE_QUESTION, "response": weak},
+    )
+    assert rejected["status"] == "fail"
+    assert rejected["reason"] == "supported_semantic_contract_failed"
+    assert rejected["semantic_enforcement"]["enforced"] is True
+
+    recovered = build_institutional_learning_failure_response()
+    accepted = evaluate_response_floor(
+        LIVE_QUESTION,
+        {"ok": True, "query": LIVE_QUESTION, "response": recovered},
+    )
+    assert accepted["status"] == "pass"
+    assert accepted["semantic_enforcement"]["status"] == "pass"
+
+    unrelated = evaluate_response_floor(
+        "Tell me something interesting.",
+        {"ok": True, "query": "Tell me something interesting.", "response": "Here is a short observation."},
+    )
+    assert unrelated["status"] == "pass"
+    assert unrelated["semantic_enforcement"]["enforced"] is False
+
+
+def test_v2_floor_preserves_frozen_exact_gold_standard_immutability():
+    from gold_star_response_floor import evaluate_response_floor
+
+    weak = "Your question asks why organizations repeat failures they publicly acknowledge."
+    result = evaluate_response_floor(
+        LIVE_QUESTION,
+        {"ok": True, "query": LIVE_QUESTION, "response": weak},
+        exact_standard=True,
+    )
+    assert result["status"] == "pass"
+    assert result["semantic_enforcement"]["reason"] == "exact_gold_standard_immutable"
+
+
+def test_v2_sender_fails_closed_if_supported_semantic_recovery_is_bypassed():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    weak = "Your question asks why organizations repeat failures they publicly acknowledge."
+    payload, status = apply_response_floor_boundary(
+        LIVE_QUESTION,
+        {"ok": True, "query": LIVE_QUESTION, "response": weak},
+        200,
+    )
+    assert status == 503
+    assert payload["error_type"] == "gold_star_v2_quality_floor_rejected"
+    assert payload["gold_star_v2_quality_floor"]["reason"] == "supported_semantic_contract_failed"
+
+
 def test_recovery_answer_meets_every_substantive_requirement():
     answer = build_institutional_learning_failure_response()
     assert institutional_learning_failure_response_meets_contract(answer)
