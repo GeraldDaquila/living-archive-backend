@@ -398,5 +398,43 @@ def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounde
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 125
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 121
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 126
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 122
+
+
+def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bounded():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    transfer_map = json.loads((root / "docs/qa/gold_star_transferability_map.json").read_text(encoding="utf-8"))
+    benchmark_id = "gs-2026-11-20-systemic-explanation-accessibility"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+    mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == benchmark_id)
+
+    expected = "The Guide should make the explanation simple without making the issue simplistic. Begin with the clearest short answer: a systemic issue persists because several conditions and relationships reinforce one another, not necessarily because of one person's mistake.\n\nThen name the main mechanism in ordinary language. Briefly show which rules, incentives, resources, relationships, or feedback patterns help reproduce the problem. Use only the connections that materially explain it; distinguish what is known from what is inferred, and do not pretend that one cause explains everything.\n\nFinish with why the pattern matters and, where useful, one practical point of leverage or next step. Offer deeper layers only if the user wants them. In short: simplify the explanation, not the system."
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How should The Guide explain a systemic issue to a user seeking a simple answer?"
+    assert record["expected_response"] == expected
+    assert record["rating_out_of_10"] == 9.8
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    resolved = resolve_exact_gold_standard(record["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == benchmark_id
+    assert resolved["expected_response"] == expected
+    assert resolve_exact_gold_standard("How should The Guide explain a systemic issue to users seeking a simple answer?") is None
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == record["reasoning_family"]
+    assert entry["transferable_discipline"] == record["transferable_lesson"]
+    assert entry["abstention_boundary"] == record["transfer_boundary"]
+    assert mapped["family"] == record["reasoning_family"]
+    assert mapped["structural_lesson"] == record["transferable_lesson"]
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 126
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 122
