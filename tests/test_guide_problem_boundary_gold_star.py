@@ -43,11 +43,11 @@ def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learni
         item for item in registry["records"]
         if item["benchmark_id"] == "gs-2026-11-20-problem-boundary-calibration"
     )
-    assert record["status"] == "CANDIDATE_PENDING_USER_REVIEW"
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["explicit_user_elevation_approval"] is True
-    assert record["user_reviewed_response"] is False
-    assert record["runtime_transfer"] is False
-    assert record["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert record["user_reviewed_response"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"]["title"] == "Boundary Conditions"
@@ -55,8 +55,12 @@ def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learni
     assert record["known_theme"]
     assert registry["integrity_audit"]["registry_record_count"] == len(registry["records"])
     assert registry["audit"]["registry_record_count"] == len(registry["records"])
-    assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 2
+    assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 1
     assert len(record["expected_response"].split("\n\n")) == 3
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    reviews = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    assert sum(item["benchmark_id"] == record["benchmark_id"] for item in reviews["entries"]) == 1
 
 
 def test_main_early_task_route_preserves_a_verified_recovery_doorway():
