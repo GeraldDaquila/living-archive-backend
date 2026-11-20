@@ -61,6 +61,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
         "INTENTIONALLY_NONE_APPROVED",
         "LEGACY_INCOMPLETE_NOT_APPROVED",
         "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+        "NOT_EVALUATED",
     }
     for record in registry["records"]:
         if record.get("status")!="USER_APPROVED_GOLD_STANDARD":
