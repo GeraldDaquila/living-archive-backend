@@ -4,7 +4,6 @@ These tests extract only the small, deterministic contract functions from main.p
 They deliberately avoid importing the production ASGI graph and its external services.
 """
 import ast
-import html
 import re
 import unittest
 from pathlib import Path
@@ -77,11 +76,14 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
                 and key.value == "canonical_doorway"
                 for key in node.keys
             )
-            and any(
-                isinstance(key, ast.Constant)
-                and key.value == "response"
-                for key in node.keys
-            )
+            and {
+                key.value for key in node.keys
+                if isinstance(key, ast.Constant) and isinstance(key.value, str)
+            }.issuperset({
+                "response", "recommendation", "canonical_doorway",
+                "doorway_title", "doorway_url", "doorway_rationale",
+                "doorway_selection_source",
+            })
         )
         keys = {
             key.value for key in payload_node.keys
