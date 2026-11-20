@@ -1,5 +1,5 @@
-/* Living Archive Answer + Doorway Standard v1.0.3
-   Shared responsive hierarchy for USE, HRN, FSD, SPE, and other adapters. */
+/* Living Archive Answer + Doorway Standard v1.0.4
+   Shared responsive hierarchy for Living Archive modules. */
 .la-answer-doorway {
   box-sizing: border-box;
   width: 100%;
@@ -70,5 +70,26 @@
   .la-answer-doorway .la-answer-doorway__link {
     font-size: 17.5px !important;
     line-height: 1.5 !important;
+  }
+}
+
+/* Completed-state: no reserved waiting space after the answer renders. */
+.archive-stage-wrapper[data-guide-instance="woody"] .archive-search-container .archive-waiting-interlude[aria-hidden="true"] {
+  display: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Restore the neutral grey answer surface on mobile. */
+@media (max-width: 700px) {
+  .archive-stage-wrapper[data-guide-instance="woody"] .archive-search-container .response-box {
+    background: #f1f1f1 !important;
+    border: 1px solid #ddd !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    color: #222 !important;
   }
 }
