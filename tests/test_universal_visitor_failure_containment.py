@@ -77,7 +77,15 @@ def test_transformation_rebranding_selects_the_reviewed_learning_and_correctabil
         "ok": True,
         "query": query,
         "intent": "TOPICAL_INQUIRY",
-        "response": compose_visitor_failure_recovery(query)["response"],
+        # Deliberately inject the legacy visitor-facing outage paragraph:
+        # the outer finalizer must repair already-composed recovery payloads too.
+        "response": (
+            compose_visitor_failure_recovery(query)["response"]
+            + "\\n\\nThis is a bounded general-knowledge orientation because the Guide's "
+            "live answer and canonical-retrieval services were unavailable on this attempt. "
+            "It is not presented as a synthesis of verified Living Archive sources. "
+            "Any separately selected Archive resource is a related continuation, not evidence for this answer."
+        ),
         "recommendation": None,
         "canonical_doorway": None,
         "answer_basis": {
