@@ -8233,6 +8233,34 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
+    # Superseded reciprocity definitions must not be recovered from the older
+    # Archive glossary path. Route both the community-purpose query and the
+    # earlier Archive-framed wording to the approved successor answer.
+    if _is_reciprocity_community_purpose_question(query):
+        _reciprocity_contract = _reciprocity_community_final_contract(query)
+        return {
+            "response": _reciprocity_contract["response"],
+            "answer_basis": dict(_reciprocity_contract["answer_basis"]),
+            "recommendation": _reciprocity_contract["recommendation"],
+            "canonical_doorway": _reciprocity_contract["recommendation"],
+            "doorway_title": str((_reciprocity_contract["recommendation"] or {}).get("title") or ""),
+            "doorway_url": str((_reciprocity_contract["recommendation"] or {}).get("url") or ""),
+            "provider": "bounded_reciprocity_community_recovery",
+            "model": "deterministic-contract-recovery",
+        }
+    if (
+        "reciprocity" in q
+        and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q)
+        and not re.search(r"\b(?:trust|stewardship)\b", q)
+    ):
+        from deterministic_answer_recovery import compose_definition_significance
+        return {
+            "response": compose_definition_significance("reciprocity"),
+            "doorway_title": "",
+            "provider": "bounded_general_knowledge_recovery",
+            "model": "",
+        }
+
     # Keep the answer-first existential contract active when the ordinary
     # provider bank is exhausted or the isolated deterministic path is used.
     # Import locally so isolated recovery harnesses retain the same behavior.
@@ -8714,23 +8742,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "provider": "bounded_general_knowledge_recovery",
             "model": "",
         }
-
-    # Provider exhaustion must not turn a straightforward concept definition into a refusal.
-    # This is a bounded general explanation, not a claim of a single canonical Archive definition.
-    if "reciprocity" in q and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q):
-        response = (
-            "Reciprocity means people support one another over time. It does not mean keeping score or "
-            "expecting every act to be repaid immediately or in equal measure. People may give more at "
-            "one point and need more help at another; what matters is that support can move in both "
-            "directions over time.\\n\\n"
-            "Think of neighbors taking turns checking on an older resident or helping one another with "
-            "errands. One neighbor may do more during a difficult week and receive help later. The "
-            "relationship can still be reciprocal even when each exchange is different.\\n\\n"
-            "Reciprocity should never be used to demand access, obedience, or repayment from someone "
-            "who cannot freely offer it. Mutual support works best when people respond to one another's "
-            "real circumstances, not when kindness becomes a debt ledger."
-        )
-        return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
     # Calibrated conceptual comparison: answer the visitor's actual distinction
     # directly when retrieval is temporarily limited. This is general orientation,
