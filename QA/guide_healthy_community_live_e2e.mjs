@@ -79,11 +79,14 @@ page.on("requestfinished", request => {
   }
 });
 
+const controllerSyntaxDiagnostics = [];
+let inlineScriptSyntaxDiagnostics = [];
+let externalScriptSyntaxDiagnostics = [];
+
 try {
   console.log(JSON.stringify({ stage: "live_e2e_start", url: GUIDE_URL }));
-  const controllerSyntaxDiagnostics = [];
   page.on("response", async response => {
-    if (response.url().includes("living-archive-guide-v489.318-edge-confirmation.js")) {
+    if (/\/guide-controller-v\d+\.\d+\.js(?:\?|$)/.test(response.url())) {
       try {
         const source = await response.text();
         // Match the actual browser parse path: classic script parsing.
@@ -96,7 +99,7 @@ try {
   });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("load").catch(() => {});
-  const inlineScriptSyntaxDiagnostics = await page.locator("script:not([src])").evaluateAll(scripts =>
+  inlineScriptSyntaxDiagnostics = await page.locator("script:not([src])").evaluateAll(scripts =>
     scripts.map((script, index) => {
       const type = (script.getAttribute("type") || "text/javascript").toLowerCase();
       if (!["text/javascript", "application/javascript", "module", ""].includes(type)) return null;
@@ -110,7 +113,7 @@ try {
       }
     }).filter(Boolean)
   );
-  const externalScriptSyntaxDiagnostics = [];
+  externalScriptSyntaxDiagnostics = [];
   for (const script of await page.locator('script[src*="guide-controller"], script[src*="marked"]').evaluateAll(nodes => nodes.map(node => node.src))) {
     try {
       const response = await page.request.get(script);
@@ -372,6 +375,7 @@ try {
     apiFailures,
     apiFinished,
     pageErrors,
+    controllerSyntaxDiagnostics,
     inlineScriptSyntaxDiagnostics,
     externalScriptSyntaxDiagnostics,
     consoleErrors
