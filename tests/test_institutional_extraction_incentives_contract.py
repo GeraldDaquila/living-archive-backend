@@ -65,7 +65,10 @@ def test_main_doorway_selector_routes_the_exact_query_family_and_rejects_adjacen
         if isinstance(node, ast.FunctionDef)
         and node.name == "_select_verified_doorway_conceptual_family"
     )
-    namespace = {"re": re}
+    namespace = {
+        "re": re,
+        "is_stewardship_consent_relationship_question": lambda _query: False,
+    }
     exec(compile(ast.Module(body=[function], type_ignores=[]), "<family>", "exec"), namespace)
     selector = namespace["_select_verified_doorway_conceptual_family"]
     assert selector(

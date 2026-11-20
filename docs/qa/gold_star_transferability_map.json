@@ -286,6 +286,9 @@
     },
     "institutional_extraction_incentive_governance": {
       "description": "Diagnose how institutional rules distribute rewards, depletion, delayed costs, authority, and voice; redesign incentives with accountable measures, affected-party participation, independent review, and testable correction."
+    },
+    "stewardship_consent_relational_legitimacy": {
+      "description": "Explain stewardship as entrusted responsibility and consent as a boundary on how that responsibility may involve other people's agency; distinguish care from authority and consultation from consent."
     }
   },
   "entries": [
@@ -1341,13 +1344,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to questions about leadership responses to institutional incentives that reward short-term extraction or depletion. Do not reduce structural incentives to individual virtue, assume a leader has unilateral authority to redesign institutional rules, prescribe one universal metric set, or transfer this exact answer or doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-stewardship-consent-relational-legitimacy",
+      "question": "What is the relationship between stewardship and consent?",
+      "family": "stewardship_consent_relational_legitimacy",
+      "structural_lesson": "Explain stewardship and consent as complementary but distinct: stewardship establishes entrusted responsibility to care; consent establishes whether and within what limits affected people's participation, choices, resources, or interests may legitimately be involved. Distinguish responsibility from authority and consent from consultation or good intention. Where consent is the relevant basis, preserve informed, voluntary, specific agreement and the possibility of refusal, withdrawal, or renegotiation. Distinguish routine responsibilities within an authorized role from decisions requiring permission or shared authority; do not turn this into a universal legal test.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to substantive questions about the relationship between stewardship, consent, entrusted care, participation, and legitimacy. Do not assume stewardship automatically confers decision authority; do not reduce consent to consultation, notification, or benevolent intent; do not imply every routine act of care requires individual permission or impose a universal legal test; distinguish actions within an authorized role from those requiring permission or shared authority; preserve affected people's agency; transfer the reasoning discipline only, never this exact answer or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "7b1933b0b03f5db307e95bf059793e465dd5b4a3",
-    "qualitative_transfer_review_entries": 121,
-    "general_purpose_runtime_transfer_records": 117,
-    "map_entries": 117
+    "registry_content_sha": "62eea3e3866d9a5ca1f85777a3c85c0ee9135937",
+    "qualitative_transfer_review_entries": 122,
+    "general_purpose_runtime_transfer_records": 118,
+    "map_entries": 118
   }
 }

@@ -177,6 +177,8 @@ def test_final_visitor_boundary_runtime_recovers_when_payload_response_is_noncom
     )
     namespace = {
         "re": re,
+        "is_stewardship_consent_relationship_question": lambda _query: False,
+        "_apply_stewardship_consent_relationship_boundary": lambda _query, payload: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
         "_gold_star_doorway_omission_is_justified": lambda _standard: False,
@@ -227,6 +229,8 @@ def test_final_visitor_boundary_preserves_an_already_compliant_autonomy_answer()
 
     namespace = {
         "re": re,
+        "is_stewardship_consent_relationship_question": lambda _query: False,
+        "_apply_stewardship_consent_relationship_boundary": lambda _query, payload: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
         "_gold_star_doorway_omission_is_justified": lambda _standard: False,
