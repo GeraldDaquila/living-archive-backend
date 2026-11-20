@@ -2327,3 +2327,28 @@ def test_reciprocity_community_gold_star_has_matching_bounded_transfer_review_an
     assert old["superseded_by_benchmark_id"] == record["benchmark_id"]
     assert old["query"] == "What does reciprocity mean in the Living Archive?"
     assert old["expected_response"].startswith("Reciprocity means a relationship of mutual response:")
+
+
+TRUST_CANDIDATE_FIXTURE_PATH = (
+    ROOT / "tests" / "fixtures" / "general_guide_trust_community_stewardship_candidate.json"
+)
+
+
+def test_trust_community_stewardship_candidate_matches_reviewable_fixture_without_activation():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24"
+    )
+    fixture = json.loads(TRUST_CANDIDATE_FIXTURE_PATH.read_text(encoding="utf-8"))
+
+    assert record["status"] == "CANDIDATE"
+    assert fixture["status"] == "CANDIDATE"
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert len(record["expected_response"].split(chr(10) * 2)) == 2
+    assert record["rating_out_of_10"] is None
+    assert "explicitly approves" in record["freeze_policy"] or "explicitly approves" in fixture["approval_boundary"]
+    assert record.get("runtime_transfer") is not True
+    assert "not asserted" in record["provenance"]["evidence_boundary"]
