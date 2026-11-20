@@ -65,6 +65,14 @@ def test_main_early_task_route_preserves_a_verified_recovery_doorway():
     assert '"doorway_url": _task_doorway.get("url") if _task_doorway else None' in source
     assert '"doorway_selection_source": "registered_task_recovery" if _task_doorway else "no_verified_task_doorway"' in source
     assert "trusted_task_selection" in source
+    fallback_start = source.index("def _guide_route_fallback")
+    fallback_task = source.index("_compose_task_specific_recovery(query) is not None", fallback_start)
+    fallback_fsd = source.index("if _is_fsd_request(query)", fallback_start)
+    assert fallback_task < fallback_fsd
+    asgi_task = source.index("_early_task_recovery = (")
+    asgi_fsd = source.index("# Immediate FSD handoff", asgi_task)
+    assert asgi_task < asgi_fsd
+    assert "task_recovery=task_recovery" in source
 
 
 def test_shared_final_visitor_boundary_preserves_a_verified_task_recovery_doorway():
