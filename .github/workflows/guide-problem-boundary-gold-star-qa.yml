@@ -88,8 +88,9 @@ jobs:
               ]
               for question in questions:
                   result = ask(question)
-                  print("PROBLEM_BOUNDARY_API_PAYLOAD", json.dumps(result, ensure_ascii=False)[:4000])
-                  answer = str(result.get("response") or "")
+                  print("PROBLEM_BOUNDARY_API_CONTRACT", json.dumps({key: result.get(key) for key in ("processing", "recovery", "route_source", "recommendation", "canonical_doorway", "doorway_title", "doorway_url")}, ensure_ascii=False))
+                  assert isinstance(result.get("response"), str), (question, type(result.get("response")).__name__)
+                  answer = result.get("response") or ""
                   doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
                   assert len(answer) > 700, (question, len(answer), answer[:250])
                   assert "outside the chosen scope" in answer.casefold(), question
