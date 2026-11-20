@@ -20,7 +20,7 @@ from personal_reference_resolution import (
     is_teaching_conflict_reference,
 )
 
-VERSION = "1.2"
+VERSION = "1.3"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
