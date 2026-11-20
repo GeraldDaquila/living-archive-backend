@@ -23,7 +23,7 @@ def test_removes_operational_outage_paragraph_but_preserves_answer():
     sanitize = _load_sanitizer()
     answer = (
         "Transformation becomes rebranding when labels change but the "
-        "behavior-producing structure remains intact.\\n\\n"
+        "behavior-producing structure remains intact.\n\n"
         "This is a bounded general-knowledge orientation because the Guide's "
         "live answer and canonical-retrieval services were unavailable on this attempt."
     )
@@ -36,7 +36,7 @@ def test_removes_operational_outage_paragraph_but_preserves_answer():
 def test_preserves_legitimate_grounding_and_related_continuation_language():
     sanitize = _load_sanitizer()
     answer = (
-        "The answer is a general conceptual orientation.\\n\\n"
+        "The answer is a general conceptual orientation.\n\n"
         "The separately selected Archive resource offers a related continuation."
     )
     assert sanitize(answer) == answer
