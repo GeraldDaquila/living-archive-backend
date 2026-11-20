@@ -47,7 +47,7 @@ def test_explicit_visitor_no_handoff_request_clears_all_public_doorway_aliases()
 
     assert result["response"] == payload["response"]
     assert result["recommendation"] is None
-    assert result["canonical_doorway"] is None
+    assert result.get("canonical_doorway") is None
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
     assert result["recommendation_canonical_primary"] is None
@@ -80,7 +80,7 @@ def test_unverified_upstream_recommendation_is_rejected_sitewide_when_no_source_
     )
 
     assert result["recommendation"] is None
-    assert result["canonical_doorway"] is None
+    assert result.get("canonical_doorway") is None
     assert result["doorway_decision"] == "omit"
     assert result["doorway_omission_reason"]
 
@@ -212,13 +212,14 @@ def test_reviewed_no_doorway_standard_remains_terminal_and_explicit():
     assert result["doorway_decision"] == "omit"
     assert "interrupt" in result["doorway_omission_reason"]
 
-def test_json_sender_emits_explicit_selection_for_exact_gold_star_doorway():
+def test_json_sender_honors_exact_gold_star_no_doorway_authority():
     import asyncio
     import json
 
     query = "What does stewardship mean in the Living Archive?"
     standard = main._resolve_exact_guide_gold_standard(query)
     assert standard is not None
+    assert standard["doorway_title"] == ""
     sent = []
 
     async def capture(message):
@@ -237,9 +238,10 @@ def test_json_sender_emits_explicit_selection_for_exact_gold_star_doorway():
     body = next(item["body"] for item in sent if item.get("type") == "http.response.body")
     result = json.loads(body.decode("utf-8"))
 
-    assert result["doorway_decision"] == "selected"
-    assert result["recommendation"]["title"] == standard["doorway_title"]
-    assert result["doorway_omission_reason"] is None
+    assert result["doorway_decision"] == "omit"
+    assert result["recommendation"] is None
+    assert result.get("canonical_doorway") is None
+    assert "no canonical doorway" in result["doorway_omission_reason"].casefold()
 
 def test_json_sender_honors_explicit_no_handoff_instruction():
     import asyncio
