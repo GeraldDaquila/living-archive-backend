@@ -38,7 +38,7 @@ def main():
     lan_php = read("wordpress/public-living-archive-navigator/living-archive-navigator.php")
     mini_api = read("wordpress/mini-use/class-api.php")
     guide = read("wordpress/guide/woody-snippet-76926-universal.html")
-    guide_controller = read("wordpress/living-archive-guide-v489.324-answer-doorway-standard.js")
+    guide_controller = read("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.329.js")
     lan = read("wordpress/public-living-archive-navigator/03-JavaScript.js")
     mini = read("wordpress/mini-use/mini-use.js")
     fsd_contract = read("fsd_episode_report_contract.py")
@@ -72,11 +72,13 @@ def main():
     assert "responseText.appendChild(block);" in guide_controller
     render_start = guide_controller.index("function renderAuthoritativeRecommendation")
     assert guide_controller.index("if (container) {", render_start) < guide_controller.index("responseText.appendChild(block);", render_start)
+    assert "v489.329-dedicated-doorway-panel" in guide_controller
+    assert "primaryDoorwayClone" not in guide_controller
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
-    assert "var primaryDoorway=text.querySelector" in guide
-    assert "primary.remove()" in guide
-    assert "guide-controller-v489.324.js" in guide
+    assert "primaryDoorwayClone" not in guide
+    assert "text.appendChild(primaryDoorwayClone)" not in guide
+    assert "guide-controller-v489.329.js?ver=489329" in guide
     assert "helper.normalize(recommendation)" in guide_controller
     assert "helper.render(staging, normalized)" in guide_controller
     assert "link.href = url" not in guide_controller

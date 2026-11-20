@@ -707,6 +707,63 @@ body.page,
   }
 }
 
+
+/* Guide v489.259 — mobile readability refinement. Presentation only. */
+@media (max-width: 700px) {
+  .archive-stage-wrapper[data-guide-instance="woody"] .query-assembly {
+    padding: 20px 18px 22px !important; background: #f7f7f7 !important; border-color: #d5d5d5 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .search-subtitle {
+    color: #20242b !important; font-size: 16px !important; line-height: 1.5 !important; font-weight: 600 !important; margin-bottom: 14px !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-query-input {
+    color: #20242b !important; font-size: 17px !important; line-height: 1.5 !important; min-height: 104px !important; padding: 13px 14px !important; border-color: #bfc3c8 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-query-input::placeholder {
+    color: #555b63 !important; font-size: 16px !important; opacity: 1 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .response-box {
+    padding: 20px 17px 22px !important; background: #fff !important; border: 1px solid #d5d8dc !important; box-shadow: 0 5px 18px rgba(0,0,0,.045) !important; color: #20242b !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text {
+    color: #20242b !important; font-size: 18px !important; line-height: 1.65 !important; font-weight: 400 !important; letter-spacing: .002em !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text p,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text li,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text blockquote,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text td,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text th {
+    color: #20242b !important; font-size: 18px !important; line-height: 1.65 !important; font-weight: 400 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h1,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h2,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h3,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h4 {
+    color: #151923 !important; font-weight: 700 !important; line-height: 1.3 !important; margin-top: 1.05em !important; margin-bottom: .5em !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h1 { font-size: 25px !important; }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h2 { font-size: 22px !important; }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h3,
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h4 { font-size: 20px !important; }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text a {
+    color: #174f78 !important; text-decoration: underline !important; text-underline-offset: 2px !important; font-weight: 650 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .archive-recommendation,
+  .archive-stage-wrapper[data-guide-instance="woody"] .archive-inline-recommendation {
+    color: #20242b !important; border-top-color: #c9cdd2 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .archive-recommendation-label {
+    color: #454b54 !important; font-size: 13px !important; line-height: 1.5 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .archive-recommendation-link {
+    color: #20242b !important; font-size: 17px !important; line-height: 1.5 !important;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] .how-it-works-disclosure,
+  .archive-stage-wrapper[data-guide-instance="woody"] .how-it-works-disclosure summary {
+    color: #454b54 !important; font-size: 14px !important; line-height: 1.5 !important;
+  }
+}
+
 </style>
 
 <!-- Guide v489.256: neutralize the controller's self-restoring payload-integrity observer.
@@ -729,7 +786,7 @@ body.page,
   window.WebKitMutationObserver=GuideObserver;
 })();
 </script>
-<script defer src="https://geralddaquila.com/wp-content/plugins/living-archive-answer-doorway-standard/assets/guide-controller-v489.324.js?ver=1" data-jetpack-boost="ignore" data-no-optimize="1" data-no-defer="1"></script>
+<script defer src="https://geralddaquila.com/wp-content/plugins/living-archive-answer-doorway-standard/assets/guide-controller-v489.329.js?ver=489329" data-jetpack-boost="ignore" data-no-optimize="1" data-no-defer="1"></script>
 
 
 
@@ -873,15 +930,20 @@ body.page,
 })();
 </script>
 
-<!-- Guide frontend resilience boundary: v489.257 -->
+<!-- Guide frontend resilience boundary: v489.261 sitewide doorway decision -->
 <script>
 (function () {
   'use strict';
-  if (window.__guideResponseResilienceV489256) return;
-  window.__guideResponseResilienceV489256 = true;
+  if (window.__guideResponseResilienceV489261) return;
+  window.__guideResponseResilienceV489261 = true;
   var form=document.getElementById('archive-search-form'),button=document.getElementById('archive-submit-btn'),box=document.getElementById('archive-response-box'),text=document.getElementById('archive-response-text'),controls=document.getElementById('archive-response-controls');
   if(!form||!button||!box||!text||!window.fetch)return;
   var submittedAt=0,latest=null,originalFetch=window.fetch.bind(window);
+  function hasTerminalDoorwayOmission(payload){
+    // Respect only the backend's explicit final decision; never infer by topic
+    // or by a non-authoritative upstream omission note.
+    return !!(payload && payload.doorway_decision === 'omit');
+  }
   function active(){return submittedAt&&(Date.now()-submittedAt<60000);}
   function normalizeAnswer(raw){
     var answer=String(raw||'');
@@ -896,9 +958,15 @@ body.page,
     return answer.replace(/([^\n])\n{3,}/g,'$1\n\n').replace(/^\s+|\s+$/g,'');
   }
   function renderAnswer(answer){
-    var html=window.marked&&typeof window.marked.parse==='function'
-      ? window.marked.parse(answer)
-      : answer.split(/\n{2,}/).map(function(part){return '<p>'+part.replace(/\n/g,'<br>')+'</p>';}).join('');
+    var html = answer.split(/\n{2,}/).map(function (part) {
+      return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+    if (window.marked) {
+      var markdownParser = window.marked.parse;
+      if (typeof markdownParser === 'function') {
+        html = markdownParser(answer);
+      }
+    }
     if(window.LivingArchiveAnswerDoorway&&typeof window.LivingArchiveAnswerDoorway.sanitizeMarkdown==='function'){
       return window.LivingArchiveAnswerDoorway.sanitizeMarkdown(html);
     }
@@ -907,16 +975,20 @@ body.page,
   function render(payload){
     if(!payload||typeof payload.response!=='string'||!payload.response.trim())return false;
     var answer=normalizeAnswer(payload.response);
+    /* Capture primary-controller output BEFORE replacing the answer. The prior
+       order checked after replaceChildren(), which had already destroyed it. */
+    var terminalOmission=hasTerminalDoorwayOmission(payload);
+    // The primary renderer owns the dedicated sibling doorway panel.
+    // Never capture or transplant a doorway node into the answer body.
+    var recommendation=document.getElementById('archive-recommendation');
+    var existingRecommendation=!terminalOmission&&!!(recommendation&&recommendation.childNodes.length);
     try{
       var safeAnswer=renderAnswer(answer);
       if(safeAnswer)text.replaceChildren(safeAnswer);
-      else text.textContent=answer;
-    }catch(e){text.textContent=answer;}
-    var recommendation=document.getElementById('archive-recommendation');
-    var doorway=payload.recommendation||payload.authoritative_doorway||payload.canonical_doorway||payload.doorway||payload.canonical_recommendation||payload.archive_doorway||null;
-    /* Resilience boundary must never erase a doorway rendered by the primary Guide controller.
-       It supplements the answer only when this intercepted payload itself carries a complete doorway. */
-    var primaryDoorway=text.querySelector('.archive-inline-recommendation');
+      else if(!text.textContent.trim())text.textContent=answer;
+    }catch(e){if(!text.textContent.trim())text.textContent=answer;}
+    var doorway=terminalOmission?null:(payload.recommendation||payload.authoritative_doorway||payload.canonical_doorway||payload.doorway||payload.canonical_recommendation||payload.archive_doorway||null);
+    /* This observer supplements the primary renderer; it must never erase its doorway. */
     if(recommendation&&doorway&&typeof doorway==='object'&&window.LivingArchiveAnswerDoorway&&!primaryDoorway){
       var rationale=typeof doorway.rationale==='string'?doorway.rationale.trim():'';
       var rendered=window.LivingArchiveAnswerDoorway.render(recommendation,{
@@ -925,9 +997,11 @@ body.page,
         rationale:rationale
       });
       recommendation.style.display=rendered?'block':'none';
-    } else if(recommendation){
+    } else if(recommendation&&!existingRecommendation){
       recommendation.replaceChildren();
       recommendation.style.display='none';
+    } else if(recommendation&&existingRecommendation){
+      recommendation.style.display='block';
     }
     box.style.display='block';if(controls)controls.style.display='flex';button.disabled=false;button.classList.remove('is-loading');button.removeAttribute('aria-busy');return true;
   }
