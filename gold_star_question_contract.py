@@ -58,6 +58,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_handoff = _matches_any(normalized, _NO_HANDOFF_PATTERNS)
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
+    reflexive_critique_plan = build_reflexive_critique_plan(normalized)
     task_candidate = (
         {"type": "reflective_inquiry"}
         if _is_personal_stewardship_invitation(normalized)
@@ -65,7 +66,6 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     )
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
-    reflexive_critique_plan = build_reflexive_critique_plan(normalized)
     has_question = "?" in normalized or bool(
         re.match(r"^(?:who|what|when|where|why|how|which|can|could|should|would|is|are|does|do)\b", normalized, re.I)
     )
