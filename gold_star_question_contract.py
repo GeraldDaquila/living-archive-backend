@@ -20,7 +20,7 @@ from personal_reference_resolution import (
     is_teaching_conflict_reference,
 )
 
-VERSION = "1.2"
+VERSION = "1.3"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
@@ -96,6 +96,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             )
         )
     )
+    institutional_learning_failure = task_candidate.get("type") == "institutional_learning_failure" and not multi_intent
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
     has_question = "?" in normalized or bool(
@@ -180,6 +181,32 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         }
         contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
         contract["meta_governance"] = meta_governance_contract
+    elif institutional_learning_failure:
+        contract["domain"] = {
+            "primary": "organizational_systems",
+            "subdomain": "institutional_learning_and_correctability",
+        }
+        contract["requested_outcome"] = (
+            "explain_why_acknowledged_institutional_failures_recur"
+        )
+        contract["reasoning_mode"] = "causal_systems_explanation"
+        contract["evidence"] = {
+            "standard": "general_knowledge_with_case_specific_evidence_boundary",
+            "provenance_required": False,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "dominant_mechanism_in_a_specific_organization_requires_case_evidence"
+        ]
+        contract["response"] = {
+            "shape": "institutional_learning_failure_explanation",
+            "completion_criteria": [
+                "distinguish_public_acknowledgment_from_institutional_learning",
+                "explain_structural_mechanisms_that_reproduce_failure",
+                "connect_understanding_to_changed_action",
+                "offer_a_practical_corrective_test",
+                "calibrate_case_specific_uncertainty",
+            ],
+        }
     elif epistemic_category_distinction:
         contract["domain"] = {
             "primary": "epistemology_and_reasoning",

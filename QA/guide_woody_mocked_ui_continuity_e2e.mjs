@@ -2,19 +2,21 @@ import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
-const EXPECTED_CONTROLLER_ARTIFACT = "living-archive-guide-v489.249-payload-integrity-doorway.js";
+const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.329.js";
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
   "How might this shape the way people make decisions together?",
   "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.",
-  "What is one concrete way to practice this in a neighborhood?"
+  "What is one concrete way to practice this in a neighborhood?",
+  "Why do organizations repeat failures they publicly acknowledge?"
 ];
 const ASSISTANT_ANSWERS = [
   "Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.",
   "People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.",
   "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.",
-  "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"
+  "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?",
+  "Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it. Several mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory. Learning requires consequences to revise what the organization understands and that understanding to change what it does. A practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed. These are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"
 ];
 const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
@@ -155,6 +157,12 @@ await page.route("**/*", async route => {
         url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/",
         rationale: "This article explores how community health depends on shared participation, meaningful voice, and the conditions that let people work through differences."
       };
+    } else if (query === QUESTIONS[4]) {
+      recommendation = {
+        title: "When Experience Can Change Us: The Two Capacities of a Living System",
+        url: "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+        rationale: "This Living Archive essay examines how consequential experience can change an institution's understanding, and how that understanding can or cannot change the way it operates. It is a deeper continuation, not the evidence source for this general explanation."
+      };
     }
   }
 
@@ -174,6 +182,16 @@ await page.route("**/*", async route => {
       intent: "TOPICAL_INQUIRY",
       response: answer,
       recommendation,
+      canonical_doorway: recommendation,
+      authoritative_doorway: recommendation,
+      doorway: recommendation,
+      doorway_title: recommendation?.title || null,
+      doorway_url: recommendation?.url || null,
+      doorway_rationale: recommendation?.rationale || null,
+      doorway_decision: recommendation ? "selected" : "omit",
+      doorway_selection_status: recommendation ? "VERIFIED_RELEVANT_DESTINATION" : "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH",
+      doorway_selection_evaluated: true,
+      doorway_selection_source: recommendation ? "reviewed_conceptual_family" : "bounded_search",
       answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
       processing: "qa_mock",
       route_source: "qa_ui_contract",
@@ -244,9 +262,10 @@ try {
     // response to the page. This direct Promise-based mock isolates the live
     // WordPress controller/UI contract from browser network plumbing.
     window.__guideApiRequests = [];
-    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?"];
-    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
+    const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?","Why do organizations repeat failures they publicly acknowledge?"];
+    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?","Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it. Several mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory. Learning requires consequences to revise what the organization understands and that understanding to change what it does. A practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed. These are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"];
     const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/", rationale: "This article explores how community health depends on shared participation, meaningful voice, and the conditions that let people work through differences." };
+    const institutionalDoorway = { title: "When Experience Can Change Us: The Two Capacities of a Living System", url: "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/", rationale: "This Living Archive essay examines how consequential experience can change an institution's understanding, and how that understanding can or cannot change the way it operates. It is a deeper continuation, not the evidence source for this general explanation." };
     const qaFollowup = "Can you explain your previous answer in simpler terms?";
     const originalFetch = window.fetch.bind(window);
     window.fetch = function(...args) {
@@ -262,10 +281,18 @@ try {
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
+      const selectedDoorway = query === qaQuestions[2] ? recommendation : (query === qaQuestions[4] ? institutionalDoorway : null);
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[2] ? recommendation : null,
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: selectedDoorway,
+        canonical_doorway: selectedDoorway, authoritative_doorway: selectedDoorway, doorway: selectedDoorway,
+        doorway_title: selectedDoorway?.title || null, doorway_url: selectedDoorway?.url || null,
+        doorway_rationale: selectedDoorway?.rationale || null,
+        doorway_decision: selectedDoorway ? "selected" : "omit",
+        doorway_selection_status: selectedDoorway ? "VERIFIED_RELEVANT_DESTINATION" : "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH",
+        doorway_selection_evaluated: true,
+        doorway_selection_source: selectedDoorway ? "reviewed_conceptual_family" : "bounded_search",
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
@@ -339,7 +366,7 @@ try {
     }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
     if (i === 2) {
-      const doorway = root.locator("#archive-response-text .la-answer-doorway");
+      const doorway = root.locator("#archive-recommendation .la-answer-doorway");
       const link = doorway.locator("a.la-answer-doorway__link");
       const rationale = doorway.locator(".la-answer-doorway__rationale");
       await doorway.waitFor({ state: "visible" });
@@ -357,6 +384,25 @@ try {
       }
       mark("canonical_recommendation_link_rendered", linkData);
     }
+    if (i === 4) {
+      const doorway = root.locator("#archive-recommendation .la-answer-doorway");
+      const link = doorway.locator("a.la-answer-doorway__link");
+      const rationale = doorway.locator(".la-answer-doorway__rationale");
+      await doorway.waitFor({ state: "visible" });
+      const rationaleText = (await rationale.innerText()).trim();
+      if (!rationaleText.includes("consequential experience") || !rationaleText.includes("change the way it operates")) {
+        throw new Error("Institutional learning doorway rationale mismatch: " + JSON.stringify(rationaleText));
+      }
+      await link.waitFor({ state: "visible" });
+      const linkData = await link.evaluate(node => ({ title: node.innerText.trim(), href: node.href }));
+      if (linkData.title !== "When Experience Can Change Us: The Two Capacities of a Living System") {
+        throw new Error("Institutional learning doorway title mismatch: " + JSON.stringify(linkData));
+      }
+      if (linkData.href !== "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/") {
+        throw new Error("Institutional learning doorway href mismatch: " + JSON.stringify(linkData));
+      }
+      mark("institutional_learning_doorway_rendered", linkData);
+    }
   }
 
   const panelInput = root.locator("#archive-ordinary-followup-input");
@@ -365,7 +411,7 @@ try {
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
   const replyResponsePromise = page.waitForFunction(
-    () => (window.__guideApiRequests || []).length >= 5,
+    () => (window.__guideApiRequests || []).length >= 6,
     null,
     { timeout: 12_000 }
   );
@@ -384,7 +430,7 @@ try {
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
   // not unrelated questions submitted as separate main-form searches.
-  const expectedHistoryItems = [QUESTIONS[3], ASSISTANT_ANSWERS[3]];
+  const expectedHistoryItems = [QUESTIONS[4], ASSISTANT_ANSWERS[4]];
   const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
   const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
   const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
@@ -403,7 +449,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
+  if (apiRequests.length !== 6) throw new Error("Expected exactly 6 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
   if (pageErrors.length) throw new Error("Uncaught browser errors: " + JSON.stringify(pageErrors));

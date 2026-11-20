@@ -17,9 +17,11 @@ from typing import Any, Dict
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from gold_star_answer_envelope import build_answer_envelope, validate_answer_envelope
 from gold_star_evidence_validation import validate_evidence_payload
+from institutional_learning_failure_contract import is_institutional_learning_failure_question
 
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
+SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure"})
 ANSWER_KEYS = ("response", "answer")
 NON_ANSWER_MARKERS = (
     "i cannot answer that question",
@@ -32,7 +34,7 @@ NON_ANSWER_MARKERS = (
 
 
 def _semantic_shadow(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Observe semantic task fit without enforcing, rewriting, or blocking."""
+    """Observe semantic task fit; supported bounded families are enforced by the v2 gate."""
     try:
         from gold_star_semantic_contract import evaluate_semantic_contract
         result = evaluate_semantic_contract(query, payload)
@@ -158,9 +160,47 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         },
         "personal_reference_resolution": question_contract.get("personal_reference"),
     }
-    # Shadow diagnostics are metadata only. A semantic hard failure is not
-    # promoted into the v2 enforcement status and cannot change the answer.
+    # Semantic observations remain non-enforcing by default. Only the explicitly
+    # supported question families below can contribute bounded v2 requirements.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
+    semantic = result["semantic_shadow"]
+    supported_semantic_type = (
+        semantic.get("question_type") in SEMANTIC_ENFORCED_QUESTION_TYPES
+        or is_institutional_learning_failure_question(query)
+    )
+    if not exact_standard and supported_semantic_type:
+        # A failed or unavailable semantic observer cannot silently downgrade
+        # an explicitly supported task family back to the generic integrity-only floor.
+        semantic_failed = (
+            semantic.get("status") != "review_required"
+            or semantic.get("question_type") not in SEMANTIC_ENFORCED_QUESTION_TYPES
+        )
+        result["semantic_enforcement"] = {
+            "version": "1.0",
+            "mode": "bounded_supported_contract",
+            "status": "fail" if semantic_failed else "pass",
+            "enforced": True,
+            "question_type": semantic.get("question_type"),
+            "failed_checks": semantic.get("failed_checks") or [],
+            "reason": (
+                "supported_semantic_contract_failed"
+                if semantic_failed else "supported_semantic_contract_satisfied"
+            ),
+        }
+        if semantic_failed:
+            result["status"] = "fail"
+            result["reason"] = "supported_semantic_contract_failed"
+    else:
+        result["semantic_enforcement"] = {
+            "version": "1.0",
+            "mode": "bounded_supported_contract",
+            "status": "not_applicable",
+            "enforced": False,
+            "reason": (
+                "exact_gold_standard_immutable"
+                if exact_standard else "no_enforced_supported_question_type"
+            ),
+        }
     return result
 
 

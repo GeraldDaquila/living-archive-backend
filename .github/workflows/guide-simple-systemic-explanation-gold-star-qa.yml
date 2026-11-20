@@ -2,13 +2,22 @@ name: Guide Simple Systemic Explanation Gold Star QA
 
 on:
   push:
-    branches: [gold-star-systemic-explanation-accessibility-reconciled-20261120]
+    branches: [gold-star-systemic-explanation-accessibility-reconciled-20261120, fix/institutional-learning-first-response-20261121]
   pull_request:
     branches: [main]
     paths:
       - "main.py"
       - "simple_systemic_explanation_contract.py"
+      - "institutional_learning_failure_contract.py"
+      - "gold_star_semantic_contract.py"
+      - "gold_star_question_contract.py"
+      - "gold_star_response_floor.py"
       - "tests/test_simple_systemic_explanation_contract.py"
+      - "tests/test_institutional_learning_failure_contract.py"
+      - "tests/test_gold_star_semantic_contract.py"
+      - "tests/test_gold_star_response_floor.py"
+      - "tests/test_gold_star_question_contract.py"
+      - "tests/test_gold_star_answer_envelope.py"
       - ".github/workflows/guide-simple-systemic-explanation-gold-star-qa.yml"
   workflow_dispatch:
 
@@ -33,6 +42,6 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
       - name: Compile runtime units
-        run: python -m py_compile main.py simple_systemic_explanation_contract.py
+        run: python -m py_compile main.py simple_systemic_explanation_contract.py institutional_learning_failure_contract.py gold_star_semantic_contract.py gold_star_question_contract.py gold_star_response_floor.py
       - name: Run focused contract tests
-        run: PYTHONPATH=. python -m pytest -q tests/test_simple_systemic_explanation_contract.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_simple_systemic_explanation_contract.py tests/test_institutional_learning_failure_contract.py tests/test_gold_star_semantic_contract.py tests/test_gold_star_response_floor.py tests/test_gold_star_question_contract.py tests/test_gold_star_answer_envelope.py

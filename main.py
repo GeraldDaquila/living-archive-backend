@@ -271,6 +271,9 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    from institutional_learning_failure_contract import is_institutional_learning_failure_question
+    if is_institutional_learning_failure_question(text):
+        return "institutional_learning_failure"
     if is_stewardship_consent_relationship_question(text):
         return "stewardship_consent_relational_legitimacy"
     # Keep this selector self-contained: it is also exercised as an isolated
@@ -534,6 +537,16 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
     },
     "institutional_extraction_incentives": _institutional_extraction_incentives_doorway(),
+    "institutional_learning_failure": {
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+        "rationale": (
+            "This Living Archive essay examines how consequential experience can "
+            "change an institution's understanding, and how that understanding can "
+            "or cannot change the way it operates. It is a deeper continuation, "
+            "not the evidence source for this general explanation."
+        ),
+    },
     "use_doorway_selection": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
@@ -7890,6 +7903,10 @@ def _guide_finalize_visitor_payload(payload, query):
     # Adapt explanatory depth without sacrificing systemic accuracy; this runs
     # after all retrieval/provider routes and cannot be bypassed by their failures.
     finalized = apply_simple_systemic_explanation_boundary(query, finalized)
+    from institutional_learning_failure_contract import apply_institutional_learning_failure_boundary
+    # Enforce a bounded, source-independent first answer after all provider/retrieval routes.
+    # Frozen exact Gold Standards and safety responses have already exited above.
+    finalized = apply_institutional_learning_failure_boundary(query, finalized)
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
