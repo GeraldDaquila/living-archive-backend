@@ -184,6 +184,21 @@ def test_generic_question_echo_is_replaced_with_a_substantive_first_answer_and_d
     assert result["response_provenance"]["llm_invoked"] is True
 
 
+def test_terminal_doorway_policy_recognizes_the_reviewed_conceptual_family():
+    import main
+
+    assert main._select_verified_doorway_conceptual_family(LIVE_QUESTION) == "institutional_learning_failure"
+    recovered = apply_institutional_learning_failure_boundary(
+        LIVE_QUESTION,
+        {"response": "generic"},
+    )
+    restored = main._guide_restore_verified_doorway(recovered, LIVE_QUESTION)
+    assert restored["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
+    assert restored["doorway_selection_source"] == "reviewed_conceptual_family"
+    assert restored["recommendation"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
+    assert restored["doorway_url"] == restored["recommendation"]["url"]
+
+
 def test_substantive_answer_is_preserved_but_verified_doorway_is_restored():
     answer = build_institutional_learning_failure_response()
     result = apply_institutional_learning_failure_boundary(
