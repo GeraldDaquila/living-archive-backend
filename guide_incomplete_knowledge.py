@@ -66,7 +66,7 @@ def build_incomplete_knowledge_plan(query: str) -> dict[str, Any] | None:
 
 
 
-_RECOVERY_RESPONSE = """Begin by making the knowledge state explicit. Separate what is directly observed or established from what you infer, what you are assuming, and what remains unknown. Include the situated knowledge of people who will bear the consequences; it may reveal a risk or constraint missing from the formal account. State how confident you are and what evidence would change your view.
+_RECOVERY_RESPONSE = """Begin by making the knowledge state explicit. Separate established facts—what is directly observed—from what you infer, what you are assuming, and what remains unknown. Include the situated knowledge of people who will bear the consequences; it may reveal a risk or constraint missing from the formal account. State how confident you are and what evidence would change your view.
 
 Then decide what the situation permits now. Weigh the stakes and urgency, who may be harmed or burdened, your legitimate authority and capacity, and whether the action is genuinely reversible. If delay is safe, take a proportionate, low-regret step that preserves options while you verify assumptions or test the least risky alternative. If waiting would expose people to serious or imminent harm, take the least harmful protective action within your authority, explain the uncertainty, and seek appropriate expertise or escalation. Do not treat reversibility or consultation as a substitute for consent and legitimacy.
 
