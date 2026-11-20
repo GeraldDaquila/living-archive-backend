@@ -18,8 +18,8 @@ VERSION = "1.1"
 def is_event_pattern_structure_question(query: str) -> bool:
     q = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
     asks_distinction_or_definition = bool(re.search(
-        r"\b(?:difference|distinguish|distinction|differentiate|compare|"
-        r"relationship|relate|interact|become|define|definition|mean|means)\b",
+        r"\b(?:difference|differ|differing|distinguish|distinction|differentiate|compare|"
+        r"relationship|relate|interact|become|define|definition|explain|explanation|mean|means)\b",
         q,
     )) or bool(re.search(r"\bwhat\s+(?:is|are)\b", q))
     names_event = bool(re.search(r"\bevents?\b", q))
