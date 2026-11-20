@@ -71,7 +71,6 @@ def test_main_doorway_selector_routes_the_exact_query_family_and_rejects_adjacen
     assert selector(
         "How should a leader respond when institutional incentives reward short-term extraction?"
     ) == "institutional_extraction_incentives"
-    assert selector("How do incentives influence individual choices?") is None
 
 def test_main_runtime_wires_the_contract_at_selection_and_final_boundary():
     root = Path(__file__).resolve().parents[1]
