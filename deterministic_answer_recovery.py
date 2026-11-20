@@ -53,7 +53,7 @@ def compose_definition_significance(subject):
     # for both the community-purpose query and the earlier Archive-framed wording.
     # Keep the answer general-knowledge: the Archive essay remains a separate
     # continuation, not the evidentiary source of this explanation.
-    if re.sub(r"\\s+", " ", subject).strip().casefold() == "reciprocity":
+    if re.sub(r"\s+", " ", subject).strip().casefold() == "reciprocity":
         return (
             "Reciprocity means people support one another over time. It does not mean keeping "
             "score or expecting every act to be repaid immediately or in equal measure. People "
