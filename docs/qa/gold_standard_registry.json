@@ -8165,9 +8165,75 @@
       "user_approved_at": "2026-11-20",
       "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-21-organizational-acknowledgment-without-learning",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Why do organizations repeat failures they publicly acknowledge?",
+      "expected_response": "Because acknowledging failure and changing the conditions that produced it are two different things. Public acknowledgment demonstrates that a problem has been recognized. It does not, by itself, show that the organization has learned or changed its conduct.\n\nSeveral mechanisms can keep the same failure recurring:\n\n1. Recognition without changed practice. Reports, apologies, and public commitments may describe what went wrong while procedures, decision rules, and everyday routines remain substantially unchanged.\n\n2. Incentives that still reward the old behavior. Staff may be told to prevent a failure while still being rewarded for short-term targets, speed, cost-cutting, or protecting the organization's reputation. The operating pressure continues driving the old behavior.\n\n3. Responsibility without authority. Many people may acknowledge the problem, but no one has clear ownership, sufficient authority, or resources to carry the correction through.\n\n4. Information that cannot change the organization's understanding. Bad news may be filtered, dissent discouraged, or measures chosen that hide the consequences experienced by the people affected. The organization collects information without allowing it to challenge its assumptions.\n\n5. Lessons that never become institutional memory. Findings may not be built into budgets, training, procedures, decision criteria, or follow-up reviews. When attention moves on or staff leave, the same conditions return.\n\nThe deeper distinction is between learning to describe a failure and becoming capable of changing the system that reproduces it. Learning requires both an organizational memory that holds the lesson and the capacity to change the conditions and institutions through which the behavior was produced.\n\nA practical test is to ask: Who owns the correction? What authority and resources do they have? When do incentives, procedures, or decision rules change? What outcomes will be measured, and when will the organization review whether the change worked? If those links are missing, acknowledgment may have occurred without effective correction.\n\nThese are common mechanisms, not a diagnosis of every organization. Identifying the dominant cause in a particular case requires evidence about its decisions, incentives, accountability, and follow-through. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?",
+      "expected_doorway": {
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+        "rationale": "This essay explores how consequential experience can change understanding and how understanding may or may not develop into the capacity for action. It is a deeper continuation, not new evidence for the organizational explanation."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.2,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STANDARD — LIVE RESPONSE REVIEWED; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "On 2026-11-21, the user supplied a screenshot of the live Guide response to this exact question, reviewed the assistant's assessment (9.2/10; strong Gold Star candidate), and explicitly instructed: “proceed, add to gold star registry. elevate it.” This authorizes this observed response and its bounded organizational-learning discipline for Gold Star elevation.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "organizational_acknowledgment_without_institutional_learning",
+      "transferable_lesson": "Explain why public acknowledgment does not itself constitute organizational learning or correction. Distinguish recognition from changed practice, identify reinforcing mechanisms such as unchanged routines, misaligned incentives, responsibility without authority, filtered information, and lessons not embedded in institutional memory. Connect learning to both retaining lessons and having the authority and capacity to change the conditions that reproduce failure. Offer a practical test of ownership, authority, resources, changed incentives/procedures, measurable outcomes, and review. Treat these as possible mechanisms rather than diagnosing a particular organization without evidence.",
+      "transfer_boundary": "Apply to questions about organizations repeating failures despite public acknowledgment, apologies, reports, or stated commitments. Do not assume every organization exhibits all five mechanisms, diagnose a named organization without evidence, or equate public acknowledgment with learning or effective correction. Keep the distinction between learning to describe failure and becoming capable of changing its reproducing conditions. Do not transfer the exact answer or doorway to unrelated questions.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "organizational_acknowledgment_without_institutional_learning",
+        "transferable_discipline": "Explain why public acknowledgment does not itself constitute organizational learning or correction. Distinguish recognition from changed practice, identify reinforcing mechanisms such as unchanged routines, misaligned incentives, responsibility without authority, filtered information, and lessons not embedded in institutional memory. Connect learning to both retaining lessons and having the authority and capacity to change the conditions that reproduce failure. Offer a practical test of ownership, authority, resources, changed incentives/procedures, measurable outcomes, and review. Treat these as possible mechanisms rather than diagnosing a particular organization without evidence.",
+        "abstention_boundary": "Apply to questions about organizations repeating failures despite public acknowledgment, apologies, reports, or stated commitments. Do not assume every organization exhibits all five mechanisms, diagnose a named organization without evidence, or equate public acknowledgment with learning or effective correction. Keep the distinction between learning to describe failure and becoming capable of changing its reproducing conditions. Do not transfer the exact answer or doorway to unrelated questions."
+      },
+      "assertions": [
+        "Answer directly that acknowledging failure and changing the conditions that produced it are different things.",
+        "Distinguish public recognition from evidence that the organization has learned or changed its conduct.",
+        "Identify five possible recurrence mechanisms: unchanged practice, incentives rewarding old behavior, responsibility without authority, information unable to challenge organizational understanding, and lessons not embedded in institutional memory.",
+        "Explain that organizational learning requires both memory that retains lessons and capacity to change the conditions and institutions reproducing the behavior.",
+        "Provide a practical test covering ownership, authority, resources, changed incentives/procedures/decision rules, measurable outcomes, and review.",
+        "Present the mechanisms as possibilities, not a diagnosis of every organization.",
+        "Use the verified canonical essay as a continuation, not as evidence for the organizational explanation."
+      ],
+      "known_theme": "organizational learning, public acknowledgment, repeated failures, institutional memory, incentives, accountability, authority, organizational change, feedback, corrective action",
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide visitor-facing response, followed by explicit user approval for Gold Star elevation.",
+        "source_date": "2026-11-21",
+        "live_surface": "The Guide visitor-facing query response",
+        "evidence_boundary": "The screenshot establishes the exact visitor question, substantive answer, follow-up prompt, and displayed canonical doorway. The user explicitly authorized Gold Star elevation after reviewing the response assessment. Approval authorizes bounded structural learning; it does not establish deterministic fallback eligibility or an evidence-based diagnosis of any particular organization.",
+        "canonical_doorway_verification": {
+          "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+          "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+          "verification_source": "Existing canonical registry reference general-guide-original-gold-standard-08-2026-10-21.",
+          "verification_date": "2026-11-21"
+        },
+        "review_assessment": "Assistant assessment: 9.2/10 for directness, five-mechanism structural diagnosis, institutional-learning synthesis, practical diagnostic test, calibrated scope, and relevant canonical continuation."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation and registry registration but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "exact_answer_authority": false,
+      "active_quality_contributor": true,
+      "deterministic_fallback_eligible": false,
+      "approval_date": "2026-11-21",
+      "approval_evidence": "User explicitly instructed “proceed, add to gold star registry. elevate it.” after reviewing the exact live visitor response and its assessment.",
+      "user_approved_at": "2026-11-21",
+      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
+      "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "2026-11-20: User explicitly approved the Trust community stewardship candidate for Gold Star elevation. The exact candidate answer is frozen as USER_APPROVED_GOLD_STANDARD with a verified Trust Architecture doorway and bounded structural-learning discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
+  "last_reconciliation_note": "2026-11-21: User explicitly elevated the live Guide response to “Why do organizations repeat failures they publicly acknowledge?” as a Gold Star. The exact screenshot-observed response is frozen with a verified canonical continuation and bounded organizational-learning discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8297,20 +8363,20 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 129,
-    "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
+    "approved_gold_star_count": 130,
+    "registry_record_count": 166,
+    "review_reconciliation": "Canonical approved inventory is 130 records: 128 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
-    "unassigned_approved_gold_star_count": 90,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 130 approved Gold Stars; 39 assigned display serials #56–#94; 91 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the newly elevated organizational-acknowledgment exemplar.",
+    "unassigned_approved_gold_star_count": 91,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 127,
+    "active_quality_contributor_count": 128,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
+    "last_approval": "gs-2026-11-21-organizational-acknowledgment-without-learning approved by user 2026-11-21"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8408,20 +8474,20 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 129,
-    "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
+    "last_audit_date": "2026-11-21",
+    "approved_gold_star_count": 130,
+    "registry_record_count": 166,
+    "review_reconciliation": "Canonical approved inventory is 130 records: 128 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
-    "unassigned_approved_gold_star_count": 90,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 130 approved Gold Stars; 39 assigned display serials #56–#94; 91 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the newly elevated organizational-acknowledgment exemplar.",
+    "unassigned_approved_gold_star_count": 91,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 127,
+    "active_quality_contributor_count": 128,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
+    "last_approval": "gs-2026-11-21-organizational-acknowledgment-without-learning approved by user 2026-11-21"
   }
 }

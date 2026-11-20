@@ -1139,6 +1139,15 @@
       "qualifying_context": "Visitors asking about the role, purpose, or relationship of trust and stewardship in community life, including shared responsibilities, mutual reliance, and sustained cooperation.",
       "abstention_boundary": "Apply only to questions about the role or relationship of trust and stewardship in community life, including close paraphrases. Do not transfer the exact answer or doorway to generic trust definitions, organizational trust repair, interpersonal trust, reciprocity, or unrelated governance questions. Do not imply trust is blind, guaranteed, or sufficient without observable conduct and accountability. Do not treat the Trust Architecture doorway as evidence for the general explanation or as a substitute for answering.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-21-organizational-acknowledgment-without-learning",
+      "question": "Why do organizations repeat failures they publicly acknowledge?",
+      "reasoning_family": "organizational_acknowledgment_without_institutional_learning",
+      "transferable_discipline": "Explain why public acknowledgment does not itself constitute organizational learning or correction. Distinguish recognition from changed practice, identify reinforcing mechanisms such as unchanged routines, misaligned incentives, responsibility without authority, filtered information, and lessons not embedded in institutional memory. Connect learning to both retaining lessons and having the authority and capacity to change the conditions that reproduce failure. Offer a practical test of ownership, authority, resources, changed incentives/procedures, measurable outcomes, and review. Treat these as possible mechanisms rather than diagnosing a particular organization without evidence.",
+      "qualifying_context": "Visitors asking why organizations repeat failures despite publicly acknowledging them, issuing apologies or reports, or making commitments to change, including close paraphrases.",
+      "abstention_boundary": "Apply to questions about organizations repeating failures despite public acknowledgment, apologies, reports, or stated commitments. Do not assume every organization exhibits all five mechanisms, diagnose a named organization without evidence, or equate public acknowledgment with learning or effective correction. Keep the distinction between learning to describe failure and becoming capable of changing its reproducing conditions. Do not transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
