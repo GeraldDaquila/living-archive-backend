@@ -12,32 +12,32 @@ VERSION = "1.0"
 
 
 def is_stewardship_consent_relationship_question(query: str) -> bool:
-    text = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
-    pair = bool(re.search(r"\\bstewardship\\b", text) and re.search(r"\\bconsent\\b", text))
+    text = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
+    pair = bool(re.search(r"\bstewardship\b", text) and re.search(r"\bconsent\b", text))
     relational = bool(re.search(
-        r"\\b(?:relationship|relate|related|connection|connect|interplay|interaction|interact|"
-        r"between|together|complementary|complement|how do .* work)\\b",
+        r"\b(?:relationship|relate|related|connection|connect|interplay|interaction|interact|"
+        r"between|together|complementary|complement|how do .* work)\b",
         text,
     ))
     return pair and relational
 
 
 def has_stewardship_consent_relationship_explanation(response: str) -> bool:
-    text = re.sub(r"\\s+", " ", str(response or "").casefold())
-    stewardship = bool(re.search(r"\\bstewardship\\b", text) and re.search(
-        r"\\b(?:entrusted responsibility|responsibility to care|duty of care)\\b", text
+    text = re.sub(r"\s+", " ", str(response or "").casefold())
+    stewardship = bool(re.search(r"\bstewardship\b", text) and re.search(
+        r"\b(?:entrusted responsibility|responsibility to care|duty of care)\b", text
     ))
-    consent = bool(re.search(r"\\bconsent\\b", text) and re.search(
-        r"\\b(?:informed|voluntary|specific)\\b", text
+    consent = bool(re.search(r"\bconsent\b", text) and re.search(
+        r"\b(?:informed|voluntary|specific)\b", text
     ))
-    authority = bool(re.search(r"\\b(?:authority|authorized role|decision-making power)\\b", text))
-    agency = bool(re.search(r"\\b(?:agency|affected people|people affected|those affected)\\b", text))
-    distinction = bool(re.search(r"\\bconsultation\\b", text))
-    boundary = bool(re.search(r"\\b(?:refus\\w*|withdraw\\w*|renegotiat\\w*)\\b", text))
-    proportionality = bool(re.search(r"\\b(?:routine|ordinary)\\b", text) and re.search(
-        r"\\b(?:not every|does not mean every|doesn't mean every)\\b", text
+    authority = bool(re.search(r"\b(?:authority|authorized role|decision-making power)\b", text))
+    agency = bool(re.search(r"\b(?:agency|affected people|people affected|those affected)\b", text))
+    distinction = bool(re.search(r"\bconsultation\b", text))
+    boundary = bool(re.search(r"\b(?:refus\w*|withdraw\w*|renegotiat\w*)\b", text))
+    proportionality = bool(re.search(r"\b(?:routine|ordinary)\b", text) and re.search(
+        r"\b(?:not every|does not mean every|doesn't mean every)\b", text
     ))
-    relation = bool(re.search(r"\\b(?:complementary|complement|together|keeps|ensures|limits)\\b", text))
+    relation = bool(re.search(r"\b(?:complementary|complement|together|keeps|ensures|limits)\b", text))
     return all((stewardship, consent, authority, agency, distinction, boundary, proportionality, relation))
 
 
