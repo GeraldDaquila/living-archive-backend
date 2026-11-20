@@ -155,7 +155,7 @@ else:
 # Runtime provenance must identify the source actually serving requests.
 # Human release labels may remain stable across commits, but acceptance and
 # forensics must never mistake a label for the deployed source revision.
-APP_VERSION = "v489.311"
+APP_VERSION = "v489.312"
 _DEPLOYED_SOURCE_COMMIT = (
     os.getenv("RENDER_GIT_COMMIT")
     or os.getenv("GIT_COMMIT")
@@ -163,12 +163,12 @@ _DEPLOYED_SOURCE_COMMIT = (
     or "source-commit-unavailable"
 )
 # Stable release identity retained for canonical QA and human release tracing.
-DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
+DEPLOYMENT_FINGERPRINT = "USE-v489.312-source-derived"
 # Runtime provenance is intentionally separate from the stable release identity.
 # The deployed source revision is the authoritative request-to-deployment key.
 RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
 # Canonical build ID remains a stable release-contract identity.
-CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.312-canonical"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -897,7 +897,7 @@ RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Preserve the canonical release-label invariant while source revision remains
 # a separate provenance identity.
-if str(APP_VERSION) != "v489.311":
+if str(APP_VERSION) != "v489.312":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 # Runtime provenance integrity is a startup invariant. Release labels and
 # source revisions are deliberately separate identities.
