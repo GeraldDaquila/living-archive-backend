@@ -1569,7 +1569,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 131
     assert registry["integrity_audit"]["approved_gold_star_count"] == 131
     assert registry["integrity_audit"]["registry_record_count"] == 167
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 91
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 92
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
     assert entry["reasoning_family"] == "formal_informal_institutional_dynamics"
@@ -1628,9 +1628,9 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 131
     assert registry["integrity_audit"]["approved_gold_star_count"] == 131
-    assert registry["integrity_audit"]["registry_record_count"] == 166
+    assert registry["integrity_audit"]["registry_record_count"] == 167
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 91
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 92
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
@@ -1699,9 +1699,9 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 131
     assert registry["integrity_audit"]["approved_gold_star_count"] == 131
-    assert registry["integrity_audit"]["registry_record_count"] == 166
+    assert registry["integrity_audit"]["registry_record_count"] == 167
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 91
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 92
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
@@ -1771,7 +1771,7 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
 
     assert len(approved) == audit["approved_gold_star_count"] == 131
     assert len(assigned) == audit["numbered_gold_star_record_count"] == 39
-    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 91
+    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 92
     assert len(assigned) + len(unassigned) == len(approved)
     assert "131 approved Gold Stars" in narrative
     assert "39 assigned display serials" in narrative
@@ -1824,9 +1824,9 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     assert adjacent["benchmark_id"] != fixture["benchmark_id"]
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 131
     assert registry["integrity_audit"]["approved_gold_star_count"] == 131
-    assert registry["integrity_audit"]["registry_record_count"] == 166
+    assert registry["integrity_audit"]["registry_record_count"] == 167
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 91
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 92
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
