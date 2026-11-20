@@ -2258,3 +2258,21 @@ def test_institutional_extraction_incentive_governance_gold_star_is_registered_a
     assert review["activation"] == "active_quality_contributor"
     assert "delayed costs" in review["transferable_discipline"]
     assert "governing-body mandate" in review["transferable_discipline"]
+
+
+def test_latest_institutional_extraction_gold_star_reconciles_with_active_review_pool():
+    registry = _registry()
+    benchmark_id = "gs-2026-11-20-institutional-extraction-incentive-governance"
+    approved = [item for item in registry["records"] if item.get("status") == "USER_APPROVED_GOLD_STANDARD"]
+    record = next(item for item in approved if item["benchmark_id"] == benchmark_id)
+    assert len(registry["records"]) == 161
+    assert len(approved) == 122
+    assert registry["integrity_audit"]["active_quality_contributor_count"] == 120
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    reviews = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    assert len(reviews["entries"]) == 120
+    assert any(item["benchmark_id"] == benchmark_id and item["activation"] == "active_quality_contributor" for item in reviews["entries"])
