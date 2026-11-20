@@ -4192,6 +4192,13 @@ def _is_fsd_request(query):
     if re.search(r"\bfsd\b", q, re.I):
         return True
 
+    # A recognized bounded problem-framing task is Guide-owned even when it
+    # mentions a "system problem". Do not let the generic natural-language
+    # FSD heuristic steal a conceptual question that has a complete Guide
+    # task capability. Explicit FSD naming above remains authoritative.
+    if _compose_task_specific_recovery(query) is not None:
+        return False
+
     # Human agency, role, and responsibility questions are Guide-owned
     # explanatory requests, even when they describe a broken system or use
     # diagnostic-sounding vocabulary. Answer the person's question first;
