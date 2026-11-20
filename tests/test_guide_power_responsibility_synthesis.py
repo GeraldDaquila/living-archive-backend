@@ -49,3 +49,6 @@ def test_final_boundary_and_shared_composer_contract_are_wired():
     assert '_final_route["provider_present"] = False' in main
     assert '_floor_envelope["evidence"] = {' in main
     assert '_final_quality_floor["evidence_validation"] = _final_evidence_validation' in main
+    assert "def _guide_sync_power_responsibility_final_metadata(payload)" in main
+    assert "safe_payload = _guide_sync_power_responsibility_final_metadata(safe_payload)" in main
+    assert 'floor_route["provider_present"] = False' in main
