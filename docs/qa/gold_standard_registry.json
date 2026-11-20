@@ -7508,7 +7508,7 @@
     },
     {
       "benchmark_id": "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20",
-      "status": "CANDIDATE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What counts as evidence, interpretation, hypothesis, and normative judgment?",
       "expected_response": "These four terms describe different kinds of work in reasoning. They are connected, but they are not interchangeable.\n\nEvidence is information that bears on a claim: for example, observations, measurements, records, documents, or testimony. Evidence is not automatically strong just because it exists. Its weight depends on where it came from, how it was gathered, whether it is relevant to the claim, whether independent sources converge, and what counterevidence or uncertainty remains. Evidence constrains what can responsibly be said, but it does not interpret itself.\n\nInterpretation is the meaning we assign to evidence in context. It connects observations to a possible explanation or significance. Interpretations are necessary, but they are shaped by assumptions, prior knowledge, interests, and the frame through which a situation is viewed. A careful interpretation makes those assumptions visible and remains open to revision when the evidence does not fit.\n\nA hypothesis is a provisional explanation or proposition that can be investigated. It should generate expectations: what would we expect to observe if it were a useful explanation, and what evidence would count against it? A hypothesis is not an established fact; it is a disciplined possibility that inquiry may strengthen, qualify, or reject.\n\nA normative judgment evaluates what ought to be done, what is right or fair, or what deserves priority. It draws on values, principles, duties, and judgments about consequences. Evidence matters because it helps establish what is happening and what different choices may cause, but a conclusion about what ought to happen does not follow from facts alone. The values and principles doing the evaluative work should be stated and open to reasoned challenge.\n\nThe relationship is iterative, not a rigid one-way ladder: evidence constrains interpretation; interpretation can suggest a hypothesis; a hypothesis guides what further evidence to seek; and normative judgment weighs the likely consequences alongside explicit values. A policy example makes the distinction concrete: service records showing that a district receives fewer clinic visits are evidence; reading that pattern as a sign of poor access is an interpretation; proposing that longer clinic hours would improve access is a hypothesis to test; deciding whether to fund those hours is a normative judgment involving fairness, need, cost, and public responsibility.\n\nA useful check is to ask four separate questions: What is observed and where did it come from? What meaning am I assigning to it? What explanation could be tested, and what might disconfirm it? Which values or principles support the judgment I am making? Keeping those questions distinct helps prevent an interpretation from masquerading as evidence, a hypothesis from becoming certainty, or a value judgment from being presented as a purely factual conclusion.",
@@ -7528,14 +7528,36 @@
         "Do not transfer this exact answer, example, or any doorway to unrelated questions."
       ],
       "provenance": {
-        "source": "User-supplied visitor-facing Guide response text in the current review.",
+        "source": "User-supplied visitor-facing Guide response, exact query recovered from the review conversation, production runtime correction, Standalone QA evidence, and explicit user approval.",
         "source_date": "2026-11-20",
-        "live_surface": "The Guide visitor-facing response",
-        "evidence_boundary": "The exact visitor query and complete response text are recovered from the 2026-11-20 conversation. Before this runtime correction, the canonical-candidate retrieval results, source-inspection evidence, selector decision trace, and production-render verification were not available. The observed missing doorway therefore could not be certified as intentional abstention.",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The exact visitor query and response are preserved verbatim. The doorway-selection correction passed the targeted regression suite and Guide composition QA and was deployed to both production services. The user explicitly approved Gold Star elevation after deployment. The original response's missing doorway remains NOT_EVALUATED; this approval does not certify intentional omission or a post-deployment rendered outcome.",
         "review_assessment": "Assistant assessment: 9.4/10 for the substantive response. This is an assessment score, not a user-supplied rating or Gold Star approval.",
-        "runtime_followup": "A runtime correction is under test to ensure retrieval-free answer-first routes still receive an independent bounded canonical doorway evaluation. Candidate status remains unchanged pending Standalone QA, production deployment, and live visitor acceptance."
+        "runtime_followup": "A runtime correction is under test to ensure retrieval-free answer-first routes still receive an independent bounded canonical doorway evaluation. Candidate status remains unchanged pending Standalone QA, production deployment, and live visitor acceptance.",
+        "production_application_commit": "c6e370f2649a37207b908cfa6c8f4db2f8742423",
+        "standalone_qa": "163 targeted regression tests passed; Guide composition QA V489.243 passed."
       },
-      "freeze_policy": "Candidate only. Do not promote to USER_APPROVED_GOLD_STANDARD, enable runtime_transfer, allocate a Gold Star serial, or treat the blank doorway as an approved omission until the exact query, canonical candidate evaluation, applicable omission authority, regression tests, and user-reviewed live behavior are evidenced."
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "rating_out_of_10": 9.4,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly approved Gold Star elevation after the independent doorway-selection correction passed Standalone QA and was deployed to both production services on 2026-11-20. Approval covers the exact epistemic-category response and the transferable discipline of separating answer formation from evidenced doorway selection. It does not certify that the original missing doorway was an intentional omission.",
+      "runtime_transfer": false,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_quality_governance_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "guide_doorway_selection_evidence_governance",
+        "transferable_discipline": "Keep answer formation independent from resource retrieval while evaluating doorway selection independently. Record whether a canonical destination was verified, no relevant destination survived completed bounded checks, retrieval or source verification failed, selection was not evaluated, or omission was authorized under the existing contract. Never treat an absent link as evidence of intentional restraint; preserve existing relevance, access, risk, refusal, and omission boundaries.",
+        "abstention_boundary": "Do not infer that the original missing doorway was intentional; its observed state remains NOT_EVALUATED. Do not expand omission authority, force a doorway onto meta-policy questions, transfer the exact answer or any doorway to unrelated queries, or enable runtime learning until separate live visitor acceptance and transfer review."
+      },
+      "user_approved_at": "2026-11-20",
+      "elevation_approval_evidence": "The user explicitly approved (“approved”) after the independent doorway-selection correction had passed Standalone QA (163 targeted tests passed; Guide composition QA passed), merged to main, and deployed live to Gerald workspace primary and USE2 mirror. Approval covers Gold Star elevation of the exact answer and its bounded governance discipline. The user did not provide a new screenshot of the exact query after deployment; therefore the historical doorway outcome remains NOT_EVALUATED and runtime transfer remains disabled pending separate live acceptance.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Added candidate general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20 on 2026-11-20. The supplied response is preserved as a candidate response-quality reference; the missing doorway is explicitly NOT_EVALUATED because no canonical-candidate retrieval or selector trace was supplied. This is not a Gold Star approval, does not change the approved count, and grants no runtime-transfer authority.",
@@ -7668,18 +7690,18 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 117,
+    "approved_gold_star_count": 118,
     "registry_record_count": 156,
-    "review_reconciliation": "Canonical approved inventory remains unchanged at 117 approved-status records. Registry record count increases to 156 with one additional CANDIDATE record for doorway non-selection evidence governance; the candidate is excluded from approved Gold Star and active quality-contributor counts.",
+    "review_reconciliation": "Canonical approved inventory is 118 approved-status records. Registry record count remains 156. This includes one newly user-approved Gold Star for epistemic-category distinctions and doorway-selection evidence governance. The approved record is not yet an active quality contributor or runtime-transfer authority; those counts remain unchanged pending separate live visitor acceptance and transfer review.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 117 approved Gold Stars; 39 assigned display serials #56–#94; 78 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the newly elevated Guide coverage-governance exemplar remains unnumbered.",
-    "unassigned_approved_gold_star_count": 78,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 118 approved Gold Stars; 39 assigned display serials #56–#94; 79 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the newly approved Guide doorway-selection evidence-governance exemplar remains unnumbered because no display serial was separately requested.",
+    "unassigned_approved_gold_star_count": 79,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 115,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 1
+    "pending_approval_evidence_count": 0
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -7775,5 +7797,20 @@
       "allocation_class": "explicit_user_authorized_numbering_migration",
       "authority": "The user's explicit instruction “elevate!” on 2026-11-18, following review of the live visitor-facing answer. This authorizes the next contiguous display serial #94; no existing serial is changed."
     }
-  ]
+  ],
+  "audit": {
+    "last_audit_date": "2026-11-20",
+    "approved_gold_star_count": 118,
+    "registry_record_count": 156,
+    "review_reconciliation": "Canonical approved inventory is 118 approved-status records. Registry record count remains 156. This includes one newly user-approved Gold Star for epistemic-category distinctions and doorway-selection evidence governance. The approved record is not yet an active quality contributor or runtime-transfer authority; those counts remain unchanged pending separate live visitor acceptance and transfer review.",
+    "numbered_gold_star_record_count": 39,
+    "highest_assigned_gold_star_number": 94,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 118 approved Gold Stars; 39 assigned display serials #56–#94; 79 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the newly approved Guide doorway-selection evidence-governance exemplar remains unnumbered because no display serial was separately requested.",
+    "unassigned_approved_gold_star_count": 79,
+    "documented_numbering_gap_count": 0,
+    "active_quality_contributor_count": 115,
+    "exact_query_only_successor_count": 1,
+    "superseded_historical_reference_count": 1,
+    "pending_approval_evidence_count": 0
+  }
 }
