@@ -6062,6 +6062,33 @@ def _guide_restore_verified_doorway(payload, query):
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
+
+    # Trust-in-community-stewardship has a reviewed, query-specific doorway.
+    # Resolve it before generic retrieval/relevance fallbacks: a transient
+    # canonical-search failure must not erase a destination already selected
+    # by the bounded Trust contract. Exact Gold Star records remain authoritative.
+    if (
+        exact_standard is None
+        and _is_trust_community_stewardship_question(query)
+    ):
+        trust_doorway = _normalize_authoritative_recommendation(
+            _trust_community_stewardship_canonical_recommendation(query)
+        )
+        if trust_doorway is not None:
+            safe["recommendation"] = trust_doorway
+            safe["canonical_doorway"] = trust_doorway
+            safe["authoritative_doorway"] = trust_doorway
+            safe["doorway_title"] = trust_doorway["title"]
+            safe["doorway_url"] = trust_doorway["url"]
+            safe["doorway_rationale"] = trust_doorway["rationale"]
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "reviewed_trust_community_stewardship_contract"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     exact_gold_star_omission = (
         exact_standard is not None
         and _gold_star_doorway_omission_is_justified(exact_standard)
