@@ -1308,13 +1308,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-stewardship-incomplete-knowledge",
+      "question": "How should a steward act amid incomplete knowledge?",
+      "family": "consequential_action_under_uncertainty",
+      "structural_lesson": "Separate established facts, inference, assumptions, material unknowns, and missing perspectives; calibrate confidence to evidence; assess stakes, urgency, affected people, legitimate authority, capacity, and reversibility; distinguish safe action now from verification, testing, consultation, escalation, or pause; choose proportionate safeguards; define observable monitoring signals, accountable ownership, review triggers, and continuation, adaptation, reversal, or stopping conditions; preserve human decision authority and accountability.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "47927084865b1260c5f7f1442db0b98449183dd4",
-    "qualitative_transfer_review_entries": 118,
-    "general_purpose_runtime_transfer_records": 114,
-    "map_entries": 114
+    "registry_content_sha": "b797e3f4afe1911456e2afa3d2208b54ec95f231",
+    "qualitative_transfer_review_entries": 119,
+    "general_purpose_runtime_transfer_records": 115,
+    "map_entries": 115
   }
 }
