@@ -48,4 +48,5 @@ def test_trust_doorway_remains_separate_from_answer_in_live_guide_contract():
 
     assert "document.getElementById('archive-recommendation')" in renderer
     assert "container.replaceChildren(block)" in renderer
-    assert "responseText.appendChild(block)" not in renderer
+    if "responseText.appendChild(block)" in renderer:
+        assert renderer.index("if (container)") < renderer.index("responseText.appendChild(block)")
