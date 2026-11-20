@@ -114,9 +114,8 @@ from institutional_extraction_incentives_contract import (
 )
 from stewardship_consent_contract import (
     is_stewardship_consent_relationship_question,
-    recovery_response as _stewardship_consent_recovery,
     canonical_doorway as _stewardship_consent_doorway,
-    has_stewardship_consent_relationship_explanation,
+    apply_stewardship_consent_relationship_boundary as _apply_stewardship_consent_relationship_boundary,
 )
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
@@ -6357,28 +6356,12 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     # Stewardship/consent is a relational synthesis obligation shared by every
-    # provider and recovery route. Enforce it before broad stewardship fallbacks;
-    # keep the canonical continuation independent from the substantive answer.
+    # provider and recovery route. Delegate repair to the tested contract module,
+    # then normalize its independently selected canonical continuation.
     if is_stewardship_consent_relationship_question(query):
-        safe = dict(payload)
-        current = str(safe.get("response") or safe.get("answer") or "").strip()
-        if not has_stewardship_consent_relationship_explanation(current):
-            safe["response"] = _sanitize_basic_inquiry_response(
-                _stewardship_consent_recovery()
-            )
-            if "answer" in safe:
-                safe["answer"] = safe["response"]
-            safe["response_provenance"] = {
-                "class": "deterministic_recovery",
-                "provider": "stewardship_consent_relational_contract",
-                "model": None,
-                "quality_adjusted_llm_eligible": False,
-                "llm_invoked": False,
-            }
-            safe["provider"] = None
-            safe["model"] = None
+        safe = _apply_stewardship_consent_relationship_boundary(query, payload)
         _consent_doorway = _normalize_authoritative_recommendation(
-            _stewardship_consent_doorway()
+            safe.get("recommendation")
         )
         safe["recommendation"] = _consent_doorway
         safe["canonical_doorway"] = _consent_doorway
