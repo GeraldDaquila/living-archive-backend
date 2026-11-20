@@ -48,7 +48,7 @@ def test_good_faith_critique_has_complete_retrieval_independent_answer():
     for required in (
         "strongest version", "key terms", "independent corroboration",
         "counterexamples", "strongest objection", "revision conditions",
-        "does not independently establish", "living archive",
+        "cannot independently establish", "living archive",
     ):
         assert required in answer
     assert len(answer) >= 1200
