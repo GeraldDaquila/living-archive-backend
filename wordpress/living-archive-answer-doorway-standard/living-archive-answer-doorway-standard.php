@@ -2,17 +2,17 @@
 /**
  * Plugin Name: Living Archive — Answer + Doorway Standard
  * Description: Shared, hardened visitor-facing doorway presentation for Living Archive modules.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
-define('LA_ANSWER_DOORWAY_VERSION', '1.0.3');
+define('LA_ANSWER_DOORWAY_VERSION', '1.0.4');
 define('LA_ANSWER_DOORWAY_URL', plugin_dir_url(__FILE__));
 
 function la_answer_doorway_is_canonical_url($value) {
     if (!is_string($value) || $value === '' || strlen($value) > 2048) return false;
-    if (preg_match('/[\x00-\x20\x7F]/', $value)) return false;
+    if (preg_match('/[\\x00-\\x20\\x7F]/', $value)) return false;
     $parts = wp_parse_url($value);
     if (!is_array($parts)) return false;
     $scheme = strtolower((string)($parts['scheme'] ?? ''));
@@ -34,7 +34,7 @@ function la_answer_doorway_is_grounded_rationale($value) {
     if (!is_string($value)) return false;
     $rationale = trim($value);
     if ($rationale === '' || strlen($rationale) > 600) return false;
-    $normalized = strtolower(rtrim($rationale, " .!?\t\n\r\0\x0B"));
+    $normalized = strtolower(rtrim($rationale, " .!?\\t\\n\\r\\0\\x0B"));
     $generic = array(
         'there is something here worth staying with',
         'this gives you a concrete place to continue with the question you are carrying',
@@ -84,8 +84,6 @@ add_filter('rest_post_dispatch', 'la_answer_doorway_filter_rest_response', 99, 3
 
 add_action('wp_enqueue_scripts', function () {
     if (is_admin()) return;
-    // Small, dependency-free shared renderer. Load before module scripts so
-    // every adapter consumes the same URL and DOM safety boundary.
     wp_enqueue_style(
         'la-answer-doorway-standard',
         LA_ANSWER_DOORWAY_URL . 'assets/answer-doorway.css',
