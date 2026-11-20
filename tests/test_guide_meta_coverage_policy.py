@@ -55,3 +55,14 @@ def test_unrelated_resource_discovery_and_ordinary_coverage_questions_are_not_ca
         "When should the Archive address climate adaptation?",
     )
     assert all(not recovery.is_guide_meta_coverage_policy_question(q) for q in negatives)
+
+
+def test_valid_provider_policy_answer_is_preserved():
+    answer = (
+        "The Guide should only make that claim after it has checked the relevant canonical "
+        "sources and verified that none directly addresses the question. A related resource "
+        "must be described as related, not direct. A failed retrieval or indexing problem "
+        "does not establish an Archive coverage gap."
+    )
+    assert recovery.has_guide_meta_coverage_policy_explanation(answer)
+    assert composition.enforce_response_contracts(QUESTION, answer) == answer
