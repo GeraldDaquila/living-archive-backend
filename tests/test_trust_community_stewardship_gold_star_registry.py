@@ -12,6 +12,7 @@ def test_trust_community_stewardship_is_user_approved_bounded_gold_star():
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     transfer = json.loads(TRANSFER_REVIEW.read_text(encoding="utf-8"))
+    transfer_map = json.loads((ROOT / "docs" / "qa" / "gold_star_transferability_map.json").read_text(encoding="utf-8"))
     record = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24"
@@ -41,6 +42,10 @@ def test_trust_community_stewardship_is_user_approved_bounded_gold_star():
     assert review_entry["activation"] == "active_quality_contributor"
     assert review_entry["transferable_discipline"] == record["transferable_lesson"]
     assert review_entry["abstention_boundary"] == record["transfer_boundary"]
+    mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == record["benchmark_id"])
+    assert mapped["family"] == record["reasoning_family"]
+    assert mapped["structural_lesson"] == record["transferable_lesson"]
+    assert transfer_map["coverage"]["map_entries"] == len(transfer_map["entries"]) == 123
 
 
 def test_trust_gold_star_approval_does_not_change_exact_answer_authority():
