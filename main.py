@@ -16598,6 +16598,112 @@ def _fetch_terminal_recovery_context(query):
         return {}
 
 
+def _guide_reconcile_verified_doorway_recovery(payload):
+    """Keep deterministic fallback wording and provenance consistent with a verified doorway."""
+    if not isinstance(payload, dict):
+        return payload
+    if str(payload.get("doorway_selection_status") or "").strip().upper() != "VERIFIED_RELEVANT_DESTINATION":
+        return payload
+
+    selected_doorway = (
+        payload.get("canonical_doorway")
+        or payload.get("recommendation")
+        or payload.get("doorway")
+    )
+    if not isinstance(selected_doorway, dict) or not str(selected_doorway.get("url") or "").strip():
+        return payload
+
+    safe = dict(payload)
+    response = str(safe.get("response") or "")
+    for stale_claim in (
+        "I did not identify a directly relevant Archive resource to recommend for this question.",
+        "I did not identify a sufficiently direct Archive resource to recommend for this question.",
+    ):
+        response = response.replace(
+            stale_claim,
+            "A relevant Archive resource is available below to continue exploring this question.",
+        )
+    safe["response"] = response
+
+    provenance = safe.get("response_provenance")
+    if not isinstance(provenance, dict) or provenance.get("class") != "deterministic_recovery":
+        return safe
+    if safe.get("evidence"):
+        return safe
+
+    quality_floor = safe.get("gold_star_v2_quality_floor")
+    if isinstance(quality_floor, dict):
+        governance = quality_floor.get("governance")
+        if isinstance(governance, dict) and governance.get("exact_standard_immutable"):
+            return safe
+
+    answer_basis = {
+        "kind": "general_knowledge",
+        "label": "Deterministic recovery",
+        "explanation": (
+            "This bounded recovery answer is not attributed to retrieved Archive evidence. "
+            "The separately selected canonical doorway is a related continuation, not proof "
+            "for every claim in the response."
+        ),
+    }
+    evidence_validation = {
+        "version": "1.0",
+        "status": "not_applicable",
+        "reason": "deterministic_recovery_not_attributed_to_retrieved_sources",
+        "reference_count": 0,
+        "claim_support": {
+            "status": "not_applicable",
+            "reason": "no_retrieved_evidence_attached_to_recovery_answer",
+            "semantic_certification": False,
+        },
+        "temporal_validity": {
+            "status": "not_applicable",
+            "reason": "no_temporal_claims_in_response",
+        },
+        "semantic_certification": False,
+    }
+    envelope_evidence = {
+        "provenance_class": "deterministic_recovery",
+        "references_present": False,
+        "validation_status": "not_applicable",
+        "claim_support_status": "not_applicable",
+        "semantic_certification": False,
+    }
+    safe["answer_basis"] = answer_basis
+    safe["evidence"] = []
+    safe["evidence_validation"] = evidence_validation
+
+    envelope = safe.get("answer_envelope")
+    if isinstance(envelope, dict):
+        envelope = dict(envelope)
+        route = dict(envelope.get("route") or {})
+        route["provider_present"] = False
+        route["model_present"] = False
+        envelope["route"] = route
+        envelope["evidence"] = envelope_evidence
+        safe["answer_envelope"] = envelope
+
+    if isinstance(quality_floor, dict):
+        quality_floor = dict(quality_floor)
+        floor_envelope = quality_floor.get("answer_envelope")
+        if isinstance(floor_envelope, dict):
+            floor_envelope = dict(floor_envelope)
+            floor_route = dict(floor_envelope.get("route") or {})
+            floor_route["provider_present"] = False
+            floor_route["model_present"] = False
+            floor_envelope["route"] = floor_route
+            floor_envelope["evidence"] = envelope_evidence
+            quality_floor["answer_envelope"] = floor_envelope
+        quality_floor["evidence_validation"] = evidence_validation
+        safe["gold_star_v2_quality_floor"] = quality_floor
+
+    print(
+        "The Guide verified-doorway recovery boundary: "
+        "removed stale no-resource claim and reconciled deterministic provenance."
+    )
+    return safe
+
+
 def _guide_sync_power_responsibility_final_metadata(payload):
     """Reassert truthful final provenance after the outer response floor rebuilds envelopes."""
     if (
@@ -16804,6 +16910,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                         safe_payload, query
                     )
                 safe_payload = _guide_sync_power_responsibility_final_metadata(safe_payload)
+                safe_payload = _guide_reconcile_verified_doorway_recovery(safe_payload)
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
