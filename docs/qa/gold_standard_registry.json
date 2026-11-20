@@ -7895,11 +7895,10 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Registry elevation does not allocate a human-facing serial; preserve benchmark_id as the stable identity.",
       "legacy_approval_grandfathered": false
-    }
-,
+    },
     {
       "benchmark_id": "gs-2026-11-20-problem-boundary-calibration",
-      "status": "CANDIDATE_PENDING_USER_REVIEW",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
       "expected_response": "A useful problem boundary is not a line around everything that seems related. It is a reasoned statement of what the inquiry is trying to explain, at what level, over what period, and from whose point of view. Draw it across several dimensions: the **phenomenon** (the specific condition or outcome being examined); the **system** (the people, relationships, rules, incentives, resources, and dependencies that can produce or shape it); the **scale and place** (individual, team, organization, community, or wider environment); the **time horizon** (the immediate episode, its history, and delayed effects); and the **stakeholder and authority boundary** (who is affected, who decides, and who carries the consequences). Also mark the **evidence boundary**: what is observed, what is inferred, and what remains unknown.\n\nExclude material that is merely adjacent and does not materially change the explanation or the decision the inquiry must support. But do not confuse 'outside the chosen scope' with 'irrelevant.' An upstream cause, downstream consequence, affected group, or external condition may sit beyond the immediate problem boundary and still need to be recorded as a dependency, constraint, risk, or consequence. In particular, do not exclude people who bear the costs simply because they lack decision-making power, or exclude causes merely because they are difficult for the organization to control. State what is out of scope, why it is out, and where its effects will still be monitored.\n\nA practical test is: **if including this factor could materially change the diagnosis, the distribution of benefits or burdens, the available options, or the likely consequences, it belongs inside the analysis—or must remain visible at its boundary.** Keep the boundary provisional and revise it when new evidence or feedback shows that an excluded relationship is shaping the result. A well-drawn boundary makes inquiry manageable without pretending that the world stops where the analysis does.",
@@ -7910,22 +7909,23 @@
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "assistant_assessment_out_of_10": 9.8,
-      "user_reviewed_response": false,
+      "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "USER AUTHORIZED GOLD STAR CANDIDATE CREATION — EXACT RESPONSE AWAITS USER REVIEW",
-      "elevation_approval_evidence": "The user explicitly instructed: “fix structurally on 2 levels: architecturally, and query-level, and make this into a gold star” on 2026-11-20. This authorizes creation of the candidate and the correction work; the exact newly authored response remains pending user review.",
-      "freeze_policy": "candidate_pending_user_review_no_runtime_learning",
-      "runtime_transfer": false,
+      "approval_state": "USER APPROVED GOLD STANDARD — EXACT RESPONSE REVIEWED; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "The user reviewed the live visitor-facing response screenshot, received the quality assessment, and explicitly instructed “elevate to gold star registry” on 2026-11-20. Approval covers this exact response and its bounded problem-boundary reasoning discipline. It does not grant exact-answer authority or deterministic fallback eligibility.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
       "reasoning_family": "problem_boundary_calibration",
-      "transferable_lesson": "Define a problem boundary across phenomenon, system relationships, scale/place, time horizon, affected stakeholders and decision authority, and evidence. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. Treat boundaries as provisional analytical choices and revise them when evidence or feedback warrants.",
+      "transferable_lesson": "Define a problem boundary across the focal phenomenon, the relationships and conditions that shape it, scale and place, time horizon, affected stakeholders and decision authority, and evidence limits. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, available options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. State what is outside scope and why, monitor consequential effects, and revise provisional boundaries when evidence or feedback shows that an excluded relationship is shaping the result.",
       "transfer_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply that excluded factors are unimportant, exclude affected parties because they lack authority, or collapse the distinction between the chosen analytic scope and the wider system. Do not transfer the exact response or doorway to unrelated questions.",
       "gold_star_capabilities": {
-        "generation_class": "candidate_for_user_review",
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
         "exact_answer_authority": false,
-        "active_quality_contributor": false,
+        "active_quality_contributor": true,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "problem_boundary_calibration",
-        "transferable_discipline": "Proposed discipline pending user review: bound problem scope across phenomenon, system, scale, time, stakeholder/authority, and evidence; preserve visibility of external dependencies and consequences; revise boundaries when excluded factors materially change the diagnosis or decision."
+        "transferable_discipline": "Define a problem boundary across the focal phenomenon, the relationships and conditions that shape it, scale and place, time horizon, affected stakeholders and decision authority, and evidence limits. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, available options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. State what is outside scope and why, monitor consequential effects, and revise provisional boundaries when evidence or feedback shows that an excluded relationship is shaping the result.",
+        "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply excluded factors are unimportant, exclude affected parties because they lack decision authority, collapse analytical scope into the wider system, or assume causal relationships without evidence. Do not transfer the exact answer or its doorway to unrelated questions; do not grant exact-answer authority or deterministic fallback eligibility."
       },
       "assertions": [
         "Answer the question directly by naming the dimensions across which a problem boundary should be drawn.",
@@ -7939,18 +7939,20 @@
       ],
       "known_theme": "problem framing, analytical scope, system boundaries, causal boundaries, scale, time horizon, stakeholder inclusion, authority, evidence limits, out-of-scope factors, externalities, provisional boundaries",
       "provenance": {
-        "source": "User-provided screenshot of the live Guide query and failure, followed by explicit authorization to correct both architecture and query-level behavior and elevate the corrected reasoning family.",
+        "source": "User-provided screenshot of the live Guide visitor-facing answer, followed by explicit user approval for Gold Star Registry elevation.",
         "source_date": "2026-11-20",
-        "live_surface": "The Guide visitor-facing query calibration",
-        "evidence_boundary": "The screenshot establishes the exact question and failed visitor experience. The expected response is newly authored as a candidate quality exemplar, not a transcription of a previously rendered live answer. The user authorized structural correction and Gold Star candidate creation, but has not yet reviewed this exact response; therefore it is not active for Gold Star learning, transfer, or exact-answer authority.",
-        "review_assessment": "Assistant provisional assessment: 9.8/10 for task fit, boundary dimensionality, exclusion discipline, revisability, and the verified canonical continuation. User review is still required before Gold Star activation."
+        "live_surface": "The Guide visitor-facing query response",
+        "evidence_boundary": "The screenshot contains the exact question and visitor-facing answer. The approved expected_response preserves that answer. The user explicitly approved elevation after reviewing the response. Approval authorizes bounded structural learning only; it does not authorize exact-answer substitution or deterministic fallback.",
+        "review_assessment": "Assistant assessment: 9.0/10. Strong multidimensional boundary reasoning, materiality test, affected-party and power awareness, evidence limits, revisability, and a relevant verified canonical continuation. Remaining improvement opportunities are provenance transparency and clearer developmental navigation."
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star candidate creation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user authorized Gold Star candidate creation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "rating_out_of_10": 9,
+      "user_approved_at": "2026-11-20"
     }
   ],
-  "last_reconciliation_note": "2026-11-20: Added the event-pattern-system-structure answer-first exemplar after the user's explicit architectural and query-level elevation instruction. Its application doorway remains separate from the completed explanation; no display serial was requested.",
+  "last_reconciliation_note": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 0 structural candidates remain pending live review and are excluded from the approved count.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8191,18 +8193,18 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 124,
+    "approved_gold_star_count": 125,
     "registry_record_count": 163,
-    "review_reconciliation": "Canonical approved inventory is 124 records: 122 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence; both are excluded from the approved Gold Star count. One additional problem-boundary candidate is pending exact user review and is also excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 0 structural candidates remain pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 124 approved Gold Stars; 39 assigned display serials #56–#94; 85 approved records explicitly UNASSIGNED with reasons. Neither newly approved relational exemplar receives a serial because none was requested.",
-    "unassigned_approved_gold_star_count": 85,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 125 approved Gold Stars; 39 assigned display serials #56–#94; 86 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
+    "unassigned_approved_gold_star_count": 86,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 122,
+    "active_quality_contributor_count": 123,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 2
+    "structural_candidates_pending_live_review": 0
   }
 }
