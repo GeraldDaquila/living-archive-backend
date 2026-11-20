@@ -46,6 +46,14 @@ _ROUTE_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "abstention_modes": ["outside_boundary", "clarification"],
         "scope": "Only the explicitly registered early deterministic contracts in the Guide runtime.",
     },
+    "guide_meta_coverage_policy_early_boundary": {
+        "route_class": "meta_governance_deterministic",
+        "supported_task_families": ["guide_meta_coverage_policy", "archive_coverage_gap_evidence_threshold_explanation"],
+        "unsupported_task_families": ["archive_resource_discovery", "specific_subject_coverage_assessment", "unverified_archive_absence_claims"],
+        "evidence_modes": ["shared_meta_governance_contract", "bounded_policy_recovery"],
+        "abstention_modes": ["no_archive_doorway", "retrieval_not_invoked", "provider_not_invoked"],
+        "scope": "Explains the Guide's evidence threshold for Archive coverage claims; it does not assess a specific subject's coverage or recommend an Archive resource.",
+    },
     "guide_direct_attribute_fail_closed": {
         "route_class": "controlled_failure",
         "supported_task_families": [],

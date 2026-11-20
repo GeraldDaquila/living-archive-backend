@@ -117,6 +117,11 @@ def build_answer_envelope(
             "separate_from_answer": True,
             "prohibited_by_question_contract": bool(
                 _mapping(question_contract.get("constraints")).get("no_handoff")
+                or _mapping(
+                    _mapping(question_contract.get("meta_governance")).get("doorway_policy")
+                ).get("suppress_for_this_question_class")
+                or _mapping(question_contract.get("resolution")).get("handoff")
+                == "not_applicable_for_policy_question"
             ),
         },
         "governance": {

@@ -114,13 +114,22 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             )
             for assertion in assertions
         )
+        explicit_no_canonical_doorway_assertion = any(
+            (
+                "no canonical doorway url is inferred or invented"
+                in str(assertion).casefold()
+                and "legacy doorway metadata remains non-authoritative"
+                in str(assertion).casefold()
+            )
+            for assertion in assertions
+        )
         legacy_doorway_not_authorized = bool(
             doorway_status == "LEGACY_INCOMPLETE_NOT_APPROVED"
             and raw_doorway is None
             and str(record.get("doorway_note") or "").strip()
             and legacy_no_doorway_assertion
         )
-        no_handoff = intentionally_none or legacy_doorway_not_authorized or any(
+        no_handoff = intentionally_none or legacy_doorway_not_authorized or explicit_no_canonical_doorway_assertion or any(
             "forbids direct page handoff" in str(assertion).casefold()
             for assertion in assertions
         ) or bool(re.search(r"\bdo not send me to another page\b", question))
@@ -130,6 +139,10 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
         doorway_omission_reason = str(
             record.get("doorway_omission_exception_reason")
             or (record.get("doorway_note") if legacy_doorway_not_authorized else "")
+            or (
+                "The approved Gold Standard explicitly states that no canonical doorway may be inferred or invented."
+                if explicit_no_canonical_doorway_assertion else ""
+            )
             or ""
         ).strip()
         if question in standards:
