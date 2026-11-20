@@ -35,8 +35,8 @@ _RECURRENCE = re.compile(
 )
 _FAILURE = re.compile(r"\b(?:failures?|mistakes?|errors?|problems?|breakdowns?|setbacks?)\b", re.I)
 _ACKNOWLEDGMENT = re.compile(
-    r"\b(?:acknowledg\w*|recogniz\w*|recognis\w*|admit\w*|identified|"
-    r"identify|reported|reports|publicly\s+(?:known|discussed|addressed))\b",
+    r"\b(?:acknowledg\w*|recogniz\w*|recognis\w*|admit\w*|identif\w*|"
+    r"report\w*|publicly\s+(?:known|discussed|addressed))\b",
     re.I,
 )
 _NO_HANDOFF = re.compile(
