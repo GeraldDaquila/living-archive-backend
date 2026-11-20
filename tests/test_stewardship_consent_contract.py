@@ -63,12 +63,17 @@ def test_final_boundary_repairs_stewardship_only_answer_and_restores_doorway():
 
 def test_final_boundary_preserves_a_complete_provider_answer():
     answer = recovery_response()
-    payload = {"response": answer, "provider": "test-provider"}
+    payload = {
+        "response": answer,
+        "provider": "test-provider",
+        "answer_basis": {"kind": "retrieved_evidence", "label": "Evidence-backed"},
+    }
     result = apply_stewardship_consent_relationship_boundary(
         "How do stewardship and consent relate?", payload
     )
     assert result["response"] == answer
     assert result["provider"] == "test-provider"
+    assert result["answer_basis"]["kind"] == "retrieved_evidence"
     assert result["stewardship_consent_contract"]["answer_first_enforced"] is True
 
 
