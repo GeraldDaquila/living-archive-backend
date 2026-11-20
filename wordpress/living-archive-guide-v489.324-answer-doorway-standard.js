@@ -48,7 +48,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 30000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.324-answer-doorway-standard';
+var USE_FRONTEND_BUILD = 'v489.325-trust-doorway-standard-render';
 var USE_FRONTEND_AUTHORITY = 'guide-woody-scoped-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -1341,11 +1341,14 @@ function renderAuthoritativeRecommendation(data) {
   var block = staging.firstElementChild;
   block.classList.add('archive-inline-recommendation');
 
-  if (responseText) {
-    responseText.appendChild(block);
-  } else if (container) {
+  // The doorway is a separate continuation, never part of the answer prose.
+  // Prefer the dedicated sibling region in the response layout; only use the
+  // answer node as a compatibility fallback for older embeds without the slot.
+  if (container) {
     container.replaceChildren(block);
     container.style.display = 'block';
+  } else if (responseText) {
+    responseText.appendChild(block);
   }
 }
 

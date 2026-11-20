@@ -88,6 +88,10 @@ def test_trust_recovery_explains_accountability_as_the_condition_for_dependable_
     assert "Trust makes cooperation possible" in response
     assert "accountability makes trust dependable" in response
     assert "not a substitute for scrutiny or safeguards" in response
+    # The answer remains self-contained; the canonical continuation is rendered
+    # only through the separate recommendation object, never as an inline link.
+    assert "Trust Architecture cornerstone" not in response
+    assert "geralddaquila.com/trust-architecture/" not in response
 
 
 def test_trust_recovery_makes_repair_and_shared_responsibility_observable():
