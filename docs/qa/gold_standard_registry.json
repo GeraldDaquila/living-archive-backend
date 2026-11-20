@@ -7779,7 +7779,8 @@
       "rating": 9.8,
       "doorway_title": "Charter of the Living Archive | Purpose & Governance",
       "doorway_url": "https://geralddaquila.com/charter-of-the-living-archive/",
-      "doorway_rationale": "The Charter sets out both stewardship as entrusted custodial responsibility and human sovereignty as the right to examine, question, integrate, or reject ideas. It is the Archive's clearest constitutional continuation for considering how care and responsibility must remain answerable to human agency."
+      "doorway_rationale": "The Charter sets out both stewardship as entrusted custodial responsibility and human sovereignty as the right to examine, question, integrate, or reject ideas. It is the Archive's clearest constitutional continuation for considering how care and responsibility must remain answerable to human agency.",
+      "legacy_approval_grandfathered": false
     },
     {
       "benchmark_id": "gs-2026-11-20-institutional-extraction-incentive-governance",

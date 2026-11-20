@@ -1357,7 +1357,7 @@
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "62eea3e3866d9a5ca1f85777a3c85c0ee9135937",
+    "registry_content_sha": "2c1112027922d03f3a18c01beb535bc8d26bab37",
     "qualitative_transfer_review_entries": 122,
     "general_purpose_runtime_transfer_records": 118,
     "map_entries": 118
