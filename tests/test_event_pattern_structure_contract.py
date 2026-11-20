@@ -99,3 +99,17 @@ def test_explicit_no_handoff_request_overrides_query_specific_doorway():
     )
     assert "recommendation" not in result
     assert "canonical_doorway" not in result
+
+
+def test_frozen_query_exemplar_matches_the_runtime_recovery_and_registry_doorway():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "gs-2026-11-20-event-pattern-system-structure-answer-first"
+    )
+    assert record["expected_response"] == contract.event_pattern_structure_recovery()
+    assert record["expected_doorway"] == contract._approved_query_doorway()
