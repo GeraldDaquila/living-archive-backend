@@ -8079,18 +8079,18 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 122,
+    "approved_gold_star_count": 123,
     "registry_record_count": 161,
-    "review_reconciliation": "Canonical approved inventory is 122 records: 120 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence, and one structural candidate remains pending live review; both are excluded from the approved Gold Star count.",
+    "review_reconciliation": "Canonical approved inventory is 123 records: 121 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence; no structural candidate remains pending live review.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 122 approved Gold Stars; 39 assigned display serials #56–#94; 83 approved records explicitly UNASSIGNED with reasons. The institutional-extraction incentive exemplar receives no serial because none was requested.",
-    "unassigned_approved_gold_star_count": 83,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 123 approved Gold Stars; 39 assigned display serials #56–#94; 84 approved records explicitly UNASSIGNED with reasons. The stewardship-consent relational exemplar receives no serial because none was requested.",
+    "unassigned_approved_gold_star_count": 84,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 120,
+    "active_quality_contributor_count": 121,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1
+    "structural_candidates_pending_live_review": 0
   }
 }
