@@ -4156,7 +4156,7 @@ def compose(
     # composition seam, not a one-off answer or provider-specific prompt patch.
     incomplete_knowledge_plan = build_incomplete_knowledge_plan(question)
     incomplete_knowledge_instruction = (
-        incomplete_knowledge_plan["composition_instruction"] + "\\n\\n"
+        incomplete_knowledge_plan["composition_instruction"] + "\n\n"
         if incomplete_knowledge_plan else ""
     )
 
