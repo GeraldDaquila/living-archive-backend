@@ -2258,3 +2258,32 @@ def test_institutional_extraction_incentive_governance_gold_star_is_registered_a
     assert review["activation"] == "active_quality_contributor"
     assert "delayed costs" in review["transferable_discipline"]
     assert "governing-body mandate" in review["transferable_discipline"]
+
+
+def test_event_pattern_structure_gold_star_has_reconciled_runtime_and_doorway_contract():
+    import json
+
+    root = ROOT
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    transfer_map = json.loads((root / "docs/qa/gold_star_transferability_map.json").read_text(encoding="utf-8"))
+    benchmark_id = "gs-2026-11-20-event-pattern-system-structure-answer-first"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    reviewed = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+    mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == benchmark_id)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert record["known_theme"]
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["expected_doorway"]["title"] == "Fractal Systems Diagnostic"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert reviewed["activation"] == "active_quality_contributor"
+    assert reviewed["transferable_discipline"] == record["transferable_lesson"]
+    assert mapped["family"] == record["reasoning_family"]
+    assert mapped["structural_lesson"] == record["transferable_lesson"]
+    assert transfer_map["coverage"]["registry_content_sha"]
+    assert transfer_map["coverage"]["general_purpose_runtime_transfer_records"] == len(transfer_map["entries"])
