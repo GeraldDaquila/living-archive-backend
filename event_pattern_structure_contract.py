@@ -170,35 +170,39 @@ def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
         return payload
     safe = dict(payload)
     response = str(safe.get("response") or safe.get("answer") or "")
-    if has_event_pattern_structure_explanation(response):
-        return safe
+    complete = has_event_pattern_structure_explanation(response)
+    if not complete:
+        recovered = event_pattern_structure_recovery()
+        safe["response"] = recovered
+        if "answer" in safe:
+            safe["answer"] = recovered
+        safe["response_shape"] = "conceptual_distinction"
+        safe["processing"] = "final_visitor_boundary_event_pattern_structure_answer_first"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General conceptual explanation",
+            "explanation": (
+                "This distinction is explained from general systems-thinking knowledge; "
+                "the separately selected Archive destination is an application continuation, "
+                "not evidence for the definitions."
+            ),
+        }
+        safe["event_pattern_structure_contract"] = {
+            "version": VERSION,
+            "answer_first_enforced": True,
+            "recovery_applied": True,
+            "concepts_covered": ["event", "pattern", "system_structure"],
+            "causal_claim_calibrated": True,
+            "navigation_is_separate": True,
+        }
+        _mark_deterministic_recovery(safe)
 
-    recovered = event_pattern_structure_recovery()
-    safe["response"] = recovered
-    if "answer" in safe:
-        safe["answer"] = recovered
-    safe["response_shape"] = "conceptual_distinction"
-    safe["processing"] = "final_visitor_boundary_event_pattern_structure_answer_first"
-    safe["route_source"] = "guide_final_visitor_boundary"
-    safe["answer_basis"] = {
-        "kind": "general_knowledge",
-        "label": "General conceptual explanation",
-        "explanation": (
-            "This distinction is explained from general systems-thinking knowledge; "
-            "the separately selected Archive destination is an application continuation, "
-            "not evidence for the definitions."
-        ),
-    }
-    safe["event_pattern_structure_contract"] = {
-        "version": VERSION,
-        "answer_first_enforced": True,
-        "concepts_covered": ["event", "pattern", "system_structure"],
-        "causal_claim_calibrated": True,
-        "navigation_is_separate": True,
-    }
     # The approved doorway is read from the canonical registry, never copied from
     # lesson prose. An independently selected doorway is preserved; an explicit
-    # no-handoff request remains authoritative.
+    # no-handoff request remains authoritative. This also runs when the model's
+    # explanation is already complete, so answer quality cannot suppress a useful
+    # continuation.
     has_existing_doorway = bool(safe.get("recommendation") or safe.get("canonical_doorway"))
     if not has_existing_doorway and not _explicitly_requests_no_doorway(query, safe):
         doorway = _approved_query_doorway()
@@ -210,5 +214,4 @@ def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
             safe["doorway_rationale"] = doorway["rationale"] or None
             safe["doorway_decision"] = "include"
             safe["doorway_selection_source"] = "approved_query_specific_gold_star_registry_record"
-    _mark_deterministic_recovery(safe)
     return safe
