@@ -29,7 +29,7 @@ def is_complicated_complex_distinction_question(question: Any) -> bool:
     if not q or not re.search(r"\bcomplicat(?:ed|ion)\b", q) or not re.search(r"\bcomplex(?:ity)?\b", q):
         return False
     contrast = re.search(
-        r"\b(?:difference|differ|distinguish|distinction|contrast|versus|vs\.?|compared?|comparison|relationship)\b",
+        r"\b(?:difference|differ|distinguish|distinction|contrast|separat(?:e|es|ed|ing)|versus|vs\.?|compared?|comparison|relationship)\b",
         q,
     )
     question_shape = re.search(r"\b(?:what|how|which|is|are|between|can|could|would|should)\b", q)
