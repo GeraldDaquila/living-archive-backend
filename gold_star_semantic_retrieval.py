@@ -57,7 +57,7 @@ def rank_semantic_lessons(query: str, candidates: List[Dict[str, Any]]) -> Dict[
     if not candidates:
         return {}
     model = _model()
-    query_text = str(query)
+    query_text = "Represent this sentence for searching relevant passages: " + str(query)
     query_vector = _unit(next(iter(model.embed([query_text]))))
     vectors = _lesson_vectors()
     return {
