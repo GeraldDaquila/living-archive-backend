@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 
 PORT = 10001
@@ -23,27 +24,33 @@ def ask(question: str) -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
+    deadline = time.monotonic() + 90
     last_error = None
-    for _ in range(60):
+    while time.monotonic() < deadline:
         try:
-            with urllib.request.urlopen(request, timeout=35) as response:
+            with urllib.request.urlopen(request, timeout=10) as response:
                 payload = json.loads(response.read().decode("utf-8"))
                 assert response.status == 200
                 return payload
-        except Exception as exc:
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Guide QA API returned HTTP {exc.code}: {body[:2000]}") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
             last_error = exc
             if server.poll() is not None:
                 raise RuntimeError(f"Guide QA server exited: {exc}") from exc
             time.sleep(1)
-    raise RuntimeError(f"Guide QA API timed out: {last_error!r}")
+    raise RuntimeError(f"Guide QA API timed out after 90 seconds: {last_error!r}")
 
 try:
+    print(f"Guide QA smoke server pid={server.pid}", flush=True)
     questions = (
         "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
         "How should I define the boundaries around a system problem, and what stays outside scope?",
         "When framing a problem, what should be included and excluded?",
     )
     for question in questions:
+        print("REQUEST", question, flush=True)
         result = ask(question)
         answer = result.get("response")
         doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
@@ -56,7 +63,7 @@ try:
         assert result.get("route_source") == "guide_early_deterministic_boundary", (question, result.get("route_source"))
         assert result.get("doorway_selection_source") == "registered_task_recovery", (question, result.get("doorway_selection_source"))
         assert result.get("response_provenance", {}).get("class") == "deterministic_recovery", question
-        print("PASS", question, len(answer), doorway["title"])
+        print("PASS", question, len(answer), doorway["title"], flush=True)
 finally:
     server.terminate()
     try:
