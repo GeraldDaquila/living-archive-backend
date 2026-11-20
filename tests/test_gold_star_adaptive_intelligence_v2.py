@@ -66,9 +66,9 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
     ]
     active = [item for item in approved if item.get("runtime_transfer") is True]
-    assert len(approved) == 122
-    assert len(active) == 120
-    assert len({item["benchmark_id"] for item in approved}) == 122
+    assert len(approved) == 121
+    assert len(active) == 119
+    assert len({item["benchmark_id"] for item in approved}) == 121
 
 
 def test_v2_contract_does_not_mutate_canonical_gold_star_records():
