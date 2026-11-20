@@ -16304,7 +16304,7 @@ async def _use_request_boundary(scope, receive, send):
                         "llm_invoked": False,
                     },
                     "processing": "visitor_failure_containment",
-                    "route_source": "guide_basic_inquiry_failure_recovery",
+                    "route_source": "guide_basic_inquiry_recovery",
                     "recovery": "visitor_failure_containment",
                     "visitor_boundary_version": APP_VERSION,
                 }
