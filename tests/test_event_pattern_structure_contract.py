@@ -127,3 +127,26 @@ def test_generic_upstream_doorway_omission_does_not_override_approved_query_dest
         },
     )
     assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+
+
+def test_exact_query_prefers_its_approved_doorway_over_an_incidental_destination():
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    result = contract.apply_event_pattern_structure_boundary(
+        query,
+        {
+            "response": "A restatement, not a complete explanation.",
+            "recommendation": {"title": "Unrelated page", "url": "https://example.org/unrelated"},
+        },
+    )
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+
+
+def test_close_paraphrase_preserves_an_independently_selected_doorway():
+    query = "Can you distinguish events, recurring patterns, and system structures?"
+    selected = {"title": "Contextual Systems Essay", "url": "https://example.org/contextual-systems"}
+    result = contract.apply_event_pattern_structure_boundary(
+        query,
+        {"response": "A restatement, not a complete explanation.", "recommendation": selected},
+    )
+    assert result["recommendation"] == selected
