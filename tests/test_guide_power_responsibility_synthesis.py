@@ -51,6 +51,10 @@ def test_final_boundary_and_shared_composer_contract_are_wired():
     assert '_final_quality_floor["evidence_validation"] = _final_evidence_validation' in main
     assert "def _guide_sync_power_responsibility_final_metadata(payload)" in main
     assert "safe_payload = _guide_sync_power_responsibility_final_metadata(safe_payload)" in main
+    assert "def _guide_reconcile_verified_doorway_recovery(payload)" in main
+    assert "safe_payload = _guide_reconcile_verified_doorway_recovery(safe_payload)" in main
+    assert "A relevant Archive resource is available below to continue exploring this question." in main
+    assert 'safe["answer_basis"] = answer_basis' in main
     assert 'floor_route["provider_present"] = False' in main
     assert 'doorway_status == "VERIFIED_RELEVANT_DESTINATION"' in main
     assert 'floor_envelope["doorway"] = doorway_contract' in main
