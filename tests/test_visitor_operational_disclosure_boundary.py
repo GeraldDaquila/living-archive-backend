@@ -2,6 +2,7 @@
 
 import ast
 import re
+from html import unescape
 from pathlib import Path
 
 
@@ -14,7 +15,7 @@ def _load_sanitizer():
         and node.name == "_sanitize_basic_inquiry_response"
     )
     isolated = ast.Module(body=[function], type_ignores=[])
-    namespace = {"re": re}
+    namespace = {"re": re, "unescape": unescape}
     exec(compile(isolated, "main.py", "exec"), namespace)
     return namespace["_sanitize_basic_inquiry_response"]
 
