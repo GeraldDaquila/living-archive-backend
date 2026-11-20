@@ -6082,6 +6082,68 @@ def _guide_restore_verified_doorway(payload, query):
         })
 
     if not doorway:
+        upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
+        if not upstream_candidate:
+            upstream_candidate = _normalize_authoritative_recommendation(
+                {
+                    "title": safe.get("doorway_title"),
+                    "url": safe.get("doorway_url"),
+                    "rationale": safe.get("doorway_rationale"),
+                }
+            )
+        if upstream_candidate:
+            # Validate the candidate against its canonical source, not merely its
+            # provider-supplied title, URL, or rationale.
+            candidate_docs = []
+            for evidence_key in (
+                "generation_authority_protected_docs",
+                "question_authority_protected_docs",
+            ):
+                evidence_items = safe.get(evidence_key) or []
+                if isinstance(evidence_items, list):
+                    candidate_docs.extend(
+                        item for item in evidence_items if isinstance(item, dict)
+                    )
+            context = str(
+                safe.get("canonical_link_context")
+                or safe.get("context_blocks")
+                or ""
+            )
+            if context:
+                try:
+                    candidate_docs.extend(_parse_context_documents(context))
+                except Exception:
+                    pass
+            for node in _guide_node_registry_snapshot():
+                if not isinstance(node, dict):
+                    continue
+                node_url = str(
+                    node.get("canonical_url") or node.get("url") or node.get("permalink") or ""
+                ).strip()
+                if node_url.rstrip("/") == str(upstream_candidate.get("url") or "").rstrip("/"):
+                    hints = node.get("semantic_hints") or []
+                    if not isinstance(hints, (list, tuple)):
+                        hints = []
+                    candidate_docs.append({
+                        "title": str(node.get("title") or upstream_candidate.get("title") or ""),
+                        "url": node_url,
+                        "text": " ".join([str(node.get("purpose") or ""), *[str(hint) for hint in hints]]),
+                    })
+            profile = _base._inquiry_profile(query)
+            for candidate_doc in candidate_docs:
+                candidate_url = str(
+                    candidate_doc.get("url") or candidate_doc.get("canonical_url") or ""
+                ).rstrip("/")
+                if candidate_url != str(upstream_candidate.get("url") or "").rstrip("/"):
+                    continue
+                if _eligible_outward_doc(query, candidate_doc, profile, min_relevance=2):
+                    doorway = upstream_candidate
+                    selection_trace.update({
+                        "status": "VERIFIED_RELEVANT_DESTINATION",
+                        "source": "upstream_candidate_source_verified",
+                    })
+                    break
+    if not doorway:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception as exc:
