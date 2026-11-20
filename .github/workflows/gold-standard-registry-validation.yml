@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "docs/qa/gold_standard_registry.json"
+      - "event_pattern_structure_contract.py"
+      - "tests/test_event_pattern_structure_contract.py"
+      - "main.py"
       - "gold_star_lessons.py"
       - "scripts/validate_gold_star_registry.py"
       - "tests/test_gold_star_lessons.py"
@@ -87,7 +90,7 @@ jobs:
           python -m json.tool docs/qa/gold_standard_registry.json > /dev/null
           python -m pip install --upgrade pytest
           python scripts/validate_gold_star_registry.py
-          python -m pytest -q tests/test_gold_standard_registry.py tests/test_gold_star_lessons.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_remedy_selection.py tests/test_gold_star_qualitative_transfer_review.py tests/test_live_guide_gold_standard_capture.py tests/test_system_wide_orientation_standard.py tests/test_ecosystem_orientation_audit_baseline.py
+          python -m pytest -q tests/test_gold_standard_registry.py tests/test_event_pattern_structure_contract.py tests/test_gold_star_lessons.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_remedy_selection.py tests/test_gold_star_qualitative_transfer_review.py tests/test_gold_star_transferability_map.py tests/test_live_guide_gold_standard_capture.py tests/test_system_wide_orientation_standard.py tests/test_ecosystem_orientation_audit_baseline.py
       - name: Generate registry and application identity report
         env:
           QA_APPLICATION_COMMIT: ${{ github.sha }}
