@@ -19,6 +19,7 @@ OBSERVED_GUIDE_ROUTES = (
     "guide_direct_attribute_fail_closed",
     "guide_early_deterministic_boundary",
     "guide_meta_coverage_policy_early_boundary",
+    "guide_epistemic_category_early_boundary",
     "guide_explicit_home_navigation",
     "guide_final_visitor_boundary",
     "guide_hypothetical_safety_calibration",
@@ -115,6 +116,17 @@ def test_route_registry_stays_reconciled_with_main_runtime_route_sources():
     source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
     observed = set(re.findall(r"""["']route_source["']\s*:\s*["']([^"']+)["']""", source))
     assert observed == set(registered_route_sources())
+
+
+def test_epistemic_category_route_is_answer_first_and_keeps_resource_selection_separate():
+    capability = route_capability("guide_epistemic_category_early_boundary")
+
+    assert capability["declaration_status"] == "declared"
+    assert capability["route_class"] == "answer_first_conceptual_deterministic"
+    assert "epistemic_category_distinction" in capability["supported_task_families"]
+    assert "adjudication_of_specific_empirical_claims" in capability["unsupported_task_families"]
+    assert "specific_claim_requires_source_evidence" in capability["abstention_modes"]
+    assert capability["semantic_competence_certified"] is False
 
 
 def test_guide_meta_coverage_policy_early_route_has_a_narrow_non_navigational_capability():
