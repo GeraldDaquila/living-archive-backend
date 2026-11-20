@@ -1067,6 +1067,15 @@
       "qualifying_context": "Visitors asking how a steward or custodian should act, decide, or proceed when material information is incomplete, uncertain, or contested and a consequential action is required.",
       "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-institutional-extraction-incentive-governance",
+      "question": "How should a leader respond when institutional incentives reward short-term extraction?",
+      "reasoning_family": "institutional_extraction_incentive_governance",
+      "transferable_discipline": "Diagnose incentive structures and the distribution of gains and delayed costs; redesign governance and measures to support long-term capacity and replenishment; align authority with responsibility; protect dissent and independent review; test changes through bounded pilots and observable outcomes; distinguish leader-level authority from governing-body mandate.",
+      "qualifying_context": "Visitors asking how a leader should respond when an institution rewards short-term returns through depletion, externalized costs, or incentives that undermine long-term organizational, social, or ecological capacity.",
+      "abstention_boundary": "Do not apply to ordinary personal productivity or generic leadership questions without institutional extraction incentives. Do not assume unilateral authority, impose universal metrics, treat all production as extraction, or transfer the exact answer or doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
