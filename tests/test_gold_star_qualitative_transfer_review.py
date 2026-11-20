@@ -61,6 +61,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
         "INTENTIONALLY_NONE_APPROVED",
         "LEGACY_INCOMPLETE_NOT_APPROVED",
         "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+        "NOT_EVALUATED",
     }
     for record in registry["records"]:
         if record.get("status")!="USER_APPROVED_GOLD_STANDARD":
@@ -69,6 +70,13 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
         doorway=record["expected_doorway"]
         if doorway is None:
             assert record.get("doorway_status") in allowed_none, record["benchmark_id"]
+            if record.get("doorway_status") == "NOT_EVALUATED":
+                capabilities = record.get("gold_star_capabilities") or {}
+                boundary = capabilities.get("abstention_boundary", "")
+                assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
+                assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+                assert "NOT_EVALUATED" in boundary, record["benchmark_id"]
+                assert "Do not infer" in boundary, record["benchmark_id"]
         else:
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
@@ -267,8 +275,18 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             assert record.get("approval_state", "").strip(), record["benchmark_id"]
             assert record.get("user_approved_at", "").strip(), record["benchmark_id"]
             assert record.get("reasoning_family", "").strip(), record["benchmark_id"]
-            assert record.get("transferable_lesson", "").strip(), record["benchmark_id"]
-            assert record.get("transfer_boundary", "").strip(), record["benchmark_id"]
+            # Immutable approved records may carry transfer discipline inside
+            # gold_star_capabilities rather than duplicate mutable top-level fields.
+            transferable_lesson = (
+                record.get("transferable_lesson", "")
+                or capabilities.get("transferable_discipline", "")
+            )
+            transfer_boundary = (
+                record.get("transfer_boundary", "")
+                or capabilities.get("abstention_boundary", "")
+            )
+            assert transferable_lesson.strip(), record["benchmark_id"]
+            assert transfer_boundary.strip(), record["benchmark_id"]
             assert provenance.get("source", "").strip(), record["benchmark_id"]
             assert (
                 provenance.get("source_date", "").strip()
