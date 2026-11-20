@@ -8404,6 +8404,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_title": str((_trust_doorway or {}).get("title") or ""),
             "doorway_url": str((_trust_doorway or {}).get("url") or ""),
             "doorway_rationale": str((_trust_doorway or {}).get("rationale") or ""),
+            "doorway_decision": "selected" if _trust_doorway else None,
+            "doorway_selection_status": (
+                "VERIFIED_RELEVANT_DESTINATION" if _trust_doorway else "NOT_EVALUATED"
+            ),
+            "doorway_selection_evaluated": True,
+            "doorway_selection_source": (
+                "registered_trust_community_stewardship_recovery"
+                if _trust_doorway else "no_verified_destination"
+            ),
             "recommendation": _trust_doorway,
             "canonical_doorway": _trust_doorway,
             "provider": "bounded_trust_community_stewardship_recovery",
