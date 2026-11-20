@@ -114,3 +114,16 @@ def test_frozen_query_exemplar_matches_the_runtime_recovery_and_registry_doorway
     )
     assert record["expected_response"] == contract.event_pattern_structure_recovery()
     assert record["expected_doorway"] == contract._approved_query_doorway()
+
+
+def test_generic_upstream_doorway_omission_does_not_override_approved_query_destination():
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    result = contract.apply_event_pattern_structure_boundary(
+        query,
+        {
+            "response": "A restatement, not a complete explanation.",
+            "doorway_decision": "omit",
+            "doorway_omission_reason": "no_source_match",
+        },
+    )
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
