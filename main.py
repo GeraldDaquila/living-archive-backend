@@ -4551,7 +4551,7 @@ def _trust_community_stewardship_recovery():
         "stewardship is the shared practice that keeps both alive. Over time, people learn "
         "whether others return, keep their word, share decisions fairly, and repair harm. "
         "Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger "
-        "when people can question decisions and see that commitments are honoured. The "
+        "when people can question decisions and see that commitments are honoured. "
         "For a deeper exploration of how trust supports cooperation and what communities can steward, "
         "continue with the Living Archive's [Trust Architecture cornerstone]("
         "https://geralddaquila.com/trust-architecture/)."
@@ -4591,7 +4591,7 @@ def _trust_community_stewardship_final_contract(query):
             "label": "Conceptual explanation",
             "explanation": (
                 "This is a general conceptual explanation. The Trust Architecture "
-                "essay is offered as a related Living Archive resource, not represented "
+                "cornerstone is offered as a related Living Archive resource, not represented "
                 "as the source of this answer."
             ),
         },
