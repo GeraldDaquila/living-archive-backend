@@ -21,6 +21,7 @@ def test_three_axis_synonyms_are_recognized():
     )
     assert plan is not None
     assert plan["axes"] == ["evidence", "interpretation", "hypothesis"]
+    assert "normative or value judgments" not in plan["retrieval_query"]
 
 
 def test_two_axis_question_does_not_overexpand():
