@@ -26,7 +26,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.53"
+CONTRACT_VERSION = "v1.54"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -43,7 +43,13 @@ Apply these eight dimensions as quality expectations, not as eight mandatory sec
 7. CONTINUITY AND DEVELOPMENTAL VALUE — offer a next step or canonical resource only when it genuinely advances this inquiry. Respect explicit requests for no handoff or follow-up; never manufacture engagement.
 8. ADAPTIVE LEARNING INTEGRITY — use approved evidence only within its recorded capability, qualifying context, and abstention boundary. Transfer reviewed reasoning discipline only; never transfer exemplar-specific wording, answer text, factual claims, examples, citations, or doorways to another question.
 
-Select the smallest response architecture that fully serves the actual question. A factual lookup may be brief; a comparison may need criteria; a practical request may need ordered actions; a strategic question may need trade-offs; an uncertain claim may need evidence boundaries. Do not add sections merely to display the standard. When no approved lesson is relevant, answer competently without forcing a Gold Star analogy. Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
+Select the smallest response architecture that fully serves the actual question. A factual lookup may be brief; a comparison may need criteria; a practical request may need ordered actions; a strategic question may need trade-offs; an uncertain claim may need evidence boundaries. Do not add sections merely to display the standard. When no approved lesson is relevant, answer competently without forcing a Gold Star analogy.
+
+RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:
+When a visitor asks about the relationship, connection, or interplay between concepts, answer the relationship itself rather than giving adjacent mini-definitions or a generic explanation of only one term. Briefly establish each concept's distinct role, state the mechanism connecting them, explain whether the relationship is reciprocal, one-way, or conditional, and identify a meaningful boundary or tension and its practical implication. Preserve differences; connection does not mean equivalence. Do not let keyword overlap substitute for a causal or normative explanation.
+
+For questions about stewardship and consent, make the governing distinction explicit: stewardship names a responsibility to care for something entrusted to one's attention or role; consent concerns whether and within what limits another person's participation, choices, body, information, property, resources, or interests may legitimately be involved. Being entrusted with responsibility does not automatically confer authority to decide for affected people. Consent is not merely consultation or a steward's good intention. Where consent is the relevant basis for participation or use, it should be informed, voluntary, and specific to what is being agreed to; it may need to be renewed, renegotiated, or respected when withdrawn. Do not turn this into a universal legal test or imply that every routine act of care requires individual permission. Distinguish matters a steward may responsibly manage within an authorized role from decisions that require permission, shared authority, or respect for refusal. Preserve affected people's agency and name the practical consequence: responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.
+ Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
 """
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
 
@@ -1390,10 +1396,42 @@ def _requires_discernment_synthesis(query: str) -> bool:
         or re.search(r"\bhow are .{1,100} (?:related|connected)\b", q)
     )
     concept_frame = bool(re.search(
-        r"\b(?:power|agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence)\b",
+        r"\b(?:power|agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence|stewardship|consent|authority|legitimacy|autonomy|trust|duty|permission)\b",
         q,
     ))
     return relationship_frame and concept_frame
+
+
+def _requires_stewardship_consent_relationship(query: str) -> bool:
+    """Recognize the stewardship–consent concept pair for stricter query resolution."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        _requires_discernment_synthesis(q)
+        and re.search(r"\bstewardship\b", q)
+        and re.search(r"\bconsent\b", q)
+    )
+
+
+def _has_stewardship_consent_relationship(response: str) -> bool:
+    """Require both concepts, their authority boundary, and a usable implication."""
+    answer = _normalize_space(response).casefold()
+    names_both = bool(
+        re.search(r"\bstewardship\b", answer)
+        and re.search(r"\bconsent\b", answer)
+    )
+    authority_boundary = bool(
+        re.search(r"\b(?:authority|permission|authorization|legitimacy)\b", answer)
+        and re.search(
+            r"\b(?:does not automatically|doesn't automatically|not automatically|"
+            r"does not itself|doesn't itself|not the same as|does not confer|doesn't confer|"
+            r"within the limits|boundary|boundaries)\b",
+            answer,
+        )
+    )
+    agency_implication = bool(
+        re.search(r"\b(?:agency|choice|refusal|withdraw|renegotiat|affected people|people affected)\b", answer)
+    )
+    return names_both and authority_boundary and agency_implication
 
 
 def _requires_fragmented_knowledge_explanation(query: str) -> bool:
@@ -2542,6 +2580,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         if _requires_discernment_synthesis(query):
             if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
                 raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
+
+        if _requires_stewardship_consent_relationship(query):
+            if not _has_stewardship_consent_relationship(response):
+                raise ValueError(
+                    "stewardship–consent answer must name both concepts, distinguish responsibility from authority or permission, and preserve affected people's agency"
+                )
 
         if _requires_compound_explanatory_structure(query):
             # The task contract requires every requested part to be answered;
