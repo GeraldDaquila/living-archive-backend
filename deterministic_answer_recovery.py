@@ -1293,10 +1293,10 @@ def compose_task_specific_recovery(question):
     # into a generic fallback. This is a bounded reasoning family, not an
     # exact-answer copy of a Gold Star record.
     if (
-        re.search(r"\b(?:boundaries|boundary|scope|limits?|framing|frame)\\b", q)
-        and re.search(r"\b(?:problem|issue|question|inquiry|system)\\b", q)
-        and re.search(r"\b(?:drawn|set|define|defined|frame|framed|around|include|exclude|outside|inside)\\b", q)
-        and re.search(r"\b(?:what|which|kinds?|types?|should|exclude|excluded|outside)\\b", q)
+        re.search(r"\b(?:boundaries|boundary|scope|limits?|framing|frame)\b", q)
+        and re.search(r"\b(?:problem|issue|question|inquiry|system)\b", q)
+        and re.search(r"\b(?:drawn|set|define|defined|frame|framed|around|include|exclude|outside|inside)\b", q)
+        and re.search(r"\b(?:what|which|kinds?|types?|should|exclude|excluded|outside)\b", q)
     ):
         doorway = {
             "title": "Boundary Conditions",
