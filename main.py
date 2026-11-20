@@ -933,6 +933,14 @@ _original_weighted_inquiry_profile = _base._weighted_inquiry_profile
 def _weighted_inquiry_profile(query):
     q = _normalize_query(query)
     profile = _original_weighted_inquiry_profile(q)
+    # Guide self-governance questions must not be misrouted as Archive discovery.
+    from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
+    if is_guide_meta_coverage_policy_question(q):
+        profile["meta"] = 1.0
+        profile["recommendation"] = 0.0
+        profile["navigation"] = 0.0
+        profile["foundation"] = 1.0
+        profile["conceptual"] = 1.0
     if _has_experiential_stance(q) or _has_experiential_state(q):
         profile["lived"] = max(float(profile.get("lived", 0.0)), 0.86)
     if _has_archive_help_request(q):
@@ -6999,8 +7007,15 @@ def _guide_finalize_visitor_payload(payload, query):
     # must win here over a generic/meta failure produced by any inner or legacy
     # response path. This deliberately does not depend on the narrower
     # conceptual-relationship classifier used by earlier layers.
+    from deterministic_answer_recovery import (
+        is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
+        _guide_meta_coverage_policy_recovery,
+    )
     _outer_registered_recovery = (
-        general_guide_composition._conceptual_relationship_recovery(query)
+        _guide_meta_coverage_policy_recovery()
+        if is_guide_meta_coverage_policy_question(query)
+        else general_guide_composition._conceptual_relationship_recovery(query)
     )
     _outer_registered_recovery_valid = bool(
         _outer_registered_recovery
@@ -7028,6 +7043,10 @@ def _guide_finalize_visitor_payload(payload, query):
         general_guide_composition.is_generic_nonanswer(query, response_text)
         or general_guide_composition.is_meta_answer_failure(response_text)
         or _outer_legacy_abstention
+        or (
+            is_guide_meta_coverage_policy_question(query)
+            and not has_guide_meta_coverage_policy_explanation(response_text)
+        )
     )
     if _outer_registered_recovery_valid and _outer_response_failure:
         safe = dict(payload)
@@ -9003,13 +9022,15 @@ def _harm_repair_candidate_has_direct_fit(query, document):
 
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
-
     A syntactically valid URL is not proof of relevance. Provider/core preselection
     is treated as a candidate, never as authority by itself. Rank retrieved
     documents with the Guide's existing relevance gate and emit only a doorway
     supported by the selected document's title, URL, and content. v489.12
     keeps this selection independent of provider-generated text and fallback URLs.
     """
+    from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
+    if is_guide_meta_coverage_policy_question(query):
+        return None
     if not isinstance(context_data, dict):
         return None
     if context_data.get("canonical_doorway_search_attempted"):

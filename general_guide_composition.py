@@ -3548,6 +3548,17 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Meta-level coverage-policy questions are governance questions, not resource discovery.
+    from deterministic_answer_recovery import (
+        is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
+        _guide_meta_coverage_policy_recovery,
+    )
+    if (
+        is_guide_meta_coverage_policy_question(question)
+        and not has_guide_meta_coverage_policy_explanation(candidate)
+    ):
+        candidate = _guide_meta_coverage_policy_recovery()
     # Enforce this task family after every provider and deterministic route.
     # A source/provenance limitation must not erase an answerable general concept.
     from deterministic_answer_recovery import (
