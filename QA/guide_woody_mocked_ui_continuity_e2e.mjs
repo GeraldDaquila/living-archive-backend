@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
-const EXPECTED_CONTROLLER_ARTIFACT = "living-archive-guide-v489.249-payload-integrity-doorway.js";
+const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.329.js";
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
@@ -366,7 +366,7 @@ try {
     }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
     if (i === 2) {
-      const doorway = root.locator("#archive-response-text .la-answer-doorway");
+      const doorway = root.locator("#archive-recommendation .la-answer-doorway");
       const link = doorway.locator("a.la-answer-doorway__link");
       const rationale = doorway.locator(".la-answer-doorway__rationale");
       await doorway.waitFor({ state: "visible" });
@@ -385,7 +385,7 @@ try {
       mark("canonical_recommendation_link_rendered", linkData);
     }
     if (i === 4) {
-      const doorway = root.locator("#archive-response-text .la-answer-doorway");
+      const doorway = root.locator("#archive-recommendation .la-answer-doorway");
       const link = doorway.locator("a.la-answer-doorway__link");
       const rationale = doorway.locator(".la-answer-doorway__rationale");
       await doorway.waitFor({ state: "visible" });
