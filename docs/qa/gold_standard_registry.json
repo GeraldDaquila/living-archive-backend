@@ -1462,7 +1462,6 @@
         "evidence_boundary": "The exact answer wording is preserved from the historical candidate fixture and explicitly approved by the user. PR #1813 restores the verified Trust Architecture doorway at the final visitor boundary; both production API services were verified returning that doorway after deployment. This approval authorizes bounded structural learning only, not exact-answer authority or deterministic fallback."
       },
       "rating": null,
-      "rating_out_of_10": null,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "user_reviewed_response": true,
