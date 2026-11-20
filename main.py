@@ -4742,6 +4742,9 @@ def _is_practical_stewardship_question(query):
         re.search(r"\b(?:how|what|which|when|where)\b", q, re.I)
         and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", q, re.I)
         and re.search(r"\bstewardship\b", q, re.I)
+        # Conceptual questions mentioning community stewardship are not
+        # requests for practical instructions; keep them on the explanation path.
+        and not _is_conceptual_explanatory_request(query)
         and not _explicit_formation_entry_route(query)
     )
 
