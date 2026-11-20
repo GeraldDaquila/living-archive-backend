@@ -268,6 +268,9 @@
     },
     "cosmology_worldview_human_life": {
       "description": "Distinguish scientific cosmology from the broader philosophical use of cosmology as worldview. Explain how assumptions about reality shape perception, possibility, values, relationships, and decisions. Mark illustrative philosophical consequences as interpretations rather than scientific findings, and preserve the boundary between the Living Archive's interpretive framework and established science."
+    },
+    "bounded_weekly_stewardship_action_and_insight_application": {
+      "description": "Translate an inner insight into one proportionate act within an already entrusted responsibility. Distinguish care from control, preserve consent and boundaries, recognize rest or relinquishment as legitimate, and review an observable result before continuing or adjusting the practice."
     }
   },
   "entries": [
@@ -1242,13 +1245,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-weekly-stewardship-insight-to-action",
+      "question": "What is one concrete act of stewardship I can complete this week that makes an inner insight real?",
+      "family": "bounded_weekly_stewardship_action_and_insight_application",
+      "structural_lesson": "Turn insight into one proportionate act within a responsibility already entrusted to the visitor; distinguish what is theirs to hold from what is theirs to control; preserve consent, boundaries, sustainability, and rest; then review an observable result and adjust.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not invent a duty, supernatural caller, external authority, or unlimited obligation. Do not equate stewardship with self-sacrifice or transfer the exact answer or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "eb972d9e3312011ef90db111dde209a0a4764cd4",
-    "qualitative_transfer_review_entries": 112,
-    "general_purpose_runtime_transfer_records": 108,
-    "map_entries": 108
+    "registry_content_sha": "a42c3ea8246c9512a53439b5cf556b0e6c00391a",
+    "qualitative_transfer_review_entries": 113,
+    "general_purpose_runtime_transfer_records": 109,
+    "map_entries": 109
   }
 }

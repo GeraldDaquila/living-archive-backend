@@ -1004,6 +1004,15 @@
       "qualifying_context": "Visitors explicitly asking how cosmology, worldview, assumptions about reality, or an understanding of human belonging relates to everyday life, relationships, cooperation, or institutions.",
       "abstention_boundary": "Do not apply this framework to ordinary astronomy or astrophysics questions unless the visitor also asks about worldview or human meaning. Do not transfer the exact answer or doorway to unrelated questions. Do not claim that separation-based or unity-informed interpretations are scientifically proven or universally settled. Do not turn illustrative social consequences into empirical claims.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-weekly-stewardship-insight-to-action",
+      "question": "What is one concrete act of stewardship I can complete this week that makes an inner insight real?",
+      "reasoning_family": "bounded_weekly_stewardship_action_and_insight_application",
+      "transferable_discipline": "Translate insight into one proportionate action within an already entrusted responsibility; distinguish what is yours to hold from what is yours to control; preserve consent, boundaries, sustainability, and rest; then review an observable result and adjust.",
+      "qualifying_context": "Visitors asking for one concrete near-term stewardship action that makes an insight real, especially where the action must remain proportionate to an existing responsibility and sustainable for the people or systems affected.",
+      "abstention_boundary": "Do not invent a personal duty, supernatural caller, external authority, or unlimited obligation. Do not equate stewardship with self-sacrifice, treat the 20-minute exercise as an Archive rule, or transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
