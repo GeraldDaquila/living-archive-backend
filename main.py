@@ -7855,6 +7855,10 @@ def _guide_finalize_visitor_payload(payload, query):
     # after every provider/specialist route and before downstream relationship rules.
     finalized = apply_event_pattern_structure_boundary(query, finalized)
     finalized = apply_complicated_complex_distinction_boundary(query, finalized)
+    from simple_systemic_explanation_contract import apply_simple_systemic_explanation_boundary
+    # Adapt explanatory depth without sacrificing systemic accuracy; this runs
+    # after all retrieval/provider routes and cannot be bypassed by their failures.
+    finalized = apply_simple_systemic_explanation_boundary(query, finalized)
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
