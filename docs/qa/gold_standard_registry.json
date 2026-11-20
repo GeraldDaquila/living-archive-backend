@@ -7951,9 +7951,68 @@
       "rating_out_of_10": 9,
       "user_approved_at": "2026-11-20",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-complicated-complex-distinction",
+      "status": "CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the difference between complicated and complex?",
+      "expected_response": "A **complicated system** can have many parts and require considerable expertise, but its components and their relationships can usually be identified and analyzed. Its behavior is sufficiently stable that specialists can break the problem into parts, understand how those parts work, and often reproduce a reliable result. An aircraft engine is complicated: designing or repairing one is demanding, but the components, specifications, and causal relationships can be studied and tested.\n\nA **complex system** is different because the interactions among its parts keep shaping one another. People, organisms, or other adaptive elements respond to conditions and to each other; feedback, changing relationships, and nonlinear effects can produce outcomes that cannot be reliably predicted by examining each part separately. An ecosystem or a community is complex: understanding its elements helps, but the whole also changes through their ongoing interaction.\n\nSo the distinction is not simply that one is easy and the other difficult. **Complicated means difficult but, in principle, analyzable through decomposition and expertise; complex means adaptive and emergent, so understanding develops through observation, feedback, and learning over time.** A complicated problem often benefits from specialist analysis, planning, and precise execution. A complex situation calls for listening to the system, testing proportionate interventions, watching what changes, and adapting. A real situation can contain both: its technical components may be complicated while the human or ecological system around them is complex.",
+      "expected_doorway": {
+        "title": "Structural Frameworks",
+        "url": "https://geralddaquila.com/structural-frameworks/",
+        "rationale": "Structural Frameworks explores the recurring relationships and architectures through which systems adapt, coordinate, and evolve. It is a relevant Living Archive continuation after the distinction has been explained, not the evidence source for the general-knowledge answer."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.8,
+      "user_reviewed_response": false,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER AUTHORIZED STRUCTURAL CORRECTION AND GOLD STAR CREATION; EXACT ANSWER AWAITS USER REVIEW",
+      "elevation_approval_evidence": "The user explicitly instructed: fix the failure at both architectural and query levels and turn it into a Gold Star on 2026-11-20. This authorizes implementation and candidate registration. The exact newly authored answer remains subject to user review before frozen Gold Star activation.",
+      "freeze_policy": "candidate_pending_exact_user_review_no_runtime_learning",
+      "runtime_transfer": false,
+      "reasoning_family": "complicated_vs_complex_conceptual_distinction",
+      "transferable_lesson": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
+      "transfer_boundary": "Apply only to questions explicitly comparing complicated and complex concepts or close paraphrases. Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy; do not transfer the exact answer or doorway to unrelated queries.",
+      "gold_star_capabilities": {
+        "generation_class": "candidate_for_exact_user_review",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "complicated_vs_complex_conceptual_distinction",
+        "transferable_discipline": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
+        "abstention_boundary": "Apply only to explicit complicated-versus-complex comparison questions and close paraphrases. Do not over-trigger on incidental co-mentions, label difficulty alone as complexity, imply complex systems are unknowable, or transfer the exact answer or doorway to unrelated queries."
+      },
+      "assertions": [
+        "Answer the conceptual distinction directly before offering navigation.",
+        "Explain complicated systems through identifiable components, stable relationships, decomposition, expertise, and analysis.",
+        "Explain complex systems through adaptive interaction, feedback, nonlinear effects, and emergence.",
+        "Make clear that complicated does not mean easy and complex does not mean impossible to understand.",
+        "Give examples that illustrate the distinction without claiming that a real system belongs exclusively to one category.",
+        "Explain the different response strategies: analysis and precise execution versus observation, feedback, experimentation, and adaptation.",
+        "State that a real situation can contain both complicated components and complex relationships.",
+        "Offer Structural Frameworks only as a relevant continuation, not as evidence for the general-knowledge explanation."
+      ],
+      "known_theme": "complicated systems, complex systems, systems thinking, emergence, adaptation, feedback loops, nonlinear interactions, decomposition, expert analysis, complexity",
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide query and retrieval-failure response, followed by explicit authorization to repair both architecture and query-level behavior.",
+        "source_date": "2026-11-20",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the failure to identify a directly relevant Archive resource. The expected response is a newly authored conceptual explanation, not a transcription of a previously rendered answer. The user authorized the structural correction and Gold Star creation; exact answer review is still required before the candidate can become an active Gold Star.",
+        "canonical_doorway_verification": {
+          "title": "Structural Frameworks",
+          "url": "https://geralddaquila.com/structural-frameworks/",
+          "verification_source": "Cowboy MCP wp_get_post for published WordPress page ID 65259; its content describes recurring structures, patterns, and relationships through which systems adapt, coordinate, decline, regenerate, and evolve.",
+          "verification_date": "2026-11-20"
+        },
+        "review_assessment": "Provisional assistant assessment: 9.8/10 for directness, conceptual accuracy, practical distinction, calibrated examples, and a separately identified canonical continuation. Exact user review pending."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star creation but did not separately request a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
+  "last_reconciliation_note": "2026-11-20: Added the complicated-versus-complex conceptual distinction as a candidate after architectural and query-level correction. The verified Structural Frameworks doorway is a separate continuation. Exact answer awaits user review; it is excluded from approved Gold Star count and runtime learning.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8084,8 +8143,8 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 125,
-    "registry_record_count": 163,
-    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
+    "registry_record_count": 164,
+    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. Two structural candidates remain pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 125 approved Gold Stars; 39 assigned display serials #56–#94; 86 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
@@ -8095,7 +8154,7 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1
+    "structural_candidates_pending_live_review": 2
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8195,8 +8254,8 @@
   "audit": {
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 125,
-    "registry_record_count": 163,
-    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
+    "registry_record_count": 164,
+    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. Two structural candidates remain pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 125 approved Gold Stars; 39 assigned display serials #56–#94; 86 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
@@ -8206,6 +8265,6 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1
+    "structural_candidates_pending_live_review": 2
   }
 }
