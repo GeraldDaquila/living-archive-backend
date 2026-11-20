@@ -7949,7 +7949,8 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star candidate creation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
       "rating_out_of_10": 9,
-      "user_approved_at": "2026-11-20"
+      "user_approved_at": "2026-11-20",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
