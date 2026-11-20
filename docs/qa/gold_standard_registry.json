@@ -1428,29 +1428,35 @@
       "status": "CANDIDATE",
       "subsystem": "general-purpose-guide",
       "query": "What is the role of trust in community stewardship?",
-      "expected_response": null,
+      "expected_response": "Trust helps people in a community rely on one another. It gives people confidence that others will do their part and act with care. Stewardship is the shared responsibility to care for what people depend on.\n\nThink of a shared garden. Trust means people can count on one another to show up and do their part. Stewardship is tending the garden so it remains healthy for everyone. Trust makes cooperation possible; stewardship helps that cooperation endure.",
       "expected_doorway": {
-        "title": null,
-        "url": null
+        "title": "Trust Architecture",
+        "url": "https://geralddaquila.com/trust-architecture/",
+        "rationale": "This cornerstone examines trust as the architecture that sustains cooperation under uncertainty, including accountability, transparency, consistency, and repair. Its dedicated Stewardship Imperative section makes it a direct continuation of this question."
       },
       "assertions": [
-        "Answer the role of trust in community stewardship directly in natural, humane, concrete language.",
-        "Explain trust as something built and sustained through reliable actions, honesty, listening, and follow-through, rather than as an abstract virtue alone.",
-        "Keep this answer distinct from the subsequent reciprocity question; do not reuse its neighbor-helping example or define reciprocity in place of trust.",
-        "Avoid robotic tone, institutional self-reference, jargon, decorative emoji, and unsolicited or weakly related resource recommendations.",
-        "Complete the substantive answer before any optional relevant resource recommendation."
+        "Explain trust as confidence that others will do their part and act with care.",
+        "Explain stewardship as shared responsibility to care for what people depend on.",
+        "Use the shared-garden analogy to make the relationship concrete and accessible.",
+        "Make the relationship explicit: trust makes cooperation possible; stewardship helps that cooperation endure.",
+        "Keep the explanation separate from the canonical recommendation; the doorway is optional continuation, not evidence for the general-knowledge answer.",
+        "Keep this answer distinct from the subsequent reciprocity question; do not reuse the reciprocity answer or its neighbor-helping example.",
+        "Use ordinary, humane language; avoid decorative emoji, machine-like jargon, and unsolicited Glossary routing."
       ],
       "provenance": {
         "source_date": "2026-10-24",
-        "source": "User-provided sequential live Guide review: trust question immediately preceded 'What is the purpose of reciprocity in a community?'",
+        "source": "Historical visitor-response candidate recovered in the existing PR #840 registration work and preserved as a reviewable candidate fixture.",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "evidence_boundary": "The question and its sequence are evidenced by the user's report. Exact prior trust answer text and its separate rating/approval are not present in the current evidence, so this record is a candidate behavioral benchmark, not an approved exact-answer transcript.",
+        "evidence_boundary": "The historical answer wording is retained as a candidate reference. The current status remains CANDIDATE: no Gold Star elevation or runtime activation is asserted. The current canonical doorway is taken from the merged Trust doorway contract in PR #1808; it is separate from the general-knowledge answer.",
         "source_path": "docs/qa/gold_standard_registry.json",
-        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
+        "source_ref": "main",
+        "implementation_pr": "https://github.com/GeraldDaquila/living-archive-backend/pull/1808",
+        "implementation_merge_commit": "cde12d316f30b78392d8665622cba1fe7a041a1c"
       },
       "rating": null,
       "rating_out_of_10": null,
-      "freeze_policy": "Do not promote to user-approved gold standard until exact live answer text and approval evidence are recovered."
+      "freeze_policy": "Candidate reference only. Do not promote to USER_APPROVED_GOLD_STANDARD or activate runtime transfer until the user explicitly approves the exact answer and bounded learning discipline.",
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION"
     },
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
