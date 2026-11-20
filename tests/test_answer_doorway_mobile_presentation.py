@@ -5,14 +5,14 @@ import unittest
 
 ROOT = Path(__file__).resolve().parent
 DOORWAY_CSS = (
-    ROOT / "wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css"
-).read_text()
+    ROOT.parent / "wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css"
+).read_text(encoding="utf-8")
 GUIDE_SNIPPET = (
-    ROOT / "wordpress/guide/woody-snippet-76926-universal.html"
-).read_text()
+    ROOT.parent / "wordpress/guide/woody-snippet-76926-universal.html"
+).read_text(encoding="utf-8")
 PLUGIN_PHP = (
-    ROOT / "wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php"
-).read_text()
+    ROOT.parent / "wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php"
+).read_text(encoding="utf-8")
 
 
 class AnswerDoorwayMobilePresentationTests(unittest.TestCase):
