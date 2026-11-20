@@ -155,7 +155,7 @@ else:
 # Runtime provenance must identify the source actually serving requests.
 # Human release labels may remain stable across commits, but acceptance and
 # forensics must never mistake a label for the deployed source revision.
-APP_VERSION = "v489.315"
+APP_VERSION = "v489.316"
 _DEPLOYED_SOURCE_COMMIT = (
     os.getenv("RENDER_GIT_COMMIT")
     or os.getenv("GIT_COMMIT")
@@ -4191,6 +4191,13 @@ def _is_fsd_request(query):
         return True
     if re.search(r"\bfsd\b", q, re.I):
         return True
+
+    # A recognized bounded problem-framing task is Guide-owned even when it
+    # mentions a "system problem". Do not let the generic natural-language
+    # FSD heuristic steal a conceptual question that has a complete Guide
+    # task capability. Explicit FSD naming above remains authoritative.
+    if _compose_task_specific_recovery(query) is not None:
+        return False
 
     # Human agency, role, and responsibility questions are Guide-owned
     # explanatory requests, even when they describe a broken system or use
