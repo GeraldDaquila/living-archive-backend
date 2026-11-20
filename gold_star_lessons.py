@@ -482,6 +482,10 @@ def select_lesson_candidates(
             + 0.08 * len(shared_family) + 0.04 * len(shared_variant)
             + 0.12 * coverage,
         )
+        # Low-confidence lexical resemblance is not enough to transfer a
+        # governance lesson into an unrelated visitor domain.
+        if score < 0.50:
+            continue
         lexical_ranked.append((score, len(shared_signature), item["id"], item))
     lexical_ranked.sort(key=lambda row: (-row[0], -row[1], row[2]))
     if lexical_ranked:
