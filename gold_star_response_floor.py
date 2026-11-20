@@ -201,6 +201,29 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
                 if exact_standard else "no_enforced_supported_question_type"
             ),
         }
+    # Gold Star v3 makes the three semantic operating states explicit.
+    # This is reporting-only: it does not change the v2 pass/fail decision.
+    enforcement = result.get("semantic_enforcement") or {}
+    observation = result.get("semantic_shadow") or {}
+    result["semantic_governance"] = {
+        "version": "3.0",
+        "diagnostic_observation": {
+            "state": "available" if observation.get("status") != "observer_error" else "unavailable",
+            "mode": observation.get("mode", "unknown"),
+            "status": observation.get("status", "unknown"),
+            "question_type": observation.get("question_type", "unknown"),
+        },
+        "bounded_enforcement": {
+            "state": "active" if enforcement.get("enforced") is True else "inactive",
+            "status": enforcement.get("status", "not_applicable"),
+            "question_type": enforcement.get("question_type"),
+        },
+        "semantic_certification": {
+            "state": "not_certified",
+            "certified": False,
+            "reason": "heuristic_contracts_and_offline_calibration_do_not_establish_semantic_certification",
+        },
+    }
     return result
 
 
