@@ -84,7 +84,8 @@ def test_reciprocity_contract_is_enforced_at_final_visitor_boundary_before_prove
     payload_index = source.index("payload = {", provenance_index)
     block = source[contract_index:trust_index]
     assert contract_index < trust_index < provenance_index < payload_index
-    assert "composition_result = None" in block
+    assert "composition_result = {}" in block
+    assert "composition_result = None" not in block
     assert 'answer_basis = dict(_reciprocity_community_contract["answer_basis"])' in block
     assert "_normalize_authoritative_recommendation(" in block
     assert '"bounded_reciprocity_community_recovery"' in block
