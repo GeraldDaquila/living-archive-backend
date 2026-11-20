@@ -1362,8 +1362,8 @@
       "query": "What is the purpose of reciprocity in a community?",
       "expected_response": "Reciprocity means people support one another over time. It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\nThink of neighbors taking turns checking on an older resident or helping one another with errands. One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\nReciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger.",
       "expected_doorway": {
-        "title": null,
-        "url": null
+        "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+        "url": "https://geralddaquila.com/2026/06/01/reciprocity-before-bureaucracy-how-communities-coordinated-without-modern-institutions/"
       },
       "assertions": [
         "Answer the purpose of reciprocity directly in natural, humane language.",
@@ -1372,16 +1372,23 @@
         "State that reciprocity must not be used to demand access, obedience, or repayment.",
         "Do not use self-referential Archive framing, internal jargon, decorative emoji, or the unrelated shared-garden trust/stewardship analogy.",
         "A sequential trust question followed by this question must produce a distinct reciprocity answer.",
-        "A recommendation must be demonstrably relevant to reciprocity; otherwise omit the doorway."
+        "The verified Reciprocity Before Bureaucracy essay is presented as a separate, relevant Archive recommendation, not as the source of the general-knowledge answer.",
+        "A recommendation must be demonstrably relevant to the question, not merely semantically adjacent."
       ],
       "provenance": {
         "source_date": "2026-10-24",
         "source": "User-provided live screenshot reviewed in this conversation",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "approval_evidence": "The wording has not yet been reviewed and approved as the exact live answer. User-provided screenshot was assessed as meeting expectations; resource relevance remains unresolved.",
+        "approval_evidence": "The answer has not yet been reviewed and approved as the exact live visitor response. The candidate remains pending user review; doorway relevance has now been independently verified.",
         "evidence_boundary": "Candidate benchmark records the observed live answer and behavioral invariants. The user has not explicitly approved it as a frozen gold standard. The displayed resource title is not yet verified as directly relevant.",
         "source_path": "docs/qa/gold_standard_registry.json",
-        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
+        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24",
+        "doorway_verification": {
+          "source": "Published WordPress post 57218, retrieved through Cowboy MCP",
+          "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+          "url": "https://geralddaquila.com/2026/06/01/reciprocity-before-bureaucracy-how-communities-coordinated-without-modern-institutions/",
+          "verification": "Published status and article content inspected; content addresses reciprocity as social infrastructure, mutual obligations, extended exchange, and shared risk."
+        }
       },
       "rating": null,
       "rating_out_of_10": null,
