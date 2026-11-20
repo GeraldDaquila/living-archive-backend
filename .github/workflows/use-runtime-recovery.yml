@@ -27,6 +27,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run runtime identity and recovery invariants
         run: python -m unittest discover -s tests -p 'test_runtime_recovery_invariants.py' -v
+      - name: Install visitor failure-containment test dependency
+        run: python -m pip install pytest
       - name: Run universal visitor failure-containment contract
         run: python -m pytest -q tests/test_universal_visitor_failure_containment.py
       - name: Compile visitor failure recovery modules
