@@ -7852,7 +7852,7 @@
       "reasoning_family": "event_pattern_system_structure_conceptual_distinction",
       "transferable_lesson": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
       "transfer_boundary": "Use only when the visitor asks to distinguish events, patterns, and system structures or a close paraphrase. Do not infer a specific cause from a pattern alone. Do not present the Fractal Systems Diagnostic as a substitute for the explanation or transfer the exact response to unrelated questions.",
-      "known_theme": "event, pattern, system structure, causal mechanisms, recurring behavior, systems thinking, diagnosis, structural conditions",
+      "known_theme": "event versus pattern versus system structure; recurring events; structural conditions; causal mechanisms; systems thinking; multilevel analysis; calibrated causal inference",
       "gold_star_capabilities": {
         "generation_class": "user_approved_quality_governance_exemplar",
         "exact_answer_authority": false,
