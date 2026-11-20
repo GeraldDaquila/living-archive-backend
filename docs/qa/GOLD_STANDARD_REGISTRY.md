@@ -921,3 +921,13 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Runtime authority:** Active qualitative contributor only; exact-answer authority and deterministic fallback remain disabled.
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+## Trust in community stewardship — candidate fixture completed (November 20, 2026)
+
+- **Benchmark ID:** `general-guide-trust-community-stewardship-2026-10-24`
+- **Status:** `CANDIDATE` — the recovered answer is now preserved in a dedicated fixture and checked against the canonical registry. Gold Star elevation and runtime activation remain pending explicit user approval.
+- **Question:** “What is the role of trust in community stewardship?”
+- **Candidate response:** the two-paragraph historical wording is preserved verbatim in `tests/fixtures/general_guide_trust_community_stewardship_candidate.json`.
+- **Doorway:** [Trust Architecture](https://geralddaquila.com/trust-architecture/) — sourced from the merged visitor-facing doorway contract in PR #1808; kept separate from the answer.
+- **QA boundary:** fixture integrity is testable now. This does not count as an approved or live Gold Star, and does not authorize production deployment.
