@@ -8135,6 +8135,7 @@
       "allocation_class": "explicit_user_authorized_numbering_migration",
       "authority": "The user's explicit instruction “elevate!” on 2026-11-18, following review of the live visitor-facing answer. This authorizes the next contiguous display serial #94; no existing serial is changed."
     }
+,
     {
       "benchmark_id": "gs-2026-11-20-problem-boundary-calibration",
       "status": "CANDIDATE_PENDING_USER_REVIEW",
@@ -8147,6 +8148,7 @@
         "rationale": "Boundary Conditions explains why every method has a domain, why its limits must be made explicit, and how disciplined inquiry distinguishes what can be established from what lies beyond its warranted reach."
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "assistant_assessment_out_of_10": 9.8,
       "user_reviewed_response": false,
       "explicit_user_elevation_approval": true,
       "approval_state": "USER AUTHORIZED GOLD STAR CANDIDATE CREATION — EXACT RESPONSE AWAITS USER REVIEW",
@@ -8174,6 +8176,7 @@
         "Treat boundaries as provisional and revisable.",
         "Provide the verified Boundary Conditions page as a relevant continuation after answering."
       ],
+      "known_theme": "problem framing, analytical scope, system boundaries, causal boundaries, scale, time horizon, stakeholder inclusion, authority, evidence limits, out-of-scope factors, externalities, provisional boundaries",
       "provenance": {
         "source": "User-provided screenshot of the live Guide query and failure, followed by explicit authorization to correct both architecture and query-level behavior and elevate the corrected reasoning family.",
         "source_date": "2026-11-20",
@@ -8183,10 +8186,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
-      "known_theme": "problem framing, analytical scope, system boundaries, causal boundaries, scale, time horizon, stakeholder inclusion, authority, evidence limits, out-of-scope factors, externalities, provisional boundaries",
-      "assistant_assessment_out_of_10": 9.8
-    },
+      "numbering_unassigned_reason": "The user authorized Gold Star candidate creation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent."
+    }
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
