@@ -77,6 +77,7 @@ import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
 from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan
+from guide_critique_evidence_integrity import filter_critique_evidence as _filter_critique_evidence
 _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
     "guide_canonical_doorway_search_attempted",
     default=False,
@@ -10913,6 +10914,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+    if _reflexive_critique_plan:
+        # Enforce a content-type boundary before evidence reaches composition:
+        # WordPress media/caption metadata is not Archive worldview evidence.
+        context_data = _filter_critique_evidence(context_data)
+        _integrity = context_data.get("_critique_evidence_integrity") or {}
+        if _integrity:
+            print(
+                "The Guide critique evidence-integrity boundary: "
+                f"removed={_integrity.get('removed_non_substantive_items', 0)}, "
+                f"retained={_integrity.get('retained_substantive_items', 0)}"
+            )
     context_data["_canonical_glossary_checked"] = True
     context_data["_canonical_glossary_documents"] = glossary_documents
     context_data["_canonical_glossary_instruction"] = glossary_instruction

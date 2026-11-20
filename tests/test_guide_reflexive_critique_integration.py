@@ -68,3 +68,53 @@ def test_critique_retrieval_targets_foundational_archive_claims():
     assert "constitutional or cornerstone texts" in query
     assert "exclude unrelated applied examples" in query
     assert "methodological answer" in query
+
+
+def test_critique_evidence_integrity_rejects_header_image_metadata():
+    from guide_critique_evidence_integrity import is_substantive_archive_evidence
+
+    fragment = {
+        "title": "Life Understood",
+        "url": "https://geralddaquila.com/",
+        "text": (
+            "Optimized WebP copy for the site header; original PNG retained unchanged. "
+            'data-image-caption="" data-large-file="https://i0.wp.com/geralddaquila.com/'
+            "wp-content/uploads/header.png"
+        ),
+    }
+    assert not is_substantive_archive_evidence(fragment)
+
+
+def test_critique_evidence_integrity_retains_substantive_worldview_passage():
+    from guide_critique_evidence_integrity import is_substantive_archive_evidence
+
+    document = {
+        "title": "The Living Archive: A Sensemaking Infrastructure",
+        "url": "https://geralddaquila.com/living-archive/",
+        "text": (
+            "The Living Archive is a sensemaking infrastructure for navigating "
+            "complexity, uncertainty, and human development. It distinguishes "
+            "understanding from certainty and treats knowledge as revisable through "
+            "evidence, reflection, and engagement with lived experience. Its claims "
+            "about agency and interdependence should be examined through their "
+            "definitions, scope, assumptions, and consequences in practice."
+        ),
+    }
+    assert is_substantive_archive_evidence(document)
+
+
+def test_critique_evidence_integrity_marks_empty_archive_evidence_unavailable():
+    from guide_critique_evidence_integrity import filter_critique_evidence
+
+    context = {
+        "generation_authority_protected_docs": [{
+            "title": "Header image",
+            "url": "https://geralddaquila.com/",
+            "text": 'data-image-caption="" data-large-file="header.png" optimized WebP copy',
+        }],
+        "context_blocks": 'data-image-caption="" data-large-file="header.png"',
+    }
+    filtered = filter_critique_evidence(context)
+    assert filtered["generation_authority_protected_docs"] == []
+    assert filtered["context_blocks"] == ""
+    assert filtered["evidence_sufficiency_unavailable"] is True
