@@ -58,11 +58,7 @@ def rank_semantic_lessons(query: str, candidates: List[Dict[str, Any]]) -> Dict[
         return {}
     model = _model()
     query_text = str(query)
-    if hasattr(model, "query_embed"):
-        query_embedding = next(iter(model.query_embed([query_text])))
-    else:
-        query_embedding = next(iter(model.embed([query_text])))
-    query_vector = _unit(query_embedding)
+    query_vector = _unit(next(iter(model.embed([query_text]))))
     vectors = _lesson_vectors()
     return {
         str(item["id"]): sum(
