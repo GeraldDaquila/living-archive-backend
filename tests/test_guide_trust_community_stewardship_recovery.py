@@ -45,6 +45,22 @@ def test_trust_community_stewardship_contract_has_renderer_ready_verified_doorwa
     assert restored["recommendation"]["rationale"] == doorway["rationale"]
 
 
+def test_trust_doorway_survives_missing_upstream_recommendation_and_search_failure():
+    # The real production regression returned a correct answer but no doorway.
+    # The shared final boundary must restore this reviewed query-specific
+    # destination without depending on generic retrieval being available.
+    restored = main._guide_restore_verified_doorway(
+        {"response": main._trust_community_stewardship_recovery()},
+        QUERY,
+    )
+    assert restored["recommendation"]["title"] == "Trust Architecture"
+    assert restored["recommendation"]["url"] == "https://geralddaquila.com/trust-architecture/"
+    assert restored["doorway_decision"] == "selected"
+    assert restored["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
+    assert restored["doorway_selection_source"] == "reviewed_trust_community_stewardship_contract"
+    assert restored["doorway_selection_evaluated"] is True
+
+
 def test_trust_contract_does_not_capture_unrelated_queries():
     assert main._trust_community_stewardship_final_contract(
         "What is the purpose of reciprocity in a community?"
