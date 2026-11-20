@@ -110,7 +110,7 @@ def build_reflexive_critique_plan(query: str) -> dict[str, Any] | None:
     }
 
 
-__all__ = ["VERSION", "build_reflexive_critique_plan"]
+__all__ = ["VERSION", "build_reflexive_critique_plan", "build_reflexive_critique_answer"]
 
 
 def build_reflexive_critique_answer(query: str) -> dict[str, Any] | None:
