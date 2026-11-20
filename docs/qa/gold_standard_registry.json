@@ -7453,7 +7453,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized registry elevation but did not authorize allocation of a human-facing Gold Star serial. Approval and adaptive-learning identity do not require a serial."
+      "numbering_unassigned_reason": "The user authorized registry elevation but did not authorize allocation of a human-facing Gold Star serial. Approval and adaptive-learning identity do not require a serial.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Added user-approved live orientation-versus-information Gold Star on 2026-11-20. The exact three-paragraph visitor response, 9.5/10 approval, and verified When Knowledge Is Everywhere doorway are frozen; its transferable lesson is contextual discernment that uses information, preserves human judgment, and makes ambiguity more navigable. No display serial was allocated.",
