@@ -11301,7 +11301,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "doorway_decision": "omit" if _no_handoff else ("select" if (_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")) else "omit"),
             "doorway_omission_reason": (
                 "visitor_explicitly_forbids_handoff"
-                if _no_handoff else "no_verified_direct_archive_continuation"
+                if _no_handoff else ("no_verified_direct_archive_continuation" if not (_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")) else None)
             ),
             "answer_basis": {
                 "kind": "general_knowledge",
