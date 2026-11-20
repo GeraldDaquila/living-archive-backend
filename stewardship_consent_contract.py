@@ -98,6 +98,64 @@ def apply_stewardship_consent_relationship_boundary(query: str, payload: Any) ->
             "quality_adjusted_llm_eligible": False,
             "llm_invoked": False,
         }
+        safe["provider"] = None
+        safe["model"] = None
+        safe["evidence"] = []
+        safe["evidence_validation"] = {
+            "version": "1.0",
+            "status": "not_applicable",
+            "reason": "deterministic_relational_recovery_not_attributed_to_retrieved_sources",
+            "reference_count": 0,
+            "claim_support": {
+                "status": "not_applicable",
+                "reason": "bounded_general_knowledge_relational_recovery",
+                "semantic_certification": False,
+            },
+            "temporal_validity": {
+                "status": "not_applicable",
+                "reason": "no_temporal_claims_in_response",
+            },
+            "semantic_certification": False,
+        }
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "Conceptual explanation",
+            "explanation": (
+                "This is a bounded conceptual explanation of the relationship between "
+                "entrusted responsibility and consent, not legal advice or a universal "
+                "consent test. The linked Charter is a related constitutional continuation."
+            ),
+        }
+        recovery_evidence = {
+            "provenance_class": "deterministic_recovery",
+            "references_present": False,
+            "validation_status": "not_applicable",
+            "claim_support_status": "not_applicable",
+            "semantic_certification": False,
+        }
+        answer_envelope = safe.get("answer_envelope")
+        if isinstance(answer_envelope, dict):
+            answer_envelope = dict(answer_envelope)
+            route = dict(answer_envelope.get("route") or {})
+            route["provider_present"] = False
+            route["model_present"] = False
+            answer_envelope["route"] = route
+            answer_envelope["evidence"] = recovery_evidence
+            safe["answer_envelope"] = answer_envelope
+        quality_floor = safe.get("gold_star_v2_quality_floor")
+        if isinstance(quality_floor, dict):
+            quality_floor = dict(quality_floor)
+            quality_floor["evidence_validation"] = safe["evidence_validation"]
+            floor_envelope = quality_floor.get("answer_envelope")
+            if isinstance(floor_envelope, dict):
+                floor_envelope = dict(floor_envelope)
+                floor_route = dict(floor_envelope.get("route") or {})
+                floor_route["provider_present"] = False
+                floor_route["model_present"] = False
+                floor_envelope["route"] = floor_route
+                floor_envelope["evidence"] = recovery_evidence
+                quality_floor["answer_envelope"] = floor_envelope
+            safe["gold_star_v2_quality_floor"] = quality_floor
     doorway = canonical_doorway()
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
