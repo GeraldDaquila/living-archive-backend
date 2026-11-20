@@ -8,6 +8,7 @@ on:
       - "deterministic_answer_recovery.py"
       - "docs/qa/gold_standard_registry.json"
       - "tests/test_guide_problem_boundary_gold_star.py"
+      - "scripts/guide_problem_boundary_api_smoke.py"
       - ".github/workflows/guide-problem-boundary-gold-star-qa.yml"
   workflow_dispatch:
 
@@ -46,63 +47,4 @@ jobs:
             tests/test_gold_star_exact_only_successor_validation.py \
             tests/test_guide_systemwide_three_paragraph_default.py
       - name: Exercise exact and paraphrased API requests without providers or Pinecone
-        env:
-          USE_REASONING_PROVIDER_MODE: deterministic_only
-          USE_PINECONE_RETRIEVAL_BYPASS: "true"
-        run: |
-          python - <<'PY'
-          import json, os, subprocess, sys, time, urllib.request
-          port = 10001
-          env = os.environ.copy()
-          env["PORT"] = str(port)
-          server = subprocess.Popen(
-              [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(port)],
-              env=env,
-          )
-          def ask(question):
-              body = json.dumps({"query": question, "history": []}).encode("utf-8")
-              request = urllib.request.Request(
-                  f"http://127.0.0.1:{port}/api/query",
-                  data=body,
-                  headers={"Content-Type": "application/json"},
-                  method="POST",
-              )
-              last = None
-              for _ in range(60):
-                  try:
-                      with urllib.request.urlopen(request, timeout=35) as response:
-                          payload = json.loads(response.read().decode("utf-8"))
-                          assert response.status == 200
-                          return payload
-                  except Exception as exc:
-                      last = exc
-                      if server.poll() is not None:
-                          raise RuntimeError(f"QA server exited: {exc}") from exc
-                      time.sleep(1)
-              raise RuntimeError(f"QA API timed out: {last!r}")
-          try:
-              questions = [
-                  "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
-                  "How should I define the boundaries around a system problem, and what stays outside scope?",
-                  "When framing a problem, what should be included and excluded?",
-              ]
-              for question in questions:
-                  result = ask(question)
-                  print("PROBLEM_BOUNDARY_API_CONTRACT", json.dumps({key: result.get(key) for key in ("processing", "recovery", "route_source", "recommendation", "canonical_doorway", "doorway_title", "doorway_url")}, ensure_ascii=False))
-                  assert isinstance(result.get("response"), str), (question, type(result.get("response")).__name__)
-                  answer = result.get("response") or ""
-                  doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
-                  assert len(answer) > 700, (question, len(answer), answer[:250])
-                  assert "outside the chosen scope" in answer.casefold(), question
-                  assert doorway.get("title") == "Boundary Conditions", (question, doorway)
-                  assert doorway.get("url") == "https://geralddaquila.com/boundary-conditions/", (question, doorway)
-                  assert result.get("processing") == "task_specific_deterministic_recovery", (question, result.get("processing"))
-                  print("PROBLEM_BOUNDARY_API_PASS", question, len(answer), doorway.get("title"))
-          finally:
-              server.terminate()
-              try:
-                  server.wait(timeout=10)
-              except subprocess.TimeoutExpired:
-                  server.kill()
-                  server.wait(timeout=5)
-          PY
+        run: python scripts/guide_problem_boundary_api_smoke.py
