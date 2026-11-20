@@ -2325,6 +2325,8 @@ def test_reciprocity_gold_star_promotion_does_not_mutate_older_frozen_reference(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
     )
-    assert record["status"] == "FROZEN_REFERENCE_ONLY"
+    assert record["status"] == "SUPERSEDED_GOLD_STANDARD"
+    assert record["superseded_by_benchmark_id"] == "general-guide-reciprocity-community-2026-10-24"
+    assert record["expected_response"].startswith("Reciprocity means a relationship of mutual response:")
     assert record["query"] == "What does reciprocity mean in the Living Archive?"
     assert record["expected_response"].startswith("Reciprocity means a relationship of mutual response:")
