@@ -55,3 +55,20 @@ def test_substantive_answer_passes_and_generic_one_fails():
     assert not _has_entrusted_stewardship_identification(
         "Identify the outcome you want, consider who is affected, and choose one step."
     )
+
+
+
+def test_incomplete_knowledge_stewardship_contract_is_active_at_both_levels():
+    from guide_incomplete_knowledge import build_incomplete_knowledge_plan
+
+    plan = build_incomplete_knowledge_plan(
+        "How should a steward act amid incomplete knowledge?"
+    )
+    assert plan is not None
+    assert "known_inferred_assumed_unknown" in plan["required_dimensions"]
+    assert "stakes_urgency_authority_and_reversibility" in plan["required_dimensions"]
+    assert "feedback_review_and_revision_conditions" in plan["required_dimensions"]
+    assert "directly known" in plan["architectural_contract"]
+    assert "least harmful protective action" in plan["architectural_contract"]
+    assert "what can safely be done now" in plan["composition_instruction"]
+    assert "conditions for changing or stopping course" in plan["composition_instruction"]
