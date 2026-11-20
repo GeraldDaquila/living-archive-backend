@@ -54,3 +54,6 @@ def test_final_boundary_and_shared_composer_contract_are_wired():
     assert 'floor_route["provider_present"] = False' in main
     assert 'doorway_status == "VERIFIED_RELEVANT_DESTINATION"' in main
     assert 'floor_envelope["doorway"] = doorway_contract' in main
+    assert 'elif doorway_status == "NOT_EVALUATED":' in main
+    assert 'doorway_state = "not_evaluated"' in main
+    assert 'doorway_state = "no_relevant_destination_after_bounded_search"' in main
