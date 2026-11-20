@@ -627,7 +627,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_without_global
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "never requires three paragraphs or any fixed number of response units" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" not in composition_source
-    assert 'CONTRACT_VERSION = "v1.52"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.53"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != general_guide_composition.CONTRACT_VERSION' in main_source

@@ -61,3 +61,25 @@ def test_contract_is_scoped_to_shared_composition_and_query_instruction():
     assert "build_incomplete_knowledge_plan(question)" in source
     assert "+ incomplete_knowledge_instruction" in source
     assert 'incomplete_knowledge_plan["architectural_contract"]' in source
+
+
+def test_incomplete_knowledge_contract_requires_actionable_epistemic_and_correction_moves():
+    plan = build_incomplete_knowledge_plan("How should a steward act amid incomplete knowledge?")
+    architectural = plan["architectural_contract"].casefold()
+    query = plan["composition_instruction"].casefold()
+    for phrase in (
+        "directly observed", "interpretations and inferences", "assumptions",
+        "material unknowns", "situated knowledge", "confidence",
+        "legitimate authority", "delay itself creates serious or imminent harm",
+        "observable signals", "accountable for monitoring", "adaptation, reversal",
+        "remain correctable",
+    ):
+        assert phrase in architectural
+    for phrase in (
+        "what is known and not known", "what the situation allows now",
+        "how to act proportionately", "how to remain correctable",
+        "what to monitor", "who is accountable", "waiting is unsafe",
+        "do not merely say",
+    ):
+        assert phrase in query
+    assert plan["version"] == "1.1"
