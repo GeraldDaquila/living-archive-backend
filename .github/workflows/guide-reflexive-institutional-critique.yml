@@ -4,7 +4,7 @@ on:
     paths: ["main.py", "guide_reflexive_critique.py", "gold_star_question_contract.py", "general_guide_composition.py", "tests/test_guide_reflexive_critique.py", "tests/test_guide_reflexive_critique_integration.py", ".github/workflows/guide-reflexive-institutional-critique.yml"]
   push:
     branches: [main]
-    paths: ["main.py", "guide_reflexive_critique.py", "gold_star_question_contract.py", "general_guide_composition.py", "tests/test_guide_reflexive_critique.py", ".github/workflows/guide-reflexive-institutional-critique.yml"]
+    paths: ["main.py", "guide_reflexive_critique.py", "gold_star_question_contract.py", "general_guide_composition.py", "tests/test_guide_reflexive_critique.py", "tests/test_guide_reflexive_critique_integration.py", ".github/workflows/guide-reflexive-institutional-critique.yml"]
 jobs:
   reflexive-critique-contract:
     runs-on: ubuntu-latest
