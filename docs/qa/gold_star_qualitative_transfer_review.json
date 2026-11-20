@@ -1058,6 +1058,15 @@
       "qualifying_context": "Visitors asking how power and responsibility relate, including questions about formal authority, informal influence, accountability, and fair responsibility for consequences. Apply the proportionality test to actual influence, knowledge, role, and capacity.",
       "abstention_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-stewardship-incomplete-knowledge",
+      "question": "How should a steward act amid incomplete knowledge?",
+      "reasoning_family": "stewardship_under_incomplete_knowledge",
+      "transferable_discipline": "Separate established facts, inference, assumptions, material unknowns, and missing perspectives; calibrate confidence to evidence; assess stakes, urgency, affected people, legitimate authority, capacity, and reversibility; distinguish safe action now from verification, testing, consultation, escalation, or pause; choose proportionate safeguards; define observable monitoring signals, accountable ownership, review triggers, and continuation, adaptation, reversal, or stopping conditions; preserve human decision authority and accountability.",
+      "qualifying_context": "Visitors asking how a steward or custodian should act, decide, or proceed when material information is incomplete, uncertain, or contested and a consequential action is required.",
+      "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
