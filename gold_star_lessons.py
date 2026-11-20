@@ -514,7 +514,7 @@ def select_lesson_candidates(
         shared_family = normalized_query_terms & item.get("reasoning_terms", set())
         # A subject-identity anchor prevents broad conceptual analogy from
         # crossing domains; semantic similarity supplies the paraphrase bridge.
-        if semantic_score < 0.48 or not (shared_signature or shared_variant):
+        if semantic_score < 0.68 or not (shared_signature or shared_variant):
             continue
         lexical_support = min(
             1.0,
