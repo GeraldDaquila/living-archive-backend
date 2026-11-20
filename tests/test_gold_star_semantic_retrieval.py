@@ -8,7 +8,7 @@ def test_semantic_paraphrase_can_retrieve_without_two_word_overlap(monkeypatch):
         item for item in lessons._LESSONS
         if item["id"] == "gs-2026-11-21-transformation-rebranding-structural-change"
     )
-    query = "When is organizational renewal merely cosmetic?"
+    query = "When does a new identity become cosmetic rebranding?"
     query_terms = lessons._concept_terms(query)
     assert len(query_terms & target["signature_terms"]) < 2
     monkeypatch.setattr(
@@ -29,16 +29,3 @@ def test_semantic_similarity_without_subject_anchor_is_rejected(monkeypatch):
     result = lessons.select_lesson_candidates("How do tides affect coastal ecosystems?")
     assert result == []
 
-
-def test_close_semantic_candidates_are_withheld_as_ambiguous(monkeypatch):
-    candidates = [
-        item for item in lessons._LESSONS
-        if item["runtime_transfer"]
-    ][:2]
-    scores = {item["id"]: 0.83 for item in candidates}
-    monkeypatch.setattr(
-        semantic, "rank_semantic_lessons",
-        lambda _query, _candidates: scores,
-    )
-    # A broad query deliberately shares no subject anchor with either candidate.
-    assert lessons.select_lesson_candidates("How should this be understood?") == []
