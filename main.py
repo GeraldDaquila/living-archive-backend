@@ -5660,6 +5660,26 @@ def _sanitize_basic_inquiry_response(text):
         if lines:
             paragraphs.append("\n".join(lines))
 
+    # Visitor answers must not expose operational outage diagnostics as prose.
+    # These details belong in structured provenance/monitoring, not in the answer.
+    # Remove only a paragraph that reports internal answer/retrieval service state;
+    # preserve the substantive answer immediately before or after it.
+    operational_disclosure = re.compile(
+        r"(?i)(?:"
+        r"(?:the\s+)?guide(?:['’]s)?\s+(?:live\s+)?answer.{0,140}"
+        r"(?:canonical[- ]retrieval|retrieval|provider|answer)\s+services?.{0,100}"
+        r"(?:unavailable|failed|timed\s+out)"
+        r"|(?:bounded\s+general[- ]knowledge\s+orientation).{0,160}"
+        r"(?:services?\s+(?:were\s+)?unavailable|provider\s+(?:was\s+)?unavailable|on\s+this\s+attempt)"
+        r"|(?:canonical[- ]retrieval|live\s+answer)\s+services?.{0,100}"
+        r"(?:unavailable|failed|timed\s+out)"
+        r")"
+    )
+    paragraphs = [
+        paragraph for paragraph in paragraphs
+        if not operational_disclosure.search(paragraph)
+    ]
+
     return "\n\n".join(paragraphs).strip()
 
 
