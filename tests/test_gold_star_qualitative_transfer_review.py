@@ -62,6 +62,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
         "LEGACY_INCOMPLETE_NOT_APPROVED",
         "NOT_APPROVED_CONCEPTUAL_MISMATCH",
         "NOT_EVALUATED",
+        "NOT_EVALUATED",
     }
     for record in registry["records"]:
         if record.get("status")!="USER_APPROVED_GOLD_STANDARD":
@@ -312,3 +313,43 @@ def test_consequential_action_gold_star_has_bounded_structural_transfer():
     assert "review signals" in entry["transferable_discipline"]
     assert "low-stakes" in entry["abstention_boundary"]
     assert "answer text" not in entry["transferable_discipline"].lower()
+
+
+def test_reflexive_institutional_critique_gold_star_is_registered_and_bounded():
+    from pathlib import Path
+    import json
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    benchmark_id = "gs-2026-11-20-reflexive-institutional-critique"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["rating_out_of_10"] == 9.6
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
+    assert record["expected_doorway"] is None
+    assert "independent method of scrutinizing" in record["doorway_omission_exception_reason"]
+    assert len(record["expected_response"].split("\n\n")) == 6
+    for phrase in (
+        "independent corroboration",
+        "internal coherence and external adequacy",
+        "revision conditions",
+        "not independently establish that what it says is true",
+    ):
+        assert phrase in record["expected_response"]
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == record["reasoning_family"]
+    assert entry["transferable_discipline"] == record["transferable_lesson"]
+    assert entry["abstention_boundary"] == record["transfer_boundary"]
+    assert len(review["entries"]) == sum(
+        item.get("status") == "USER_APPROVED_GOLD_STANDARD" and item.get("runtime_transfer") is True
+        for item in registry["records"]
+    )

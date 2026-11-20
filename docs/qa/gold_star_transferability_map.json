@@ -1287,13 +1287,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not infer that the original missing doorway was intentional; its original state remains NOT_EVALUATED. Do not expand omission authority, force a doorway onto meta-policy questions, transfer the exact answer or clinic-access example to unrelated queries, or override existing relevance, access, risk, refusal, and source-verification rules."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-reflexive-institutional-critique",
+      "question": "What would constitute a good-faith critique of the Archive’s worldview?",
+      "family": "reflexive_institutional_critique_and_correctability",
+      "structural_lesson": "For requests to critique an institution's worldview, reconstruct its strongest actual claims before evaluating them; distinguish descriptive, empirical, interpretive, and normative claims; expose assumptions; test empirical claims against independent evidence and counterexamples; assess internal coherence separately from external adequacy and consequences; represent objections and replies fairly; state revision conditions; and calibrate conclusions to evidence actually examined. Do not treat institutional self-description as independent validation.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only when a visitor asks for good-faith critique or independent examination of an institution's worldview, framework, or foundational claims. Do not assume the institution's claims are true or false, invent corpus contents, imply an audit has occurred when it has not, collapse normative commitments into empirical propositions, or transfer this exact answer to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "fd79750d3c96c37efd8b12560ce9ab00d2e784d2",
-    "qualitative_transfer_review_entries": 116,
-    "general_purpose_runtime_transfer_records": 112,
-    "map_entries": 112
+    "registry_content_sha": "5b1893278b21c038f222bc50ff3fe72286827df3",
+    "qualitative_transfer_review_entries": 117,
+    "general_purpose_runtime_transfer_records": 113,
+    "map_entries": 113
   }
 }
