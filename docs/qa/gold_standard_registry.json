@@ -7395,9 +7395,69 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-orientation-vs-information-practical-distinction",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does “orientation rather than information” mean in practice?",
+      "expected_response": "Information gives you facts, data, or claims. Orientation helps you understand what that information means in the situation you are actually facing: what matters, what is reliable, how the relevant parts relate, and what responsibilities or possible actions follow. Orientation uses information; it does not reject it. It connects what you know to the context in which you must judge and act.\n\nFor example, an AI system may give you a fluent, detailed answer. The text is information, but orientation means asking whether its claims are reliable and adequately supported, whether they address the real question, what important context or consequences may be missing, and what should responsibly be done with the answer. A confident response is not a substitute for human judgment.\n\nThis is the distinction developed in the Living Archive Cornerstone “When Knowledge Is Everywhere”: the aim is not simply to accumulate more knowledge, but to cultivate orientation, judgment, discernment, responsibility, and wise participation in complex systems. Orientation does not eliminate ambiguity; it makes ambiguity more navigable.",
+      "expected_doorway": {
+        "title": "When Knowledge Is Everywhere",
+        "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+        "rationale": "The answer explicitly develops the distinction through this canonical Cornerstone; the Continue Exploring card offers the directly relevant next step without displacing the substantive answer."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "The user reviewed the live Guide browser response on 2026-11-20, rated it 9.5/10 with Gold Star approval, and explicitly instructed: “elevate to registry!” Approval covers the exact three-paragraph answer and its separate canonical Continue Exploring doorway.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "orientation_vs_information_practical_discernment",
+      "transferable_lesson": "Distinguish information as facts, data, or claims from orientation as contextual understanding of what matters, what is reliable, how relevant parts relate, and what responsibilities or actions follow. Show that orientation uses information rather than rejecting it; ground the distinction in a practical example; preserve human judgment; and connect the explanation to a directly relevant canonical source when one is verified.",
+      "transfer_boundary": "Do not transfer this exact answer or doorway to unrelated questions. Do not frame orientation as a substitute for information, certainty, or human judgment. Do not imply that orientation eliminates ambiguity or that fluent AI output is reliable merely because it is confident.",
+      "known_theme": "orientation, information, contextual judgment, discernment, reliability, AI answers, responsibility, ambiguity, wise participation",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "orientation_vs_information_practical_discernment",
+        "transferable_discipline": "Explain the difference between possessing information and being oriented to interpret and act on it; preserve uncertainty, evidence standards, and human judgment.",
+        "abstention_boundary": "Do not reuse this answer or doorway for unrelated queries, imply certainty, or equate fluency with reliability."
+      },
+      "assertions": [
+        "Preserve the exact three-paragraph live visitor response verbatim.",
+        "Distinguish information (facts, data, claims) from orientation (contextual understanding of meaning, reliability, relationships, responsibilities, and possible action).",
+        "State explicitly that orientation uses information rather than rejecting it.",
+        "Use the AI-system example to show why fluent detail is not a substitute for reliability, context, or human judgment.",
+        "Preserve the boundary that orientation makes ambiguity more navigable but does not eliminate it.",
+        "Keep the canonical Continue Exploring doorway separate from the substantive answer and preserve its exact title and URL."
+      ],
+      "user_approved_at": "2026-11-20",
+      "elevation_approval_evidence": "After reviewing the live Guide browser response and receiving the Gold Star assessment, the user explicitly instructed “elevate to registry!” on 2026-11-20.",
+      "provenance": {
+        "source": "user_confirmed_live_guide_browser_acceptance",
+        "source_date": "2026-11-20",
+        "source_url": "https://geralddaquila.com/the-guide/",
+        "source_question": "What does “orientation rather than information” mean in practice?",
+        "evidence_boundary": "The user-provided live browser screenshot shows the exact visitor question, the full three-paragraph response, and the separate Continue Exploring card. The screenshot is the acceptance evidence; this registry entry transcribes the visible answer verbatim. No inference is made about unshown runtime internals.",
+        "application_commit": "78eeada0e89ca1781531057874147efde5df2a59",
+        "canonical_doorway_verification": {
+          "title": "When Knowledge Is Everywhere",
+          "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+          "verification_source": "The live Guide response's Continue Exploring card",
+          "verification_date": "2026-11-20"
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized registry elevation but did not authorize allocation of a human-facing Gold Star serial. Approval and adaptive-learning identity do not require a serial.",
+      "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "Added user-approved weekly stewardship insight-to-action Gold Star on 2026-11-20. The exact live three-paragraph response and verified public Stewardship doorway are frozen; transfer is limited to proportionate action within entrusted responsibility, sustainable care, boundaries, consent, rest, and end-of-week review. No display serial was allocated.",
+  "last_reconciliation_note": "Added user-approved live orientation-versus-information Gold Star on 2026-11-20. The exact three-paragraph visitor response, 9.5/10 approval, and verified When Knowledge Is Everywhere doorway are frozen; its transferable lesson is contextual discernment that uses information, preserves human judgment, and makes ambiguity more navigable. No display serial was allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7527,15 +7587,15 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 115,
-    "registry_record_count": 153,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-20: 115 approved-status records across 153 registry records. 113 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "approved_gold_star_count": 116,
+    "registry_record_count": 154,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-20: 116 approved-status records across 154 registry records. 114 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 115 approved Gold Stars; 39 assigned display serials #56–#94; 76 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the new weekly stewardship exemplar remains unnumbered.",
-    "unassigned_approved_gold_star_count": 76,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 116 approved Gold Stars; 39 assigned display serials #56–#94; 77 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the newly elevated orientation-versus-information exemplar remains unnumbered.",
+    "unassigned_approved_gold_star_count": 77,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 113,
+    "active_quality_contributor_count": 114,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1

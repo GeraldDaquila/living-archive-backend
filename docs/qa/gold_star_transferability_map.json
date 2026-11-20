@@ -1254,13 +1254,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not invent a duty, supernatural caller, external authority, or unlimited obligation. Do not equate stewardship with self-sacrifice or transfer the exact answer or doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-orientation-vs-information-practical-distinction",
+      "question": "What does “orientation rather than information” mean in practice?",
+      "family": "orientation_vs_information_practical_discernment",
+      "structural_lesson": "Distinguish having information from being oriented to interpret it in context: identify what matters, what is reliable, how the parts relate, and what responsibilities or actions follow. Use information rather than reject it; preserve human judgment; and make ambiguity more navigable without promising certainty.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not impose this distinction on unrelated factual questions or transfer the exact answer or doorway. Do not imply that information is unimportant, that orientation guarantees certainty, or that fluent AI output is reliable without evidence and human judgment."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "a42c3ea8246c9512a53439b5cf556b0e6c00391a",
-    "qualitative_transfer_review_entries": 113,
-    "general_purpose_runtime_transfer_records": 109,
-    "map_entries": 109
+    "registry_content_sha": "a338c8281594918a6f8242122125828a4993beaa",
+    "qualitative_transfer_review_entries": 114,
+    "general_purpose_runtime_transfer_records": 110,
+    "map_entries": 110
   }
 }
