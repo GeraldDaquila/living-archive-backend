@@ -1013,6 +1013,15 @@
       "qualifying_context": "Visitors asking for one concrete near-term stewardship action that makes an insight real, especially where the action must remain proportionate to an existing responsibility and sustainable for the people or systems affected.",
       "abstention_boundary": "Do not invent a personal duty, supernatural caller, external authority, or unlimited obligation. Do not equate stewardship with self-sacrifice, treat the 20-minute exercise as an Archive rule, or transfer the exact answer or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-orientation-vs-information-practical-distinction",
+      "question": "What does “orientation rather than information” mean in practice?",
+      "reasoning_family": "orientation_vs_information_practical_discernment",
+      "transferable_discipline": "Distinguish information as facts, data, or claims from orientation as contextual understanding of what matters, what is reliable, how relevant parts relate, and what responsibilities or actions follow. Show that orientation uses information rather than rejecting it; ground the distinction in a practical example; preserve human judgment; and connect the explanation to a directly relevant canonical source when one is verified.",
+      "qualifying_context": "Visitors asking what it means to be oriented rather than merely informed, especially when interpreting AI-generated answers, evaluating reliability, deciding what matters, or determining responsible next steps.",
+      "abstention_boundary": "Do not impose this distinction on unrelated factual questions or transfer the exact answer or doorway. Do not imply that information is unimportant, that orientation guarantees certainty, or that fluent AI output is reliable without evidence and human judgment.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
