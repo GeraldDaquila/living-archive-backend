@@ -1317,22 +1317,13 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway."
-    },
-    {
-      "benchmark_id": "gs-2026-11-20-stewardship-consent-relational-legitimacy",
-      "question": "What is the relationship between stewardship and consent?",
-      "family": "stewardship_consent_relational_legitimacy",
-      "structural_lesson": "Explain stewardship and consent as complementary but distinct: stewardship establishes entrusted responsibility to care; consent establishes whether and within what limits affected people's participation, choices, resources, or interests may legitimately be involved. Distinguish responsibility from authority and consent from consultation or good intention. Where consent is the relevant basis, preserve informed, voluntary, specific agreement and the possibility of refusal, withdrawal, or renegotiation. Distinguish routine responsibilities within an authorized role from decisions requiring permission or shared authority; do not turn this into a universal legal test.",
-      "role": "cross_question_candidate",
-      "transferability_status": "cross_question_candidate",
-      "abstention_boundary": "Apply only to substantive questions about the relationship between stewardship, consent, entrusted care, participation, and legitimacy. Do not assume stewardship automatically confers decision authority; do not reduce consent to consultation, notification, or benevolent intent; do not imply every routine act of care requires individual permission or impose a universal legal test; distinguish actions within an authorized role from those requiring permission or shared authority; preserve affected people's agency; do not transfer exact wording or a doorway. Doorway status is NOT_EVALUATED. Do not infer or invent a canonical destination."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "a33db8e7be6fa12ba72e97bd8b3315bfcdd0f183",
-    "qualitative_transfer_review_entries": 120,
-    "general_purpose_runtime_transfer_records": 116,
-    "map_entries": 116
+    "registry_content_sha": "fcb0bf1a29f41734cdb93c3c167717f08dd9f767",
+    "qualitative_transfer_review_entries": 119,
+    "general_purpose_runtime_transfer_records": 115,
+    "map_entries": 115
   }
 }
