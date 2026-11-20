@@ -270,11 +270,11 @@ def _select_verified_doorway_conceptual_family(query):
     # AST-extracted unit. Require the combined leadership, institutional,
     # incentive, and extraction signals before selecting the reviewed doorway.
     if (
-        re.search(r"\b(?:leader|leadership|executive|board|governor|director|manager)\\b", text, re.I)
-        and re.search(r"\b(?:institution|institutional|organization|organisational|organizational|governance|system)\\b", text, re.I)
-        and re.search(r"\b(?:incentive|incentives|reward|rewards|rewarded|rewarding|metric|metrics|target|targets|compensation|bonus|promotion|performance measure)\\b", text, re.I)
-        and re.search(r"\b(?:extract|extraction|extractive|depletion|deplete|short[- ]term|immediate returns?|quarterly gains?|externaliz\w* costs?)\\b", text, re.I)
-        and re.search(r"\b(?:how should|what should|how can|what can|respond|response|address|change|reform)\\b", text, re.I)
+        re.search(r"\b(?:leader|leadership|executive|board|governor|director|manager)\b", text, re.I)
+        and re.search(r"\b(?:institution|institutional|organization|organisational|organizational|governance|system)\b", text, re.I)
+        and re.search(r"\b(?:incentive|incentives|reward|rewards|rewarded|rewarding|metric|metrics|target|targets|compensation|bonus|promotion|performance measure)\b", text, re.I)
+        and re.search(r"\b(?:extract|extraction|extractive|depletion|deplete|short[- ]term|immediate returns?|quarterly gains?|externaliz\w* costs?)\b", text, re.I)
+        and re.search(r"\b(?:how should|what should|how can|what can|respond|response|address|change|reform)\b", text, re.I)
     ):
         return "institutional_extraction_incentives"
     # Human-worldview/cosmology inquiries need a philosophical continuation,
