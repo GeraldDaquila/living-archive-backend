@@ -2143,6 +2143,10 @@ def test_missing_origin_main_ref_is_fetched_before_immutable_number_check(monkey
 
     def fake_run(args, **kwargs):
         calls.append(args)
+        if args[:3] == ["git", "remote", "get-url"]:
+            raise subprocess.CalledProcessError(2, args)
+        if args[:3] == ["git", "remote", "add"]:
+            return subprocess.CompletedProcess(args, 0, "", "")
         if args[:4] == ["git", "show-ref", "--verify", "--quiet"]:
             if not verified["present"]:
                 raise subprocess.CalledProcessError(1, args)
@@ -2155,6 +2159,8 @@ def test_missing_origin_main_ref_is_fetched_before_immutable_number_check(monkey
     monkeypatch.setattr(validator.subprocess, "run", fake_run)
     validator.ensure_canonical_main_ref()
     assert calls == [
+        ["git", "remote", "get-url", "origin"],
+        ["git", "remote", "add", "origin", "https://github.com/GeraldDaquila/living-archive-backend.git"],
         ["git", "show-ref", "--verify", "--quiet", "refs/remotes/origin/main"],
         ["git", "fetch", "--no-tags", "origin", "main:refs/remotes/origin/main"],
         ["git", "show-ref", "--verify", "--quiet", "refs/remotes/origin/main"],
@@ -2167,6 +2173,10 @@ def test_failed_canonical_main_fetch_keeps_registry_validation_fail_closed(monke
     from scripts import validate_gold_star_registry as validator
 
     def fake_run(args, **kwargs):
+        if args[:3] == ["git", "remote", "get-url"]:
+            raise subprocess.CalledProcessError(2, args)
+        if args[:3] == ["git", "remote", "add"]:
+            return subprocess.CompletedProcess(args, 0, "", "")
         if args[:4] == ["git", "show-ref", "--verify", "--quiet"]:
             raise subprocess.CalledProcessError(1, args)
         if args[:3] == ["git", "fetch", "--no-tags"]:
