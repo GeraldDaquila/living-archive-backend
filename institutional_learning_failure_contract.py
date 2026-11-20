@@ -39,6 +39,13 @@ _ACKNOWLEDGMENT = re.compile(
     r"report\w*|publicly\s+(?:known|discussed|addressed))\b",
     re.I,
 )
+_MULTI_INTENT = re.compile(
+    r"\b(?:and\s+(?:also\s+)?(?:how|what|which|whether|compare|explain|"
+    r"analy[sz]e|recommend|draft|calculate|identify|evaluate)\b|"
+    r"then\s+(?:explain|compare|evaluate|recommend|draft|calculate|identify|analy[sz]e)\b|"
+    r"first|secondly|additionally|in addition)\b",
+    re.I,
+)
 _NO_HANDOFF = re.compile(
     r"\b(?:do not|don't|without|no)\b.{0,70}\b"
     r"(?:links?|resources?|recommendations?|doorways?|pages?)\b",
@@ -55,6 +62,7 @@ def is_institutional_learning_failure_question(question: Any) -> bool:
         and _RECURRENCE.search(q)
         and _FAILURE.search(q)
         and _ACKNOWLEDGMENT.search(q)
+        and not _MULTI_INTENT.search(q)
     )
 
 
