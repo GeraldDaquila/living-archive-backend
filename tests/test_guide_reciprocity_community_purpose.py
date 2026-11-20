@@ -103,7 +103,7 @@ def test_reciprocity_answer_is_not_misrepresented_as_archive_evidence():
     assert assessment["reason"] == "answer_not_attributed_to_archive"
 
 
-def test_reciprocity_registry_candidate_records_verified_doorway_without_freezing_answer():
+def test_reciprocity_registry_approval_records_supersession_and_preserves_old_text():
     registry = json.loads(
         (Path(main.__file__).resolve().parent / "docs/qa/gold_standard_registry.json").read_text(
             encoding="utf-8"
@@ -113,13 +113,16 @@ def test_reciprocity_registry_candidate_records_verified_doorway_without_freezin
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-reciprocity-community-2026-10-24"
     )
-    assert record["status"] == "CANDIDATE"
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["expected_doorway"]["title"] == DOORWAY_TITLE
     assert record["expected_doorway"]["url"] == DOORWAY_URL
-    assert record["rating"] is None
-    assert "user review" in record["provenance"]["approval_evidence"].lower()
+    assert record["rating_out_of_10"] == 9.5
+    assert record["supersedes_benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
+    assert "reviewed" in record["elevation_approval_evidence"].lower()
     frozen_reference = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
     )
-    assert frozen_reference["status"] == "FROZEN_REFERENCE_ONLY"
+    assert frozen_reference["status"] == "SUPERSEDED_GOLD_STANDARD"
+    assert frozen_reference["superseded_by_benchmark_id"] == record["benchmark_id"]
+    assert frozen_reference["expected_response"].startswith("Reciprocity means a relationship of mutual response:")
