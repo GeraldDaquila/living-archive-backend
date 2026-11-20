@@ -32,7 +32,7 @@ def is_complicated_complex_distinction_question(question: Any) -> bool:
         r"\b(?:difference|differ|distinguish|distinction|contrast|versus|vs\.?|compared?|comparison|relationship)\b",
         q,
     )
-    question_shape = re.search(r"\b(?:what|how|which|is|are|between)\b", q)
+    question_shape = re.search(r"\b(?:what|how|which|is|are|between|can|could|would|should)\b", q)
     return bool(contrast and question_shape)
 
 
