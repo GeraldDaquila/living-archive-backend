@@ -1,0 +1,44 @@
+name: Post-merge stewardship consent production acceptance
+
+on:
+  push:
+    branches:
+      - gold-star-v2-complete-architecture
+    paths:
+      - ".github/workflows/stewardship-consent-production-acceptance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  primary-and-mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Chromium browser runtime
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify Gerald's Workspace primary
+        run: |
+          python scripts/stewardship_consent_browser_acceptance.py \
+            --base-url "https://living-archive-backend.onrender.com" \
+            --expected-commit "59a8f6241e9321ee1687ee4bf9be49ad56d12b0c" \
+            --output artifacts/stewardship-consent-primary-acceptance.json
+      - name: Verify USE2-Mirror secondary
+        run: |
+          python scripts/stewardship_consent_browser_acceptance.py \
+            --base-url "https://living-archive-backend-mirror.onrender.com" \
+            --expected-commit "59a8f6241e9321ee1687ee4bf9be49ad56d12b0c" \
+            --output artifacts/stewardship-consent-mirror-acceptance.json
+      - name: Upload primary and mirror acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: stewardship-consent-production-acceptance
+          path: artifacts/stewardship-consent-*-acceptance.json
+          if-no-files-found: error
+          retention-days: 90
