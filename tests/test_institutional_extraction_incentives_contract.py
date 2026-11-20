@@ -1,4 +1,6 @@
 from pathlib import Path
+import ast
+import re
 
 from institutional_extraction_incentives_contract import (
     canonical_doorway,
@@ -52,6 +54,24 @@ def test_doorway_is_the_verified_regenerative_governance_essay():
     )
     assert "direct continuation" in doorway["rationale"]
 
+
+
+def test_main_doorway_selector_routes_the_exact_query_family_and_rejects_adjacent_queries():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    function = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_select_verified_doorway_conceptual_family"
+    )
+    namespace = {"re": re}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), "<family>", "exec"), namespace)
+    selector = namespace["_select_verified_doorway_conceptual_family"]
+    assert selector(
+        "How should a leader respond when institutional incentives reward short-term extraction?"
+    ) == "institutional_extraction_incentives"
+    assert selector("How do incentives influence individual choices?") is None
 
 def test_main_runtime_wires_the_contract_at_selection_and_final_boundary():
     root = Path(__file__).resolve().parents[1]
