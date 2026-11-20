@@ -112,6 +112,11 @@ from institutional_extraction_incentives_contract import (
     recovery_response as _institutional_extraction_incentives_recovery,
     canonical_doorway as _institutional_extraction_incentives_doorway,
 )
+from stewardship_consent_contract import (
+    is_stewardship_consent_relationship_question,
+    canonical_doorway as _stewardship_consent_doorway,
+    apply_stewardship_consent_relationship_boundary as _apply_stewardship_consent_relationship_boundary,
+)
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -266,6 +271,8 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    if is_stewardship_consent_relationship_question(text):
+        return "stewardship_consent_relational_legitimacy"
     # Keep this selector self-contained: it is also exercised as an isolated
     # AST-extracted unit. Require the combined leadership, institutional,
     # incentive, and extraction signals before selecting the reviewed doorway.
@@ -473,6 +480,7 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
     "stewardship_significance": {
         "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
@@ -7718,7 +7726,11 @@ def _guide_finalize_visitor_payload(payload, query):
     if _resolve_exact_guide_gold_standard(query) is not None:
         return finalized
     from event_pattern_structure_contract import apply_event_pattern_structure_boundary
-    return apply_event_pattern_structure_boundary(query, finalized)
+    # final_visitor_boundary_stewardship_consent_relational_contract
+    finalized = apply_event_pattern_structure_boundary(query, finalized)
+    if is_stewardship_consent_relationship_question(query):
+        return _apply_stewardship_consent_relationship_boundary(query, finalized)
+    return finalized
 
 
 _BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
@@ -14645,6 +14657,10 @@ async def _use_send_json(send, payload, status_code=200):
     ):
         from event_pattern_structure_contract import apply_event_pattern_structure_boundary
         payload = apply_event_pattern_structure_boundary(_boundary_query, payload)
+        if is_stewardship_consent_relationship_question(_boundary_query):
+            payload = _apply_stewardship_consent_relationship_boundary(
+                _boundary_query, payload
+            )
 
     # Deterministic, safety, specialist, and provider routes share one
     # question/capability context and one integrity-floor implementation.

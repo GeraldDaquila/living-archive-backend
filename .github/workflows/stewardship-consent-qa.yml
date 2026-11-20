@@ -1,0 +1,61 @@
+name: Stewardship and consent relational contract QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "general_guide_composition.py"
+      - "stewardship_consent_contract.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - "docs/qa/gold_star_transferability_map.json"
+      - "docs/qa/GOLD_STANDARD_REGISTRY.md"
+      - "tests/test_gold_standard_registry.py"
+      - "tests/test_general_guide_autonomy_evidence_contract.py"
+      - "tests/test_stewardship_consent_contract.py"
+      - "tests/test_institutional_extraction_incentives_contract.py"
+      - "tests/test_gold_star_adaptive_intelligence_v2.py"
+      - "tests/test_gold_star_qualitative_transfer_review.py"
+      - "tests/test_gold_star_remedy_selection.py"
+      - "scripts/validate_gold_star_registry.py"
+      - "test_final_registered_conceptual_recovery_boundary.py"
+      - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
+      - ".github/workflows/stewardship-consent-qa.yml"
+
+jobs:
+  stewardship-consent-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Check patch whitespace
+        run: git diff --check
+      - name: Compile changed Python modules
+        run: python -m py_compile main.py general_guide_composition.py stewardship_consent_contract.py
+      - name: Validate Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
+      - name: Run focused relational contract tests
+        run: pytest -q tests/test_stewardship_consent_contract.py
+      - name: Run focused and adjacent architectural regressions
+        run: >-
+          pytest -q
+          tests/test_stewardship_consent_contract.py
+          tests/test_general_guide_autonomy_evidence_contract.py
+          tests/test_institutional_extraction_incentives_contract.py
+          test_final_registered_conceptual_recovery_boundary.py
+          tests/test_gold_standard_registry.py
+          tests/test_gold_star_adaptive_intelligence_v2.py
+          tests/test_gold_star_qualitative_transfer_review.py
+          tests/test_gold_star_remedy_selection.py
+      - name: Run full repository regression suite (diagnostic)
+        continue-on-error: true
+        run: pytest -q --ignore=tests/test_answer_doorway_mobile_presentation.py
