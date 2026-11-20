@@ -1385,13 +1385,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to questions about the purpose or role of reciprocity in community mutual support, including close paraphrases. Do not transfer this answer or doorway to generic definitions, commercial exchanges, contractual or legal duties, financial reciprocity, or unrelated trust and stewardship questions. Do not infer consent, entitlement, or a debt from prior help; do not use reciprocity to justify coercion or compelled participation."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-systemic-explanation-accessibility",
+      "question": "How should The Guide explain a systemic issue to a user seeking a simple answer?",
+      "family": "systems_intelligibility_without_monocausal_reduction",
+      "structural_lesson": "Make a systemic issue understandable without reducing it to a single cause. Start with a direct plain-language explanation; identify only the interacting rules, incentives, resources, relationships, and feedback patterns needed to explain how the issue persists; distinguish known observations from inference; show why it matters and one practical point of leverage; offer further depth only if wanted.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply to requests asking how to explain a systemic or structural issue simply or in plain language, including close paraphrases. Do not use this answer as a substitute for explaining a specific issue with its own evidence, context, affected parties, and causal uncertainty. Do not reduce systemic conditions to one cause or one person's mistake, list every possible mechanism, present inference as established fact, or prescribe leverage without understanding the situation. Do not transfer this exact wording or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "00708ce21c57326c587f1a6238c2f05a4c38e7ff",
-    "qualitative_transfer_review_entries": 125,
-    "general_purpose_runtime_transfer_records": 121,
-    "map_entries": 121
+    "registry_content_sha": "ea82f59d935d0b64cd42e3f275a1bc87a5d518e1",
+    "qualitative_transfer_review_entries": 126,
+    "general_purpose_runtime_transfer_records": 122,
+    "map_entries": 122
   }
 }
