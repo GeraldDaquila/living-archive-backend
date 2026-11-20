@@ -4552,8 +4552,9 @@ def _trust_community_stewardship_recovery():
         "whether others return, keep their word, share decisions fairly, and repair harm. "
         "Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger "
         "when people can question decisions and see that commitments are honoured. The "
-        "Living Archive's Trust Architecture essay offers a related path for exploring "
-        "trust as social infrastructure."
+        "For a deeper exploration of trust as social infrastructure, continue with the Living Archive's "
+        "[Trust Architecture: The Missing Infrastructure Behind Functional Societies]("
+        "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/)."
     )
 
 
@@ -14372,6 +14373,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         # inferred from prose and never dependent on provider metadata.
         "recommendation": _visitor_recommendation,
         "canonical_doorway": _visitor_recommendation,
+        # Flat aliases keep visitor renderers and compatibility adapters on the
+        # same canonical doorway contract if nested objects are translated.
+        "doorway_title": _visitor_recommendation.get("title") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_url": _visitor_recommendation.get("url") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_rationale": _visitor_recommendation.get("rationale") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_decision": "selected" if _visitor_recommendation else None,
+        "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION" if _visitor_recommendation else "NOT_EVALUATED",
+        "doorway_selection_evaluated": bool(_visitor_recommendation),
+        "doorway_selection_source": "final_authoritative_recommendation_contract" if _visitor_recommendation else None,
         "answer_basis": answer_basis,
         "evidence": _evidence_references,
         "evidence_validation": _evidence_assessment,
