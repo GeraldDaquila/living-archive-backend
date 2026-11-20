@@ -224,22 +224,68 @@ def validate_numbering_metadata(registry, records):
         fail("a serial cannot be both assigned and listed as an unassigned gap")
 
 
-def validate_numbering_against_base(current_records, current_registry=None):
-    """Compare the PR registry with its merge-base version from canonical main."""
+def ensure_canonical_main_ref():
+    """Fetch canonical main even when a hosted QA checkout has no Git remote.
+
+    Render's isolated source checkout can omit remote configuration entirely.
+    Restore the known repository origin only when absent, then fetch and verify
+    the canonical main ref. Never substitute the candidate registry or a local
+    branch for canonical main; any remote/fetch failure aborts QA.
+    """
     try:
-        merge_base = subprocess.run(
-            ["git", "merge-base", "HEAD", BASELINE_REF],
+        subprocess.run(
+            ["git", "remote", "get-url", "origin"],
             cwd=ROOT, check=True, capture_output=True, text=True,
-        ).stdout.strip()
-        if not merge_base:
-            fail("cannot resolve merge base with origin/main")
+        )
+    except subprocess.CalledProcessError:
+        add_remote = subprocess.run(
+            [
+                "git", "remote", "add", "origin",
+                "https://github.com/GeraldDaquila/living-archive-backend.git",
+            ],
+            cwd=ROOT, check=False, capture_output=True, text=True,
+        )
+        if add_remote.returncode != 0:
+            detail = (add_remote.stderr or add_remote.stdout or "no diagnostic returned").strip()
+            fail(f"cannot configure canonical Git origin for immutable-number check: {detail}")
+
+    try:
+        subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", BASELINE_REF],
+            cwd=ROOT, check=True, capture_output=True, text=True,
+        )
+        return
+    except subprocess.CalledProcessError:
+        pass
+
+    fetch = subprocess.run(
+        ["git", "fetch", "--no-tags", "origin", f"main:{BASELINE_REF}"],
+        cwd=ROOT, check=False, capture_output=True, text=True,
+    )
+    if fetch.returncode != 0:
+        detail = (fetch.stderr or fetch.stdout or "no diagnostic returned").strip()
+        fail(f"cannot fetch canonical origin/main for immutable-number check: {detail}")
+
+    try:
+        subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", BASELINE_REF],
+            cwd=ROOT, check=True, capture_output=True, text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        fail(f"canonical origin/main ref is still unavailable after fetch: {exc}")
+
+
+def validate_numbering_against_base(current_records, current_registry=None):
+    """Compare the candidate registry directly with the fetched canonical main registry."""
+    ensure_canonical_main_ref()
+    try:
         base_text = subprocess.run(
-            ["git", "show", f"{merge_base}:docs/qa/gold_standard_registry.json"],
+            ["git", "show", f"{BASELINE_REF}:docs/qa/gold_standard_registry.json"],
             cwd=ROOT, check=True, capture_output=True, text=True,
         ).stdout
         base_registry = json.loads(base_text)
     except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
-        fail(f"cannot load canonical base registry for immutable-number check: {exc}")
+        fail(f"cannot load canonical main registry for immutable-number check: {exc}")
 
     base_records = base_registry.get("records", [])
     base_ids = {r.get("benchmark_id") for r in base_records}

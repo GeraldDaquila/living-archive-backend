@@ -135,7 +135,7 @@ def test_canonical_audit_metadata_is_derived_not_independent():
 
 def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkeypatch):
     # Exercise the same invariant the CI validator uses: compare the proposed
-    # registry against the exact merge-base registry, not a stale branch count.
+    # registry directly against canonical main, not a stale branch count.
     from scripts import validate_gold_star_registry as validator
 
     base_records = _registry()["records"]
@@ -146,6 +146,10 @@ def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkey
     ]
 
     def fake_run(command, **kwargs):
+        if command[:3] == ["git", "remote", "get-url"]:
+            return type("Result", (), {"stdout": "https://github.com/GeraldDaquila/living-archive-backend.git", "returncode": 0})()
+        if command[:4] == ["git", "show-ref", "--verify", "--quiet"]:
+            return type("Result", (), {"stdout": "", "returncode": 0})()
         if command[:3] == ["git", "merge-base", "HEAD"]:
             return type("Result", (), {"stdout": "fake-base", "returncode": 0})()
         if command[:2] == ["git", "show"]:

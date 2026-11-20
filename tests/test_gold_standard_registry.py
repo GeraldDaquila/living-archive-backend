@@ -1544,7 +1544,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 117
     assert registry["integrity_audit"]["approved_gold_star_count"] == 117
-    assert registry["integrity_audit"]["registry_record_count"] == 155
+    assert registry["integrity_audit"]["registry_record_count"] == 156
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 78
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
@@ -1604,7 +1604,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 117
     assert registry["integrity_audit"]["approved_gold_star_count"] == 117
-    assert registry["integrity_audit"]["registry_record_count"] == 155
+    assert registry["integrity_audit"]["registry_record_count"] == 156
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 78
 
@@ -1675,7 +1675,7 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 117
     assert registry["integrity_audit"]["approved_gold_star_count"] == 117
-    assert registry["integrity_audit"]["registry_record_count"] == 155
+    assert registry["integrity_audit"]["registry_record_count"] == 156
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 78
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
@@ -1800,7 +1800,7 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     assert adjacent["benchmark_id"] != fixture["benchmark_id"]
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 117
     assert registry["integrity_audit"]["approved_gold_star_count"] == 117
-    assert registry["integrity_audit"]["registry_record_count"] == 155
+    assert registry["integrity_audit"]["registry_record_count"] == 156
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 78
 
@@ -2132,3 +2132,57 @@ def test_guide_coverage_gap_governance_gold_star_preserves_intentional_no_doorwa
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert review_entry["activation"] == "active_quality_contributor"
     assert "failed retrieval" in review_entry["transferable_discipline"]
+
+
+def test_missing_origin_main_ref_is_fetched_before_immutable_number_check(monkeypatch):
+    import subprocess
+    from scripts import validate_gold_star_registry as validator
+
+    calls = []
+    verified = {"present": False}
+
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        if args[:3] == ["git", "remote", "get-url"]:
+            raise subprocess.CalledProcessError(2, args)
+        if args[:3] == ["git", "remote", "add"]:
+            return subprocess.CompletedProcess(args, 0, "", "")
+        if args[:4] == ["git", "show-ref", "--verify", "--quiet"]:
+            if not verified["present"]:
+                raise subprocess.CalledProcessError(1, args)
+            return subprocess.CompletedProcess(args, 0, "", "")
+        if args[:3] == ["git", "fetch", "--no-tags"]:
+            verified["present"] = True
+            return subprocess.CompletedProcess(args, 0, "", "")
+        raise AssertionError(f"Unexpected git command: {args}")
+
+    monkeypatch.setattr(validator.subprocess, "run", fake_run)
+    validator.ensure_canonical_main_ref()
+    assert calls == [
+        ["git", "remote", "get-url", "origin"],
+        ["git", "remote", "add", "origin", "https://github.com/GeraldDaquila/living-archive-backend.git"],
+        ["git", "show-ref", "--verify", "--quiet", "refs/remotes/origin/main"],
+        ["git", "fetch", "--no-tags", "origin", "main:refs/remotes/origin/main"],
+        ["git", "show-ref", "--verify", "--quiet", "refs/remotes/origin/main"],
+    ]
+
+
+def test_failed_canonical_main_fetch_keeps_registry_validation_fail_closed(monkeypatch):
+    import subprocess
+    import pytest
+    from scripts import validate_gold_star_registry as validator
+
+    def fake_run(args, **kwargs):
+        if args[:3] == ["git", "remote", "get-url"]:
+            raise subprocess.CalledProcessError(2, args)
+        if args[:3] == ["git", "remote", "add"]:
+            return subprocess.CompletedProcess(args, 0, "", "")
+        if args[:4] == ["git", "show-ref", "--verify", "--quiet"]:
+            raise subprocess.CalledProcessError(1, args)
+        if args[:3] == ["git", "fetch", "--no-tags"]:
+            return subprocess.CompletedProcess(args, 128, "", "remote unavailable")
+        raise AssertionError(f"Unexpected git command: {args}")
+
+    monkeypatch.setattr(validator.subprocess, "run", fake_run)
+    with pytest.raises(SystemExit, match="cannot fetch canonical origin/main"):
+        validator.ensure_canonical_main_ref()
