@@ -47,6 +47,9 @@ const apiFailures = [];
 const apiFinished = [];
 const pageErrors = [];
 const consoleErrors = [];
+// Keep diagnostics visible to both the success and failure reporters.
+const inlineScriptSyntaxDiagnostics = [];
+const externalScriptSyntaxDiagnostics = [];
 page.on("pageerror", error => {
   pageErrors.push({ name: error.name || "Error", message: error.message, stack: error.stack || "" });
 });
@@ -96,7 +99,7 @@ try {
   });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("load").catch(() => {});
-  const inlineScriptSyntaxDiagnostics = await page.locator("script:not([src])").evaluateAll(scripts =>
+  inlineScriptSyntaxDiagnostics.push(...await page.locator("script:not([src])").evaluateAll(scripts =>
     scripts.map((script, index) => {
       const type = (script.getAttribute("type") || "text/javascript").toLowerCase();
       if (!["text/javascript", "application/javascript", "module", ""].includes(type)) return null;
@@ -109,8 +112,7 @@ try {
         return { index, type, id: script.id || null, bytes: source.length, message: error.message };
       }
     }).filter(Boolean)
-  );
-  const externalScriptSyntaxDiagnostics = [];
+  ));
   for (const script of await page.locator('script[src*="guide-controller"], script[src*="marked"]').evaluateAll(nodes => nodes.map(node => node.src))) {
     try {
       const response = await page.request.get(script);
