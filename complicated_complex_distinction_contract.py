@@ -78,7 +78,7 @@ def apply_complicated_complex_distinction_boundary(
     safe: Dict[str, Any] = dict(payload)
     prior_generation_present = bool(safe.get("provider") or safe.get("model"))
     no_handoff = bool(re.search(
-        r"\\b(?:do not|don't|without|no)\\b.{0,60}\\b(?:links?|resources?|recommendations?|doorways?|pages?)\\b",
+        r"\b(?:do not|don't|without|no)\b.{0,60}\b(?:links?|resources?|recommendations?|doorways?|pages?)\b",
         str(question or ""),
         re.I,
     ))
