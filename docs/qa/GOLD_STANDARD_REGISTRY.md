@@ -864,15 +864,20 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Freeze policy:** Preserve the exact approved response and intentional no-doorway exception. Changes require explicit user authorization and a separately documented benchmark-version change.
 
 
-### Registry candidate — doorway non-selection evidence governance (2026-11-20)
+### Gold Star — Guide doorway-selection evidence governance (2026-11-20)
 
 - **Benchmark:** `general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20`
-- **Status:** `CANDIDATE`; not an approved Gold Star and not active runtime-learning authority.
-- **Response:** The complete supplied response distinguishing evidence, interpretation, hypothesis, and normative judgment is preserved verbatim in `docs/qa/gold_standard_registry.json`.
-- **Exact query:** “What counts as evidence, interpretation, hypothesis, and normative judgment?”
-- **Assessment:** 9.4/10 for substantive response quality. This is an assistant assessment, not a user-supplied rating or Gold Star approval.
-- **Doorway state:** `NOT_EVALUATED`. The response contains no doorway, but no canonical-candidate retrieval trace, source inspection, or selector decision record was supplied. The absence is not certified as intentional abstention.
-- **Governance principle:** A complete answer does not create an automatic obligation to attach a resource. However, a missing doorway is not evidence of successful restraint. The selector must distinguish a verified relevant destination, an authorized omission under the existing doorway contract, and a process failure in which selection or source verification did not occur.
-- **Existing-contract boundary:** This candidate does not expand the authorized reasons for omission or override the approved general-continuation rule. It requires the selector to document the actual evaluation and apply existing omission authority rather than inventing a new exception.
-- **Promotion gate:** Exact visitor query, canonical candidate evaluation, source-inspection evidence, applicable omission authority, regression tests, and user-reviewed live behavior must be established before any Gold Star or runtime-transfer promotion.
-- **Numbering:** Not applicable while candidate; no serial allocated.
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; user explicitly approved elevation after the independent doorway-selection correction passed Standalone QA and was deployed to both production services.
+- **Question:** “What counts as evidence, interpretation, hypothesis, and normative judgment?”
+- **Answer:** The exact visitor-facing response distinguishing evidence, interpretation, hypothesis, and normative judgment is preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Rating:** 9.4/10.
+- **Approval scope:** The exact answer and the transferable discipline of separating answer formation from evidenced doorway selection are approved. This does not certify that the original missing doorway was an intentional omission.
+- **Doorway state:** `NOT_EVALUATED` for the original observed response. The post-deployment rendered result for this exact query has not yet been supplied for acceptance review.
+- **Governance principle:** A complete answer does not create an automatic obligation to attach a resource. However, a missing doorway is not evidence of successful restraint. The selector must distinguish a verified relevant destination, no relevant destination after completed bounded checks, retrieval or source-verification failure, a selection that was not evaluated, and an omission authorized under the existing contract.
+- **Existing-contract boundary:** This Gold Star does not expand authorized reasons for omission or override the approved general-continuation rule. It requires the selector to record the actual evaluation and apply existing omission authority rather than inventing a new exception.
+- **Runtime transfer:** Disabled pending separate live visitor acceptance and transfer review. The correction is deployed, but the exact query's post-deployment rendered behavior has not yet been reviewed.
+- **Production application:** PR #1754 merged to main at `c6e370f2649a37207b908cfa6c8f4db2f8742423`; Gerald workspace primary and USE2 mirror deployments are live.
+- **Standalone QA:** 163 targeted regression tests passed; Guide composition QA V489.243 passed; registry integrity passed.
+- **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved answer and bounded governance discipline. Do not reinterpret the original missing doorway as intentional, enable runtime transfer, or alter the existing omission contract without separate evidence and authorization.
+
