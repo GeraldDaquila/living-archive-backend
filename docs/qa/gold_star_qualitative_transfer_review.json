@@ -1148,6 +1148,15 @@
       "qualifying_context": "Visitors asking why organizations repeat failures despite publicly acknowledging them, issuing apologies or reports, or making commitments to change, including close paraphrases.",
       "abstention_boundary": "Apply to questions about organizations repeating failures despite public acknowledgment, apologies, reports, or stated commitments. Do not assume every organization exhibits all five mechanisms, diagnose a named organization without evidence, or equate public acknowledgment with learning or effective correction. Keep the distinction between learning to describe failure and becoming capable of changing its reproducing conditions. Do not transfer the exact answer or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-21-transformation-rebranding-structural-change",
+      "question": "When does “transformation” become mere rebranding?",
+      "reasoning_family": "structural_transformation_vs_symbolic_rebranding",
+      "transferable_discipline": "Distinguish structural transformation from symbolic rebranding by testing whether decision rights, incentives, resource flows, accountability, everyday practices, outcomes, and the distribution of power and costs materially change. Treat durable, observable differences in system operation and lived experience—not new labels, strategies, or promises—as the evidence of transformation. Keep those differences open to scrutiny and correction.",
+      "qualifying_context": "Visitors asking whether a transformation is substantive or merely rebranding, cosmetic change, a new identity, a new strategy, or a change in promises, including close paraphrases.",
+      "abstention_boundary": "Apply to questions assessing whether an organization, institution, or wider system has genuinely transformed or merely changed its language, identity, strategy, or promises. Do not apply automatically to personal transformation, emotional relief, or every use of the word transformation. Do not diagnose a named system without evidence, assume every listed mechanism is present, or transfer the exact answer, its examples, or its doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
