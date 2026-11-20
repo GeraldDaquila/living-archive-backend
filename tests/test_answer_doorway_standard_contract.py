@@ -67,6 +67,11 @@ def main():
     assert "helper.renderMany(doorContainer, items)" in mini
     assert "innerHTML" not in mini
     assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
+    assert "if (container) {" in guide_controller
+    assert "container.replaceChildren(block);" in guide_controller
+    assert "responseText.appendChild(block);" in guide_controller
+    render_start = guide_controller.index("function renderAuthoritativeRecommendation")
+    assert guide_controller.index("if (container) {", render_start) < guide_controller.index("responseText.appendChild(block);", render_start)
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
     assert "var primaryDoorway=text.querySelector" in guide
