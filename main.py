@@ -4632,7 +4632,7 @@ def _reciprocity_community_recovery():
     )
 
 
-def _reciprocity_community_canonical_recommendation(query):
+def _reciprocity_community_canonical_recommendation(query, context_data=None):
     """Return the independently verified Archive continuation for community reciprocity."""
     if not _is_reciprocity_community_purpose_question(query):
         return None
@@ -6199,6 +6199,7 @@ def _guide_restore_verified_doorway(payload, query):
         for selector_name in (
             "_healthy_community_canonical_recommendation",
             "_trust_community_stewardship_canonical_recommendation",
+            "_reciprocity_community_canonical_recommendation",
         ):
             selector = globals().get(selector_name)
             if not callable(selector):
