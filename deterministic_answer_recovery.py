@@ -36,19 +36,6 @@ def compose_definition_significance(subject):
     if is_personal_reference_question(subject):
         return personal_reference_fallback(subject)
     display_subject = subject[:1].upper() + subject[1:]
-    # Archive-specific terminology is governed by the published Living Glossary.
-    # Retrieve an exact source entry instead of maintaining a competing local copy.
-    try:
-        from archive_glossary_authority import get_glossary_entry, compose_glossary_recovery
-        canonical_entry = get_glossary_entry(subject)
-        if canonical_entry:
-            canonical_answer = compose_glossary_recovery(canonical_entry)
-            if canonical_answer:
-                return canonical_answer
-    except Exception:
-        # Source unavailability must not prevent ordinary general-knowledge
-        # recovery; an absent Archive entry is never inferred or fabricated.
-        pass
     # The community-reciprocity successor replaces the older generic fallback
     # for both the community-purpose query and the earlier Archive-framed wording.
     # Keep the answer general-knowledge: the Archive essay remains a separate
@@ -67,6 +54,19 @@ def compose_definition_significance(subject):
             "to one another's real circumstances, not when kindness becomes a debt ledger."
         )
 
+    # Archive-specific terminology is governed by the published Living Glossary.
+    # Retrieve an exact source entry instead of maintaining a competing local copy.
+    try:
+        from archive_glossary_authority import get_glossary_entry, compose_glossary_recovery
+        canonical_entry = get_glossary_entry(subject)
+        if canonical_entry:
+            canonical_answer = compose_glossary_recovery(canonical_entry)
+            if canonical_answer:
+                return canonical_answer
+    except Exception:
+        # Source unavailability must not prevent ordinary general-knowledge
+        # recovery; an absent Archive entry is never inferred or fabricated.
+        pass
     # A bounded, reusable general-knowledge definition bank supports common
     # concepts when providers are exhausted. These are ordinary definitions,
     # not statements of official Living Archive doctrine.
