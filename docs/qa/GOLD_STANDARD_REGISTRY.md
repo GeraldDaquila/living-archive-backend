@@ -846,3 +846,18 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 ## Gold Star Adaptive Intelligence Standard v2.0
 
 The approved additive quality umbrella is [Gold Star Adaptive Intelligence Standard v2.0](GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md). It expands the quality expectations while preserving the canonical 115 approved Gold Stars, their benchmark identities and evidence, and the separate 113 active structural-learning contributors. This standard does not grant new transfer or deterministic-fallback authority. Runtime activation requires behavioral evidence; see the v2.0 specification's release gates.
+
+
+### Gold Star — Guide coverage-gap evidence governance (2026-11-20)
+
+- **Benchmark:** `gs-2026-11-20-guide-coverage-gap-evidence-governance`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live visitor-facing question and answer frozen after explicit user registry-elevation instruction.
+- **Question:** “When should The Guide say “the Archive does not yet address this directly”?”
+- **Answer:** The exact visitor-facing three-paragraph response is preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Evidence discipline:** Distinguish direct coverage, adjacent coverage, no direct or related resource verified after bounded checks, and retrieval/indexing/access/source-verification failure. A failed retrieval is evidence about the search outcome, not proof of corpus absence.
+- **Doorway:** Intentionally none. This is a meta-policy explanation about The Guide's evidence standard, not a request for an Archive resource; a forced doorway would distract and misclassify the intent.
+- **Rating:** 9.5/10.
+- **Approval:** User reviewed the live Guide screenshot and explicitly instructed “elevate to registry!” on 2026-11-20.
+- **Adaptive-learning boundary:** Transfer the evidence-calibration discipline only. Do not transfer the exact answer to unrelated questions, overstate what sources were checked, or infer a corpus-wide gap from incomplete retrieval.
+- **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved response and intentional no-doorway exception. Changes require explicit user authorization and a separately documented benchmark-version change.
