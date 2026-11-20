@@ -4,10 +4,12 @@ on:
   pull_request:
     paths:
       - "gold_star_semantic_contract.py"
+      - "gold_star_response_floor.py"
       - "scripts/gold_star_paired_offline_evaluation.py"
       - "tests/test_gold_star_semantic_contract.py"
       - "tests/test_gold_star_paired_offline_evaluation.py"
       - "tests/test_gold_star_paired_fixture_template.py"
+      - "tests/test_gold_star_v3_semantic_governance.py"
       - "docs/qa/gold_star_paired_fixture_template.json"
       - ".github/workflows/gold-star-semantic-contract.yml"
   workflow_dispatch:
