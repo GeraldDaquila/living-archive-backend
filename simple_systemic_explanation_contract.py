@@ -39,7 +39,7 @@ def is_simple_systemic_explanation_question(question: Any) -> bool:
         r"straightforward|nontechnical|non-technical|brief|short answer)\b",
         q,
     )
-    guide_context = re.search(r"\b(?:guide|user|visitor|reader|audience)\b", q)
+    guide_context = re.search(r"\b(?:guide|users?|visitor|readers?|audience)\b", q)
     return bool(systemic_subject and explanatory_intent and simplicity_request and guide_context)
 
 
