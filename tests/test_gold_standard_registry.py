@@ -2291,3 +2291,40 @@ def test_event_pattern_structure_gold_star_has_reconciled_runtime_and_doorway_co
     assert mapped["structural_lesson"] == record["transferable_lesson"]
     assert transfer_map["coverage"]["registry_content_sha"]
     assert transfer_map["coverage"]["general_purpose_runtime_transfer_records"] == len(transfer_map["entries"])
+
+
+
+def test_reciprocity_community_gold_star_has_matching_bounded_transfer_review():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-reciprocity-community-2026-10-24"
+    )
+    review_path = ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
+    reviews = json.loads(review_path.read_text(encoding="utf-8"))["entries"]
+    review = next(item for item in reviews if item["benchmark_id"] == record["benchmark_id"])
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["url"].startswith("https://geralddaquila.com/")
+    assert review["activation"] == "active_quality_contributor"
+    assert review["reasoning_family"] == record["reasoning_family"]
+    assert review["transferable_discipline"] == record["transferable_lesson"]
+    assert review["qualifying_context"]
+    assert review["abstention_boundary"]
+
+
+def test_reciprocity_gold_star_promotion_does_not_mutate_older_frozen_reference():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
+    )
+    assert record["status"] == "FROZEN_REFERENCE_ONLY"
+    assert record["query"] == "What does reciprocity mean in the Living Archive?"
+    assert record["expected_response"].startswith("Reciprocity means a relationship of mutual response:")
