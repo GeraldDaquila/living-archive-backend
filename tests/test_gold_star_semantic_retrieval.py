@@ -8,7 +8,7 @@ def test_semantic_paraphrase_can_retrieve_without_two_word_overlap(monkeypatch):
         item for item in lessons._LESSONS
         if item["id"] == "gs-2026-11-21-transformation-rebranding-structural-change"
     )
-    query = "When does a new identity become cosmetic rebranding?"
+    query = "When is renewal just cosmetic rebranding?"
     query_terms = lessons._concept_terms(query)
     assert len(query_terms & target["signature_terms"]) < 2
     monkeypatch.setattr(
