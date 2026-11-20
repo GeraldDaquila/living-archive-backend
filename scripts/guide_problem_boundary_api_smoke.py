@@ -52,6 +52,7 @@ try:
         "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
         "How should I define the boundaries around a system problem, and what stays outside scope?",
         "When framing a problem, what should be included and excluded?",
+        "What should be inside the scope of a problem, and what should remain outside it?",
     )
     for question in questions:
         print("REQUEST", question, flush=True)
