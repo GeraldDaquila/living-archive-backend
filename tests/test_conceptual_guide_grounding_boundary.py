@@ -428,9 +428,10 @@ def test_healthy_community_recovery_short_circuits_redundant_canonical_searches(
     inquiry_end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit", inquiry_start)
     inquiry = SOURCE[inquiry_start:inquiry_end]
     classifier = "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)"
-    context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
+    context_fetch = "context_data = use_core.fetch_canonical_context(retrieval_query)"
     supplement = "if (\n        not healthy_community_short_circuit\n        and _guide_requires_canonical_subject_supplement("
     assert classifier in inquiry
+    assert "retrieval_query = resource_query" in inquiry
     assert inquiry.index(classifier) < inquiry.index(context_fetch)
     assert supplement in inquiry
     assert inquiry.index(classifier) < inquiry.index(supplement)
@@ -456,8 +457,9 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     inquiry_end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit", inquiry_start)
     inquiry = SOURCE[inquiry_start:inquiry_end]
     classifier = "trust_stewardship_short_circuit = _is_trust_community_stewardship_question(query)"
-    context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
+    context_fetch = "context_data = use_core.fetch_canonical_context(retrieval_query)"
     assert classifier in inquiry
+    assert "retrieval_query = resource_query" in inquiry
     assert inquiry.index(classifier) < inquiry.index(context_fetch)
     assert '"provider": "bounded_trust_community_stewardship_recovery"' in inquiry
     assert 'if healthy_community_short_circuit or trust_stewardship_short_circuit:\n        discovery_subject = ""' in inquiry
