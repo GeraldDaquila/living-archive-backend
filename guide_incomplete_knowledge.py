@@ -11,16 +11,16 @@ from typing import Any
 
 VERSION = "1.0"
 
-_STEWARD = re.compile(r"\\b(?:steward|stewardship|custodian|custodianship)\\b", re.I)
+_STEWARD = re.compile(r"\b(?:steward|stewardship|custodian|custodianship)\b", re.I)
 _UNCERTAINTY = re.compile(
-    r"\\b(?:incomplete knowledge|uncertain(?:ty)?|don't know|do not know|"
+    r"\b(?:incomplete knowledge|uncertain(?:ty)?|don't know|do not know|"
     r"unknowns?|limited information|insufficient information|ambiguous evidence|"
-    r"acting without (?:all|complete) the facts|not enough evidence)\\b",
+    r"acting without (?:all|complete) the facts|not enough evidence)\b",
     re.I,
 )
 _ACTION = re.compile(
-    r"\\b(?:how should|what should|how can|what can|act|acting|decide|decision|"
-    r"respond|proceed|choose|navigate|manage)\\b",
+    r"\b(?:how should|what should|how can|what can|act|acting|decide|decision|"
+    r"respond|proceed|choose|navigate|manage)\b",
     re.I,
 )
 
@@ -38,7 +38,7 @@ Answer the practical question directly. Give the visitor a usable sequence: (1) 
 
 def build_incomplete_knowledge_plan(query: str) -> dict[str, Any] | None:
     """Return the shared and query-level reasoning contract for matching tasks."""
-    raw = re.sub(r"\\s+", " ", str(query or "")).strip()
+    raw = re.sub(r"\s+", " ", str(query or "")).strip()
     if not raw:
         return None
     if not (_STEWARD.search(raw) and _UNCERTAINTY.search(raw) and _ACTION.search(raw)):
