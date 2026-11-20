@@ -55,7 +55,7 @@ def test_final_boundary_replaces_nonanswer_and_attaches_verified_doorway():
     assert result["recommendation"]["url"] == "https://geralddaquila.com/structural-frameworks/"
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["answer_basis"]["kind"] == "general_knowledge"
-    assert result["response_provenance"]["llm_invoked"] is False
+    assert result["response_provenance"]["llm_invoked"] is True
     assert result["evidence"] == []
 
 
