@@ -31,13 +31,8 @@ def test_trust_community_stewardship_contract_answers_with_humane_concrete_langu
 def test_trust_community_stewardship_contract_has_renderer_ready_verified_doorway():
     contract = main._trust_community_stewardship_final_contract(QUERY)
     doorway = contract["recommendation"]
-    assert doorway["title"] == (
-        "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
-    )
-    assert doorway["url"] == (
-        "https://geralddaquila.com/2026/09/07/"
-        "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
-    )
+    assert doorway["title"] == "Trust Architecture"
+    assert doorway["url"] == "https://geralddaquila.com/trust-architecture/"
     assert doorway["kind"] == "archive_resource"
     assert "source_url" not in contract["answer_basis"]
     assert doorway["rationale"]
