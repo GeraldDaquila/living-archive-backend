@@ -250,28 +250,39 @@ def test_shared_finalizer_invokes_contract_after_inner_routes_and_preserves_exac
     )
 
 
-def test_provider_failure_is_recovered_as_successful_visitor_response_and_http_status():
+def test_provider_and_quality_gate_failures_are_recovered_as_successful_visitor_responses():
     from gold_star_response_floor import apply_response_floor_boundary
 
-    failed = {
-        "ok": False,
-        "query": LIVE_QUESTION,
-        "intent": "TOPICAL_INQUIRY",
-        "response": "The Guide could not complete this question right now.",
-        "error_type": "basic_inquiry_failure",
-    }
-    recovered = apply_institutional_learning_failure_boundary(LIVE_QUESTION, failed)
-
-    assert recovered["ok"] is True
-    assert "error_type" not in recovered
-    assert recovered["institutional_learning_failure_contract"]["recovery_applied"] is True
-    assert recovered["visitor_transport_recovery"]["status"] == "recovered"
-    assert institutional_learning_failure_response_meets_contract(recovered["response"])
-
-    final_payload, final_status = apply_response_floor_boundary(
-        LIVE_QUESTION, recovered, 503
+    failed_payloads = (
+        {
+            "ok": False,
+            "query": LIVE_QUESTION,
+            "intent": "TOPICAL_INQUIRY",
+            "response": "The Guide could not complete this question right now.",
+            "error_type": "basic_inquiry_failure",
+        },
+        {
+            "ok": False,
+            "query": LIVE_QUESTION,
+            "response": "",
+            "error_type": "gold_star_v2_quality_floor_rejected",
+            "message": "The response did not pass the minimum integrity checks. Please try again.",
+        },
     )
-    assert final_status == 200
-    assert final_payload["ok"] is True
-    assert final_payload["gold_star_v2_quality_floor"]["status"] == "pass"
-    assert final_payload["visitor_transport_recovery"]["http_status_restored"] is True
+    for failed in failed_payloads:
+        recovered = apply_institutional_learning_failure_boundary(LIVE_QUESTION, failed)
+
+        assert recovered["ok"] is True
+        assert "error_type" not in recovered
+        assert "message" not in recovered
+        assert recovered["institutional_learning_failure_contract"]["recovery_applied"] is True
+        assert recovered["visitor_transport_recovery"]["status"] == "recovered"
+        assert institutional_learning_failure_response_meets_contract(recovered["response"])
+
+        final_payload, final_status = apply_response_floor_boundary(
+            LIVE_QUESTION, recovered, 503
+        )
+        assert final_status == 200
+        assert final_payload["ok"] is True
+        assert final_payload["gold_star_v2_quality_floor"]["status"] == "pass"
+        assert final_payload["visitor_transport_recovery"]["http_status_restored"] is True
