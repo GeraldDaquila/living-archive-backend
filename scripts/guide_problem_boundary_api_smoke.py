@@ -1,6 +1,10 @@
 import asyncio
 import json
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 os.environ["USE_REASONING_PROVIDER_MODE"] = "deterministic_only"
 os.environ["USE_PINECONE_RETRIEVAL_BYPASS"] = "true"
