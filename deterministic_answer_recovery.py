@@ -1513,6 +1513,54 @@ def has_guide_meta_coverage_policy_explanation(response):
     ))
 
 
+def build_guide_meta_coverage_policy_contract():
+    """Return the shared evidence and navigation contract for Guide coverage claims."""
+    return {
+        "version": "1.0",
+        "question_class": "guide_meta_coverage_policy",
+        "outcomes": [
+            {
+                "id": "direct_coverage",
+                "criterion": "A verified canonical source directly addresses the visitor's question.",
+                "response": "Answer from the source and offer its doorway when useful.",
+            },
+            {
+                "id": "adjacent_coverage",
+                "criterion": "A verified source is relevant but addresses an adjacent question or only part of this one.",
+                "response": "Describe it as related, state what it does not answer, and do not label it direct coverage.",
+            },
+            {
+                "id": "genuine_coverage_gap",
+                "criterion": "The question is correctly interpreted, relevant canonical sources are searched and verified, direct and adjacent candidates are evaluated, and no adequate coverage exists within the checked scope.",
+                "response": "Only then may the Guide say that the Archive does not yet address this directly, with the checked scope made clear.",
+            },
+            {
+                "id": "retrieval_or_verification_failure",
+                "criterion": "Search, indexing, access, fetching, or source verification is failed or incomplete.",
+                "response": "State that coverage could not be verified; do not declare an Archive gap.",
+            },
+        ],
+        "required_preconditions_for_gap_phrase": [
+            "correct_question_interpretation",
+            "targeted_canonical_search_completed",
+            "relevant_source_bodies_fetched_and_verified",
+            "direct_and_adjacent_candidates_evaluated",
+            "claim_limited_to_sources_actually_checked",
+        ],
+        "forbidden_inferences": [
+            "no_search_result_means_archive_gap",
+            "failed_retrieval_means_archive_gap",
+            "indexing_or_access_failure_means_archive_gap",
+            "weak_keyword_overlap_proves_direct_coverage",
+            "absence_from_checked_results_proves_absence_from_the_whole_archive",
+        ],
+        "doorway_policy": {
+            "suppress_for_this_question_class": True,
+            "reason": "The visitor is asking about The Guide's policy, not requesting an Archive resource.",
+        },
+    }
+
+
 def _guide_meta_coverage_policy_recovery():
     """State the evidence threshold for a responsible Archive coverage-gap claim."""
     return (
