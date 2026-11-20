@@ -1094,6 +1094,15 @@
       "qualifying_context": "Visitors asking how stewardship and consent relate, including entrusted responsibility, participation, authority, permission boundaries, and affected-party agency.",
       "abstention_boundary": "Do not apply to unrelated definitions or general legal advice. Do not imply every routine act of care requires explicit permission, treat consultation as consent, assume entrusted responsibility grants authority over affected people, or transfer the exact answer or doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-problem-boundary-calibration",
+      "question": "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
+      "reasoning_family": "problem_boundary_calibration",
+      "transferable_discipline": "Define a problem boundary across the focal phenomenon, the relationships and conditions that shape it, scale and place, time horizon, affected stakeholders and decision authority, and evidence limits. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, available options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. State what is outside scope and why, monitor consequential effects, and revise provisional boundaries when evidence or feedback shows that an excluded relationship is shaping the result.",
+      "qualifying_context": "Visitors asking how to frame a problem, define analytical or system boundaries, decide what belongs inside or outside scope, or account for dependencies, externalities, affected parties, time horizons, and evidence limits.",
+      "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply excluded factors are unimportant, exclude affected parties because they lack decision authority, collapse analytical scope into the wider system, or assume causal relationships without evidence. Do not transfer the exact answer or its doorway to unrelated questions; do not grant exact-answer authority or deterministic fallback eligibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
