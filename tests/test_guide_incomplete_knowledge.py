@@ -60,3 +60,4 @@ def test_contract_is_scoped_to_shared_composition_and_query_instruction():
     assert "from guide_incomplete_knowledge import build_incomplete_knowledge_plan" in source
     assert "build_incomplete_knowledge_plan(question)" in source
     assert "+ incomplete_knowledge_instruction" in source
+    assert 'incomplete_knowledge_plan["architectural_contract"]' in source
