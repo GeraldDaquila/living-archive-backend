@@ -1353,13 +1353,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to substantive questions about the relationship between stewardship, consent, entrusted care, participation, and legitimacy. Do not assume stewardship automatically confers decision authority; do not reduce consent to consultation, notification, or benevolent intent; do not imply every routine act of care requires individual permission or impose a universal legal test; distinguish actions within an authorized role from those requiring permission or shared authority; preserve affected people's agency; transfer the reasoning discipline only, never this exact answer or doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-problem-boundary-calibration",
+      "question": "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
+      "family": "problem_boundary_calibration",
+      "structural_lesson": "Define a problem boundary across the focal phenomenon, the relationships and conditions that shape it, scale and place, time horizon, affected stakeholders and decision authority, and evidence limits. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, available options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. State what is outside scope and why, monitor consequential effects, and revise provisional boundaries when evidence or feedback shows that an excluded relationship is shaping the result.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply that excluded factors are unimportant, exclude affected parties because they lack authority, or collapse the distinction between the chosen analytic scope and the wider system. Do not transfer the exact response or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "2c1112027922d03f3a18c01beb535bc8d26bab37",
-    "qualitative_transfer_review_entries": 122,
-    "general_purpose_runtime_transfer_records": 118,
-    "map_entries": 118
+    "registry_content_sha": "12220238e431703f7cdbff1324b629b83e80cc07",
+    "qualitative_transfer_review_entries": 123,
+    "general_purpose_runtime_transfer_records": 119,
+    "map_entries": 119
   }
 }
