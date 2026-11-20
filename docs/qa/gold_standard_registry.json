@@ -1487,7 +1487,8 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
-      "legacy_approval_grandfathered": false
+      "legacy_approval_grandfathered": false,
+      "known_theme": "community trust, stewardship, shared responsibility, mutual reliance, cooperation, accountability, shared resources, community care"
     },
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
