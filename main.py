@@ -4552,9 +4552,9 @@ def _trust_community_stewardship_recovery():
         "whether others return, keep their word, share decisions fairly, and repair harm. "
         "Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger "
         "when people can question decisions and see that commitments are honoured. The "
-        "For a deeper exploration of trust as social infrastructure, continue with the Living Archive's "
-        "[Trust Architecture: The Missing Infrastructure Behind Functional Societies]("
-        "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/)."
+        "For a deeper exploration of how trust supports cooperation and what communities can steward, "
+        "continue with the Living Archive's [Trust Architecture cornerstone]("
+        "https://geralddaquila.com/trust-architecture/)."
     )
 
 
@@ -4563,18 +4563,14 @@ def _trust_community_stewardship_canonical_recommendation(query, context_data=No
     if not _is_trust_community_stewardship_question(query):
         return None
     return {
-        "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
-        "url": (
-            "https://geralddaquila.com/2026/09/07/"
-            "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
-        ),
+        "title": "Trust Architecture",
+        "url": "https://geralddaquila.com/trust-architecture/",
         "kind": "archive_resource",
         "rationale": (
-            "This essay treats trust as social infrastructure: it enables coordination, "
-            "reduces friction, and supports cooperation across communities and institutions. "
-            "It also emphasizes that trust must coexist with accountability and scrutiny. "
-            "It is a focused continuation of the question, not a formal definition of "
-            "community stewardship."
+            "This cornerstone examines trust as the architecture that sustains cooperation "
+            "under uncertainty, including conditions communities and institutions can steward: "
+            "accountability, transparency, consistency, and repair. Its dedicated Stewardship "
+            "Imperative section makes it a direct continuation of this question."
         ),
     }
 
