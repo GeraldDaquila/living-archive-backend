@@ -1,0 +1,105 @@
+name: Guide Problem Boundary Gold Star QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "deterministic_answer_recovery.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "tests/test_guide_problem_boundary_gold_star.py"
+      - ".github/workflows/guide-problem-boundary-gold-star-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  problem-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install runtime and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Compile changed runtime units
+        run: python -m py_compile main.py deterministic_answer_recovery.py general_guide_composition.py
+      - name: Validate canonical Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
+      - name: Run focused and adjacent regression suites
+        run: |
+          PYTHONPATH=. python -m pytest -q \
+            tests/test_guide_problem_boundary_gold_star.py \
+            tests/test_gold_standard_registry.py \
+            tests/test_gold_star_qualitative_transfer_review.py \
+            tests/test_gold_star_transferability_map.py \
+            tests/test_gold_star_exact_only_successor_validation.py \
+            tests/test_guide_systemwide_three_paragraph_default.py
+      - name: Exercise exact and paraphrased API requests without providers or Pinecone
+        env:
+          USE_REASONING_PROVIDER_MODE: deterministic_only
+          USE_PINECONE_RETRIEVAL_BYPASS: "true"
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys, time, urllib.request
+          port = 10001
+          env = os.environ.copy()
+          env["PORT"] = str(port)
+          server = subprocess.Popen(
+              [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(port)],
+              env=env,
+          )
+          def ask(question):
+              body = json.dumps({"query": question, "history": []}).encode("utf-8")
+              request = urllib.request.Request(
+                  f"http://127.0.0.1:{port}/api/query",
+                  data=body,
+                  headers={"Content-Type": "application/json"},
+                  method="POST",
+              )
+              last = None
+              for _ in range(60):
+                  try:
+                      with urllib.request.urlopen(request, timeout=35) as response:
+                          payload = json.loads(response.read().decode("utf-8"))
+                          assert response.status == 200
+                          return payload
+                  except Exception as exc:
+                      last = exc
+                      if server.poll() is not None:
+                          raise RuntimeError(f"QA server exited: {exc}") from exc
+                      time.sleep(1)
+              raise RuntimeError(f"QA API timed out: {last!r}")
+          try:
+              questions = [
+                  "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
+                  "How should I define the boundaries around a system problem, and what stays outside scope?",
+                  "When framing a problem, what should be included and excluded?",
+              ]
+              for question in questions:
+                  result = ask(question)
+                  answer = str(result.get("response") or "")
+                  doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
+                  assert len(answer) > 700, (question, len(answer), answer[:250])
+                  assert "outside the chosen scope" in answer.casefold(), question
+                  assert doorway.get("title") == "Boundary Conditions", (question, doorway)
+                  assert doorway.get("url") == "https://geralddaquila.com/boundary-conditions/", (question, doorway)
+                  assert result.get("processing") == "task_specific_deterministic_recovery", (question, result.get("processing"))
+                  print("PROBLEM_BOUNDARY_API_PASS", question, len(answer), doorway.get("title"))
+          finally:
+              server.terminate()
+              try:
+                  server.wait(timeout=10)
+              except subprocess.TimeoutExpired:
+                  server.kill()
+                  server.wait(timeout=5)
+          PY
