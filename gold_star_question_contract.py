@@ -96,7 +96,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             )
         )
     )
-    institutional_learning_failure = task_candidate.get("type") == "institutional_learning_failure"
+    institutional_learning_failure = task_candidate.get("type") == "institutional_learning_failure" and not multi_intent
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
     has_question = "?" in normalized or bool(
