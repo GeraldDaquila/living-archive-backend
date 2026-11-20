@@ -277,6 +277,9 @@
     },
     "guide_answer_first_and_independently_evidenced_doorway_selection": {
       "description": "Separate substantive answer composition from independently evidenced canonical doorway selection; distinguish verified destinations, completed no-match, retrieval failure, unevaluated selection, and authorized omission."
+    },
+    "power_responsibility_proportional_accountability": {
+      "description": "Explain how responsibility scales with actual influence and how accountability gives power legitimate limits and purpose."
     }
   },
   "entries": [
@@ -1296,13 +1299,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only when a visitor asks for good-faith critique or independent examination of an institution's worldview, framework, or foundational claims. Do not assume the institution's claims are true or false, invent corpus contents, imply an audit has occurred when it has not, collapse normative commitments into empirical propositions, or transfer this exact answer to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-power-responsibility-proportional-accountability",
+      "question": "What is the relationship between power and responsibility?",
+      "family": "power_responsibility_proportional_accountability",
+      "structural_lesson": "Explain power and responsibility as a reciprocal, proportional relationship. Trace formal and informal influence over decisions, information, resources, relationships, and available options; scale answerability to actual influence, knowledge, role, and capacity; consider affected people's agency and preventable harm; preserve the boundary where wider constraints limit control; and show how accountability gives influence legitimate limits and purpose. Offer a practical test that identifies who can shape the condition, who experiences its effects, what action is reasonably available, and how affected people can question or seek correction.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "5b1893278b21c038f222bc50ff3fe72286827df3",
-    "qualitative_transfer_review_entries": 117,
-    "general_purpose_runtime_transfer_records": 113,
-    "map_entries": 113
+    "registry_content_sha": "47927084865b1260c5f7f1442db0b98449183dd4",
+    "qualitative_transfer_review_entries": 118,
+    "general_purpose_runtime_transfer_records": 114,
+    "map_entries": 114
   }
 }
