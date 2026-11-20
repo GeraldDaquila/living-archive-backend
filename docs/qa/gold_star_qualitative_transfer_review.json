@@ -1121,6 +1121,15 @@
       "qualifying_context": "Visitors asking about the purpose, role, or value of reciprocity in community life, especially mutual aid, shared support, changing needs, and contributions made across time.",
       "abstention_boundary": "Apply only to questions about the purpose or role of reciprocity in community mutual support, including close paraphrases. Do not transfer this answer or doorway to generic definitions, commercial exchanges, contractual or legal duties, financial reciprocity, or unrelated trust and stewardship questions. Do not infer consent, entitlement, or a debt from prior help; do not use reciprocity to justify coercion or compelled participation.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-systemic-explanation-accessibility",
+      "question": "How should The Guide explain a systemic issue to a user seeking a simple answer?",
+      "reasoning_family": "systems_intelligibility_without_monocausal_reduction",
+      "transferable_discipline": "Make a systemic issue understandable without reducing it to a single cause. Start with a direct plain-language explanation; identify only the interacting rules, incentives, resources, relationships, and feedback patterns needed to explain how the issue persists; distinguish known observations from inference; show why it matters and one practical point of leverage; offer further depth only if wanted.",
+      "qualifying_context": "Visitors asking how The Guide should explain a systemic or structural issue simply, accessibly, or in plain language, including close paraphrases.",
+      "abstention_boundary": "Apply to requests asking how to explain a systemic or structural issue simply or in plain language, including close paraphrases. Do not use this answer as a substitute for explaining a specific issue with its own evidence, context, affected parties, and causal uncertainty. Do not reduce systemic conditions to one cause or one person's mistake, list every possible mechanism, present inference as established fact, or prescribe leverage without understanding the situation. Do not transfer this exact wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
