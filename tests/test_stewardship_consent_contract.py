@@ -42,7 +42,12 @@ def test_recovery_explains_both_concepts_and_their_governing_relationship():
 
 
 def test_final_boundary_repairs_stewardship_only_answer_and_restores_doorway():
-    payload = {"response": "Stewardship means taking care of something entrusted to you."}
+    payload = {
+        "response": "Stewardship means taking care of something entrusted to you.",
+        "provider": "weak-provider",
+        "model": "weak-model",
+        "evidence": [{"source": "unrelated"}],
+    }
     result = apply_stewardship_consent_relationship_boundary(
         "What is the relationship between stewardship and consent?", payload
     )
@@ -50,6 +55,10 @@ def test_final_boundary_repairs_stewardship_only_answer_and_restores_doorway():
     assert has_stewardship_consent_relationship_explanation(result["response"])
     assert result["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
     assert result["doorway_url"] == canonical_doorway()["url"]
+    assert result["provider"] is None
+    assert result["model"] is None
+    assert result["evidence"] == []
+    assert result["evidence_validation"]["status"] == "not_applicable"
 
 
 def test_final_boundary_preserves_a_complete_provider_answer():
