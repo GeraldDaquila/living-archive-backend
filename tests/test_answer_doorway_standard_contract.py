@@ -73,7 +73,9 @@ def main():
     render_start = guide_controller.index("function renderAuthoritativeRecommendation")
     assert guide_controller.index("if (container) {", render_start) < guide_controller.index("responseText.appendChild(block);", render_start)
     assert "v489.329-dedicated-doorway-panel" in guide_controller
-    assert "primaryDoorwayClone" not in guide_controller
+    assert "primaryDoorwayClone" not in guide
+    assert "primaryDoorway" not in guide
+    assert "&&window.LivingArchiveAnswerDoorway&&!existingRecommendation" in guide_controller
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
     assert "primaryDoorwayClone" not in guide
