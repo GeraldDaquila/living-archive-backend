@@ -150,3 +150,12 @@ def test_close_paraphrase_preserves_an_independently_selected_doorway():
         {"response": "A restatement, not a complete explanation.", "recommendation": selected},
     )
     assert result["recommendation"] == selected
+
+
+def test_explanation_gate_rejects_a_monocausal_claim_without_calibration():
+    overconfident = (
+        "An event is a particular occurrence. A pattern is repeated events over time. "
+        "A system structure is the set of relationships and incentives that shapes the pattern. "
+        "For example, repeated staff departures prove that workload is the cause."
+    )
+    assert not contract.has_event_pattern_structure_explanation(overconfident)
