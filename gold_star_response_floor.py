@@ -17,6 +17,7 @@ from typing import Any, Dict
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from gold_star_answer_envelope import build_answer_envelope, validate_answer_envelope
 from gold_star_evidence_validation import validate_evidence_payload
+from institutional_learning_failure_contract import is_institutional_learning_failure_question
 
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
@@ -163,11 +164,17 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     # promoted into the v2 enforcement status and cannot change the answer.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
     semantic = result["semantic_shadow"]
-    if (
-        not exact_standard
-        and semantic.get("question_type") in SEMANTIC_ENFORCED_QUESTION_TYPES
-    ):
-        semantic_failed = semantic.get("status") == "fail"
+    supported_semantic_type = (
+        semantic.get("question_type") in SEMANTIC_ENFORCED_QUESTION_TYPES
+        or is_institutional_learning_failure_question(query)
+    )
+    if not exact_standard and supported_semantic_type:
+        # A failed or unavailable semantic observer cannot silently downgrade
+        # an explicitly supported task family back to the generic integrity-only floor.
+        semantic_failed = (
+            semantic.get("status") != "review_required"
+            or semantic.get("question_type") not in SEMANTIC_ENFORCED_QUESTION_TYPES
+        )
         result["semantic_enforcement"] = {
             "version": "1.0",
             "mode": "bounded_supported_contract",
