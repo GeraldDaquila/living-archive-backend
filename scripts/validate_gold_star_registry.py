@@ -648,7 +648,17 @@ def main():
                 "approval_state", "elevation_approval_evidence", "reasoning_family",
                 "transferable_lesson", "transfer_boundary", "user_approved_at",
             }
-            modern_missing = sorted(k for k in modern_required if not str(record.get(k) or "").strip())
+            capabilities = record.get("gold_star_capabilities") or {}
+            modern_values = {
+                "transferable_lesson": record.get("transferable_lesson")
+                or capabilities.get("transferable_discipline"),
+                "transfer_boundary": record.get("transfer_boundary")
+                or capabilities.get("abstention_boundary"),
+            }
+            modern_missing = sorted(
+                key for key in modern_required
+                if not str(record.get(key) or modern_values.get(key) or "").strip()
+            )
             if modern_missing:
                 fail(f"{record['benchmark_id']} missing modern approval metadata: {', '.join(modern_missing)}")
             if record.get("user_reviewed_response") is not True:
