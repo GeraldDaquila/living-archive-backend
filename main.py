@@ -8233,6 +8233,54 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
+    # Superseded reciprocity definitions must not be recovered from the older
+    # Archive glossary path. Route the community-purpose query and the earlier
+    # Archive-framed wording to the approved successor answer.
+    if (
+        "reciprocity" in q
+        and not re.search(r"\b(?:trust|stewardship)\b", q)
+        and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean|purpose|role|why|how)\b", q)
+    ):
+        from deterministic_answer_recovery import compose_definition_significance
+        _reciprocity_answer = compose_definition_significance("reciprocity")
+        _community_reciprocity_query = (
+            "community" in q
+            and re.search(r"\b(?:purpose|role|meaning|what|how|why)\b", q)
+        )
+        _reciprocity_doorway = None
+        if _community_reciprocity_query:
+            _reciprocity_doorway = {
+                "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+                "url": (
+                    "https://geralddaquila.com/2026/06/01/"
+                    "reciprocity-before-bureaucracy-how-communities-coordinated-without-modern-institutions/"
+                ),
+                "rationale": (
+                    "This essay examines reciprocity as social infrastructure: how mutual support, "
+                    "extended obligations, and shared risk help communities coordinate without "
+                    "requiring immediate repayment. It is a focused continuation of the question, "
+                    "not presented as the source of the general explanation above."
+                ),
+            }
+        return {
+            "response": _reciprocity_answer,
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "Conceptual explanation",
+                "explanation": (
+                    "This is a general conceptual explanation. The Reciprocity Before Bureaucracy "
+                    "essay is offered separately as a related Living Archive resource, not represented "
+                    "as the source of this answer."
+                ),
+            },
+            "recommendation": _reciprocity_doorway,
+            "canonical_doorway": _reciprocity_doorway,
+            "doorway_title": str((_reciprocity_doorway or {}).get("title") or ""),
+            "doorway_url": str((_reciprocity_doorway or {}).get("url") or ""),
+            "provider": "bounded_general_knowledge_recovery",
+            "model": "",
+        }
+
     # Keep the answer-first existential contract active when the ordinary
     # provider bank is exhausted or the isolated deterministic path is used.
     # Import locally so isolated recovery harnesses retain the same behavior.
@@ -8715,20 +8763,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
-    # Provider exhaustion must not turn a straightforward concept definition into a refusal.
-    # This is a bounded general explanation, not a claim of a single canonical Archive definition.
-    if "reciprocity" in q and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q):
-        response = (
-            "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
-            "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
-            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\n"
-            "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
-            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\n"
-            "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
-            "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
-        )
-        return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
-
     # Calibrated conceptual comparison: answer the visitor's actual distinction
     # directly when retrieval is temporarily limited. This is general orientation,
     # not an Archive attribution, and navigation remains separately governed.
@@ -9040,7 +9074,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "reducing waste and unnecessary extraction through reuse, repair, renewal, and recovery. "
                 "Regeneration asks the broader question of whether a system restores and renews the "
                 "ecological, social, and institutional conditions on which it depends. "
-                "\\n\\n"
+                "\n\n"
                 "The distinction matters because a system can become more circular without becoming "
                 "regenerative: resources may circulate more efficiently while deeper patterns of depletion "
                 "or damage remain unchanged. Circularity can therefore contribute to regeneration, but it "

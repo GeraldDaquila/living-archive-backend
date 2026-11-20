@@ -20,11 +20,13 @@ def test_registered_named_concept_has_bounded_general_knowledge_orientation():
     )
 
 
-def test_existing_known_definition_bank_remains_unchanged():
+def test_reciprocity_definition_bank_uses_superseding_approved_response():
     answer = compose_definition_significance("reciprocity")
-    assert answer.startswith("Reciprocity is a relationship of mutual response")
-    assert "Neighbors may take turns" in answer
-    assert "immediate or equal repayment" in answer
+    assert answer.startswith("Reciprocity means people support one another over time.")
+    assert "Think of neighbors taking turns checking on an older resident" in answer
+    assert "does not mean keeping score" in answer
+    assert "demand access, obedience, or repayment" in answer
+    assert answer.count("\n\n") == 2
 
 
 def test_territorial_crosslink_metadata_is_not_source_evidence():
