@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "gold_star_lessons.py"
+      - "gold_star_semantic_retrieval.py"
+      - "requirements.txt"
+      - "tests/test_gold_star_semantic_integration.py"
       - "tests/test_gold_star_precomputed_index.py"
       - "tests/test_gold_star_selector_equivalence.py"
       - "tests/test_gold_star_semantic_retrieval.py"
@@ -22,6 +25,7 @@ on:
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
       - ".github/workflows/gold-star-selector-equivalence.yml"
+      - ".github/workflows/gold-star-semantic-integration.yml"
 
 permissions:
   contents: read
@@ -45,3 +49,19 @@ jobs:
         run: python -m pytest -q tests/test_gold_star_precomputed_index.py tests/test_gold_star_selector_equivalence.py tests/test_gold_star_semantic_retrieval.py
       - name: Benchmark legacy and indexed selector latency
         run: python tests/benchmark_gold_star_selector.py
+
+  real-model-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install semantic runtime and test runner
+        run: python -m pip install -r requirements.txt pytest
+      - name: Verify canonical BGE model retrieval with real embeddings
+        run: python -m pytest -q tests/test_gold_star_semantic_integration.py
