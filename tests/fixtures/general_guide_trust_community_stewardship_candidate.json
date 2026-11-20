@@ -1,0 +1,22 @@
+{
+  "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
+  "status": "CANDIDATE",
+  "purpose": "Reviewable historical visitor-response candidate. This fixture preserves the recovered wording without asserting Gold Star approval or runtime activation.",
+  "query": "What is the role of trust in community stewardship?",
+  "expected_response": "Trust helps people in a community rely on one another. It gives people confidence that others will do their part and act with care. Stewardship is the shared responsibility to care for what people depend on.\n\nThink of a shared garden. Trust means people can count on one another to show up and do their part. Stewardship is tending the garden so it remains healthy for everyone. Trust makes cooperation possible; stewardship helps that cooperation endure.",
+  "expected_doorway": {
+    "title": "Trust Architecture",
+    "url": "https://geralddaquila.com/trust-architecture/",
+    "rationale": "This cornerstone examines trust as the architecture that sustains cooperation under uncertainty, including accountability, transparency, consistency, and repair. Its dedicated Stewardship Imperative section makes it a direct continuation of this question."
+  },
+  "invariants": [
+    "Explain trust as confidence that others will do their part and act with care.",
+    "Explain stewardship as shared responsibility to care for what people depend on.",
+    "Use the shared-garden analogy to make the relationship concrete and accessible.",
+    "Make the relationship explicit: trust makes cooperation possible; stewardship helps that cooperation endure.",
+    "Keep the explanation separate from the canonical recommendation; the doorway is optional continuation, not evidence for the general-knowledge answer.",
+    "Keep this answer distinct from the subsequent reciprocity question; do not reuse the reciprocity answer or its neighbor-helping example.",
+    "Use ordinary, humane language; avoid decorative emoji, machine-like jargon, and unsolicited Glossary routing."
+  ],
+  "approval_boundary": "Candidate only. Explicit user approval of this exact answer and its bounded learning discipline is still required before Gold Star elevation."
+}
