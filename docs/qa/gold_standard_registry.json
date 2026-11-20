@@ -8192,8 +8192,8 @@
   "audit": {
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 124,
-    "registry_record_count": 162,
-    "review_reconciliation": "Canonical approved inventory is 124 records: 122 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence; both are excluded from the approved Gold Star count.",
+    "registry_record_count": 163,
+    "review_reconciliation": "Canonical approved inventory is 124 records: 122 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence; both are excluded from the approved Gold Star count. One additional problem-boundary candidate is pending exact user review and is also excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 124 approved Gold Stars; 39 assigned display serials #56–#94; 85 approved records explicitly UNASSIGNED with reasons. Neither newly approved relational exemplar receives a serial because none was requested.",
@@ -8203,6 +8203,6 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1
+    "structural_candidates_pending_live_review": 2
   }
 }
