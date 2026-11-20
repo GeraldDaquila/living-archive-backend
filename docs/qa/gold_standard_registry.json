@@ -7558,7 +7558,10 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false,
-      "known_theme": "Distinguishing answer-first composition from independently evidenced canonical doorway selection, including explicit states for verified destination, completed no-match, retrieval or verification failure, unevaluated selection, and authorized omission."
+      "known_theme": "Distinguishing answer-first composition from independently evidenced canonical doorway selection, including explicit states for verified destination, completed no-match, retrieval or verification failure, unevaluated selection, and authorized omission.",
+      "reasoning_family": "guide_doorway_selection_evidence_governance",
+      "transferable_lesson": "Keep answer formation independent from resource retrieval while evaluating doorway selection independently. Record whether a canonical destination was verified, no relevant destination survived completed bounded checks, retrieval or source verification failed, selection was not evaluated, or omission was authorized under the existing contract. Never treat an absent link as evidence of intentional restraint; preserve existing relevance, access, risk, refusal, and omission boundaries.",
+      "transfer_boundary": "Use only the transferable evidence-governance discipline for relevant Guide selection decisions. Do not infer intentional omission from absence; do not force destinations; do not expand omission authority; retain the original doorway state as NOT_EVALUATED."
     }
   ],
   "last_reconciliation_note": "Added candidate general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20 on 2026-11-20. The supplied response is preserved as a candidate response-quality reference; the missing doorway is explicitly NOT_EVALUATED because no canonical-candidate retrieval or selector trace was supplied. This is not a Gold Star approval, does not change the approved count, and grants no runtime-transfer authority.",
