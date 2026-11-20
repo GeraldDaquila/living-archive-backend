@@ -7505,9 +7505,39 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star registry elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20",
+      "status": "CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "query": null,
+      "expected_response": "These four terms describe different kinds of work in reasoning. They are connected, but they are not interchangeable.\n\nEvidence is information that bears on a claim: for example, observations, measurements, records, documents, or testimony. Evidence is not automatically strong just because it exists. Its weight depends on where it came from, how it was gathered, whether it is relevant to the claim, whether independent sources converge, and what counterevidence or uncertainty remains. Evidence constrains what can responsibly be said, but it does not interpret itself.\n\nInterpretation is the meaning we assign to evidence in context. It connects observations to a possible explanation or significance. Interpretations are necessary, but they are shaped by assumptions, prior knowledge, interests, and the frame through which a situation is viewed. A careful interpretation makes those assumptions visible and remains open to revision when the evidence does not fit.\n\nA hypothesis is a provisional explanation or proposition that can be investigated. It should generate expectations: what would we expect to observe if it were a useful explanation, and what evidence would count against it? A hypothesis is not an established fact; it is a disciplined possibility that inquiry may strengthen, qualify, or reject.\n\nA normative judgment evaluates what ought to be done, what is right or fair, or what deserves priority. It draws on values, principles, duties, and judgments about consequences. Evidence matters because it helps establish what is happening and what different choices may cause, but a conclusion about what ought to happen does not follow from facts alone. The values and principles doing the evaluative work should be stated and open to reasoned challenge.\n\nThe relationship is iterative, not a rigid one-way ladder: evidence constrains interpretation; interpretation can suggest a hypothesis; a hypothesis guides what further evidence to seek; and normative judgment weighs the likely consequences alongside explicit values. A policy example makes the distinction concrete: service records showing that a district receives fewer clinic visits are evidence; reading that pattern as a sign of poor access is an interpretation; proposing that longer clinic hours would improve access is a hypothesis to test; deciding whether to fund those hours is a normative judgment involving fairness, need, cost, and public responsibility.\n\nA useful check is to ask four separate questions: What is observed and where did it come from? What meaning am I assigning to it? What explanation could be tested, and what might disconfirm it? Which values or principles support the judgment I am making? Keeping those questions distinct helps prevent an interpretation from masquerading as evidence, a hypothesis from becoming certainty, or a value judgment from being presented as a purely factual conclusion.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_EVALUATED",
+      "doorway_omission_reason": "The supplied response contains no doorway, but no canonical-candidate retrieval trace, source inspection, or selector decision record accompanies the response. The blank doorway is therefore an observed outcome, not verified evidence of intentional abstention.",
+      "assertions": [
+        "Answer the conceptual question directly and distinguish evidence, interpretation, hypothesis, and normative judgment without collapsing their roles.",
+        "Explain that evidence constrains claims but does not interpret itself; interpretations remain revisable; hypotheses generate expectations and possible disconfirmation; normative judgments make values and principles explicit.",
+        "Describe the relationship as iterative rather than a rigid one-way ladder.",
+        "Use the clinic-access example to distinguish observation, interpretation, testable explanation, and policy judgment.",
+        "Keep answer completeness and doorway selection as separate quality decisions.",
+        "Do not infer that a missing doorway is intentional merely because the answer is complete or the response contains no visible link.",
+        "Record whether canonical candidates were actually retrieved, inspected, and evaluated against the visitor's remaining need.",
+        "Apply the existing doorway contract: a verified, materially relevant destination should be offered; an approved general continuation remains available under the existing policy; omission must satisfy an already authorized response-specific exception or explicit visitor refusal.",
+        "Distinguish verified deliberate omission from selection not evaluated, and from retrieval, indexing, access, or source-verification failure.",
+        "Do not transfer this exact answer, example, or any doorway to unrelated questions."
+      ],
+      "provenance": {
+        "source": "User-supplied visitor-facing Guide response text in the current review.",
+        "source_date": "2026-11-20",
+        "live_surface": "The Guide visitor-facing response",
+        "evidence_boundary": "The complete response text is supplied verbatim in the conversation. The exact original visitor query, canonical-candidate retrieval results, source-inspection evidence, selector trace, and production-render verification are not available in this review. The absence of a doorway cannot therefore be certified as a successful intentional abstention.",
+        "review_assessment": "Assistant assessment: 9.4/10 for the substantive response. This is an assessment score, not a user-supplied rating or Gold Star approval."
+      },
+      "freeze_policy": "Candidate only. Do not promote to USER_APPROVED_GOLD_STANDARD, enable runtime_transfer, allocate a Gold Star serial, or treat the blank doorway as an approved omission until the exact query, canonical candidate evaluation, applicable omission authority, regression tests, and user-reviewed live behavior are evidenced."
     }
   ],
-  "last_reconciliation_note": "Added the user-approved live Guide coverage-gap evidence-governance Gold Star on 2026-11-20. The exact three-paragraph visitor answer, 9.5/10 rating, and intentionally absent doorway are frozen. Its bounded transferable lesson distinguishes direct coverage, adjacent coverage, verified absence after bounded checks, and retrieval or verification failure. No display serial was allocated.",
+  "last_reconciliation_note": "Added candidate general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20 on 2026-11-20. The supplied response is preserved as a candidate response-quality reference; the missing doorway is explicitly NOT_EVALUATED because no canonical-candidate retrieval or selector trace was supplied. This is not a Gold Star approval, does not change the approved count, and grants no runtime-transfer authority.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7638,8 +7668,8 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 117,
-    "registry_record_count": 155,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-20: 117 approved-status records across 155 registry records. 115 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "registry_record_count": 156,
+    "review_reconciliation": "Canonical approved inventory remains unchanged at 117 approved-status records. Registry record count increases to 156 with one additional CANDIDATE record for doorway non-selection evidence governance; the candidate is excluded from approved Gold Star and active quality-contributor counts.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 117 approved Gold Stars; 39 assigned display serials #56–#94; 78 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the newly elevated Guide coverage-governance exemplar remains unnumbered.",
