@@ -7624,7 +7624,7 @@
     },
     {
       "benchmark_id": "gs-2026-11-20-problem-boundary-calibration",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "CANDIDATE_PENDING_USER_REVIEW",
       "subsystem": "general-purpose-guide",
       "query": "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
       "expected_response": "A useful problem boundary is not a line around everything that seems related. It is a reasoned statement of what the inquiry is trying to explain, at what level, over what period, and from whose point of view. Draw it across several dimensions: the **phenomenon** (the specific condition or outcome being examined); the **system** (the people, relationships, rules, incentives, resources, and dependencies that can produce or shape it); the **scale and place** (individual, team, organization, community, or wider environment); the **time horizon** (the immediate episode, its history, and delayed effects); and the **stakeholder and authority boundary** (who is affected, who decides, and who carries the consequences). Also mark the **evidence boundary**: what is observed, what is inferred, and what remains unknown.\n\nExclude material that is merely adjacent and does not materially change the explanation or the decision the inquiry must support. But do not confuse 'outside the chosen scope' with 'irrelevant.' An upstream cause, downstream consequence, affected group, or external condition may sit beyond the immediate problem boundary and still need to be recorded as a dependency, constraint, risk, or consequence. In particular, do not exclude people who bear the costs simply because they lack decision-making power, or exclude causes merely because they are difficult for the organization to control. State what is out of scope, why it is out, and where its effects will still be monitored.\n\nA practical test is: **if including this factor could materially change the diagnosis, the distribution of benefits or burdens, the available options, or the likely consequences, it belongs inside the analysis—or must remain visible at its boundary.** Keep the boundary provisional and revise it when new evidence or feedback shows that an excluded relationship is shaping the result. A well-drawn boundary makes inquiry manageable without pretending that the world stops where the analysis does.",
@@ -7634,23 +7634,22 @@
         "rationale": "Boundary Conditions explains why every method has a domain, why its limits must be made explicit, and how disciplined inquiry distinguishes what can be established from what lies beyond its warranted reach."
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
-      "rating_out_of_10": 9.8,
-      "user_reviewed_response": true,
+      "user_reviewed_response": false,
       "explicit_user_elevation_approval": true,
-      "approval_state": "USER APPROVED GOLD STANDARD — ARCHITECTURAL AND QUERY-LEVEL CORRECTION AUTHORIZED",
-      "elevation_approval_evidence": "The user explicitly instructed: “fix structurally on 2 levels: architecturally, and query-level, and make this into a gold star” on 2026-11-20.",
-      "freeze_policy": "immutable_user_approved_gold_standard",
-      "runtime_transfer": true,
+      "approval_state": "USER AUTHORIZED GOLD STAR CANDIDATE CREATION — EXACT RESPONSE AWAITS USER REVIEW",
+      "elevation_approval_evidence": "The user explicitly instructed: “fix structurally on 2 levels: architecturally, and query-level, and make this into a gold star” on 2026-11-20. This authorizes creation of the candidate and the correction work; the exact newly authored response remains pending user review.",
+      "freeze_policy": "candidate_pending_user_review_no_runtime_learning",
+      "runtime_transfer": false,
       "reasoning_family": "problem_boundary_calibration",
       "transferable_lesson": "Define a problem boundary across phenomenon, system relationships, scale/place, time horizon, affected stakeholders and decision authority, and evidence. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. Treat boundaries as provisional analytical choices and revise them when evidence or feedback warrants.",
       "transfer_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply that excluded factors are unimportant, exclude affected parties because they lack authority, or collapse the distinction between the chosen analytic scope and the wider system. Do not transfer the exact response or doorway to unrelated questions.",
       "gold_star_capabilities": {
-        "generation_class": "user_approved_structural_learning_exemplar",
+        "generation_class": "candidate_for_user_review",
         "exact_answer_authority": false,
-        "active_quality_contributor": true,
+        "active_quality_contributor": false,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "problem_boundary_calibration",
-        "transferable_discipline": "Bound problem scope across phenomenon, system, scale, time, stakeholder/authority, and evidence; preserve visibility of external dependencies and consequences; revise boundaries when excluded factors materially change the diagnosis or decision."
+        "transferable_discipline": "Proposed discipline pending user review: bound problem scope across phenomenon, system, scale, time, stakeholder/authority, and evidence; preserve visibility of external dependencies and consequences; revise boundaries when excluded factors materially change the diagnosis or decision."
       },
       "assertions": [
         "Answer the question directly by naming the dimensions across which a problem boundary should be drawn.",
@@ -7666,12 +7665,14 @@
         "source": "User-provided screenshot of the live Guide query and failure, followed by explicit authorization to correct both architecture and query-level behavior and elevate the corrected reasoning family.",
         "source_date": "2026-11-20",
         "live_surface": "The Guide visitor-facing query calibration",
-        "evidence_boundary": "The screenshot establishes the exact question and failed visitor experience. The expected response is newly authored as the approved quality exemplar, not a transcription of a previously rendered live answer. The record grants bounded structural learning authority, not exact-answer authority or deterministic fallback eligibility.",
-        "review_assessment": "Assistant assessment: 9.8/10 for task fit, boundary dimensionality, exclusion discipline, revisability, and the verified canonical continuation."
+        "evidence_boundary": "The screenshot establishes the exact question and failed visitor experience. The expected response is newly authored as a candidate quality exemplar, not a transcription of a previously rendered live answer. The user authorized structural correction and Gold Star candidate creation, but has not yet reviewed this exact response; therefore it is not active for Gold Star learning, transfer, or exact-answer authority.",
+        "review_assessment": "Assistant provisional assessment: 9.8/10 for task fit, boundary dimensionality, exclusion discipline, revisability, and the verified canonical continuation. User review is still required before Gold Star activation."
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "known_theme": "problem framing, analytical scope, system boundaries, causal boundaries, scale, time horizon, stakeholder inclusion, authority, evidence limits, out-of-scope factors, externalities, provisional boundaries",
+      "assistant_assessment_out_of_10": 9.8
     },
     {
       "benchmark_id": "gs-2026-11-20-reflexive-institutional-critique",
