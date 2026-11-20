@@ -167,15 +167,6 @@ def apply_stewardship_consent_relationship_boundary(query: str, payload: Any) ->
     safe["doorway_selection_evaluated"] = True
     safe["doorway_selection_source"] = "stewardship_consent_relational_family"
     safe["doorway_omission_reason"] = None
-    safe["answer_basis"] = {
-        "kind": "general_knowledge",
-        "label": "Conceptual explanation",
-        "explanation": (
-            "The answer explains the general relationship between entrusted responsibility "
-            "and consent. The Charter is a related constitutional continuation, not a legal "
-            "opinion or a universal consent test."
-        ),
-    }
     safe["stewardship_consent_contract"] = {
         "version": VERSION,
         "answer_first_enforced": True,
