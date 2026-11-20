@@ -77,6 +77,7 @@ import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
 from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan
+from guide_power_responsibility import compose_power_responsibility_relationship as _compose_power_responsibility_relationship
 from guide_critique_evidence_integrity import filter_critique_evidence as _filter_critique_evidence
 _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
     "guide_canonical_doorway_search_attempted",
@@ -7312,6 +7313,20 @@ def _guide_finalize_visitor_payload(payload, query):
                 "The Guide final visitor boundary: restored complete Archive-grounding distinction contract."
             )
             return safe
+
+    # Concept-pair questions require a synthesized answer, not adjacent excerpts.
+    # Keep source evidence and independently selected doorway authority unchanged.
+    _power_responsibility_synthesis = _compose_power_responsibility_relationship(query)
+    if _power_responsibility_synthesis is not None:
+        safe = dict(payload)
+        safe["response"] = str(_power_responsibility_synthesis.get("response") or "")
+        safe["processing"] = "final_visitor_boundary_power_responsibility_synthesis"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["reasoning_contract"] = _power_responsibility_synthesis.get("reasoning_contract")
+        safe["reasoning_elements"] = _power_responsibility_synthesis.get("reasoning_elements") or []
+        safe["visitor_boundary_version"] = APP_VERSION
+        print("The Guide relational synthesis boundary: supplied complete power/responsibility explanation.")
+        return safe
 
     # Native relational quality boundary. Only intervene when a recognizable
     # relational inquiry has been answered with a known generic systems template.
