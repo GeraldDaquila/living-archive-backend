@@ -1,0 +1,99 @@
+name: Stewardship consent isolated live API acceptance
+
+on:
+  push:
+    branches:
+      - gold-star-v2-complete-architecture
+    paths:
+      - ".github/workflows/stewardship-consent-live-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-api-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify exact QA deployment and visitor API responses
+        env:
+          QA_URL: https://living-archive-gold-star-v2-qa.onrender.com
+          EXPECTED_QA_SHA: b26ed1cfccc797f880b3b9a073214bebe4e4cba3
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = os.environ["QA_URL"].rstrip("/")
+          expected_sha = os.environ["EXPECTED_QA_SHA"]
+
+          def get(path):
+              request = urllib.request.Request(base + path, headers={"Accept": "application/json"})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return response.status, response.read().decode("utf-8", errors="replace")
+
+          status, root_body = get("/")
+          assert status == 200, f"QA root returned HTTP {status}"
+          print("QA_ROOT_HTTP_200")
+
+          queries = (
+              "What is the relationship between stewardship and consent?",
+              "How do stewardship and consent relate in practice?",
+          )
+          required_phrases = (
+              "entrusted responsibility",
+              "does not automatically confer authority",
+              "consultation alone",
+              "informed, voluntary, and specific",
+              "refusal or withdrawal",
+              "ordinary act of care",
+              "agency",
+          )
+
+          for query in queries:
+              last_error = None
+              payload = None
+              for attempt in range(6):
+                  try:
+                      body = json.dumps({"query": query, "history": []}).encode("utf-8")
+                      request = urllib.request.Request(
+                          base + "/api/query",
+                          data=body,
+                          headers={"Content-Type": "application/json", "Accept": "application/json"},
+                          method="POST",
+                      )
+                      with urllib.request.urlopen(request, timeout=120) as response:
+                          if response.status != 200:
+                              raise AssertionError(f"HTTP {response.status} for {query!r}")
+                          payload = json.loads(response.read().decode("utf-8"))
+                      if payload.get("deployment_commit_sha") == expected_sha:
+                          break
+                      last_error = RuntimeError(
+                          f"serving SHA {payload.get('deployment_commit_sha')!r}, expected {expected_sha}"
+                      )
+                  except Exception as exc:
+                      last_error = exc
+                  time.sleep(10)
+              assert payload is not None, f"no API payload for {query!r}: {last_error}"
+              assert payload.get("deployment_commit_sha") == expected_sha, (
+                  f"wrong QA deployment for {query!r}: {payload.get('deployment_commit_sha')!r}"
+              )
+              answer = str(payload.get("response") or payload.get("answer") or "")
+              folded = answer.casefold()
+              missing = [phrase for phrase in required_phrases if phrase not in folded]
+              assert not missing, f"relational answer missing {missing}: {answer}"
+              assert payload.get("processing") == "final_visitor_boundary_stewardship_consent_relational_contract", (
+                  f"final visitor boundary not recorded: {payload.get('processing')!r}"
+              )
+              doorway = payload.get("recommendation") or payload.get("canonical_doorway") or {}
+              assert doorway.get("title") == "Charter of the Living Archive | Purpose & Governance", doorway
+              assert doorway.get("url") == "https://geralddaquila.com/charter-of-the-living-archive/", doorway
+              print(f"LIVE_API_PASS: {query}")
+          PY
