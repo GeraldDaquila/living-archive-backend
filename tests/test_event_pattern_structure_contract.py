@@ -161,3 +161,21 @@ def test_explanation_gate_rejects_a_monocausal_claim_without_calibration():
         "For example, repeated staff departures prove that workload is the cause."
     )
     assert not contract.has_event_pattern_structure_explanation(overconfident)
+
+
+def test_explanation_and_differing_paraphrases_are_recognized():
+    assert contract.is_event_pattern_structure_question(
+        "Explain how an event, a pattern, and system structure differ."
+    )
+    assert contract.is_event_pattern_structure_question(
+        "Tell me the difference between events, patterns, and system structures."
+    )
+
+
+def test_query_matcher_does_not_capture_unrelated_uses_of_event_or_pattern():
+    assert not contract.is_event_pattern_structure_question(
+        "Explain the pattern of events in this short story."
+    )
+    assert not contract.is_event_pattern_structure_question(
+        "What is the difference between a sporting event and a recurring pattern?"
+    )
