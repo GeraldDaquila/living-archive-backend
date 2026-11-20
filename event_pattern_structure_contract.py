@@ -11,20 +11,20 @@ from typing import Any, Dict
 VERSION = "1.0"
 
 def is_event_pattern_structure_question(query: str) -> bool:
-    q = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
-    asks_distinction = bool(re.search(r"\\b(?:difference|distinguish|distinction|differentiate|compare)\\b", q))
-    names_event = bool(re.search(r"\\bevents?\\b", q))
-    names_pattern = bool(re.search(r"\\bpatterns?\\b", q))
-    names_structure = bool(re.search(r"\\b(?:system\\s+structures?|structures?\\s+of\\s+(?:a\\s+)?systems?)\\b", q))
+    q = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
+    asks_distinction = bool(re.search(r"\b(?:difference|distinguish|distinction|differentiate|compare)\b", q))
+    names_event = bool(re.search(r"\bevents?\b", q))
+    names_pattern = bool(re.search(r"\bpatterns?\b", q))
+    names_structure = bool(re.search(r"\b(?:system\s+structures?|structures?\s+of\s+(?:a\s+)?systems?)\b", q))
     return asks_distinction and names_event and names_pattern and names_structure
 
 def has_event_pattern_structure_explanation(response: str) -> bool:
-    text = re.sub(r"\\s+", " ", str(response or "").casefold())
-    has_event = bool(re.search(r"\\bevent\\b", text) and re.search(r"\\b(?:single|particular|one-off|occurrence|happens)\\b", text))
-    has_pattern = bool(re.search(r"\\bpattern\\b", text) and re.search(r"\\b(?:repeated|recurring|over time|repeatedly)\\b", text))
-    has_structure = bool(re.search(r"\\bsystem structure\\b", text) and re.search(r"\\b(?:relationships|rules|incentives|arrangements|conditions|dependencies)\\b", text))
-    causal = bool(re.search(r"\\b(?:produce|shape|generate|sustain|reproduce|underlie)\\w*\\b", text))
-    example = bool(re.search(r"\\b(?:for example|for instance|imagine)\\b", text))
+    text = re.sub(r"\s+", " ", str(response or "").casefold())
+    has_event = bool(re.search(r"\bevent\b", text) and re.search(r"\b(?:single|particular|one-off|occurrence|happens)\b", text))
+    has_pattern = bool(re.search(r"\bpattern\b", text) and re.search(r"\b(?:repeated|recurring|over time|repeatedly)\b", text))
+    has_structure = bool(re.search(r"\bsystem structure\b", text) and re.search(r"\b(?:relationships|rules|incentives|arrangements|conditions|dependencies)\b", text))
+    causal = bool(re.search(r"\b(?:produce|shape|generate|sustain|reproduce|underlie)\w*\b", text))
+    example = bool(re.search(r"\b(?:for example|for instance|imagine)\b", text))
     return has_event and has_pattern and has_structure and causal and example
 
 def event_pattern_structure_recovery() -> str:
