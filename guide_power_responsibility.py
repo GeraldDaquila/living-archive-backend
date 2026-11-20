@@ -5,7 +5,7 @@ from typing import Any
 
 VERSION = "1.0"
 _RELATION_CUES = re.compile(
-    r"\b(?:relationship|connection|link|relate(?:d|s)?|interplay)\b", re.I
+    r"\b(?:relationship|connection|connected|connects|connecting|link|relate(?:d|s)?|interplay)\b", re.I
 )
 _POWER = re.compile(r"\bpower\b", re.I)
 _RESPONSIBILITY = re.compile(r"\bresponsibilit(?:y|ies)\b", re.I)
