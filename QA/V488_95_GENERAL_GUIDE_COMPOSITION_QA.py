@@ -114,10 +114,15 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.53", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.54", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(composition._requires_discernment_synthesis("What is the relationship between personal agency and responsibility to others?"), "conceptual relationship synthesis contract is not activated")
+    assert_true(composition._requires_discernment_synthesis("What is the relationship between stewardship and consent?"), "stewardship–consent relationship was not recognized")
+    assert_true(composition._requires_stewardship_consent_relationship("What is the relationship between stewardship and consent?"), "stewardship–consent query contract was not activated")
+    assert_true(not composition._requires_stewardship_consent_relationship("What is stewardship?"), "single-concept stewardship definition was incorrectly classified as a relationship")
+    assert_true(composition._has_stewardship_consent_relationship("Stewardship creates responsibility, but it does not automatically grant authority over affected people. Consent protects their agency and choices."), "valid stewardship–consent synthesis was rejected")
+    assert_true(not composition._has_stewardship_consent_relationship("Stewardship means taking care of what is entrusted to you. It matters because ordinary choices accumulate."), "generic stewardship explanation passed the stewardship–consent relationship validator")
     assert_true(snapshot["provider_neutral"] is True, "composition is not provider-neutral")
     assert_true(
         snapshot["operation"] == "general_guide_composition",
