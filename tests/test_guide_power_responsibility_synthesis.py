@@ -45,7 +45,7 @@ def test_final_boundary_and_shared_composer_contract_are_wired():
     assert '"class": "deterministic_by_design"' in main
     assert 'safe["answer_basis"] = _final_answer_basis' in main
     assert 'safe["evidence"] = []' in main
-    assert '"source_evidence=not_attributed"' in main
+    assert "source_evidence=not_attributed, doorway=preserved_separately." in main
     assert '_final_route["provider_present"] = False' in main
     assert '_floor_envelope["evidence"] = {' in main
     assert '_final_quality_floor["evidence_validation"] = _final_evidence_validation' in main
