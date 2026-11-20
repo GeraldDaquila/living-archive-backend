@@ -162,6 +162,7 @@ def test_recovery_answer_meets_every_substantive_requirement():
         "not a diagnosis of every organization",
     ):
         assert phrase.casefold() in answer.casefold()
+    assert answer.rstrip().endswith("?")
 
 
 def test_generic_question_echo_is_replaced_with_a_substantive_first_answer_and_doorway():
