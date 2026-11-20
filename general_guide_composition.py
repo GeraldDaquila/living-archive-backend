@@ -15,6 +15,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
@@ -25,7 +26,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.51"
+CONTRACT_VERSION = "v1.52"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -4151,6 +4152,14 @@ def compose(
         raise RuntimeError("General Guide question contract failed schema validation.")
     question_contract_json = json.dumps(question_contract, ensure_ascii=False, sort_keys=True)
 
+    # Stewardship-under-uncertainty is a reusable task contract at the shared
+    # composition seam, not a one-off answer or provider-specific prompt patch.
+    incomplete_knowledge_plan = build_incomplete_knowledge_plan(question)
+    incomplete_knowledge_instruction = (
+        incomplete_knowledge_plan["composition_instruction"] + "\n\n"
+        if incomplete_knowledge_plan else ""
+    )
+
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
     gold_star_quality = _gold_star_active_quality_contribution(question)
@@ -4387,6 +4396,7 @@ def compose(
             if question_contract.get("institutional_critique", {}).get("detected")
             else ""
         )
+        + incomplete_knowledge_instruction
         + integrity_recovery_instruction
         + archive_contrast_instruction
         + gold_star_quality_instruction
@@ -4435,6 +4445,9 @@ def compose(
         operation=OPERATION,
         messages=[
             {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + (
+                "\n\n" + incomplete_knowledge_plan["architectural_contract"]
+                if incomplete_knowledge_plan else ""
+            ) + (
                 "\n\n" + integrity_recovery_instruction.strip()
                 if integrity_recovery_instruction else ""
             )},
