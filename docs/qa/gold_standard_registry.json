@@ -7967,8 +7967,8 @@
       "rating_out_of_10": 9.8,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "USER APPROVED EXACT FROZEN GOLD STAR EXEMPLAR",
-      "elevation_approval_evidence": "The user explicitly instructed: fix the failure at both architectural and query levels and turn it into a Gold Star on 2026-11-20. This authorizes implementation and candidate registration. The exact newly authored answer remains subject to user review before frozen Gold Star activation.",
+      "approval_state": "User reviewed the exact response and explicitly approved its elevation as a frozen Gold Star exemplar on 2026-11-20.",
+      "elevation_approval_evidence": "On 2026-11-20, after reviewing the exact complete proposed response reproduced in the conversation, the user replied: “approved”. This explicitly approves the exact wording as the frozen Gold Star exemplar.",
       "freeze_policy": "immutable_user_approved_gold_standard",
       "runtime_transfer": true,
       "reasoning_family": "complicated_vs_complex_conceptual_distinction",
@@ -7996,17 +7996,19 @@
       ],
       "known_theme": "complicated systems, complex systems, systems thinking, emergence, adaptation, feedback loops, nonlinear interactions, decomposition, expert analysis, complexity",
       "provenance": {
-        "source": "User-provided screenshot of the live Guide query and retrieval-failure response, followed by explicit authorization to repair both architecture and query-level behavior.",
+        "source": "User-provided screenshot of the live Guide query and retrieval-failure response, followed by exact-answer review and explicit user approval.",
         "source_date": "2026-11-20",
         "live_surface": "The Guide visitor-facing search response",
-        "evidence_boundary": "The screenshot establishes the exact question and the failure to identify a directly relevant Archive resource. The expected response is a newly authored conceptual explanation, not a transcription of a previously rendered answer. The user authorized the structural correction and Gold Star creation; exact answer review is still required before the candidate can become an active Gold Star.",
+        "evidence_boundary": "The user-provided screenshot establishes the exact question and observed retrieval-failure response. The expected response is a newly authored conceptual explanation. The user reviewed and explicitly approved this exact answer on 2026-11-20; it is frozen as a USER_APPROVED_GOLD_STANDARD.",
         "canonical_doorway_verification": {
           "title": "Structural Frameworks",
           "url": "https://geralddaquila.com/structural-frameworks/",
           "verification_source": "Cowboy MCP wp_get_post for published WordPress page ID 65259; its content describes recurring structures, patterns, and relationships through which systems adapt, coordinate, decline, regenerate, and evolve.",
           "verification_date": "2026-11-20"
         },
-        "review_assessment": "Provisional assistant assessment: 9.8/10 for directness, conceptual accuracy, practical distinction, calibrated examples, and a separately identified canonical continuation. Exact user review pending."
+        "review_assessment": "User-approved exact answer. Assistant provisional quality assessment: 9.8/10 for directness, conceptual accuracy, practical distinction, calibrated examples, and separately identified canonical continuation.",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "approved_at": "2026-11-20"
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
@@ -8015,7 +8017,9 @@
       "active_quality_contributor": true,
       "deterministic_fallback_eligible": true,
       "approval_date": "2026-11-20",
-      "approval_evidence": "User explicitly approved the exact proposed answer on 2026-11-20."
+      "approval_evidence": "User explicitly approved the exact proposed answer on 2026-11-20.",
+      "user_approved_at": "2026-11-20",
+      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD"
     }
   ],
   "last_reconciliation_note": "2026-11-20: User approved the exact complicated-versus-complex answer. Frozen as USER_APPROVED_GOLD_STANDARD, with exact-answer authority and transferable reasoning lesson. Production activation still awaits passing CI, merge, and runtime verification.",
