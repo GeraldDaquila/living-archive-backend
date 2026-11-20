@@ -7640,7 +7640,7 @@
       "known_theme": "power, influence, responsibility, accountability, proportionality, formal and informal authority, affected parties, agency, capacity, wider constraints, correction",
       "gold_star_capabilities": {
         "generation_class": "user_approved_live_response_behavioral_exemplar",
-        "exact_answer_authority": false,
+        "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "power_responsibility_proportional_accountability",
