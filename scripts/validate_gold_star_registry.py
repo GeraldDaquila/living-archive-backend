@@ -708,6 +708,8 @@ def main():
             "INTENTIONALLY_NONE_APPROVED",
             "LEGACY_INCOMPLETE_NOT_APPROVED",
             "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+            # Explicitly unevaluated is a valid evidence state, never an approved omission.
+            "NOT_EVALUATED",
         }
         if doorway is None:
             if doorway_status in withheld_states:
