@@ -8019,7 +8019,8 @@
       "approval_date": "2026-11-20",
       "approval_evidence": "User explicitly approved the exact proposed answer on 2026-11-20.",
       "user_approved_at": "2026-11-20",
-      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD"
+      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-20: User approved the exact complicated-versus-complex answer. Frozen as USER_APPROVED_GOLD_STANDARD, with exact-answer authority and transferable reasoning lesson. Production activation still awaits passing CI, merge, and runtime verification.",
