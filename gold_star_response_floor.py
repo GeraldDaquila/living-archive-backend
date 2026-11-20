@@ -33,7 +33,7 @@ NON_ANSWER_MARKERS = (
 
 
 def _semantic_shadow(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Observe semantic task fit without enforcing, rewriting, or blocking."""
+    """Observe semantic task fit; supported bounded families are enforced by the v2 gate."""
     try:
         from gold_star_semantic_contract import evaluate_semantic_contract
         result = evaluate_semantic_contract(query, payload)
