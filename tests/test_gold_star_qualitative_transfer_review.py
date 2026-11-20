@@ -399,4 +399,4 @@ def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounde
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
     assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 121
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 115
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 117
