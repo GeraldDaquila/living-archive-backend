@@ -110,4 +110,60 @@ def build_reflexive_critique_plan(query: str) -> dict[str, Any] | None:
     }
 
 
-__all__ = ["VERSION", "build_reflexive_critique_plan"]
+__all__ = ["VERSION", "build_reflexive_critique_plan", "build_reflexive_critique_answer"]
+
+
+def build_reflexive_critique_answer(query: str) -> dict[str, Any] | None:
+    """Return a complete, source-bounded answer for the recognized critique task.
+
+    This is deliberately independent of Archive retrieval and provider health.
+    It answers the methodological question without asserting unsupported facts
+    about the Archive's actual doctrine.
+    """
+    plan = build_reflexive_critique_plan(query)
+    if plan is None:
+        return None
+    response = (
+        "A good-faith critique would first make the Archive’s worldview answerable to examination: "
+        "it would reconstruct the strongest version of what the Archive actually claims, then test "
+        "those claims by standards that do not depend on the Archive agreeing with the verdict. "
+        "It would neither assume the worldview is sound because it is internally coherent nor dismiss "
+        "it because it is ambitious or unfamiliar.\n\n"
+        "The examination should proceed in distinct steps. First, identify the exact claims and define "
+        "their key terms; distinguish descriptions of how people or systems work from empirical claims, "
+        "interpretations of experience, and normative claims about how people ought to live or govern. "
+        "Second, make the assumptions visible: what is being treated as real, what counts as knowledge, "
+        "whose experience is authoritative, and what account of agency, interdependence, development, "
+        "or responsibility is presupposed. Third, test the empirical claims against relevant research, "
+        "observable outcomes, counterexamples, and independent corroboration. The Archive’s own texts "
+        "can establish what it says, but cannot independently establish that what it says is true.\n\n"
+        "A fair critique should then examine internal coherence and external adequacy separately. Do the "
+        "concepts retain stable meanings? Do conclusions follow from the premises? Does the framework "
+        "explain cases beyond the examples selected to illustrate it? What does it fail to explain? "
+        "Whose histories, cultures, interests, or forms of knowledge might be excluded? Could its language "
+        "or practices concentrate authority, obscure conflicts, or impose costs on people who do not share "
+        "its premises? These are questions to investigate, not accusations to assume.\n\n"
+        "The strongest objection should be stated in a form that an informed critic would recognize, and "
+        "the strongest available reply should be considered with the same care. A reply is not adequate "
+        "merely because it restates the worldview; it must address the objection’s evidence and reasoning. "
+        "Likewise, a critique should not manufacture a weakness where the evidence does not support one. "
+        "Where evidence is mixed or unavailable, the conclusion should remain correspondingly provisional.\n\n"
+        "Finally, a serious critique must name its revision conditions in advance: what observation, "
+        "counterexample, failed prediction, affected group’s testimony, or independent finding would "
+        "weaken a claim, narrow its scope, or require the framework to change? If no conceivable evidence "
+        "could count against a claim, that claim is not being offered as an empirically testable proposition "
+        "and should not be presented as one. Normative commitments require a different examination: their "
+        "values and trade-offs should be made explicit and defended, not disguised as empirical facts.\n\n"
+        "Applied specifically to the Living Archive, this method requires examining its actual foundational "
+        "texts and practices before reaching a verdict. The question alone does not establish the full "
+        "content of its worldview, and this response does not claim to have independently verified those "
+        "claims. The appropriate conclusion at this stage is therefore methodological: the Archive should "
+        "be judged by the clarity of its claims, the quality and independence of its evidence, its openness "
+        "to counterevidence, the consequences of its application, and its demonstrated willingness to revise."
+    )
+    return {
+        "response": response,
+        "recovery_id": "reflexive_critique_methodological_answer_v1",
+        "answer_basis": "general_methodology_with_archive_specific_claims_bounded",
+        "task_class": plan["task_class"],
+    }

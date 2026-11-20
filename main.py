@@ -76,7 +76,7 @@ from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_a
 import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
-from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan
+from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan, build_reflexive_critique_answer as _build_reflexive_critique_answer
 from guide_critique_evidence_integrity import filter_critique_evidence as _filter_critique_evidence
 _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
     "guide_canonical_doorway_search_attempted",
@@ -10605,6 +10605,55 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
     composition_repair_attempted = False
     query = str(query or "").strip()
+    # A recognized reflexive critique is an answer task, not a retrieval task.
+    # Resolve its methodological deliverable before any discovery, retrieval,
+    # provider selection, or resource-availability fallback can suppress it.
+    _reflexive_critique_answer = _build_reflexive_critique_answer(query)
+    if _reflexive_critique_answer:
+        _request_id = "reflexive-critique-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        _answer = str(_reflexive_critique_answer["response"]).strip()
+        if len(_answer) < 1200:
+            raise RuntimeError("Reflexive critique answer failed its substantive-completion guard.")
+        print(
+            "The Guide early answer boundary: task=reflexive_institutional_critique, "
+            "retrieval_invoked=false, provider_invoked=false, resource_selection=separate"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_decision": "omit",
+            "doorway_omission_reason": "No canonical continuation is asserted by the methodological answer path.",
+            "navigation_suppressed_by_task_contract": True,
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "Good-faith critique method",
+                "explanation": (
+                    "A general method for evaluating institutional worldviews. "
+                    "Archive-specific claims remain bounded pending examination of substantive canonical sources."
+                ),
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "reflexive_critique_methodological_answer_v1",
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            },
+            "processing": "reflexive_critique_answer_first",
+            "route_source": "guide_early_answer_boundary",
+            "recovery": "reflexive_critique_methodological_answer_v1",
+            "visitor_boundary_version": APP_VERSION,
+        }
     # Guide coverage-policy questions are answered from the shared meta-
     # governance contract. They do not require Archive retrieval or a provider,
     # and they must never produce an Archive doorway.

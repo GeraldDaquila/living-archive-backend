@@ -54,6 +54,14 @@ _ROUTE_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "abstention_modes": ["field_specific_definition_required", "specific_claim_requires_source_evidence"],
         "scope": "Answers a bounded conceptual distinction among evidence, interpretation, hypothesis, and normative judgment; any Archive resource selection remains a separate verified decision.",
     },
+    "guide_early_answer_boundary": {
+        "route_class": "answer_first_deterministic_method",
+        "supported_task_families": ["reflexive_institutional_critique_method"],
+        "unsupported_task_families": ["verification_of_archive_specific_doctrinal_truth", "unbounded_empirical_adjudication", "archive_resource_discovery"],
+        "evidence_modes": ["bounded_general_methodological_knowledge", "explicit_archive_claim_evidence_boundary"],
+        "abstention_modes": ["archive_specific_claim_requires_source_evidence", "no_archive_doorway", "retrieval_not_invoked", "provider_not_invoked"],
+        "scope": "Answers the recognized good-faith institutional worldview critique method independently of retrieval and providers; it does not certify Archive-specific claims or select a canonical resource.",
+    },
     "guide_meta_coverage_policy_early_boundary": {
         "route_class": "meta_governance_deterministic",
         "supported_task_families": ["guide_meta_coverage_policy", "archive_coverage_gap_evidence_threshold_explanation"],
