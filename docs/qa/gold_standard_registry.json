@@ -8299,7 +8299,7 @@
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 129,
     "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 0 candidate record(s) remain pending live review and are excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
@@ -8309,7 +8309,7 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 0,
+    "structural_candidates_pending_live_review": 1,
     "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
   },
   "numbering_policy": {
@@ -8411,7 +8411,7 @@
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 129,
     "registry_record_count": 165,
-    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 0 candidate record(s) remain pending live review and are excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 129 records: 127 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response(s) remain pending approval evidence and are excluded from the approved Gold Star count. 1 structural candidate remains pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 129 approved Gold Stars; 39 assigned display serials #56–#94; 90 approved records explicitly UNASSIGNED with reasons. The Trust community stewardship exemplar receives no display serial because none was requested.",
@@ -8421,7 +8421,7 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 0,
+    "structural_candidates_pending_live_review": 1,
     "last_approval": "general-guide-trust-community-stewardship-2026-10-24 approved by user 2026-11-20"
   }
 }
