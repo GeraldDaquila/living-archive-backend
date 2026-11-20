@@ -91,6 +91,34 @@ def test_v2_floor_enforces_only_the_bounded_supported_semantic_family():
     assert unrelated["semantic_enforcement"]["enforced"] is False
 
 
+def test_v2_floor_fails_closed_when_supported_semantic_observer_is_unavailable(monkeypatch):
+    import gold_star_response_floor as floor
+
+    monkeypatch.setattr(
+        floor,
+        "_semantic_shadow",
+        lambda query, payload: {
+            "version": "1.0",
+            "mode": "shadow_only",
+            "status": "observer_error",
+            "reason": "test_observer_failure",
+            "question_type": "unknown",
+            "enforced": False,
+        },
+    )
+    result = floor.evaluate_response_floor(
+        LIVE_QUESTION,
+        {
+            "ok": True,
+            "query": LIVE_QUESTION,
+            "response": build_institutional_learning_failure_response(),
+        },
+    )
+    assert result["status"] == "fail"
+    assert result["reason"] == "supported_semantic_contract_failed"
+    assert result["semantic_enforcement"]["enforced"] is True
+
+
 def test_v2_floor_preserves_frozen_exact_gold_standard_immutability():
     from gold_star_response_floor import evaluate_response_floor
 
