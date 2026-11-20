@@ -126,8 +126,8 @@ def _mark_deterministic_recovery(safe: dict[str, Any]) -> None:
         safe["gold_star_v2_quality_floor"] = quality_floor
 
 
-def _approved_query_doorway() -> dict[str, str] | None:
-    """Read the approved, query-specific application doorway from the sole registry."""
+def _approved_query_record() -> dict[str, Any] | None:
+    """Read the approved query-specific doorway from the sole registry."""
     registry_path = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
     try:
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -137,11 +137,20 @@ def _approved_query_doorway() -> dict[str, str] | None:
         )
     except (OSError, ValueError, TypeError, StopIteration):
         return None
-    doorway = record.get("expected_doorway")
     if (
         record.get("status") != "USER_APPROVED_GOLD_STANDARD"
         or record.get("doorway_status") != "VERIFIED_CANONICAL_DESTINATION"
-        or not isinstance(doorway, dict)
+    ):
+        return None
+    return record
+
+
+def _doorway_from_record(record: dict[str, Any] | None) -> dict[str, str] | None:
+    if not isinstance(record, dict):
+        return None
+    doorway = record.get("expected_doorway")
+    if (
+        not isinstance(doorway, dict)
         or not str(doorway.get("title") or "").strip()
         or not re.match(r"^https://\S+$", str(doorway.get("url") or "").strip(), re.I)
     ):
@@ -151,6 +160,10 @@ def _approved_query_doorway() -> dict[str, str] | None:
         "url": str(doorway["url"]).strip(),
         "rationale": str(doorway.get("rationale") or "").strip(),
     }
+
+
+def _approved_query_doorway() -> dict[str, str] | None:
+    return _doorway_from_record(_approved_query_record())
 
 
 def _explicitly_requests_no_doorway(query: str) -> bool:
@@ -203,14 +216,26 @@ def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
     # explanation is already complete, so answer quality cannot suppress a useful
     # continuation.
     has_existing_doorway = bool(safe.get("recommendation") or safe.get("canonical_doorway"))
-    if not has_existing_doorway and not _explicitly_requests_no_doorway(query):
-        doorway = _approved_query_doorway()
-        if doorway:
-            safe["recommendation"] = doorway
-            safe["canonical_doorway"] = doorway
-            safe["doorway_title"] = doorway["title"]
-            safe["doorway_url"] = doorway["url"]
-            safe["doorway_rationale"] = doorway["rationale"] or None
-            safe["doorway_decision"] = "include"
-            safe["doorway_selection_source"] = "approved_query_specific_gold_star_registry_record"
+    approved_record = _approved_query_record()
+    doorway = _doorway_from_record(approved_record)
+    normalized_query = re.sub(r"\s+", " ", str(query or "").casefold()).strip().rstrip(" ?")
+    approved_query = re.sub(
+        r"\s+", " ", str((approved_record or {}).get("query") or "").casefold()
+    ).strip().rstrip(" ?")
+    exact_approved_query = bool(approved_query and normalized_query == approved_query)
+    if (
+        doorway
+        and not _explicitly_requests_no_doorway(query)
+        and (exact_approved_query or not has_existing_doorway)
+    ):
+        # For the exact reviewed query, the approved canonical destination
+        # outranks a generic or incidental selection. Close paraphrases receive
+        # it only when no independently selected destination is already present.
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway["title"]
+        safe["doorway_url"] = doorway["url"]
+        safe["doorway_rationale"] = doorway["rationale"] or None
+        safe["doorway_decision"] = "include"
+        safe["doorway_selection_source"] = "approved_query_specific_gold_star_registry_record"
     return safe
