@@ -869,6 +869,7 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Benchmark:** `general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20`
 - **Status:** `CANDIDATE`; not an approved Gold Star and not active runtime-learning authority.
 - **Response:** The complete supplied response distinguishing evidence, interpretation, hypothesis, and normative judgment is preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Exact query:** “What counts as evidence, interpretation, hypothesis, and normative judgment?”
 - **Assessment:** 9.4/10 for substantive response quality. This is an assistant assessment, not a user-supplied rating or Gold Star approval.
 - **Doorway state:** `NOT_EVALUATED`. The response contains no doorway, but no canonical-candidate retrieval trace, source inspection, or selector decision record was supplied. The absence is not certified as intentional abstention.
 - **Governance principle:** A complete answer does not create an automatic obligation to attach a resource. However, a missing doorway is not evidence of successful restraint. The selector must distinguish a verified relevant destination, an authorized omission under the existing doorway contract, and a process failure in which selection or source verification did not occur.
