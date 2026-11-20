@@ -1295,7 +1295,7 @@ def compose_task_specific_recovery(question):
     if (
         re.search(r"\b(?:boundaries|boundary|scope|limits?|framing|frame)\b", q)
         and re.search(r"\b(?:problem|issue|question|inquiry|system)\b", q)
-        and re.search(r"\b(?:drawn|set|define|defined|frame|framed|around|include\\w*|exclude\\w*|outside|inside)\b", q)
+        and re.search(r"\b(?:drawn|set|define|defined|frame|framed|around|includ(?:e|ed|es|ing)|exclud(?:e|ed|es|ing)|outside|inside)\b", q)
         and re.search(r"\b(?:what|which|kinds?|types?|should|exclude|excluded|outside)\b", q)
     ):
         doorway = {
