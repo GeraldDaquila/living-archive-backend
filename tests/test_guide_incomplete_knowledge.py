@@ -1,4 +1,8 @@
-from guide_incomplete_knowledge import build_incomplete_knowledge_plan
+from guide_incomplete_knowledge import (
+    build_incomplete_knowledge_plan,
+    build_incomplete_knowledge_recovery,
+    incomplete_knowledge_response_meets_contract,
+)
 
 
 def test_incomplete_knowledge_stewardship_question_gets_full_contract():
@@ -82,4 +86,34 @@ def test_incomplete_knowledge_contract_requires_actionable_epistemic_and_correct
         "do not merely say",
     ):
         assert phrase in query
-    assert plan["version"] == "1.1"
+    assert plan["version"] == "1.2"
+
+
+
+def test_deterministic_recovery_covers_all_required_decision_moves():
+    query = "How should a steward act amid incomplete knowledge?"
+    recovery = build_incomplete_knowledge_recovery(query)
+    assert recovery is not None
+    assert recovery["task_class"] == "stewardship_under_incomplete_knowledge"
+    assert recovery["version"] == "1.2"
+    assert incomplete_knowledge_response_meets_contract(recovery["response"])
+
+
+def test_generic_provider_exhaustion_answer_fails_the_contract():
+    generic = (
+        "Start by defining the outcome and responsibilities. Compare options, "
+        "consider what each may damage, and remain accountable for what follows."
+    )
+    assert not incomplete_knowledge_response_meets_contract(generic)
+
+
+def test_final_visitor_boundary_enforces_recovery_without_replacing_doorway_selection():
+    from pathlib import Path
+    source = Path("main.py").read_text(encoding="utf-8")
+    finalizer = source.split("def _guide_finalize_visitor_payload(payload, query):", 1)[1]
+    finalizer = finalizer.split("\ndef ", 1)[0]
+    assert "build_incomplete_knowledge_plan(query)" in finalizer
+    assert "incomplete_knowledge_response_meets_contract(current_response)" in finalizer
+    assert "build_incomplete_knowledge_recovery(query)" in finalizer
+    assert "_guide_reconcile_verified_doorway_recovery(safe)" in finalizer
+    assert 'safe["processing"] = "final_visitor_boundary_stewardship_incomplete_knowledge_recovery"' in finalizer

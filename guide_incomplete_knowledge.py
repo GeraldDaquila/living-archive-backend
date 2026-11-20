@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 _STEWARD = re.compile(r"\b(?:steward|stewardship|custodian|custodianship)\b", re.I)
 _UNCERTAINTY = re.compile(
@@ -64,4 +64,64 @@ def build_incomplete_knowledge_plan(query: str) -> dict[str, Any] | None:
         ],
     }
 
-__all__ = ["VERSION", "build_incomplete_knowledge_plan"]
+
+
+_RECOVERY_RESPONSE = """Begin by making the knowledge state explicit. Separate established facts—what is directly observed—from what you infer, what you are assuming, and what remains unknown. Include the situated knowledge of people who will bear the consequences; it may reveal a risk or constraint missing from the formal account. State how confident you are and what evidence would change your view.
+
+Then decide what the situation permits now. Weigh the stakes and urgency, who may be harmed or burdened, your legitimate authority and capacity, and whether the action is genuinely reversible. If delay is safe, take a proportionate, low-regret step that preserves options while you verify assumptions or test the least risky alternative. If waiting would expose people to serious or imminent harm, take the least harmful protective action within your authority, explain the uncertainty, and seek appropriate expertise or escalation. Do not treat reversibility or consultation as a substitute for consent and legitimacy.
+
+Before acting, set observable signals to monitor, name who is accountable for monitoring them, and choose a review point or trigger. Continue only while the evidence supports the course; adapt, reverse, or stop if harms emerge, assumptions fail, or affected people provide material information that changes the assessment. AI can help organize evidence and compare options, but the responsible human or institution retains decision authority and accountability."""
+
+
+def build_incomplete_knowledge_recovery(query: str) -> dict[str, Any] | None:
+    """Return a bounded visitor-facing recovery when normal composition misses the contract."""
+    plan = build_incomplete_knowledge_plan(query)
+    if plan is None:
+        return None
+    return {
+        "version": VERSION,
+        "task_class": plan["task_class"],
+        "response": _RECOVERY_RESPONSE,
+    }
+
+
+def incomplete_knowledge_response_meets_contract(response: str) -> bool:
+    """Conservatively verify that a visitor answer covers all required decision moves."""
+    raw = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
+    if not raw:
+        return False
+
+    def has(*patterns: str) -> bool:
+        return any(re.search(pattern, raw, re.I) for pattern in patterns)
+
+    epistemic = (
+        has(r"\b(?:known|established|observed) facts?\b", r"\bwhat is known\b"),
+        has(r"\binfer(?:ence|red)?\b", r"\binterpretation(?:s)?\b"),
+        has(r"\bassum(?:e|ed|ption|ptions)\b"),
+        has(r"\bunknowns?\b", r"\bnot known\b", r"\bmissing perspectives?\b"),
+        has(r"\bconfidence\b", r"\bevidence would (?:change|alter)\b"),
+    )
+    decision = (
+        has(r"\bstakes\b", r"\bconsequences\b", r"\bpotential harm\b"),
+        has(r"\burgency\b", r"\bdelay\b", r"\bwaiting\b"),
+        has(r"\bauthority\b", r"\bcapacity\b", r"\bcompetence\b"),
+        has(r"\breversib(?:le|ility)\b", r"\birreversible\b"),
+    )
+    action = (
+        has(r"\b(?:now|test|verify|defer|escalat|proportionate|low-regret|protective action|safeguard)\b"),
+        has(r"\b(?:affected people|people affected|bear the consequences|burdens|consent)\b"),
+    )
+    correction = (
+        has(r"\b(?:monitor|watch|observable signals?|indicators?)\b"),
+        has(r"\b(?:review|revisit|reassess)\b"),
+        has(r"\b(?:continue|adapt|reverse|stop|stopping)\b"),
+    )
+    accountability = (
+        has(r"\baccountab(?:le|ility)\b", r"\bresponsibilit(?:y|ies)\b"),
+        has(r"\bAI\b"),
+        has(r"\b(?:human|person|institution)\b"),
+    )
+    return all(epistemic + decision + action + correction + accountability)
+
+
+__all__ = ["VERSION", "build_incomplete_knowledge_plan", "build_incomplete_knowledge_recovery", "incomplete_knowledge_response_meets_contract"]
