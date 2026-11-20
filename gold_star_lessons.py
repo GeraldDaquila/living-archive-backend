@@ -205,6 +205,9 @@ def validate_learning_integrity(
                 "LEGACY_INCOMPLETE_NOT_APPROVED",
                 "NOT_APPROVED_CONCEPTUAL_MISMATCH",
                 "TITLE_OBSERVED_URL_NOT_CAPTURED",
+                # A missing doorway without retrieval/selector evidence is
+                # explicitly unevaluated, not an intentional omission.
+                "NOT_EVALUATED",
             }:
                 raise GoldStarRegistryIntegrityError(
                     f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
