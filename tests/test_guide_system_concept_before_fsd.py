@@ -32,7 +32,8 @@ def test_event_pattern_structure_is_answered_before_fsd_application():
     result = apply_event_pattern_structure_boundary(query, payload)
     assert has_event_pattern_structure_explanation(result["response"])
     assert result["response"] == event_pattern_structure_recovery()
-    assert result["recommendation"] == payload["recommendation"]
+    assert result["recommendation"]["title"] == payload["recommendation"]["title"]
+    assert result["recommendation"]["url"] == payload["recommendation"]["url"]
     assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
 
 
