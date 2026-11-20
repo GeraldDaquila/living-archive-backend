@@ -2,11 +2,12 @@
 
 ## Current Gold Star numbering authority — 2026-11-20
 
+- **Newly elevated 2026-11-20:** `gs-2026-11-20-guide-coverage-gap-evidence-governance` preserves the exact live answer defining when The Guide may declare an Archive coverage gap. It distinguishes direct coverage, adjacent coverage, verified absence after bounded checks, and retrieval or verification failure. Its meta-policy doorway is intentionally absent; display serial remains `UNASSIGNED`.
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-orientation-vs-information-practical-distinction` preserves the exact live three-paragraph answer to “What does “orientation rather than information” mean in practice?”, its 9.5/10 user approval, and the verified **When Knowledge Is Everywhere** doorway. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
 
-- **Canonical inventory:** 154 registry records; 116 approved-status Gold Star records. Of these, 114 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
-- **Serial inventory:** 39 approved records carry display serials #56–#94. 77 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
-- **Counting rule:** 116 is the canonical approved-status inventory; 114 is the active cross-question structural-learning pool; 117 is not a Gold Star count because it includes one unapproved recovered response. Never use these figures interchangeably.
+- **Canonical inventory:** 155 registry records; 117 approved-status Gold Star records. Of these, 115 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
+- **Serial inventory:** 39 approved records carry display serials #56–#94. 78 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Counting rule:** 117 is the canonical approved-status inventory; 115 is the active cross-question structural-learning pool; 118 is not a Gold Star count because it includes one unapproved recovered response. Never use these figures interchangeably.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
@@ -846,3 +847,18 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 ## Gold Star Adaptive Intelligence Standard v2.0
 
 The approved additive quality umbrella is [Gold Star Adaptive Intelligence Standard v2.0](GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md). It expands the quality expectations while preserving the canonical 115 approved Gold Stars, their benchmark identities and evidence, and the separate 113 active structural-learning contributors. This standard does not grant new transfer or deterministic-fallback authority. Runtime activation requires behavioral evidence; see the v2.0 specification's release gates.
+
+
+### Gold Star — Guide coverage-gap evidence governance (2026-11-20)
+
+- **Benchmark:** `gs-2026-11-20-guide-coverage-gap-evidence-governance`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live visitor-facing question and answer frozen after explicit user registry-elevation instruction.
+- **Question:** “When should The Guide say “the Archive does not yet address this directly”?”
+- **Answer:** The exact visitor-facing three-paragraph response is preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Evidence discipline:** Distinguish direct coverage, adjacent coverage, no direct or related resource verified after bounded checks, and retrieval/indexing/access/source-verification failure. A failed retrieval is evidence about the search outcome, not proof of corpus absence.
+- **Doorway:** Intentionally none. This is a meta-policy explanation about The Guide's evidence standard, not a request for an Archive resource; a forced doorway would distract and misclassify the intent.
+- **Rating:** 9.5/10.
+- **Approval:** User reviewed the live Guide screenshot and explicitly instructed “elevate to registry!” on 2026-11-20.
+- **Adaptive-learning boundary:** Transfer the evidence-calibration discipline only. Do not transfer the exact answer to unrelated questions, overstate what sources were checked, or infer a corpus-wide gap from incomplete retrieval.
+- **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved response and intentional no-doorway exception. Changes require explicit user authorization and a separately documented benchmark-version change.

@@ -271,6 +271,9 @@
     },
     "bounded_weekly_stewardship_action_and_insight_application": {
       "description": "Translate an inner insight into one proportionate act within an already entrusted responsibility. Distinguish care from control, preserve consent and boundaries, recognize rest or relinquishment as legitimate, and review an observable result before continuing or adjusting the practice."
+    },
+    "guide_archive_coverage_gap_evidence_governance": {
+      "description": "Separate verified Archive coverage from retrieval outcomes; distinguish direct, adjacent, verified absence after bounded checks, and retrieval or source-verification failure."
     }
   },
   "entries": [
@@ -1263,13 +1266,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not impose this distinction on unrelated factual questions or transfer the exact answer or doorway. Do not imply that information is unimportant, that orientation guarantees certainty, or that fluent AI output is reliable without evidence and human judgment."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-guide-coverage-gap-evidence-governance",
+      "question": "When should The Guide say “the Archive does not yet address this directly”?",
+      "family": "guide_archive_coverage_gap_evidence_governance",
+      "structural_lesson": "Before declaring an Archive coverage gap, understand the visitor's question and check the relevant canonical sources plus bounded recovery routes. Distinguish verified direct coverage, relevant but adjacent coverage, no direct or related resource verified after completed checks, and retrieval/indexing/access/source-verification failure. Treat a failed retrieval as evidence about the search process, not proof of corpus absence; scope every claim to the sources actually checked.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to questions about Archive coverage, resource verification, retrieval outcomes, and when The Guide may state that the Archive does not directly address a question. Do not infer corpus-wide absence from a failed search or limited source check. Do not transfer the exact answer to unrelated questions, and do not force a doorway onto meta-policy explanations."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "a338c8281594918a6f8242122125828a4993beaa",
-    "qualitative_transfer_review_entries": 114,
-    "general_purpose_runtime_transfer_records": 110,
-    "map_entries": 110
+    "registry_content_sha": "42e20edb13dc5184bff32816bb481df0b21c8396",
+    "qualitative_transfer_review_entries": 115,
+    "general_purpose_runtime_transfer_records": 111,
+    "map_entries": 111
   }
 }

@@ -1022,6 +1022,15 @@
       "qualifying_context": "Visitors asking what it means to be oriented rather than merely informed, especially when interpreting AI-generated answers, evaluating reliability, deciding what matters, or determining responsible next steps.",
       "abstention_boundary": "Do not impose this distinction on unrelated factual questions or transfer the exact answer or doorway. Do not imply that information is unimportant, that orientation guarantees certainty, or that fluent AI output is reliable without evidence and human judgment.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-guide-coverage-gap-evidence-governance",
+      "question": "When should The Guide say “the Archive does not yet address this directly”?",
+      "reasoning_family": "guide_archive_coverage_gap_evidence_governance",
+      "transferable_discipline": "Before declaring an Archive coverage gap, understand the visitor's question and check the relevant canonical sources plus bounded recovery routes. Distinguish verified direct coverage, relevant but adjacent coverage, no direct or related resource verified after completed checks, and retrieval/indexing/access/source-verification failure. Treat a failed retrieval as evidence about the search process, not proof of corpus absence; scope every claim to the sources actually checked.",
+      "qualifying_context": "Visitors asking whether the Living Archive directly addresses a question, whether a related resource is sufficient, or whether an unsuccessful search justifies a coverage-gap statement.",
+      "abstention_boundary": "Apply only to questions about Archive coverage, resource verification, retrieval outcomes, and when The Guide may state that the Archive does not directly address a question. Do not infer corpus-wide absence from a failed search or limited source check. Do not transfer the exact answer to unrelated questions, and do not force a doorway onto meta-policy explanations.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
