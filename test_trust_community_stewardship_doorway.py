@@ -41,10 +41,7 @@ CONTRACT = load_contract_functions()
 
 class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
     QUERY = "What is the role of trust in community stewardship?"
-    EXPECTED_URL = (
-        "https://geralddaquila.com/2026/09/07/"
-        "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
-    )
+    EXPECTED_URL = "https://geralddaquila.com/trust-architecture/"
 
     def test_exact_question_is_recognized(self):
         self.assertTrue(CONTRACT["_is_trust_community_stewardship_question"](self.QUERY))
