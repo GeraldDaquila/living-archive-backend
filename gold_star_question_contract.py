@@ -59,10 +59,33 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
     reflexive_critique_plan = build_reflexive_critique_plan(normalized)
+    # Reuse the runtime's canonical meta-coverage detector and structured
+    # contract. Lazy import avoids a module-load dependency cycle.
+    try:
+        from deterministic_answer_recovery import (
+            is_guide_meta_coverage_policy_question,
+            build_guide_meta_coverage_policy_contract,
+        )
+        meta_coverage_policy = is_guide_meta_coverage_policy_question(normalized)
+        meta_governance_contract = (
+            build_guide_meta_coverage_policy_contract()
+            if meta_coverage_policy else None
+        )
+    except Exception:
+        meta_coverage_policy = False
+        meta_governance_contract = None
+
     task_candidate = (
-        {"type": "reflective_inquiry"}
-        if _is_personal_stewardship_invitation(normalized)
-        else ({"type": "institutional_critique"} if reflexive_critique_plan else _classify_question_candidate(normalized))
+        {"type": "guide_meta_coverage_policy"}
+        if meta_coverage_policy
+        else (
+            {"type": "reflective_inquiry"}
+            if _is_personal_stewardship_invitation(normalized)
+            else (
+                {"type": "institutional_critique"}
+                if reflexive_critique_plan else _classify_question_candidate(normalized)
+            )
+        )
     )
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
@@ -72,7 +95,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
 
     # Surface form is only a hint. Domain, stakes, epistemic mode and exact
     # deliverable remain unresolved until a capable route interprets the query.
-    return {
+    contract = {
         "version": VERSION,
         "state": "multi_intent_candidate" if multi_intent else ("single_intent_candidate" if normalized else "unknown"),
         "task": {
@@ -121,6 +144,35 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "followup": "prohibited" if no_handoff else "only_if_materially_useful",
         },
     }
+
+    if meta_coverage_policy:
+        contract["domain"] = {
+            "primary": "guide_meta_governance_candidate",
+            "subdomain": "archive_coverage_gap_policy",
+        }
+        contract["requested_outcome"] = "explain_evidence_threshold_for_archive_gap_claim"
+        contract["reasoning_mode"] = "bounded_evidence_policy_adjudication"
+        contract["evidence"] = {
+            "standard": "four_outcome_coverage_policy_contract",
+            "provenance_required": True,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "specific_archive_subject_coverage_is_not_being_assessed"
+        ]
+        contract["response"] = {
+            "shape": "bounded_four_outcome_policy_explanation",
+            "completion_criteria": [
+                "distinguish_direct_coverage",
+                "distinguish_adjacent_coverage",
+                "require_verified_evidence_for_genuine_gap",
+                "separate_retrieval_or_verification_failure",
+                "suppress_archive_resource_handoff",
+            ],
+        }
+        contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
+        contract["meta_governance"] = meta_governance_contract
+
+    return contract
 
 
 def validate_question_contract(contract: Any) -> Dict[str, Any]:
