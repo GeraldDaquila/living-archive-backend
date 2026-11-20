@@ -20,7 +20,6 @@ def test_real_bge_recovers_held_out_transformation_rebranding_paraphrase():
     target_score = scores[TARGET]
 
     # Verify the actual model output, not a mocked ranking.
-    assert len(next(iter(scores.values()), [])) != 0 if False else True
     assert target_score >= 0.48
     selected = lessons.select_lesson_candidates(query)
     assert selected
