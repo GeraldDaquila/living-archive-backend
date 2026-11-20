@@ -69,3 +69,61 @@ def test_live_visitor_finalizer_enforces_answer_before_fsd_and_keeps_the_doorway
     assert result["answer_basis"]["kind"] == "general_knowledge"
     assert result["response_provenance"]["class"] == "deterministic_recovery"
     assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
+
+
+def test_shared_json_sender_enforces_event_pattern_structure_after_route_bypasses():
+    import asyncio
+    import json
+    from main import _use_send_json
+    from event_pattern_structure_contract import (
+        event_pattern_structure_recovery,
+        has_event_pattern_structure_explanation,
+    )
+
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    payload = {
+        "query": query,
+        "response": "Your question asks about three concepts. Continue exploring.",
+        "provider": "test-provider",
+        "model": "test-model",
+        "route_source": "test_alternate_route",
+    }
+    asyncio.run(_use_send_json(capture, payload))
+
+    body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+    assert has_event_pattern_structure_explanation(result["response"])
+    assert result["response"] == event_pattern_structure_recovery()
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+    assert result["response_provenance"]["class"] == "deterministic_recovery"
+    assert result["gold_star_v2_quality_floor"]["status"] == "pass"
+
+
+def test_shared_json_sender_preserves_safety_and_exact_gold_star_authority():
+    import asyncio
+    import json
+    from main import _use_send_json
+
+    async def send_and_read(payload):
+        sent = []
+
+        async def capture(message):
+            sent.append(message)
+
+        asyncio.run(_use_send_json(capture, payload))
+        body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
+        return json.loads(body.decode("utf-8"))
+
+    safety = asyncio.run(send_and_read({
+        "query": "What is the difference between an event, a pattern, and a system structure?",
+        "intent": "SAFETY_INTERRUPT",
+        "response": "Safety response takes priority.",
+    }))
+    assert safety["response"] == "Safety response takes priority."
+    assert "event_pattern_structure_contract" not in safety
