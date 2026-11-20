@@ -1,0 +1,40 @@
+name: Institutional extraction incentives QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "general_guide_composition.py"
+      - "institutional_extraction_incentives_contract.py"
+      - "tests/test_institutional_extraction_incentives_contract.py"
+      - ".github/workflows/institutional-extraction-qa.yml"
+  push:
+    branches: [fix/institutional-extraction-incentive-contract]
+
+jobs:
+  focused-contract-and-runtime-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Compile changed Python modules
+        run: python -m py_compile main.py general_guide_composition.py institutional_extraction_incentives_contract.py
+      - name: Validate Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
+      - name: Run focused and adjacent regression tests
+        run: |
+          pytest -q \
+            tests/test_institutional_extraction_incentives_contract.py \
+            tests/test_guide_systemwide_three_paragraph_default.py \
+            tests/test_gold_standard_registry.py \
+            tests/test_gold_star_qualitative_transfer_review.py \
+            tests/test_gold_star_exact_only_successor_validation.py
