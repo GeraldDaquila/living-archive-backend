@@ -7890,6 +7890,10 @@ def _guide_finalize_visitor_payload(payload, query):
     # Adapt explanatory depth without sacrificing systemic accuracy; this runs
     # after all retrieval/provider routes and cannot be bypassed by their failures.
     finalized = apply_simple_systemic_explanation_boundary(query, finalized)
+    from institutional_learning_failure_contract import apply_institutional_learning_failure_boundary
+    # Enforce a bounded, source-independent first answer after all provider/retrieval routes.
+    # Frozen exact Gold Standards and safety responses have already exited above.
+    finalized = apply_institutional_learning_failure_boundary(query, finalized)
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
