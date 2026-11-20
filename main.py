@@ -16658,8 +16658,20 @@ def _guide_sync_power_responsibility_final_metadata(payload):
         and isinstance(selected_doorway, dict)
         and str(selected_doorway.get("url") or "").strip()
     ):
+        doorway_state = "present_requires_canonical_validation"
+    elif doorway_status == "NOT_EVALUATED":
+        doorway_state = "not_evaluated"
+    elif doorway_status == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH":
+        doorway_state = "no_relevant_destination_after_bounded_search"
+    elif doorway_status == "RETRIEVAL_OR_VERIFICATION_FAILURE":
+        doorway_state = "retrieval_or_verification_failure"
+    elif doorway_status == "AUTHORIZED_OMISSION":
+        doorway_state = "intentionally_omitted_with_reason"
+    else:
+        doorway_state = None
+    if doorway_state is not None:
         doorway_contract = {
-            "state": "present_requires_canonical_validation",
+            "state": doorway_state,
             "separate_from_answer": True,
             "prohibited_by_question_contract": False,
         }
