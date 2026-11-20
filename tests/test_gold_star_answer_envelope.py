@@ -47,6 +47,66 @@ def test_canonical_doorway_is_not_mislabeled_as_intentional_omission():
     assert envelope["doorway"]["separate_from_answer"] is True
 
 
+def test_not_evaluated_doorway_is_not_mislabeled_as_intentional_omission():
+    query = "How are power and responsibility connected?"
+    payload = {
+        "ok": True,
+        "response": "A bounded conceptual answer.",
+        "route_source": "guide_basic_inquiry",
+        "doorway_selection_status": "NOT_EVALUATED",
+        "doorway_omission_reason": "Selection was not evaluated.",
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["doorway"]["state"] == "not_evaluated"
+    assert validate_answer_envelope(envelope)["valid"] is True
+
+
+def test_bounded_no_match_is_distinct_from_authorized_omission():
+    query = "Explain a policy question."
+    payload = {
+        "ok": True,
+        "response": "A bounded answer.",
+        "doorway_selection_status": "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH",
+        "doorway_omission_reason": "Bounded search completed without a relevant destination.",
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["doorway"]["state"] == "no_relevant_destination_after_bounded_search"
+
+
+def test_retrieval_failure_is_not_mislabeled_as_intentional_omission():
+    query = "Explain a policy question."
+    payload = {
+        "ok": True,
+        "response": "A bounded answer.",
+        "doorway_selection_status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
+        "doorway_omission_reason": "Source verification failed.",
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["doorway"]["state"] == "retrieval_or_verification_failure"
+
+
+def test_authorized_omission_retains_explicit_omission_state():
+    query = "Explain a policy question."
+    payload = {
+        "ok": True,
+        "response": "A bounded answer.",
+        "doorway_selection_status": "AUTHORIZED_OMISSION",
+        "doorway_omission_reason": "Reviewed policy question does not warrant a resource doorway.",
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["doorway"]["state"] == "intentionally_omitted_with_reason"
+
+
+def test_answer_envelope_rejects_unknown_doorway_state():
+    query = "Explain a policy question."
+    envelope = build_answer_envelope(
+        query, {"ok": True, "response": "A bounded answer."},
+        build_question_contract(query),
+    )
+    envelope["doorway"]["state"] = "assumed_intentional"
+    assert validate_answer_envelope(envelope)["reason"] == "invalid_doorway_state"
+
+
 def test_unregistered_route_and_missing_capability_declaration_remain_unknown():
     query = "Explain a complex issue."
     payload = {"ok": True, "response": "A bounded answer.", "route_source": "new_route_not_yet_registered"}
