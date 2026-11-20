@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from deterministic_answer_recovery import compose_task_specific_recovery
+from main import _normalize_authoritative_recommendation
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs" / "qa" / "gold_standard_registry.json"
@@ -22,6 +23,7 @@ def test_problem_boundary_question_has_provider_independent_answer_and_verified_
         assert concept.casefold() in answer.casefold()
     assert result["recommendation"]["title"] == "Boundary Conditions"
     assert result["recommendation"]["url"] == "https://geralddaquila.com/boundary-conditions/"
+    assert _normalize_authoritative_recommendation(result["recommendation"])["title"] == "Boundary Conditions"
 
 
 def test_problem_boundary_recovery_handles_close_paraphrases_but_not_unrelated_questions():
