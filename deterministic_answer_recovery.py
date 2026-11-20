@@ -49,6 +49,24 @@ def compose_definition_significance(subject):
         # Source unavailability must not prevent ordinary general-knowledge
         # recovery; an absent Archive entry is never inferred or fabricated.
         pass
+    # The community-reciprocity successor replaces the older generic fallback
+    # for both the community-purpose query and the earlier Archive-framed wording.
+    # Keep the answer general-knowledge: the Archive essay remains a separate
+    # continuation, not the evidentiary source of this explanation.
+    if re.sub(r"\\s+", " ", subject).strip().casefold() == "reciprocity":
+        return (
+            "Reciprocity means people support one another over time. It does not mean keeping "
+            "score or expecting every act to be repaid immediately or in equal measure. People "
+            "may give more at one point and need more help at another; what matters is that "
+            "support can move in both directions over time.\\n\\n"
+            "Think of neighbors taking turns checking on an older resident or helping one another "
+            "with errands. One neighbor may do more during a difficult week and receive help later. "
+            "The relationship can still be reciprocal even when each exchange is different.\\n\\n"
+            "Reciprocity should never be used to demand access, obedience, or repayment from "
+            "someone who cannot freely offer it. Mutual support works best when people respond "
+            "to one another's real circumstances, not when kindness becomes a debt ledger."
+        )
+
     # A bounded, reusable general-knowledge definition bank supports common
     # concepts when providers are exhausted. These are ordinary definitions,
     # not statements of official Living Archive doctrine.
