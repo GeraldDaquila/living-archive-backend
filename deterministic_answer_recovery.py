@@ -1009,6 +1009,7 @@ def has_registered_recovery(question):
         or is_community_continuity_revision_question(question)
         or is_community_project_tradeoff_question(question)
         or is_orientation_information_contrast_question(question)
+        or is_guide_meta_coverage_policy_question(question)
     )
 
 
@@ -1481,6 +1482,48 @@ def _orientation_information_contrast_recovery():
     )
 
 
+def is_guide_meta_coverage_policy_question(question):
+    """Recognize questions about when The Guide may declare an Archive coverage gap."""
+    q = _clean(question).casefold()
+    guide_actor = bool(re.search(r"\\b(?:the\\s+)?guide\\b", q))
+    policy_action = bool(re.search(
+        r"\\b(?:when|under what conditions|how|what evidence|what standard)\\b.{0,100}"
+        r"\\b(?:say|state|acknowledge|declare|claim|decide|determine|use|tell|report)\\b"
+        r"|\\b(?:should|may|must)\\b.{0,60}\\b(?:say|state|acknowledge|declare|claim|report)\\b",
+        q,
+    ))
+    coverage_subject = bool(re.search(
+        r"\\b(?:archive|living archive)\\b.{0,100}\\b(?:does not|doesn't|do not|don't|not yet|"
+        r"directly address|cover|coverage|resource|material)\\b"
+        r"|\\b(?:coverage gap|direct coverage|directly address|unaddressed by the archive)\\b",
+        q,
+    ))
+    return guide_actor and policy_action and coverage_subject
+
+
+def _guide_meta_coverage_policy_recovery():
+    """State the evidence threshold for a responsible Archive coverage-gap claim."""
+    return (
+        "The Guide should say that the Archive does not yet address a question directly only "
+        "after it has correctly understood the question and checked the relevant canonical "
+        "Archive material—not merely because an initial search returned no result. A missing "
+        "retrieval result is evidence of a search outcome, not proof that the Archive has no "
+        "relevant material.\\n\\n"
+        "The Guide should distinguish four outcomes. If a verified resource directly addresses "
+        "the question, recommend it. If a resource is genuinely relevant but only adjacent, "
+        "describe it as related and explain what it does not answer. If no adequate direct or "
+        "related resource is found after the available canonical sources and bounded recovery "
+        "routes have been checked, acknowledge that no direct resource could be verified. If "
+        "retrieval, indexing, access, or source verification failed, disclose that limitation "
+        "instead of declaring an Archive coverage gap.\\n\\n"
+        "Use the stronger wording “the Archive does not yet address this directly” only when "
+        "the evidence supports a genuine coverage gap within the sources that were actually "
+        "checked. Otherwise say, more carefully, “I couldn't verify a resource that directly "
+        "addresses this.” The Guide must never turn an unsuccessful search, an unavailable "
+        "source, or a weak keyword match into a claim about the contents of the whole Archive."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -1493,6 +1536,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # Archive term requiring a formal-definition abstention.
     if is_orientation_information_contrast_question(q):
         return _orientation_information_contrast_recovery()
+
+    if is_guide_meta_coverage_policy_question(q):
+        return _guide_meta_coverage_policy_recovery()
 
     # A request for one near-term stewardship act needs a practical, bounded
     # application of the public Stewardship gateway, not a generic reflection.
