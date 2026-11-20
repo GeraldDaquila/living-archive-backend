@@ -716,6 +716,21 @@ def _guide_registered_fact_matches_current_response(query, response, recovery):
     return bool(expected and current and current == expected)
 
 
+def _guide_outer_registered_recovery_is_valid(query, response):
+    """Do not let generic-nonanswer heuristics reject a complete meta-policy recovery."""
+    from deterministic_answer_recovery import (
+        is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
+    )
+    if is_guide_meta_coverage_policy_question(query):
+        return has_guide_meta_coverage_policy_explanation(response)
+    return bool(
+        response
+        and not general_guide_composition.is_generic_nonanswer(query, response)
+        and not general_guide_composition.is_meta_answer_failure(response)
+    )
+
+
 def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
@@ -725,6 +740,37 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     omit. Only reviewed standards and explicit visitor instructions are terminal.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
+    from deterministic_answer_recovery import (
+        is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
+        _guide_meta_coverage_policy_recovery,
+    )
+    if is_guide_meta_coverage_policy_question(query):
+        # A Guide-policy question is not a resource-discovery request. Its
+        # answer is governed by the shared coverage contract, and no downstream
+        # selector or compatibility renderer may resurrect a doorway.
+        response = str(safe.get("response") or safe.get("answer") or "").strip()
+        if not has_guide_meta_coverage_policy_explanation(response):
+            response = _guide_meta_coverage_policy_recovery()
+        safe["response"] = response
+        if "answer" in safe:
+            safe["answer"] = response
+        for key in (
+            "recommendation", "recommendations", "canonical_doorway", "doorway",
+            "doorway_title", "doorway_url", "doorway_rationale",
+            "recommendation_title", "recommendation_url", "authoritative_doorway",
+            "canonical_recommendation", "archive_doorway",
+            "recommendation_canonical_primary", "recommendation_canonical_secondary",
+            "recommendation_canonical", "recommended_resource", "recommended_resources",
+        ):
+            safe[key] = None
+        safe["doorway_decision"] = "omit"
+        safe["doorway_omission_reason"] = (
+            "This is a question about The Guide's coverage policy, not a request for an Archive resource."
+        )
+        safe["navigation_suppressed_by_task_contract"] = True
+        return safe
+
     exact_standard = _resolve_exact_guide_gold_standard(query)
     explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
