@@ -14450,6 +14450,12 @@ async def _use_send_json(send, payload, status_code=200):
             payload = _apply_registered_personal_decision_agency_contract(
                 payload, _boundary_query
             )
+            # The shared JSON sender is the last common visitor boundary. Apply
+            # the bounded event/pattern/system-structure contract here as well
+            # as in the Guide finalizer so alternate routes and early returns
+            # cannot bypass the answer-first requirement.
+            from event_pattern_structure_contract import apply_event_pattern_structure_boundary
+            payload = apply_event_pattern_structure_boundary(_boundary_query, payload)
         # Provider and deterministic routes share one substantive quality floor.
         # Exact approved/candidate standards remain terminal and are never rewritten.
         if (
