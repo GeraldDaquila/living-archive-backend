@@ -387,7 +387,7 @@ def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer(
     )
     assert "starting point over time" in record["implementation_response"]
     assert "unintended consequences" in record["implementation_response"]
-    assert record["implementation_response_provenance"]["source_pr"] == 778
+    assert record["implementation_response_provenance"]["source_pr"] == 768
     assert "merged to main via PR #768" in record["implementation_response_provenance"]["source_status"]
     assert "not a visitor-approved gold answer" in record["implementation_response_provenance"]["evidence_boundary"]
 
