@@ -274,7 +274,10 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             assert record.get("elevation_approval_evidence", "").strip(), record["benchmark_id"]
             assert record.get("approval_state", "").strip(), record["benchmark_id"]
             assert record.get("user_approved_at", "").strip(), record["benchmark_id"]
-            assert record.get("reasoning_family", "").strip(), record["benchmark_id"]
+            assert (
+                record.get("reasoning_family", "")
+                or capabilities.get("reasoning_family", "")
+            ).strip(), record["benchmark_id"]
             # Immutable approved records may carry transfer discipline inside
             # gold_star_capabilities rather than duplicate mutable top-level fields.
             transferable_lesson = (
