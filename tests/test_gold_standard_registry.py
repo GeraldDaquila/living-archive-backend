@@ -1544,7 +1544,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 123
     assert registry["integrity_audit"]["approved_gold_star_count"] == 123
-    assert registry["integrity_audit"]["registry_record_count"] == 161
+    assert registry["integrity_audit"]["registry_record_count"] == 162
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 83
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
@@ -1604,7 +1604,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 123
     assert registry["integrity_audit"]["approved_gold_star_count"] == 123
-    assert registry["integrity_audit"]["registry_record_count"] == 161
+    assert registry["integrity_audit"]["registry_record_count"] == 162
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 83
 
@@ -1675,7 +1675,7 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 123
     assert registry["integrity_audit"]["approved_gold_star_count"] == 123
-    assert registry["integrity_audit"]["registry_record_count"] == 161
+    assert registry["integrity_audit"]["registry_record_count"] == 162
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 83
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
@@ -1800,7 +1800,7 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     assert adjacent["benchmark_id"] != fixture["benchmark_id"]
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 123
     assert registry["integrity_audit"]["approved_gold_star_count"] == 123
-    assert registry["integrity_audit"]["registry_record_count"] == 161
+    assert registry["integrity_audit"]["registry_record_count"] == 162
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 83
 
