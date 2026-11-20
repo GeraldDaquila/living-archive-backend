@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ["main.py", "guide_reflexive_critique.py", "gold_star_question_contract.py", "general_guide_composition.py", "tests/test_guide_reflexive_critique.py", "tests/test_guide_reflexive_critique_integration.py", ".github/workflows/guide-reflexive-institutional-critique.yml"]
   push:
-    branches: [main]
+    branches: [main, fix/reflexive-institutional-critique]
     paths: ["main.py", "guide_reflexive_critique.py", "gold_star_question_contract.py", "general_guide_composition.py", "tests/test_guide_reflexive_critique.py", "tests/test_guide_reflexive_critique_integration.py", ".github/workflows/guide-reflexive-institutional-critique.yml"]
 jobs:
   reflexive-critique-contract:
