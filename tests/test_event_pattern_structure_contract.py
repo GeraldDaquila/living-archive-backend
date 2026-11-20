@@ -72,3 +72,30 @@ def test_recovery_provenance_clears_unsupported_retrieval_evidence_and_preserves
     assert result["answer_envelope"]["evidence"]["references_present"] is False
     assert result["answer_envelope"]["route"]["provider_present"] is False
     assert result["recommendation"] == doorway
+
+
+def test_query_specific_gold_star_doorway_is_added_from_registry_only_when_needed():
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    result = contract.apply_event_pattern_structure_boundary(
+        query,
+        {"response": "A restatement, not a complete explanation."},
+    )
+    doorway = result["recommendation"]
+    assert doorway["title"] == "Fractal Systems Diagnostic"
+    assert doorway["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+    assert result["canonical_doorway"] == doorway
+    assert result["doorway_decision"] == "include"
+    assert result["doorway_selection_source"] == "approved_query_specific_gold_star_registry_record"
+
+
+def test_explicit_no_handoff_request_overrides_query_specific_doorway():
+    query = (
+        "What is the difference between an event, a pattern, and a system structure? "
+        "Do not recommend links or resources."
+    )
+    result = contract.apply_event_pattern_structure_boundary(
+        query,
+        {"response": "A restatement, not a complete explanation."},
+    )
+    assert "recommendation" not in result
+    assert "canonical_doorway" not in result
