@@ -26,3 +26,14 @@ def test_general_worldview_critique_is_not_misclassified():
 
 def test_archive_resource_search_is_not_misclassified():
     assert build_reflexive_critique_plan("Where can I find the Archive’s worldview article?") is None
+
+def test_critical_evaluation_wording_variants_are_answer_tasks():
+    variants = [
+        "How should we critically assess the Archive’s underlying assumptions?",
+        "What are the strongest limitations of the Living Archive’s worldview?",
+        "How could someone fairly challenge the Archive’s philosophical foundations?",
+    ]
+    for query in variants:
+        plan = build_reflexive_critique_plan(query)
+        assert plan is not None, query
+        assert plan["task_class"] == "answer_first_critical_evaluation"
