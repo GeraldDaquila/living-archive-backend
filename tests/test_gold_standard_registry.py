@@ -241,17 +241,17 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["superseded_historical_reference_count"] == len(superseded) == 1
     assert report["pending_approval_evidence_count"] == len(pending) == 1
     assert report["authoritative_gold_star_count"] == 126
-    assert report["active_runtime_gold_star_count"] == 123
+    assert report["active_runtime_gold_star_count"] == 124
     assert report["counting_note"].find("Pending approval evidence is excluded") >= 0
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 39
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 86
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 87
     assert report["highest_assigned_gold_star_number"] == 94
     assert report["numbering_sequence_start"] == 56
     assert report["numbering_gap_register"] == []
     assert len(report["number_assignments"]) == 39
-    assert len(report["unassigned_benchmark_ids"]) == 86
+    assert len(report["unassigned_benchmark_ids"]) == 87
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1122,7 +1122,7 @@ def test_85_and_86_are_allocated_and_no_documented_historical_gap_remains():
     assert registry["integrity_audit"]["approved_gold_star_count"] == 126
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 94
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 86
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 87
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
 
 
@@ -1751,7 +1751,7 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
 
     assert len(approved) == audit["approved_gold_star_count"] == 126
     assert len(assigned) == audit["numbered_gold_star_record_count"] == 39
-    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 86
+    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 87
     assert len(assigned) + len(unassigned) == len(approved)
     assert "126 approved Gold Stars" in narrative
     assert "39 assigned display serials" in narrative
