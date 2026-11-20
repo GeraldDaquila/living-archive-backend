@@ -78,8 +78,6 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             build_guide_meta_coverage_policy_contract()
             if meta_coverage_policy else None
         )
-        epistemic_category_distinction = False
-        epistemic_distinction_contract = None
     except Exception:
         meta_coverage_policy = False
         meta_governance_contract = None
