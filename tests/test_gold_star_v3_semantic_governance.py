@@ -44,12 +44,13 @@ def test_adjacent_question_reports_diagnostic_only_without_bounded_enforcement()
     assert states["semantic_certification"]["certified"] is False
 
 
-def test_observer_failure_is_reported_without_claiming_certification():
+def test_semantic_failure_is_reported_without_claiming_certification():
     query = "Why do organizations repeat failures they publicly acknowledge?"
-    result = evaluate_response_floor(query, {"ok": True, "response": "A substantive answer."})
+    result = evaluate_response_floor(query, {"ok": True, "response": "Organizations repeat failures because people forget."})
     states = result["semantic_governance"]
 
-    # The current observer is available in this test environment; the contract
-    # still makes the non-certification boundary explicit.
+    assert result["status"] == "fail"
+    assert states["bounded_enforcement"]["state"] == "active"
+    assert states["bounded_enforcement"]["status"] == "fail"
     assert states["semantic_certification"]["state"] == "not_certified"
     assert states["semantic_certification"]["certified"] is False
