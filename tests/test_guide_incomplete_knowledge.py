@@ -1,4 +1,8 @@
-from guide_incomplete_knowledge import (\n    build_incomplete_knowledge_plan,\n    build_incomplete_knowledge_recovery,\n    incomplete_knowledge_response_meets_contract,\n)
+from guide_incomplete_knowledge import (
+    build_incomplete_knowledge_plan,
+    build_incomplete_knowledge_recovery,
+    incomplete_knowledge_response_meets_contract,
+)
 
 
 def test_incomplete_knowledge_stewardship_question_gets_full_contract():
