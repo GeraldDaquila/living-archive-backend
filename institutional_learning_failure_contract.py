@@ -186,6 +186,20 @@ def apply_institutional_learning_failure_boundary(question: Any, payload: Any) -
         safe["response"] = answer
         if "answer" in safe:
             safe["answer"] = answer
+        # A successful bounded recovery supersedes the failed provider outcome.
+        # Leaving ok=False/error_type intact makes the browser discard the answer
+        # and render its generic transport-error state instead.
+        prior_error_type = str(safe.get("error_type") or "").strip() or None
+        safe["ok"] = True
+        safe.pop("error_type", None)
+        safe.pop("error", None)
+        safe.pop("message", None)
+        safe["visitor_transport_recovery"] = {
+            "version": "1.0",
+            "status": "recovered",
+            "prior_error_type": prior_error_type,
+            "answer_recovered": True,
+        }
         prior_provenance = safe.get("response_provenance")
         prior_llm = bool(
             safe.get("provider") or safe.get("model")

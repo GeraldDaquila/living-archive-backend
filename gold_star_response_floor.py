@@ -228,6 +228,20 @@ def apply_response_floor_boundary(
     safe_payload = dict(payload)
     safe_payload["gold_star_v2_quality_floor"] = floor_result
     final_status = int(status_code)
+    recovery = safe_payload.get("visitor_transport_recovery")
+    if (
+        floor_result.get("status") == "pass"
+        and safe_payload.get("ok") is True
+        and isinstance(recovery, dict)
+        and recovery.get("status") == "recovered"
+        and recovery.get("answer_recovered") is True
+        and final_status >= 400
+    ):
+        # Restore success only after the substantive answer and v2 floor pass.
+        final_status = 200
+        recovery = dict(recovery)
+        recovery["http_status_restored"] = True
+        safe_payload["visitor_transport_recovery"] = recovery
     if floor_result.get("status") == "fail" and 200 <= final_status < 300:
         safe_payload = {
             "ok": False,

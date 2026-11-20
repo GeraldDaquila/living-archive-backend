@@ -248,3 +248,71 @@ def test_shared_finalizer_invokes_contract_after_inner_routes_and_preserves_exac
     assert source.index("apply_institutional_learning_failure_boundary(query, finalized)") < source.index(
         "return finalized", source.index("apply_institutional_learning_failure_boundary(query, finalized)")
     )
+
+
+def test_provider_and_quality_gate_failures_are_recovered_as_successful_visitor_responses():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    failed_payloads = (
+        {
+            "ok": False,
+            "query": LIVE_QUESTION,
+            "intent": "TOPICAL_INQUIRY",
+            "response": "The Guide could not complete this question right now.",
+            "error_type": "basic_inquiry_failure",
+        },
+        {
+            "ok": False,
+            "query": LIVE_QUESTION,
+            "response": "",
+            "error_type": "gold_star_v2_quality_floor_rejected",
+            "message": "The response did not pass the minimum integrity checks. Please try again.",
+        },
+    )
+    for failed in failed_payloads:
+        recovered = apply_institutional_learning_failure_boundary(LIVE_QUESTION, failed)
+
+        assert recovered["ok"] is True
+        assert "error_type" not in recovered
+        assert "message" not in recovered
+        assert recovered["institutional_learning_failure_contract"]["recovery_applied"] is True
+        assert recovered["visitor_transport_recovery"]["status"] == "recovered"
+        assert institutional_learning_failure_response_meets_contract(recovered["response"])
+
+        final_payload, final_status = apply_response_floor_boundary(
+            LIVE_QUESTION, recovered, 503
+        )
+        assert final_status == 200
+        assert final_payload["ok"] is True
+        assert final_payload["gold_star_v2_quality_floor"]["status"] == "pass"
+        assert final_payload["visitor_transport_recovery"]["http_status_restored"] is True
+
+
+
+def test_real_api_query_route_recovers_provider_failure_to_http_200(monkeypatch):
+    """Exercise the mounted FastAPI route and outer ASGI visitor boundary."""
+    import main
+    from fastapi.testclient import TestClient
+
+    def exhausted_provider(*args, **kwargs):
+        raise RuntimeError("simulated provider exhaustion")
+
+    monkeypatch.setattr(main.use_core, "fetch_canonical_context", exhausted_provider)
+
+    with TestClient(main.app) as client:
+        response = client.post("/api/query", json={"query": LIVE_QUESTION})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
+    assert payload["visitor_transport_recovery"]["status"] == "recovered"
+    assert payload["visitor_transport_recovery"]["http_status_restored"] is True
+    assert "Because acknowledging a failure" in payload["response"]
+    assert payload["recommendation"]["title"] == (
+        "When Experience Can Change Us: The Two Capacities of a Living System"
+    )
+    assert payload["canonical_doorway"] == payload["recommendation"]
+    assert payload["doorway_url"].endswith(
+        "/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
+    )
