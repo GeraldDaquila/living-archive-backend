@@ -33,6 +33,21 @@ def test_adjacent_questions_do_not_trigger_the_bounded_recovery():
     assert not any(is_institutional_learning_failure_question(q) for q in queries)
 
 
+def test_gold_star_question_contract_resolves_the_causal_task_and_evidence_boundary():
+    from gold_star_question_contract import build_question_contract
+
+    contract = build_question_contract(LIVE_QUESTION)
+    assert contract["task"]["primary"] == "institutional_learning_failure_candidate"
+    assert contract["domain"] == {
+        "primary": "organizational_systems",
+        "subdomain": "institutional_learning_and_correctability",
+    }
+    assert contract["requested_outcome"] == "explain_why_acknowledged_institutional_failures_recur"
+    assert contract["reasoning_mode"] == "causal_systems_explanation"
+    assert contract["evidence"]["provenance_required"] is False
+    assert "connect_understanding_to_changed_action" in contract["response"]["completion_criteria"]
+
+
 def test_semantic_contract_classifies_family_and_rejects_nonanswers():
     from gold_star_semantic_contract import classify_question, evaluate_semantic_contract
 
