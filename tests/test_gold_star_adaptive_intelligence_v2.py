@@ -211,7 +211,7 @@ def test_stewardship_consent_contract_reaches_the_actual_provider_system_message
         context_data={},
     )
 
-    assert result is not None
+    assert captured.get("messages")
     system_message = next(
         item["content"] for item in captured["messages"] if item["role"] == "system"
     )
