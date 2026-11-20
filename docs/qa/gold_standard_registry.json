@@ -7830,6 +7830,64 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star registry elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-event-pattern-system-structure-answer-first",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the difference between an event, a pattern, and a system structure?",
+      "expected_response": "An **event** is a particular thing that happens: one resignation, one service failure, or one missed deadline. A **pattern** is a recurring or developing sequence of events that becomes visible over time, such as repeated resignations or repeated service failures. A **system structure** is the underlying arrangement of relationships, rules, incentives, resources, information flows, and dependencies that shapes which patterns are likely to occur and persist.\n\nFor example, one employee leaving is an event. Several employees leaving the same team over successive months may reveal a pattern. The structure might include an unmanageable workload, unclear authority, poor feedback channels, or incentives that reward output while ignoring the cost to staff. Those conditions can help produce the pattern; they are not proved by the pattern alone. Other explanations may also need to be examined.\n\nThe distinction matters because each level calls for a different response. An event may need immediate attention; a pattern calls for looking across multiple occurrences; and understanding the structure means examining and, where justified, changing the conditions that keep generating the pattern. The aim is not to ignore individual events, but to avoid repeatedly treating symptoms while leaving their possible causes untouched.",
+      "expected_doorway": {
+        "title": "Fractal Systems Diagnostic",
+        "url": "https://geralddaquila.com/fractal-systems-diagnostic-2/",
+        "rationale": "After explaining the three analytical levels, the Fractal Systems Diagnostic offers an applied way to examine recurring patterns and the structures that may sustain them. It is an application doorway, not a substitute for the conceptual answer."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "The user explicitly instructed the architectural and query-level correction to be completed and elevated to Gold Star. This record approves the bounded answer-first reasoning exemplar and its application doorway; it does not claim the original screenshot showed this corrected answer.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "event_pattern_system_structure_conceptual_distinction",
+      "transferable_lesson": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
+      "transfer_boundary": "Use only when the visitor asks to distinguish events, patterns, and system structures or a close paraphrase. Do not infer a specific cause from a pattern alone. Do not present the Fractal Systems Diagnostic as a substitute for the explanation or transfer the exact response to unrelated questions.",
+      "known_theme": "event, pattern, system structure, causal mechanisms, recurring behavior, systems thinking, diagnosis, structural conditions",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_quality_governance_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "event_pattern_system_structure_conceptual_distinction",
+        "transferable_discipline": "Complete the requested conceptual distinction before offering application; differentiate event, pattern, and structure; explain causal influence with calibrated uncertainty.",
+        "abstention_boundary": "Do not infer a single cause from repeated events or use the diagnostic doorway instead of answering."
+      },
+      "assertions": [
+        "Answer the visitor's distinction directly; never substitute a question restatement or navigation handoff.",
+        "Define event as a particular occurrence, pattern as recurrence/development over time, and system structure as underlying arrangements shaping recurrence.",
+        "Use a concrete example to show the levels without presenting an invented case as a documented real case.",
+        "Explain that structures can shape and sustain patterns but a pattern alone does not prove a particular cause.",
+        "Match the next step to the level of inquiry; the diagnostic is an application route after the explanation.",
+        "Keep answer completion and doorway selection as separate decisions."
+      ],
+      "user_approved_at": "2026-11-20",
+      "elevation_approval_evidence": "The user explicitly requested: “fix structurally on both levels: architecturally and query-level and turn this into a gold star.”",
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide question and failed response, followed by explicit approval to correct both levels and elevate the result.",
+        "source_date": "2026-11-20",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot documents the failure mode. The corrected expected response is a newly authored QA exemplar, not a transcription of a corrected live response. Runtime transfer is bounded to the tested reasoning discipline; exact-answer authority and deterministic fallback remain disabled.",
+        "canonical_doorway_verification": {
+          "title": "Fractal Systems Diagnostic",
+          "url": "https://geralddaquila.com/fractal-systems-diagnostic-2/",
+          "verification_source": "Existing published Fractal Systems Diagnostic landing page and the visitor-facing screenshot",
+          "verification_date": "2026-11-20"
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Registry elevation does not allocate a human-facing serial; preserve benchmark_id as the stable identity.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-20: Elevated institutional-extraction incentive governance after review of the live visitor-facing response and explicit user approval. The exact answer and verified Regenerative Governance doorway are frozen as a bounded structural-learning exemplar; no display serial was requested.",
