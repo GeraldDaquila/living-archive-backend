@@ -61,8 +61,10 @@ def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learni
 
 def test_main_early_task_route_preserves_a_verified_recovery_doorway():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert '"recommendation": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway"))' in source
-    assert '"doorway_url": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("url") or _task_recovery.get("doorway_url") or "") or None' in source
+    assert '"recommendation": _task_doorway' in source
+    assert '"doorway_url": _task_doorway.get("url") if _task_doorway else None' in source
+    assert '"doorway_selection_source": "registered_task_recovery" if _task_doorway else "no_verified_task_doorway"' in source
+    assert "trusted_task_selection" in source
 
 
 def test_shared_final_visitor_boundary_preserves_a_verified_task_recovery_doorway():
