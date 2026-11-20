@@ -9017,16 +9017,15 @@ def _harm_repair_candidate_has_direct_fit(query, document):
 
 def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
-    from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
-    if is_guide_meta_coverage_policy_question(query):
-        return None
-
     A syntactically valid URL is not proof of relevance. Provider/core preselection
     is treated as a candidate, never as authority by itself. Rank retrieved
     documents with the Guide's existing relevance gate and emit only a doorway
     supported by the selected document's title, URL, and content. v489.12
     keeps this selection independent of provider-generated text and fallback URLs.
     """
+    from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
+    if is_guide_meta_coverage_policy_question(query):
+        return None
     if not isinstance(context_data, dict):
         return None
     if context_data.get("canonical_doorway_search_attempted"):
