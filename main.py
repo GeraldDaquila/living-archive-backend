@@ -14143,7 +14143,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "provider": "bounded_reciprocity_community_recovery",
             "model": "deterministic-contract-recovery",
         }
-        composition_result = None
+        composition_result = {}
         print(
             "The Guide final payload boundary: reciprocity-community answer, "
             "general-knowledge provenance, and canonical doorway contract enforced."
