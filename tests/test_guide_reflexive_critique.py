@@ -37,3 +37,23 @@ def test_critical_evaluation_wording_variants_are_answer_tasks():
         plan = build_reflexive_critique_plan(query)
         assert plan is not None, query
         assert plan["task_class"] == "answer_first_critical_evaluation"
+
+
+def test_good_faith_critique_has_complete_retrieval_independent_answer():
+    from guide_reflexive_critique import build_reflexive_critique_answer
+    query = "What would constitute a good-faith critique of the Archive’s worldview?"
+    result = build_reflexive_critique_answer(query)
+    assert result is not None
+    answer = result["response"].casefold()
+    for required in (
+        "strongest version", "key terms", "independent corroboration",
+        "counterexamples", "strongest objection", "revision conditions",
+        "does not independently establish", "living archive",
+    ):
+        assert required in answer
+    assert len(answer) >= 1200
+
+
+def test_non_critique_query_does_not_trigger_deterministic_critique_answer():
+    from guide_reflexive_critique import build_reflexive_critique_answer
+    assert build_reflexive_critique_answer("What is the Archive’s worldview?") is None
