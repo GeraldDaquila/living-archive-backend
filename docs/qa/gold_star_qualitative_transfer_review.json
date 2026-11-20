@@ -1040,6 +1040,15 @@
       "qualifying_context": "Guide questions where a complete answer may be composed without retrieval, but the visitor may still benefit from a verified canonical resource or approved general continuation. Apply the lesson to the selector's evidence discipline, not as a requirement to attach a doorway to every answer.",
       "abstention_boundary": "Do not infer that the original missing doorway was intentional; its original state remains NOT_EVALUATED. Do not expand omission authority, force a doorway onto meta-policy questions, transfer the exact answer or clinic-access example to unrelated queries, or override existing relevance, access, risk, refusal, and source-verification rules.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-reflexive-institutional-critique",
+      "question": "What would constitute a good-faith critique of the Archive’s worldview?",
+      "reasoning_family": "reflexive_institutional_critique_and_correctability",
+      "transferable_discipline": "For requests to critique an institution's worldview, reconstruct its strongest actual claims before evaluating them; distinguish descriptive, empirical, interpretive, and normative claims; expose assumptions; test empirical claims against independent evidence and counterexamples; assess internal coherence separately from external adequacy and consequences; represent objections and replies fairly; state revision conditions; and calibrate conclusions to evidence actually examined. Do not treat institutional self-description as independent validation.",
+      "qualifying_context": "Visitors explicitly asking how to critique, test, or independently examine the worldview, foundational claims, or assumptions of an institution or knowledge framework. The method requires fair reconstruction and claim-type-sensitive evaluation.",
+      "abstention_boundary": "Apply only when a visitor asks for good-faith critique or independent examination of an institution's worldview, framework, or foundational claims. Do not assume the institution's claims are true or false, invent corpus contents, imply an audit has occurred when it has not, collapse normative commitments into empirical propositions, or transfer this exact answer to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
