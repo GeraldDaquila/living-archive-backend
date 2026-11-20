@@ -4558,7 +4558,7 @@ def _trust_community_stewardship_recovery():
         "accountability makes trust dependable; stewardship is the shared practice that keeps "
         "both alive. Trust is not a substitute for scrutiny or safeguards; it grows stronger "
         "when people can question decisions and see that commitments are honoured. "
-        "Trust grows stronger when people can question decisions and see that commitments are honoured."
+
     )
 
 
