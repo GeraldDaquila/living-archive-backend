@@ -16275,12 +16275,55 @@ async def _use_request_boundary(scope, receive, send):
                     "The Guide Basic Inquiry deterministic recovery also failed: "
                     f"{recovery_exc}"
                 )
+            # Universal visitor failure containment: provider exhaustion and
+            # empty deterministic recovery must not become a blank 503 panel.
+            # This fallback is explicitly provenance-limited and never invents
+            # a canonical doorway. The shared visitor finalizer still arbitrates
+            # exact Gold Stars, safety boundaries, and response quality.
+            try:
+                from visitor_failure_recovery import compose_visitor_failure_recovery
+                _visitor_recovery = compose_visitor_failure_recovery(query)
+                _visitor_payload = {
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "query": query,
+                    "intent": "TOPICAL_INQUIRY",
+                    "response": str(_visitor_recovery.get("response") or "").strip(),
+                    "recommendation": None,
+                    "canonical_doorway": None,
+                    "answer_basis": {
+                        "kind": "general_knowledge",
+                        "label": "Bounded recovery orientation",
+                        "explanation": str(_visitor_recovery.get("basis_explanation") or ""),
+                    },
+                    "response_provenance": {
+                        "class": "visitor_failure_recovery",
+                        "provider": "provider_independent_visitor_recovery",
+                        "model": None,
+                        "quality_adjusted_llm_eligible": False,
+                        "llm_invoked": False,
+                    },
+                    "processing": "visitor_failure_containment",
+                    "route_source": "guide_basic_inquiry_recovery",
+                    "recovery": "visitor_failure_containment",
+                    "visitor_boundary_version": APP_VERSION,
+                }
+                _visitor_payload = _guide_finalize_visitor_payload(_visitor_payload, query)
+                if str(_visitor_payload.get("response") or "").strip():
+                    return await _use_send_json(send, _visitor_payload, 200)
+            except Exception as visitor_recovery_exc:
+                print(
+                    "The Guide universal visitor failure recovery failed safely: "
+                    f"{type(visitor_recovery_exc).__name__}: {str(visitor_recovery_exc)!r}"
+                )
+            # Last-resort transport failure is retained only if the independent
+            # visitor recovery itself cannot produce a non-empty safe response.
             return await _use_send_json(send, {
                 "ok": False,
                 "version": APP_VERSION,
                 "query": query,
                 "intent": "TOPICAL_INQUIRY",
-                "response": "The Guide could not complete this question right now.",
+                "response": "The Guide could not complete this question right now. Your question has been preserved; please try again shortly.",
                 "error_type": "basic_inquiry_failure",
                 "route_source": "guide_basic_inquiry",
                 "visitor_boundary_version": APP_VERSION,
