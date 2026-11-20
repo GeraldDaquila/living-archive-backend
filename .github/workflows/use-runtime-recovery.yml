@@ -14,7 +14,9 @@ on:
       - 'main.py'
       - 'use_core.py'
       - 'boundary_resilience.py'
+      - 'visitor_failure_recovery.py'
       - 'tests/test_runtime_recovery_invariants.py'
+      - 'tests/test_universal_visitor_failure_containment.py'
   workflow_dispatch:
 
 permissions:
