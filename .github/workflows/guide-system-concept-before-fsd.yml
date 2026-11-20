@@ -25,6 +25,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m pip install --upgrade pytest
+      - run: python -m pip install -r requirements.txt pytest
       - run: python -m py_compile main.py general_guide_composition.py event_pattern_structure_contract.py tests/test_event_pattern_structure_contract.py tests/test_guide_system_concept_before_fsd.py
       - run: python -m pytest -q tests/test_guide_system_concept_before_fsd.py tests/test_event_pattern_structure_contract.py
