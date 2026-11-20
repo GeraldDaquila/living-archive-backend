@@ -35,16 +35,17 @@ def test_problem_boundary_recovery_handles_close_paraphrases_but_not_unrelated_q
     assert compose_task_specific_recovery("What boundaries should I set in a personal relationship?") is None
 
 
-def test_problem_boundary_gold_star_is_registered_as_bounded_structural_learning_not_exact_answer_copy():
+def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learning():
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     record = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "gs-2026-11-20-problem-boundary-calibration"
     )
-    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["status"] == "CANDIDATE_PENDING_USER_REVIEW"
     assert record["explicit_user_elevation_approval"] is True
-    assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["user_reviewed_response"] is False
+    assert record["runtime_transfer"] is False
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is False
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"]["title"] == "Boundary Conditions"
