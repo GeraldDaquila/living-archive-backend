@@ -146,6 +146,8 @@ def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkey
     ]
 
     def fake_run(command, **kwargs):
+        if command[:3] == ["git", "remote", "get-url"]:
+            return type("Result", (), {"stdout": "https://github.com/GeraldDaquila/living-archive-backend.git", "returncode": 0})()
         if command[:4] == ["git", "show-ref", "--verify", "--quiet"]:
             return type("Result", (), {"stdout": "", "returncode": 0})()
         if command[:3] == ["git", "merge-base", "HEAD"]:
