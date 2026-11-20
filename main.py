@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.311 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION: v489.312 — Bounded Pinecone retrieval budget
 # Preserve the redacted request-boundary contract used by provider diagnostics.
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
@@ -11293,10 +11293,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "query": query,
             "intent": "TOPICAL_INQUIRY",
             "response": _task_answer,
-            "recommendation": None,
-            "canonical_doorway": None,
-            "doorway_title": None,
-            "doorway_url": None,
+            "recommendation": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")),
+            "canonical_doorway": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")),
+            "doorway_title": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("title") or _task_recovery.get("doorway_title") or "") or None,
+            "doorway_url": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("url") or _task_recovery.get("doorway_url") or "") or None,
+            "doorway_rationale": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("rationale") or _task_recovery.get("doorway_rationale") or "") or None,
+            "doorway_decision": "omit" if _no_handoff else ("select" if (_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")) else "omit"),
             "doorway_omission_reason": (
                 "visitor_explicitly_forbids_handoff"
                 if _no_handoff else "no_verified_direct_archive_continuation"
