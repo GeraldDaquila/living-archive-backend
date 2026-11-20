@@ -29,6 +29,7 @@ def test_adjacent_questions_do_not_trigger_the_bounded_recovery():
         "What are common organizational problems?",
         "Why do organizations repeat a successful process?",
         "How can a team learn from mistakes?",
+        "Why do organizations repeat failures they publicly acknowledge, and how can they stop?",
     ]
     assert not any(is_institutional_learning_failure_question(q) for q in queries)
 
