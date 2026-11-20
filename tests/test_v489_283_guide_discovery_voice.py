@@ -89,8 +89,8 @@ def test_reciprocity_definition_has_bounded_everyday_fallback_when_provider_bank
         recommendation_available=False,
     )
     response = result["response"]
-    assert "Reciprocity means a relationship of mutual response" in response
-    assert "For example, neighbors" in response
+    assert "Reciprocity means people support one another over time" in response
+    assert "Think of neighbors taking turns checking on an older resident" in response
     assert response.count("\n\n") >= 2
     assert "debt ledger" in response
     assert result["provider"] == "bounded_general_knowledge_recovery"
@@ -105,5 +105,6 @@ def test_reciprocity_fallback_does_not_claim_archive_source_authority():
         {"context_blocks": ""},
         recommendation_available=False,
     )
-    assert "useful starting definition" in result["response"]
+    assert "Reciprocity means people support one another over time" in result["response"]
+    assert "canonical definition" not in result["response"]
     assert "canonical definition" not in result["response"]
