@@ -87,7 +87,7 @@ def build_incomplete_knowledge_recovery(query: str) -> dict[str, Any] | None:
 
 def incomplete_knowledge_response_meets_contract(response: str) -> bool:
     """Conservatively verify that a visitor answer covers all required decision moves."""
-    raw = re.sub(r"\\s+", " ", str(response or "")).strip().casefold()
+    raw = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
     if not raw:
         return False
 
@@ -95,31 +95,31 @@ def incomplete_knowledge_response_meets_contract(response: str) -> bool:
         return any(re.search(pattern, raw, re.I) for pattern in patterns)
 
     epistemic = (
-        has(r"\\b(?:known|established|observed) facts?\\b", r"\\bwhat is known\\b"),
-        has(r"\\binfer(?:ence|red)?\\b", r"\\binterpretation(?:s)?\\b"),
-        has(r"\\bassum(?:e|ed|ption|ptions)\\b"),
-        has(r"\\bunknowns?\\b", r"\\bnot known\\b", r"\\bmissing perspectives?\\b"),
-        has(r"\\bconfidence\\b", r"\\bevidence would (?:change|alter)\\b"),
+        has(r"\b(?:known|established|observed) facts?\b", r"\bwhat is known\b"),
+        has(r"\binfer(?:ence|red)?\b", r"\binterpretation(?:s)?\b"),
+        has(r"\bassum(?:e|ed|ption|ptions)\b"),
+        has(r"\bunknowns?\b", r"\bnot known\b", r"\bmissing perspectives?\b"),
+        has(r"\bconfidence\b", r"\bevidence would (?:change|alter)\b"),
     )
     decision = (
-        has(r"\\bstakes\\b", r"\\bconsequences\\b", r"\\bpotential harm\\b"),
-        has(r"\\burgency\\b", r"\\bdelay\\b", r"\\bwaiting\\b"),
-        has(r"\\bauthority\\b", r"\\bcapacity\\b", r"\\bcompetence\\b"),
-        has(r"\\breversib(?:le|ility)\\b", r"\\birreversible\\b"),
+        has(r"\bstakes\b", r"\bconsequences\b", r"\bpotential harm\b"),
+        has(r"\burgency\b", r"\bdelay\b", r"\bwaiting\b"),
+        has(r"\bauthority\b", r"\bcapacity\b", r"\bcompetence\b"),
+        has(r"\breversib(?:le|ility)\b", r"\birreversible\b"),
     )
     action = (
-        has(r"\\b(?:now|test|verify|defer|escalat|proportionate|low-regret|protective action|safeguard)\\b"),
-        has(r"\\b(?:affected people|people affected|bear the consequences|burdens|consent)\\b"),
+        has(r"\b(?:now|test|verify|defer|escalat|proportionate|low-regret|protective action|safeguard)\b"),
+        has(r"\b(?:affected people|people affected|bear the consequences|burdens|consent)\b"),
     )
     correction = (
-        has(r"\\b(?:monitor|watch|observable signals?|indicators?)\\b"),
-        has(r"\\b(?:review|revisit|reassess)\\b"),
-        has(r"\\b(?:continue|adapt|reverse|stop|stopping)\\b"),
+        has(r"\b(?:monitor|watch|observable signals?|indicators?)\b"),
+        has(r"\b(?:review|revisit|reassess)\b"),
+        has(r"\b(?:continue|adapt|reverse|stop|stopping)\b"),
     )
     accountability = (
-        has(r"\\baccountab(?:le|ility)\\b", r"\\bresponsibilit(?:y|ies)\\b"),
-        has(r"\\bAI\\b"),
-        has(r"\\b(?:human|person|institution)\\b"),
+        has(r"\baccountab(?:le|ility)\b", r"\bresponsibilit(?:y|ies)\b"),
+        has(r"\bAI\b"),
+        has(r"\b(?:human|person|institution)\b"),
     )
     return all(epistemic + decision + action + correction + accountability)
 
