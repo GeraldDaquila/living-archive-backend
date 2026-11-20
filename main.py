@@ -107,6 +107,11 @@ from ai_workforce_restructuring_contract import (
     recovery_response as _ai_workforce_restructuring_recovery,
     has_gold_star_coverage as _has_ai_workforce_gold_star_coverage,
 )
+from institutional_extraction_incentives_contract import (
+    is_institutional_extraction_incentives_question,
+    recovery_response as _institutional_extraction_incentives_recovery,
+    canonical_doorway as _institutional_extraction_incentives_doorway,
+)
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -261,6 +266,10 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Bind the combined leadership + institutional incentives + extraction problem
+    # to a reviewed response contract and its matching regenerative-governance doorway.
+    if is_institutional_extraction_incentives_question(text):
+        return "institutional_extraction_incentives"
     # Human-worldview/cosmology inquiries need a philosophical continuation,
     # not the generic terminology glossary. This is a curated resource mapping
     # inside the shared selector; all questions still pass the same terminal
@@ -509,6 +518,7 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
     },
+    "institutional_extraction_incentives": _institutional_extraction_incentives_doorway(),
     "use_doorway_selection": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
@@ -7129,6 +7139,35 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["doorway_url"] = _nonprofit_org_doorway.get("url") if _nonprofit_org_doorway else None
         safe["doorway_rationale"] = _nonprofit_org_doorway.get("rationale") if _nonprofit_org_doorway else None
         safe["processing"] = "final_visitor_boundary_nonprofit_culture_power_care_governance"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Institutional extraction-incentive questions require a structural answer
+    # and the directly relevant regenerative-governance continuation on every path.
+    if is_institutional_extraction_incentives_question(query):
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(
+            _institutional_extraction_incentives_recovery()
+        )
+        if "answer" in safe:
+            safe["answer"] = safe["response"]
+        _extraction_doorway = _normalize_authoritative_recommendation(
+            _institutional_extraction_incentives_doorway()
+        )
+        safe["recommendation"] = _extraction_doorway
+        safe["canonical_doorway"] = _extraction_doorway
+        safe["doorway_title"] = _extraction_doorway.get("title") if _extraction_doorway else None
+        safe["doorway_url"] = _extraction_doorway.get("url") if _extraction_doorway else None
+        safe["doorway_rationale"] = _extraction_doorway.get("rationale") if _extraction_doorway else None
+        safe["doorway_decision"] = "selected" if _extraction_doorway else "omit"
+        safe["doorway_selection_status"] = (
+            "VERIFIED_RELEVANT_DESTINATION" if _extraction_doorway else "NO_RELEVANT_CANDIDATE"
+        )
+        safe["doorway_selection_evaluated"] = True
+        safe["doorway_selection_source"] = "reviewed_institutional_extraction_family"
+        safe["doorway_omission_reason"] = None if _extraction_doorway else "verified_doorway_unavailable"
+        safe["processing"] = "institutional_extraction_incentives_final_boundary"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
