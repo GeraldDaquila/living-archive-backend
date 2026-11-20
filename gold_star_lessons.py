@@ -433,11 +433,13 @@ def select_lesson_candidates(
     required_capability: Optional[str] = None,
     limit: int = 3,
 ) -> List[Dict[str, Any]]:
-    """Rank approved lessons with semantic retrieval; exact authority stays separate.
+    """Preserve proven lexical rankings; use semantic retrieval for missed paraphrases.
 
-    Embedding similarity discovers paraphrases; a lexical subject-identity gate,
-    explicit capability checks, and an ambiguity margin prevent broad analogy
-    from becoming automatic transfer. Model adjudication remains mandatory.
+    Exact-query authority remains exclusive. The established selector is the
+    compatibility baseline: if it finds candidates, its ranking is unchanged.
+    BGE retrieval is then used to recover genuinely paraphrased questions that
+    the baseline cannot see. Semantic candidates remain guidance-only and are
+    subject to model adjudication.
     """
     normalized = _normalized_phrase(query)
     if not normalized or limit < 1:
@@ -456,33 +458,58 @@ def select_lesson_candidates(
         return [_lesson_candidate_payload(exact[0], 1.0, exact=True)]
 
     candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
-    if len(_tokens(query)) < 2:
+    query_terms = _tokens(query)
+    if len(query_terms) < 2:
         return []
 
-    # FastEmbed uses the same 384-dimensional BGE model family as the
-    # canonical USE index. Fail closed to no cross-question transfer if the
-    # semantic model cannot be loaded; never silently revert to keyword-only
-    # matching and label it semantic.
+    # Compatibility baseline: preserve the existing, audited lexical selector
+    # exactly whenever it has a match. Semantic retrieval is additive recovery,
+    # not a replacement that can reorder or erase proven outcomes.
+    normalized_query_terms = _concept_terms(query)
+    lexical_ranked = []
+    for item in candidates:
+        shared_signature = normalized_query_terms & item.get("signature_terms", set())
+        shared_variant = normalized_query_terms & item.get("variant_terms", set())
+        shared_family = normalized_query_terms & item.get("reasoning_terms", set())
+        if len(shared_signature) < 2:
+            continue
+        coverage = len(shared_signature) / max(1, len(normalized_query_terms))
+        if coverage < 0.20:
+            continue
+        score = min(
+            0.94,
+            0.42 + 0.08 * len(shared_signature)
+            + 0.08 * len(shared_family) + 0.04 * len(shared_variant)
+            + 0.12 * coverage,
+        )
+        lexical_ranked.append((score, len(shared_signature), item["id"], item))
+    lexical_ranked.sort(key=lambda row: (-row[0], -row[1], row[2]))
+    if lexical_ranked:
+        return [
+            _lesson_candidate_payload(row[3], row[0])
+            for row in lexical_ranked[:limit]
+        ]
+
+    # Semantic recovery only runs when the proven selector abstains. Missing
+    # model/runtime support safely preserves the old abstention behaviour.
     try:
         from gold_star_semantic_retrieval import rank_semantic_lessons
         semantic_scores = rank_semantic_lessons(query, candidates)
     except Exception as exc:
         _TELEMETRY_LOG.warning(
-            "gold_star_semantic_retrieval unavailable; abstaining: %s",
+            "gold_star_semantic_retrieval unavailable; preserving legacy abstention: %s",
             type(exc).__name__,
         )
         return []
 
     ranked = []
-    normalized_query_terms = _concept_terms(query)
-    for x in candidates:
-        semantic_score = float(semantic_scores.get(x["id"], 0.0))
-        shared_signature = normalized_query_terms & x.get("signature_terms", set())
-        shared_variant = normalized_query_terms & x.get("variant_terms", set())
-        shared_family = normalized_query_terms & x.get("reasoning_terms", set())
-        # Semantic proximity discovers different wording; at least one
-        # subject-identity anchor is still required to prevent analogy-only
-        # matches from crossing domains.
+    for item in candidates:
+        semantic_score = float(semantic_scores.get(item["id"], 0.0))
+        shared_signature = normalized_query_terms & item.get("signature_terms", set())
+        shared_variant = normalized_query_terms & item.get("variant_terms", set())
+        shared_family = normalized_query_terms & item.get("reasoning_terms", set())
+        # A subject-identity anchor prevents broad conceptual analogy from
+        # crossing domains; semantic similarity supplies the paraphrase bridge.
         if semantic_score < 0.48 or not (shared_signature or shared_variant):
             continue
         lexical_support = min(
@@ -492,13 +519,10 @@ def select_lesson_candidates(
             + 0.08 * len(shared_family),
         )
         score = min(0.97, 0.78 * semantic_score + 0.22 * lexical_support)
-        ranked.append((score, semantic_score, len(shared_signature), x["id"], x))
+        ranked.append((score, semantic_score, len(shared_signature), item["id"], item))
 
-    ranked.sort(key=lambda item: (-item[0], -item[1], -item[2], item[3]))
-    # Ambiguous top candidates are withheld rather than presented as a
-    # confident lesson. The composition layer can only adjudicate a clear
-    # candidate set; no Gold Star is forced into an unrelated answer.
-    if not ranked or ranked[0][1] < 0.48:
+    ranked.sort(key=lambda row: (-row[0], -row[1], -row[2], row[3]))
+    if not ranked:
         return []
     if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.025:
         _TELEMETRY_LOG.info(
@@ -507,8 +531,8 @@ def select_lesson_candidates(
         )
         return []
     return [
-        _lesson_candidate_payload(item[4], item[0])
-        for item in ranked[:limit]
+        _lesson_candidate_payload(row[4], row[0])
+        for row in ranked[:limit]
     ]
 
 
