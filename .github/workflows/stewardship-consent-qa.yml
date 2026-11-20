@@ -26,9 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
+      - name: Check patch whitespace
+        run: git diff --check
       - name: Compile changed Python modules
         run: python -m py_compile main.py general_guide_composition.py stewardship_consent_contract.py
       - name: Validate Gold Star registry
         run: python scripts/validate_gold_star_registry.py
+      - name: Run focused relational contract tests
+        run: pytest -q tests/test_stewardship_consent_contract.py
       - name: Run complete regression suite
         run: pytest -q
