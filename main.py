@@ -4533,27 +4533,34 @@ def _is_trust_community_stewardship_question(query):
 
 
 def _trust_community_stewardship_recovery():
-    """Give a substantive three-paragraph explanation when provider inference is unavailable."""
+    """Explain trust as enabling infrastructure for accountable shared care."""
     return (
         "Trust is what lets a community share responsibility without having to supervise "
-        "every action. It is not simply believing that people mean well; it is confidence "
-        "built through conduct: clear commitments, follow-through, honest communication, "
-        "and a willingness to acknowledge when something has gone wrong. In community "
-        "stewardship, that confidence matters because no one person can care for a shared "
-        "place or resource alone.\n\n"
-        "Think of a shared garden. People depend on one another to tend their plots, share "
-        "tools and information, notice what is being neglected, and speak up when a promise "
-        "is missed. Good stewardship does not conceal the failure or leave the burden with "
-        "the person affected. People name what happened, listen to its impact, agree on a "
-        "repair, and make responsibilities clear. That is how cooperation survives friction "
-        "instead of turning into resentment.\n\n"
-        "Trust makes cooperation possible; accountability makes trust dependable; and "
-        "stewardship is the shared practice that keeps both alive. Over time, people learn "
-        "whether others return, keep their word, share decisions fairly, and repair harm. "
-        "Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger "
-        "when people can question decisions and see that commitments are honoured. The "
-        "Living Archive's Trust Architecture essay offers a related path for exploring "
-        "trust as social infrastructure."
+        "every action. Trust helps people in a community rely on one another without "
+        "having to supervise every small act. It makes cooperation possible: people can "
+        "share knowledge, coordinate work, honour commitments, and accept some vulnerability "
+        "because they have reason to expect competence, consistency, fairness, and reciprocity. "
+        "Trust is not simply believing that people mean well; it is confidence built through conduct: "
+        "honest communication, follow-through, and a willingness to acknowledge when "
+        "something has gone wrong.\n\n"
+        "Think of a shared garden. The soil, water, tools, and harvest are common concerns, "
+        "but no one person can tend every bed or watch every action. People need confidence "
+        "that others will contribute, that decisions about water and harvest will be fair, "
+        "and that problems can be raised without punishment. Stewardship is tending the "
+        "garden together: caring for what is shared, noticing what is being depleted, and "
+        "making sure the conditions for future growth are not sacrificed for an immediate "
+        "private gain. People name what happened, listen to its impact, and agree on a "
+        "repair, and make responsibilities clear when a commitment is missed.\n\n"
+        "That trust must not be blind. It is earned and renewed through observable "
+        "practices: capable work, kept commitments, transparent decisions, fair distribution "
+        "of costs and benefits, accountability when mistakes happen, and meaningful ways "
+        "for affected people to question and correct decisions. Trust makes cooperation possible; "
+        "accountability makes trust dependable; stewardship is the shared practice that keeps "
+        "both alive. Trust is not a substitute for scrutiny or safeguards; it grows stronger "
+        "when people can question decisions and see that commitments are honoured. "
+        "For a deeper exploration of how trust supports "
+        "cooperation and what communities can steward, continue with the Living Archive's "
+        "[Trust Architecture cornerstone](https://geralddaquila.com/trust-architecture/)."
     )
 
 
@@ -4562,18 +4569,14 @@ def _trust_community_stewardship_canonical_recommendation(query, context_data=No
     if not _is_trust_community_stewardship_question(query):
         return None
     return {
-        "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
-        "url": (
-            "https://geralddaquila.com/2026/09/07/"
-            "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
-        ),
+        "title": "Trust Architecture",
+        "url": "https://geralddaquila.com/trust-architecture/",
         "kind": "archive_resource",
         "rationale": (
-            "This essay treats trust as social infrastructure: it enables coordination, "
-            "reduces friction, and supports cooperation across communities and institutions. "
-            "It also emphasizes that trust must coexist with accountability and scrutiny. "
-            "It is a focused continuation of the question, not a formal definition of "
-            "community stewardship."
+            "This cornerstone examines trust as the architecture that sustains cooperation "
+            "under uncertainty, including conditions communities and institutions can steward: "
+            "accountability, transparency, consistency, and repair. Its dedicated Stewardship "
+            "Imperative section makes it a direct continuation of this question."
         ),
     }
 
@@ -4594,7 +4597,7 @@ def _trust_community_stewardship_final_contract(query):
             "label": "Conceptual explanation",
             "explanation": (
                 "This is a general conceptual explanation. The Trust Architecture "
-                "essay is offered as a related Living Archive resource, not represented "
+                "cornerstone is offered as a related Living Archive resource, not represented "
                 "as the source of this answer."
             ),
         },
@@ -4745,6 +4748,9 @@ def _is_practical_stewardship_question(query):
         re.search(r"\b(?:how|what|which|when|where)\b", q, re.I)
         and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", q, re.I)
         and re.search(r"\bstewardship\b", q, re.I)
+        # Conceptual questions mentioning community stewardship are not
+        # requests for practical instructions; keep them on the explanation path.
+        and not _is_conceptual_explanatory_request(query)
         and not _explicit_formation_entry_route(query)
     )
 
@@ -8400,6 +8406,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_title": str((_trust_doorway or {}).get("title") or ""),
             "doorway_url": str((_trust_doorway or {}).get("url") or ""),
             "doorway_rationale": str((_trust_doorway or {}).get("rationale") or ""),
+            "doorway_decision": "selected" if _trust_doorway else None,
+            "doorway_selection_status": (
+                "VERIFIED_RELEVANT_DESTINATION" if _trust_doorway else "NOT_EVALUATED"
+            ),
+            "doorway_selection_evaluated": True,
+            "doorway_selection_source": (
+                "registered_trust_community_stewardship_recovery"
+                if _trust_doorway else "no_verified_destination"
+            ),
             "recommendation": _trust_doorway,
             "canonical_doorway": _trust_doorway,
             "provider": "bounded_trust_community_stewardship_recovery",
@@ -14372,6 +14387,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         # inferred from prose and never dependent on provider metadata.
         "recommendation": _visitor_recommendation,
         "canonical_doorway": _visitor_recommendation,
+        # Flat aliases keep visitor renderers and compatibility adapters on the
+        # same canonical doorway contract if nested objects are translated.
+        "doorway_title": _visitor_recommendation.get("title") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_url": _visitor_recommendation.get("url") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_rationale": _visitor_recommendation.get("rationale") if isinstance(_visitor_recommendation, dict) else None,
+        "doorway_decision": "selected" if _visitor_recommendation else None,
+        "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION" if _visitor_recommendation else "NOT_EVALUATED",
+        "doorway_selection_evaluated": bool(_visitor_recommendation),
+        "doorway_selection_source": "final_authoritative_recommendation_contract" if _visitor_recommendation else None,
         "answer_basis": answer_basis,
         "evidence": _evidence_references,
         "evidence_validation": _evidence_assessment,
