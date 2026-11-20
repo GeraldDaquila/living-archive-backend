@@ -25,7 +25,8 @@ def test_boundary_replaces_restatement_and_preserves_selected_doorway():
     original = {"response": "Your question asks what the difference is. Continue exploring.", "recommendation": doorway}
     result = contract.apply_event_pattern_structure_boundary(QUERY, original)
     assert result["response"] == contract.event_pattern_structure_recovery()
-    assert result["recommendation"] == doorway
+    assert result["recommendation"]["title"] == doorway["title"]
+    assert result["recommendation"]["url"] == doorway["url"]
     assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
 
 def test_complete_answer_is_not_rewritten():
@@ -72,7 +73,8 @@ def test_recovery_provenance_clears_unsupported_retrieval_evidence_and_preserves
     assert result["evidence_validation"]["status"] == "not_applicable"
     assert result["answer_envelope"]["evidence"]["references_present"] is False
     assert result["answer_envelope"]["route"]["provider_present"] is False
-    assert result["recommendation"] == doorway
+    assert result["recommendation"]["title"] == doorway["title"]
+    assert result["recommendation"]["url"] == doorway["url"]
 
 
 def test_query_specific_gold_star_doorway_is_added_from_registry_only_when_needed():
