@@ -1488,7 +1488,7 @@ def is_guide_meta_coverage_policy_question(question):
     guide_actor = bool(re.search(r"\b(?:the\s+)?guide\b", q))
     policy_action = bool(re.search(
         r"\b(?:when|under what conditions|how|what evidence|what standard)\b.{0,100}"
-        r"\b(?:say|state|acknowledge|declare|claim|decide|determine|use|tell|report)\b"
+        r"\b(?:say\w*|state\w*|acknowledge\w*|declare\w*|claim\w*|decide\w*|determine\w*|use|tell\w*|report\w*)\b"
         r"|\b(?:should|may|must)\b.{0,60}\b(?:say|state|acknowledge|declare|claim|report)\b",
         q,
     ))
@@ -1499,6 +1499,18 @@ def is_guide_meta_coverage_policy_question(question):
         q,
     ))
     return guide_actor and policy_action and coverage_subject
+
+
+def has_guide_meta_coverage_policy_explanation(response):
+    """Check that a response distinguishes evidence-backed gaps from retrieval failures."""
+    text = _clean(response).casefold()
+    return all((
+        re.search(r"\b(?:retrieval result|search result|search failure)\b", text),
+        re.search(r"\b(?:directly address|direct coverage)\b", text),
+        re.search(r"\brelated\b", text),
+        re.search(r"\b(?:indexing|access|source verification)\b", text),
+        re.search(r"\b(?:checked|verified|evidence)\b", text),
+    ))
 
 
 def _guide_meta_coverage_policy_recovery():
