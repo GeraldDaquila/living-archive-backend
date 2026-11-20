@@ -65,9 +65,18 @@ def build_answer_envelope(
 
     evidence_validation = _mapping(body.get("evidence_validation"))
     doorway = body.get("recommendation") or body.get("doorway") or body.get("canonical_doorway")
+    doorway_selection_status = str(body.get("doorway_selection_status") or "").strip().upper()
     if isinstance(doorway, Mapping) and str(doorway.get("url") or "").strip():
         doorway_state = "present_requires_canonical_validation"
-    elif body.get("doorway_omission_reason"):
+    elif doorway_selection_status == "NOT_EVALUATED":
+        doorway_state = "not_evaluated"
+    elif doorway_selection_status == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH":
+        doorway_state = "no_relevant_destination_after_bounded_search"
+    elif doorway_selection_status == "RETRIEVAL_OR_VERIFICATION_FAILURE":
+        doorway_state = "retrieval_or_verification_failure"
+    elif doorway_selection_status == "AUTHORIZED_OMISSION":
+        doorway_state = "intentionally_omitted_with_reason"
+    elif body.get("doorway_omission_reason") and not doorway_selection_status:
         doorway_state = "intentionally_omitted_with_reason"
     else:
         doorway_state = "not_declared"
@@ -162,4 +171,14 @@ def validate_answer_envelope(envelope: Any) -> Dict[str, Any]:
         "completed_answer", "structured_handoff", "safety_intervention", "error", "incomplete"
     }:
         return {"valid": False, "reason": "invalid_state"}
+    doorway_state = _mapping(envelope.get("doorway")).get("state")
+    if doorway_state not in {
+        "present_requires_canonical_validation",
+        "not_evaluated",
+        "no_relevant_destination_after_bounded_search",
+        "retrieval_or_verification_failure",
+        "intentionally_omitted_with_reason",
+        "not_declared",
+    }:
+        return {"valid": False, "reason": "invalid_doorway_state"}
     return {"valid": True, "reason": "schema_valid_not_quality_certified"}
