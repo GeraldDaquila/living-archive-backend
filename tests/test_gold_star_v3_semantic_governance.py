@@ -2,19 +2,27 @@
 
 These assertions verify reporting only; the v2 visitor decision is unchanged.
 """
+import json
+from pathlib import Path
+
 from gold_star_response_floor import evaluate_response_floor
 
 
+def _approved_payload():
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(item for item in registry["records"] if item["benchmark_id"] == "gs-2026-11-21-organizational-acknowledgment-without-learning")
+    doorway = record["expected_doorway"]
+    return record["query"], {
+        "ok": True,
+        "response": record["expected_response"],
+        "recommendation": {"title": doorway["title"], "url": doorway["url"]},
+    }
+
+
 def test_supported_family_reports_observation_bounded_enforcement_and_no_certification():
-    query = "Why do organizations repeat failures they publicly acknowledge?"
-    answer = (
-        "Public acknowledgment is not the same as organizational learning. "
-        "Failures repeat when incentives reward the old behavior, authority is fragmented, "
-        "information does not reach decision-makers, and no owner changes the process. "
-        "Understanding must alter decisions, resources, accountability, and feedback. "
-        "A useful test is whether the next comparable failure produces a changed response."
-    )
-    result = evaluate_response_floor(query, {"ok": True, "response": answer})
+    query, payload = _approved_payload()
+    result = evaluate_response_floor(query, payload)
     states = result["semantic_governance"]
 
     assert result["status"] == "pass"
