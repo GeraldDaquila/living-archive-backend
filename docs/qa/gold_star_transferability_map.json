@@ -1327,7 +1327,7 @@
     {
       "benchmark_id": "gs-2026-11-20-event-pattern-system-structure-answer-first",
       "question": "What is the difference between an event, a pattern, and a system structure?",
-      "family": "event_pattern_system_structure_distinction",
+      "family": "event_pattern_system_structure_conceptual_distinction",
       "structural_lesson": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
