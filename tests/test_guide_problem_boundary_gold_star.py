@@ -50,6 +50,10 @@ def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learni
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"]["title"] == "Boundary Conditions"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/boundary-conditions/"
+    assert record["known_theme"]
+    assert registry["integrity_audit"]["registry_record_count"] == len(registry["records"])
+    assert registry["audit"]["registry_record_count"] == len(registry["records"])
+    assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 2
     assert len(record["expected_response"].split("\n\n")) == 3
 
 
