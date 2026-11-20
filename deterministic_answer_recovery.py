@@ -1506,7 +1506,7 @@ def has_guide_meta_coverage_policy_explanation(response):
     text = _clean(response).casefold()
     return all((
         re.search(r"\b(?:retrieval result|search result|search failure)\b", text),
-        re.search(r"\b(?:directly address|direct coverage)\b", text),
+        re.search(r"\b(?:directly address(?:es)?|direct coverage)\b", text),
         re.search(r"\brelated\b", text),
         re.search(r"\b(?:indexing|access|source verification)\b", text),
         re.search(r"\b(?:checked|verified|evidence)\b", text),
