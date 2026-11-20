@@ -4602,6 +4602,75 @@ def _trust_community_stewardship_final_contract(query):
     }
 
 
+
+def _is_reciprocity_community_purpose_question(query):
+    """Recognize the bounded community-purpose question without capturing trust/stewardship."""
+    q = re.sub(r"\\s+", " ", str(query or "")).strip()
+    if re.search(r"\\b(?:trust|stewardship)\\b", q, re.I):
+        return False
+    return bool(
+        re.search(r"\\breciproc(?:ity|al)\\b", q, re.I)
+        and re.search(r"\\bcommunit(?:y|ies)\\b", q, re.I)
+        and re.search(r"\\b(?:purpose|role|meaning|what|how|why)\\b", q, re.I)
+    )
+
+
+def _reciprocity_community_recovery():
+    """Return the reviewed three-paragraph, visitor-facing reciprocity explanation."""
+    return (
+        "Reciprocity means people support one another over time. It does not mean keeping "
+        "score or expecting every act to be repaid immediately or in equal measure. People "
+        "may give more at one point and need more help at another; what matters is that "
+        "support can move in both directions over time.\n\n"
+        "Think of neighbors taking turns checking on an older resident or helping one "
+        "another with errands. One neighbor may do more during a difficult week and "
+        "receive help later. The relationship can still be reciprocal even when each "
+        "exchange is different.\n\n"
+        "Reciprocity should never be used to demand access, obedience, or repayment from "
+        "someone who cannot freely offer it. Mutual support works best when people "
+        "respond to one another's real circumstances, not when kindness becomes a debt ledger."
+    )
+
+
+def _reciprocity_community_canonical_recommendation(query):
+    """Return the independently verified Archive continuation for community reciprocity."""
+    if not _is_reciprocity_community_purpose_question(query):
+        return None
+    return {
+        "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+        "url": (
+            "https://geralddaquila.com/2026/06/01/"
+            "reciprocity-before-bureaucracy-how-communities-coordinated-without-modern-institutions/"
+        ),
+        "kind": "archive_resource",
+        "rationale": (
+            "This essay examines reciprocity as social infrastructure: how mutual support, "
+            "extended obligations, and shared risk help communities coordinate without "
+            "requiring immediate repayment. It is a focused continuation of the question, "
+            "not presented as the source of the general explanation above."
+        ),
+    }
+
+
+def _reciprocity_community_final_contract(query):
+    """Keep answer, general-knowledge provenance, and Archive doorway as separate contracts."""
+    if not _is_reciprocity_community_purpose_question(query):
+        return None
+    return {
+        "response": _reciprocity_community_recovery(),
+        "answer_basis": {
+            "kind": "general_knowledge",
+            "label": "Conceptual explanation",
+            "explanation": (
+                "This is a general conceptual explanation. The Reciprocity Before "
+                "Bureaucracy essay is offered separately as a related Living Archive "
+                "resource, not represented as the source of this answer."
+            ),
+        },
+        "recommendation": _reciprocity_community_canonical_recommendation(query),
+    }
+
+
 def _healthy_community_answer_recovery():
     """Task-appropriate, answer-first entry point for newcomers asking about healthy communities."""
     return (
@@ -14053,6 +14122,32 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Final semantic contract: this bounded conceptual question has a
     # registered answer and a directly verified Archive continuation. Do not
     # allow a fluent provider limitation message to displace that complete answer.
+    # Reciprocity has its own terminal contract. Keep its general-knowledge answer
+    # separate from the verified Archive recommendation and from the trust contract.
+    _reciprocity_community_contract = _reciprocity_community_final_contract(query)
+    if _reciprocity_community_contract:
+        response = _sanitize_basic_inquiry_response(
+            _reciprocity_community_contract["response"]
+        )
+        answer_basis = dict(_reciprocity_community_contract["answer_basis"])
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            _reciprocity_community_contract["recommendation"]
+        )
+        composition_context["authoritative_doorway"] = authoritative_doorway
+        composition_context["authoritative_doorway_title"] = (
+            authoritative_doorway.get("title") if authoritative_doorway else None
+        )
+        deterministic_result = {
+            "response": response,
+            "provider": "bounded_reciprocity_community_recovery",
+            "model": "deterministic-contract-recovery",
+        }
+        composition_result = None
+        print(
+            "The Guide final payload boundary: reciprocity-community answer, "
+            "general-knowledge provenance, and canonical doorway contract enforced."
+        )
+
     _trust_stewardship_contract = _trust_community_stewardship_final_contract(query)
     if _trust_stewardship_contract:
         response = _sanitize_basic_inquiry_response(
