@@ -247,6 +247,13 @@ QUESTION-INTENT FIDELITY (shared composition rule):
 - Treat question wording as the semantic target, not a bag of topic keywords. A response can be fluent, humane, and exactly three paragraphs yet still fail if its explanatory frame answers a neighboring question instead of the actual one.
 - Before returning, check that the first sentence answers the question asked, the remaining paragraphs develop that same explanatory frame, and any doorway supports rather than replaces the answer.
 
+RELATIONAL SYNTHESIS CONTRACT (shared architecture for concept-pair questions):
+- When the visitor asks for the relationship, connection, or interplay between concepts, do not merely retrieve passages about each concept or place source quotations next to one another. Synthesize their relationship in the answer.
+- Define each concept briefly enough to establish its distinct role; then state the mechanism that connects them. Explain whether influence runs in one direction, both directions, or conditionally, and name the conditions that change the relationship.
+- Distinguish complementarity from equivalence: explain where the concepts reinforce one another and where they remain different or can come into tension. Calibrate responsibility, causation, and control to the evidence; do not imply that influence guarantees control over every outcome.
+- Use retrieved canonical material to ground claims about the Archive's own framework, but make the explanatory relationship explicit in original prose. Keep source attribution attached to the claims it supports; excerpts are evidence, not the answer.
+- Before returning, verify that the answer explicitly names both concepts, explains the connecting mechanism, identifies at least one meaningful boundary or tension, and gives the visitor a usable implication. If those elements are missing, repair the answer rather than passing through a list of quotations or fragments.
+
 ORIENTATION-ANCHOR CONTRACT (structural, not query-specific):
 - The Living Archive exists to help visitors regain bearings, not merely accumulate advice. When a visitor explicitly signals confusion, overwhelm, loss of bearings, uncertainty about what is real, or difficulty knowing how to orient before acting, treat the condition itself as part of the question.
 - In those cases, do not begin with a generic decision framework, a list of options, or consequences. First name the orientation problem in ordinary language and make one distinction that changes the visitor's relationship to the problem—for example, the difference between having more information and having enough context to judge information.
@@ -1374,12 +1381,18 @@ def clarification_response(query: str, history_text: str = "") -> Optional[Dict[
 
 
 def _requires_discernment_synthesis(query: str) -> bool:
-    """Recognize conceptual relationship questions that need developed reasoning."""
+    """Recognize conceptual relationships that require explicit relational reasoning."""
     q = _normalize_space(query).casefold()
-    return bool(
-        re.search(r"\brelationship between\b", q)
-        and re.search(r"\b(?:agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence)\b", q)
+    relationship_frame = bool(
+        re.search(r"\b(?:relationship|connection|interplay) between\b", q)
+        or re.search(r"\bhow .{1,100} (?:relate|connect|influence|shape)\b", q)
+        or re.search(r"\bhow are .{1,100} (?:related|connected)\b", q)
     )
+    concept_frame = bool(re.search(
+        r"\b(?:power|agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence)\b",
+        q,
+    ))
+    return relationship_frame and concept_frame
 
 
 def _requires_fragmented_knowledge_explanation(query: str) -> bool:

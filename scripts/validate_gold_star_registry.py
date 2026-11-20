@@ -648,7 +648,19 @@ def main():
                 "approval_state", "elevation_approval_evidence", "reasoning_family",
                 "transferable_lesson", "transfer_boundary", "user_approved_at",
             }
-            modern_missing = sorted(k for k in modern_required if not str(record.get(k) or "").strip())
+            capabilities = record.get("gold_star_capabilities") or {}
+            modern_values = {
+                "reasoning_family": record.get("reasoning_family")
+                or capabilities.get("reasoning_family"),
+                "transferable_lesson": record.get("transferable_lesson")
+                or capabilities.get("transferable_discipline"),
+                "transfer_boundary": record.get("transfer_boundary")
+                or capabilities.get("abstention_boundary"),
+            }
+            modern_missing = sorted(
+                key for key in modern_required
+                if not str(record.get(key) or modern_values.get(key) or "").strip()
+            )
             if modern_missing:
                 fail(f"{record['benchmark_id']} missing modern approval metadata: {', '.join(modern_missing)}")
             if record.get("user_reviewed_response") is not True:
@@ -698,7 +710,28 @@ def main():
             "NOT_APPROVED_CONCEPTUAL_MISMATCH",
         }
         if doorway is None:
-            if doorway_status not in withheld_states:
+            if doorway_status in withheld_states:
+                pass
+            elif doorway_status == "NOT_EVALUATED":
+                # NOT_EVALUATED is a recorded unknown, not an approved omission.
+                # It must carry an explicit boundary and cannot gain fallback authority.
+                capabilities = record.get("gold_star_capabilities")
+                boundary = (
+                    str(capabilities.get("abstention_boundary") or "")
+                    if isinstance(capabilities, dict) else ""
+                )
+                if (
+                    not isinstance(capabilities, dict)
+                    or capabilities.get("exact_answer_authority") is not False
+                    or capabilities.get("deterministic_fallback_eligible") is not False
+                    or "NOT_EVALUATED" not in boundary
+                    or "Do not infer" not in boundary
+                ):
+                    fail(
+                        f"{record['benchmark_id']} has NOT_EVALUATED doorway state "
+                        "without an explicit non-omission authority boundary"
+                    )
+            else:
                 fail(f"{record['benchmark_id']} has no explicit approved/withheld doorway state")
         else:
             if doorway_status == "INTENTIONALLY_NONE_APPROVED":
