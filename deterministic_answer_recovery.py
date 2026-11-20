@@ -811,11 +811,27 @@ def _personal_stewardship_invitation_recovery():
 def _trust_community_stewardship_recovery():
     """Explain trust as enabling infrastructure for accountable shared care."""
     return (
-        "Trust helps people in a community rely on one another without having to supervise every small act. It makes cooperation possible: people can share knowledge, coordinate work, honor commitments, and accept some vulnerability because they have reason to expect competence, consistency, fairness, and reciprocity. Trust is therefore more than a warm feeling between individuals; it is part of the social infrastructure that allows a community to act together.\n\n"
-        "Think of a shared garden. The soil, water, tools, and harvest are common concerns, but no one person can tend every bed or watch every action. People need confidence that others will contribute, that decisions about water and harvest will be fair, and that problems can be raised without punishment. Stewardship is tending the garden together: caring for what is shared, noticing what is being depleted, and making sure the conditions for future growth are not sacrificed for an immediate private gain.\n\n"
-        "That trust must not be blind. It is earned and renewed through observable practices: capable work, kept commitments, transparent decisions, fair distribution of costs and benefits, accountability when mistakes happen, and meaningful ways for affected people to question and correct decisions. Without those safeguards, calls for trust can shield power from scrutiny; without enough trust, even good plans become harder to coordinate. The practical test is whether people can cooperate while remaining free to ask questions, disagree, and repair what is not working."
+        "Trust is what lets a community share responsibility without having to supervise "
+        "every action. It is not simply believing that people mean well; it is confidence "
+        "built through conduct: clear commitments, follow-through, honest communication, "
+        "and a willingness to acknowledge when something has gone wrong. In community "
+        "stewardship, that confidence matters because no one person can care for a shared "
+        "place or resource alone.\\n\\n"
+        "Think of a shared garden. People depend on one another to tend their plots, share "
+        "tools and information, notice what is being neglected, and speak up when a promise "
+        "is missed. Good stewardship does not conceal the failure or leave the burden with "
+        "the person affected. People name what happened, listen to its impact, agree on a "
+        "repair, and make responsibilities clear. That is how cooperation survives friction "
+        "instead of turning into resentment.\\n\\n"
+        "Trust makes cooperation possible; accountability makes trust dependable; and "
+        "stewardship is the shared practice that keeps both alive. Over time, people learn "
+        "whether others return, keep their word, share decisions fairly, and repair harm. "
+        "Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger "
+        "when people can question decisions and see that commitments are honoured. "
+        "For a deeper exploration of how trust supports cooperation and what communities can steward, "
+        "continue with the Living Archive's [Trust Architecture cornerstone]("
+        "https://geralddaquila.com/trust-architecture/)."
     )
-
 def is_spiritual_community_accountability_question(question):
     """Recognize spiritual-community questions that explicitly pair charismatic authority with weak accountability."""
     q = _clean(question).casefold()
@@ -1108,9 +1124,9 @@ def registered_recovery_recommendation(question):
         }
     if is_trust_community_stewardship_question(question):
         return {
-            "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
-            "url": "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/",
-            "rationale": "This published essay explains trust as social infrastructure: it enables coordination, reduces the costs of cooperation, supports institutional legitimacy, and depends on competence, consistency, transparency, accountability, reciprocity, and fairness. It is a direct continuation for understanding trust in shared community stewardship."
+            "title": "Trust Architecture",
+            "url": "https://geralddaquila.com/trust-architecture/",
+            "rationale": "This cornerstone examines trust as the architecture that sustains cooperation under uncertainty, including conditions communities and institutions can steward: accountability, transparency, consistency, and repair. Its dedicated Stewardship Imperative section makes it a direct continuation of this question."
         }
     if is_spiritual_community_accountability_question(question):
         return {
