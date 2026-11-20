@@ -18,6 +18,8 @@ TREE = ast.parse(SOURCE)
 def load_contract_functions():
     wanted = {
         "_is_trust_community_stewardship_question",
+        "_is_conceptual_explanatory_request",
+        "_is_practical_stewardship_question",
         "_trust_community_stewardship_recovery",
         "_trust_community_stewardship_canonical_recommendation",
         "_trust_community_stewardship_final_contract",
@@ -30,7 +32,12 @@ def load_contract_functions():
     found = {node.name for node in nodes}
     if found != wanted:
         raise AssertionError(f"Missing contract functions: {sorted(wanted - found)}")
-    namespace = {"re": re}
+    namespace = {
+        "re": re,
+        "_normalize_query": lambda value: str(value or "").strip().casefold(),
+        "_explicit_formation_entry_route": lambda query: False,
+        "is_community_continuity_revision_question": lambda query: False,
+    }
     module = ast.Module(body=nodes, type_ignores=[])
     exec(compile(module, str(ROOT / "main.py"), "exec"), namespace)
     return namespace
@@ -52,6 +59,15 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
                 "What is the role of reciprocity in a community?"
             )
         )
+
+    def test_conceptual_question_does_not_enter_practical_fallback(self):
+        self.assertTrue(CONTRACT["_is_conceptual_explanatory_request"](self.QUERY))
+        self.assertFalse(CONTRACT["_is_practical_stewardship_question"](self.QUERY))
+
+    def test_genuine_practical_stewardship_question_keeps_practical_route(self):
+        practical = "How do I practice stewardship in everyday community decisions?"
+        self.assertFalse(CONTRACT["_is_conceptual_explanatory_request"](practical))
+        self.assertTrue(CONTRACT["_is_practical_stewardship_question"](practical))
 
     def test_final_contract_keeps_answer_and_doorway_separate(self):
         result = CONTRACT["_trust_community_stewardship_final_contract"](self.QUERY)
