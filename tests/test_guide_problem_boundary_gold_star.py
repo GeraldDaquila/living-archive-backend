@@ -49,7 +49,7 @@ def test_problem_boundary_gold_star_is_registered_as_bounded_structural_learning
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"]["title"] == "Boundary Conditions"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/boundary-conditions/"
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
 
 
 def test_main_early_task_route_preserves_a_verified_recovery_doorway():
