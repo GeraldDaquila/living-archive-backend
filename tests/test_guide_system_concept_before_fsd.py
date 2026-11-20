@@ -105,25 +105,22 @@ def test_shared_json_sender_enforces_event_pattern_structure_after_route_bypasse
     assert result["gold_star_v2_quality_floor"]["status"] == "pass"
 
 
-def test_shared_json_sender_preserves_safety_and_exact_gold_star_authority():
+def test_shared_json_sender_preserves_safety_priority():
     import asyncio
     import json
     from main import _use_send_json
 
-    async def send_and_read(payload):
-        sent = []
+    sent = []
 
-        async def capture(message):
-            sent.append(message)
+    async def capture(message):
+        sent.append(message)
 
-        asyncio.run(_use_send_json(capture, payload))
-        body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
-        return json.loads(body.decode("utf-8"))
-
-    safety = asyncio.run(send_and_read({
+    asyncio.run(_use_send_json(capture, {
         "query": "What is the difference between an event, a pattern, and a system structure?",
         "intent": "SAFETY_INTERRUPT",
         "response": "Safety response takes priority.",
     }))
+    body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
+    safety = json.loads(body.decode("utf-8"))
     assert safety["response"] == "Safety response takes priority."
     assert "event_pattern_structure_contract" not in safety
