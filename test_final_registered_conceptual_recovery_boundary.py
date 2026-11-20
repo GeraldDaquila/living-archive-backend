@@ -15,10 +15,8 @@ class FinalRegisteredRecoveryBoundaryTests(unittest.TestCase):
         self.assertIn("is_meta_answer_failure(response)", MAIN)
 
     def test_quality_guards_apply_to_registered_recovery(self):
-        self.assertIn("is_generic_nonanswer(
-            query, _final_registered_conceptual_recovery", MAIN)
-        self.assertIn("is_meta_answer_failure(
-            _final_registered_conceptual_recovery", MAIN)
+        self.assertIn("is_generic_nonanswer(\n            query, _final_registered_conceptual_recovery", MAIN)
+        self.assertIn("is_meta_answer_failure(\n            _final_registered_conceptual_recovery", MAIN)
 
 if __name__ == "__main__":
     unittest.main()
