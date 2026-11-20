@@ -288,7 +288,7 @@ def _select_verified_doorway_conceptual_family(query):
                 re.I,
             )
             or re.search(
-                r"\bwhen does transformation become mere rebranding\b",
+                r"\bwhen does\b[\W_]{0,8}transformation\b.{0,50}\bmere rebranding\b",
                 text,
                 re.I,
             )
