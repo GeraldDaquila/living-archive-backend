@@ -5660,8 +5660,37 @@ def _sanitize_basic_inquiry_response(text):
         if lines:
             paragraphs.append("\n".join(lines))
 
-    return "\n\n".join(paragraphs).strip()
+    # Visitor answers must not expose operational outage diagnostics as prose.
+    # These details belong in structured provenance/monitoring, not in the answer.
+    # Remove only a paragraph that reports internal answer/retrieval service state;
+    # preserve the substantive answer immediately before or after it.
+    operational_disclosure = re.compile(
+        r"(?i)(?:"
+        r"(?:the\\s+)?guide(?:['’]s)?\\s+(?:live\\s+)?answer.{0,140}"
+        r"(?:canonical[- ]retrieval|retrieval|provider|answer)\\s+services?.{0,100}"
+        r"(?:unavailable|failed|timed\\s+out)"
+        r"|(?:bounded\\s+general[- ]knowledge\\s+orientation).{0,160}"
+        r"(?:services?\\s+(?:were\\s+)?unavailable|provider\\s+(?:was\\s+)?unavailable|on\\s+this\\s+attempt)"
+        r"|(?:canonical[- ]retrieval|live\\s+answer)\\s+services?.{0,100}"
+        r"(?:unavailable|failed|timed\\s+out)"
+        r")"
+    )
+    paragraphs = [
+        paragraph for paragraph in paragraphs
+        if not operational_disclosure.search(paragraph)
+    ]
 
+    return "\\n\\n".join(paragraphs).strip()
+
+
+_BASIC_INQUIRY_OPERATIONAL_DISCLOSURE_PROBE = _sanitize_basic_inquiry_response(
+    "Transformation becomes rebranding when labels change but the behavior-producing structure remains intact.\\n\\n"
+    "This is a bounded general-knowledge orientation because the Guide's live answer and canonical-retrieval services were unavailable on this attempt."
+)
+if _BASIC_INQUIRY_OPERATIONAL_DISCLOSURE_PROBE != (
+    "Transformation becomes rebranding when labels change but the behavior-producing structure remains intact."
+):
+    raise RuntimeError("USE visitor boundary invariant failed: operational outage diagnostics escaped or substantive answer was lost.")
 
 _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
     "This points to the Archive. [evidence excerpt bounded by USE]"
