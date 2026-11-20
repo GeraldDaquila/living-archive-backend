@@ -225,11 +225,30 @@ def validate_numbering_metadata(registry, records):
 
 
 def ensure_canonical_main_ref():
-    """Fetch origin/main when an isolated QA checkout lacks its remote-tracking ref.
+    """Fetch canonical main even when a hosted QA checkout has no Git remote.
 
-    The validator remains fail-closed: it never substitutes the candidate registry
-    or a local branch for canonical main. A failed fetch or verification aborts QA.
+    Render's isolated source checkout can omit remote configuration entirely.
+    Restore the known repository origin only when absent, then fetch and verify
+    the canonical main ref. Never substitute the candidate registry or a local
+    branch for canonical main; any remote/fetch failure aborts QA.
     """
+    try:
+        subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=ROOT, check=True, capture_output=True, text=True,
+        )
+    except subprocess.CalledProcessError:
+        add_remote = subprocess.run(
+            [
+                "git", "remote", "add", "origin",
+                "https://github.com/GeraldDaquila/living-archive-backend.git",
+            ],
+            cwd=ROOT, check=False, capture_output=True, text=True,
+        )
+        if add_remote.returncode != 0:
+            detail = (add_remote.stderr or add_remote.stdout or "no diagnostic returned").strip()
+            fail(f"cannot configure canonical Git origin for immutable-number check: {detail}")
+
     try:
         subprocess.run(
             ["git", "show-ref", "--verify", "--quiet", BASELINE_REF],
