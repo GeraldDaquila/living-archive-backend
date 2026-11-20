@@ -64,7 +64,7 @@ def build_answer_envelope(
     }
 
     evidence_validation = _mapping(body.get("evidence_validation"))
-    doorway = body.get("recommendation") or body.get("doorway")
+    doorway = body.get("recommendation") or body.get("doorway") or body.get("canonical_doorway")
     if isinstance(doorway, Mapping) and str(doorway.get("url") or "").strip():
         doorway_state = "present_requires_canonical_validation"
     elif body.get("doorway_omission_reason"):
