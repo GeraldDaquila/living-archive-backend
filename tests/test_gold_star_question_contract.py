@@ -138,3 +138,25 @@ def test_personal_stewardship_invitation_is_reflective_inquiry_not_definition_ca
     assert contract["task"]["candidate_source"] == "conservative_surface_signal"
     assert contract["domain"]["primary"] == "unknown"
     assert contract["uncertainty"]["classification_confidence"] == "not_scored"
+
+
+def test_guide_meta_coverage_policy_receives_a_dedicated_governance_contract():
+    query = "When should The Guide say 'the Archive does not yet address this directly'?"
+    contract = build_question_contract(query)
+
+    assert contract["task"]["primary"] == "guide_meta_coverage_policy_candidate"
+    assert contract["domain"]["primary"] == "guide_meta_governance_candidate"
+    assert contract["domain"]["subdomain"] == "archive_coverage_gap_policy"
+    assert contract["requested_outcome"] == "explain_evidence_threshold_for_archive_gap_claim"
+    assert contract["reasoning_mode"] == "bounded_evidence_policy_adjudication"
+    assert contract["evidence"]["standard"] == "four_outcome_coverage_policy_contract"
+    assert contract["response"]["shape"] == "bounded_four_outcome_policy_explanation"
+
+    policy = contract["meta_governance"]
+    assert [item["id"] for item in policy["outcomes"]] == [
+        "direct_coverage",
+        "adjacent_coverage",
+        "genuine_coverage_gap",
+        "retrieval_or_verification_failure",
+    ]
+    assert policy["doorway_policy"]["suppress_for_this_question_class"] is True
