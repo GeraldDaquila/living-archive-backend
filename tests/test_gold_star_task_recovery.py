@@ -161,6 +161,15 @@ def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeyp
         "url": "https://geralddaquila.com/life-under-pressure/",
         "rationale": "An adjacent but unrelated pressure theme.",
     }
+    fallback_calls = []
+
+    def forbidden_generic_fallback(_query):
+        fallback_calls.append(_query)
+        return incidental
+
+    monkeypatch.setattr(
+        main, "_select_guide_node_fallback_doorway", forbidden_generic_fallback
+    )
     payload = {
         "ok": True,
         "processing": "basic_inquiry",
@@ -171,9 +180,13 @@ def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeyp
     }
 
     result = main._guide_restore_verified_doorway(payload, question)
+    assert fallback_calls == []
 
     assert result["recommendation"] is None
     assert result["canonical_doorway"] is None
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
     assert result["doorway_decision"] == "omit"
+    assert result["doorway_selection_status"] == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
+    assert result["doorway_selection_evaluated"] is True
+    assert result["doorway_selection_source"] == "canonical_search_and_existing_relevance_gates"

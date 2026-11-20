@@ -6081,7 +6081,11 @@ def _guide_restore_verified_doorway(payload, query):
             "source": "registered_recovery_candidate",
         })
 
-    if not doorway:
+    # When an answer-first general-knowledge route has completed its
+    # independent canonical search, an upstream/provider candidate cannot
+    # re-enter through a weaker registry-overlap fallback. The independent
+    # selector is the sole doorway authority for this route.
+    if not doorway and not requires_independent_selection:
         upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
         if not upstream_candidate:
             upstream_candidate = _normalize_authoritative_recommendation(
@@ -6143,7 +6147,7 @@ def _guide_restore_verified_doorway(payload, query):
                         "source": "upstream_candidate_source_verified",
                     })
                     break
-    if not doorway:
+    if not doorway and not requires_independent_selection:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception as exc:
