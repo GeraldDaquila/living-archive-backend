@@ -12,6 +12,8 @@ from typing import Any, Dict
 
 from gold_star_semantic_contract import classify_question as _classify_question_candidate
 
+from guide_reflexive_critique import build_reflexive_critique_plan
+
 from personal_reference_resolution import (
     PERSONAL_REFERENCE_VERSION,
     is_personal_reference_question,
@@ -59,10 +61,11 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     task_candidate = (
         {"type": "reflective_inquiry"}
         if _is_personal_stewardship_invitation(normalized)
-        else _classify_question_candidate(normalized)
+        else ({"type": "institutional_critique"} if reflexive_critique_plan else _classify_question_candidate(normalized))
     )
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
+    reflexive_critique_plan = build_reflexive_critique_plan(normalized)
     has_question = "?" in normalized or bool(
         re.match(r"^(?:who|what|when|where|why|how|which|can|could|should|would|is|are|does|do)\b", normalized, re.I)
     )
@@ -81,7 +84,8 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         },
         "domain": {"primary": "unknown", "subdomain": "unknown"},
         "stakes": {"level": "unknown", "consequence_of_error": "not_assessed"},
-        "requested_outcome": "recover_existing_personal_reference" if personal_reference else "unresolved",
+        "requested_outcome": ("recover_existing_personal_reference" if personal_reference else ("critically_examine_archive_worldview" if reflexive_critique_plan else "unresolved")),
+        "institutional_critique": {"detected": bool(reflexive_critique_plan), "target": "living_archive_worldview" if reflexive_critique_plan else "unresolved", "mode": "reflexive_institutional_critique" if reflexive_critique_plan else "not_applicable", "evaluation_dimensions": reflexive_critique_plan["evaluation_dimensions"] if reflexive_critique_plan else [], "anti_defensiveness_required": bool(reflexive_critique_plan), "evidence_boundary": "distinguish_archive_claims_from_independent_validation" if reflexive_critique_plan else "not_applicable"},
         "personal_reference": {
             "detected": personal_reference,
             "version": PERSONAL_REFERENCE_VERSION,
@@ -96,7 +100,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "no_external_research": no_external_research,
             "no_followup": no_handoff,
         },
-        "reasoning_mode": "unresolved",
+        "reasoning_mode": "critical_evaluation" if reflexive_critique_plan else "unresolved",
         "evidence": {
             "standard": "route_to_determine",
             "provenance_required": True,
