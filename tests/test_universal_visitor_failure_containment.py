@@ -119,7 +119,7 @@ def test_transformation_rebranding_selects_the_reviewed_learning_and_correctabil
     assert doorway["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
     assert doorway["url"] == "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
     assert "experience" in doorway["rationale"].casefold()
-    assert "change its actions" in doorway["rationale"].casefold()
+    assert "change how the system acts" in doorway["rationale"].casefold()
     assert finalized["canonical_doorway"] == doorway
     assert finalized["doorway_title"] == doorway["title"]
     assert finalized["doorway_url"] == doorway["url"]
