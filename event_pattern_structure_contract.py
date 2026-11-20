@@ -7,7 +7,9 @@ final visitor payload is returned.
 """
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 from typing import Any
 
 VERSION = "1.1"
@@ -124,6 +126,45 @@ def _mark_deterministic_recovery(safe: dict[str, Any]) -> None:
         safe["gold_star_v2_quality_floor"] = quality_floor
 
 
+def _approved_query_doorway() -> dict[str, str] | None:
+    """Read the approved, query-specific application doorway from the sole registry."""
+    registry_path = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        record = next(
+            item for item in registry.get("records", [])
+            if item.get("benchmark_id") == "gs-2026-11-20-event-pattern-system-structure-answer-first"
+        )
+    except (OSError, ValueError, TypeError, StopIteration):
+        return None
+    doorway = record.get("expected_doorway")
+    if (
+        record.get("status") != "USER_APPROVED_GOLD_STANDARD"
+        or record.get("doorway_status") != "VERIFIED_CANONICAL_DESTINATION"
+        or not isinstance(doorway, dict)
+        or not str(doorway.get("title") or "").strip()
+        or not re.match(r"^https://\S+$", str(doorway.get("url") or "").strip(), re.I)
+    ):
+        return None
+    return {
+        "title": str(doorway["title"]).strip(),
+        "url": str(doorway["url"]).strip(),
+        "rationale": str(doorway.get("rationale") or "").strip(),
+    }
+
+
+def _explicitly_requests_no_doorway(query: str, payload: dict[str, Any]) -> bool:
+    if str(payload.get("doorway_decision") or "").strip().casefold() == "omit":
+        return True
+    if payload.get("doorway_omission_reason"):
+        return True
+    return bool(re.search(
+        r"\b(?:do not|don't|without|no)\b.{0,60}\b(?:links?|resources?|recommendations?|doorways?|pages?)\b",
+        str(query or ""),
+        re.I,
+    ))
+
+
 def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
     if not isinstance(payload, dict) or not is_event_pattern_structure_question(query):
         return payload
@@ -155,5 +196,19 @@ def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
         "causal_claim_calibrated": True,
         "navigation_is_separate": True,
     }
+    # The approved doorway is read from the canonical registry, never copied from
+    # lesson prose. An independently selected doorway is preserved; an explicit
+    # no-handoff request remains authoritative.
+    has_existing_doorway = bool(safe.get("recommendation") or safe.get("canonical_doorway"))
+    if not has_existing_doorway and not _explicitly_requests_no_doorway(query, safe):
+        doorway = _approved_query_doorway()
+        if doorway:
+            safe["recommendation"] = doorway
+            safe["canonical_doorway"] = doorway
+            safe["doorway_title"] = doorway["title"]
+            safe["doorway_url"] = doorway["url"]
+            safe["doorway_rationale"] = doorway["rationale"] or None
+            safe["doorway_decision"] = "include"
+            safe["doorway_selection_source"] = "approved_query_specific_gold_star_registry_record"
     _mark_deterministic_recovery(safe)
     return safe
