@@ -30,3 +30,12 @@ class RuntimeRecoveryTests(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
+
+    def test_problem_boundary_guide_route_precedes_natural_language_fsd_handoff(self):
+        marker = "# Problem-boundary calibration is a bounded Guide reasoning task"
+        start = self.source.index(marker)
+        task_route = self.source.index("_early_task_recovery = (", start)
+        fsd_handoff = self.source.index("# Immediate FSD handoff", task_route)
+        self.assertLess(task_route, fsd_handoff)
+        self.assertIn("task_recovery=_early_task_recovery", self.source)
+
