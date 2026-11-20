@@ -1,6 +1,8 @@
 name: Guide Woody Mocked UI Continuity Contract
 
 on:
+  push:
+    branches: [fix/institutional-learning-transport-recovery-20261121]
   pull_request:
     branches: [main]
 
