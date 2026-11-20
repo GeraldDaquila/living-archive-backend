@@ -177,3 +177,6 @@ def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeyp
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
     assert result["doorway_decision"] == "omit"
+    assert result["doorway_selection_status"] == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
+    assert result["doorway_selection_evaluated"] is True
+    assert result["doorway_selection_source"] == "canonical_search_and_existing_relevance_gates"
