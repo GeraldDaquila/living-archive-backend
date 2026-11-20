@@ -2119,7 +2119,7 @@ def test_guide_coverage_gap_governance_gold_star_preserves_intentional_no_doorwa
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "When should The Guide say “the Archive does not yet address this directly”?"
     assert record["rating_out_of_10"] == 9.5
-    assert record["expected_response"].count("\\n\\n") == 2
+    assert record["expected_response"].count("\n\n") == 2
     assert "A missing retrieval result is evidence of a search outcome" in record["expected_response"]
     assert "distinguish four outcomes" in record["expected_response"]
     assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
