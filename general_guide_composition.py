@@ -4445,6 +4445,9 @@ def compose(
         operation=OPERATION,
         messages=[
             {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + (
+                "\n\n" + incomplete_knowledge_plan["architectural_contract"]
+                if incomplete_knowledge_plan else ""
+            ) + (
                 "\n\n" + integrity_recovery_instruction.strip()
                 if integrity_recovery_instruction else ""
             )},
