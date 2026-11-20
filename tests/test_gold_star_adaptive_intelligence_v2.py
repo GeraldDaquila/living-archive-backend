@@ -66,13 +66,13 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
     ]
     active = [item for item in approved if item.get("runtime_transfer") is True]
-    assert len(approved) == 126
-    assert len(active) == 124
+    assert len(approved) == 127
+    assert len(active) == 125
     # The approved ledger also retains two non-contributing records: one
     # superseded historical duplicate and one exact-query-only successor.
     # They remain approved provenance records but are not runtime learners.
-    assert len({item["benchmark_id"] for item in approved}) == 126
-    assert len({item["benchmark_id"] for item in active}) == 124
+    assert len({item["benchmark_id"] for item in approved}) == 127
+    assert len({item["benchmark_id"] for item in active}) == 125
     assert {
         item["benchmark_id"] for item in approved if item.get("runtime_transfer") is not True
     } == {
