@@ -7776,7 +7776,10 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
       "expected_response": "Stewardship and consent are complementary, but they answer different questions. Stewardship is an entrusted responsibility to care for something—people, relationships, resources, or shared conditions—for which one has accepted or been given a role. Consent concerns whether, and within what limits, another person's participation, choices, body, information, property, or interests may legitimately be involved.\n\nThe connection is a boundary on how responsibility is exercised. Being entrusted with care does not automatically confer authority to decide for everyone affected. A steward may act within an authorized role, but when an action depends on another person's participation or use of what is theirs, good intentions or consultation alone do not substitute for consent where consent is the relevant basis. Consent is not simply notification after a decision has already been made.\n\nWhere consent is relevant, it should be informed, voluntary, and specific to what is being agreed to. As circumstances or the proposed use change, agreement may need to be renewed or renegotiated; refusal or withdrawal must be respected within the applicable context. This does not mean every ordinary act of care requires individual permission. It means distinguishing routine responsibilities already covered by an authorized role from choices that require permission, shared authority, or a genuine opportunity to refuse.\n\nTogether, stewardship supplies the responsibility to care, while consent helps define the legitimate limits of that care in relation to other people's agency. Consent does not erase a steward's duties, and stewardship does not override another person's right to decide. Their relationship is what keeps care accountable rather than allowing responsibility to turn into control.",
       "known_theme": "stewardship, consent, entrusted responsibility, authority, legitimacy, participation, affected-party agency, permission boundaries, refusal, withdrawal, shared authority, non-dominating care",
-      "rating": 9.8
+      "rating": 9.8,
+      "doorway_title": "Charter of the Living Archive | Purpose & Governance",
+      "doorway_url": "https://geralddaquila.com/charter-of-the-living-archive/",
+      "doorway_rationale": "The Charter sets out both stewardship as entrusted custodial responsibility and human sovereignty as the right to examine, question, integrate, or reject ideas. It is the Archive's clearest constitutional continuation for considering how care and responsibility must remain answerable to human agency."
     },
     {
       "benchmark_id": "gs-2026-11-20-institutional-extraction-incentive-governance",
@@ -7966,7 +7969,7 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 123,
-    "registry_record_count": 162,
+    "registry_record_count": 161,
     "review_reconciliation": "Canonical approved inventory is 123 records: 121 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence; no structural candidate remains pending live review.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
