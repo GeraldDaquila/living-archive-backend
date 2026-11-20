@@ -241,7 +241,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["superseded_historical_reference_count"] == len(superseded) == 1
     assert report["pending_approval_evidence_count"] == len(pending) == 1
     assert report["authoritative_gold_star_count"] == 123
-    assert report["active_runtime_gold_star_count"] == 120
+    assert report["active_runtime_gold_star_count"] == 121
     assert report["counting_note"].find("Pending approval evidence is excluded") >= 0
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
@@ -1073,7 +1073,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18", "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18", "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18", "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18", "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18", "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18", "general-guide-gold-star-candidate-adjudication-2026-11-18", "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18", "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18", "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18", "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18", "gs-2026-11-18-personality-soul-oversoul-discernment", "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence", "gs-2026-11-19-felt-truth-claim-discernment", "gs-2026-11-19-cosmology-worldview-human-life", "gs-2026-11-20-weekly-stewardship-insight-to-action", "gs-2026-11-20-orientation-vs-information-practical-distinction", "gs-2026-11-20-guide-coverage-gap-evidence-governance", "gs-2026-11-20-reflexive-institutional-critique", "gs-2026-11-20-power-responsibility-proportional-accountability", "gs-2026-11-20-stewardship-incomplete-knowledge"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
-            elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking", "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18", "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20"}:
+            elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking", "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18", "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20", "gs-2026-11-20-stewardship-consent-relational-legitimacy"}:
                 assert record.get("legacy_approval_grandfathered") is True
                 assert record.get("numbering_unassigned_reason_code") == "LEGACY_APPROVED_NO_SERIAL_ALLOCATION"
             else:
@@ -2249,7 +2249,7 @@ def test_institutional_extraction_incentive_governance_gold_star_is_registered_a
     assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
     assert record["expected_doorway"]["title"] == "Regenerative Governance: What Comes After Extraction-Based Systems?"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/"
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     for phrase in ("incentive-design problem", "delayed costs", "protect dissent", "board or governing authority", "circulation and renewal"):
         assert phrase.casefold() in record["expected_response"].casefold()
 
