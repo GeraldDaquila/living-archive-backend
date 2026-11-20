@@ -4605,13 +4605,13 @@ def _trust_community_stewardship_final_contract(query):
 
 def _is_reciprocity_community_purpose_question(query):
     """Recognize the bounded community-purpose question without capturing trust/stewardship."""
-    q = re.sub(r"\\s+", " ", str(query or "")).strip()
-    if re.search(r"\\b(?:trust|stewardship)\\b", q, re.I):
+    q = re.sub(r"\s+", " ", str(query or "")).strip()
+    if re.search(r"\b(?:trust|stewardship)\b", q, re.I):
         return False
     return bool(
-        re.search(r"\\breciproc(?:ity|al)\\b", q, re.I)
-        and re.search(r"\\bcommunit(?:y|ies)\\b", q, re.I)
-        and re.search(r"\\b(?:purpose|role|meaning|what|how|why)\\b", q, re.I)
+        re.search(r"\breciproc(?:ity|al)\b", q, re.I)
+        and re.search(r"\bcommunit(?:y|ies)\b", q, re.I)
+        and re.search(r"\b(?:purpose|role|meaning|what|how|why)\b", q, re.I)
     )
 
 
