@@ -66,9 +66,9 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
     ]
     active = [item for item in approved if item.get("runtime_transfer") is True]
-    assert len(approved) == 121
-    assert len(active) == 119
-    assert len({item["benchmark_id"] for item in approved}) == 121
+    assert len(approved) == 122
+    assert len(active) == 120
+    assert len({item["benchmark_id"] for item in approved}) == 122
 
 
 def test_v2_contract_does_not_mutate_canonical_gold_star_records():
@@ -143,3 +143,44 @@ def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
         names = {item["name"] for item in result}
         assert "known_heldout_case" not in names
         assert expected_checks[case["case_id"]] <= names
+
+
+def test_stewardship_consent_relationship_activates_the_shared_relational_contract():
+    query = "What is the relationship between stewardship and consent?"
+    assert composition._requires_discernment_synthesis(query)
+    assert composition._requires_stewardship_consent_relationship(query)
+
+
+def test_stewardship_definition_alone_does_not_activate_consent_relationship_contract():
+    assert not composition._requires_stewardship_consent_relationship(
+        "What is stewardship?"
+    )
+
+
+def test_stewardship_consent_answer_requires_authority_boundary_and_agency():
+    answer = (
+        "Stewardship creates a responsibility to care for what is entrusted to you, "
+        "while consent establishes whether and within what limits other people may "
+        "be involved. Being entrusted with responsibility does not automatically "
+        "grant authority to decide for affected people. Consent protects their "
+        "agency, including their ability to refuse or renegotiate participation."
+    )
+    assert composition._has_stewardship_consent_relationship(answer)
+
+
+def test_generic_stewardship_answer_fails_the_stewardship_consent_contract():
+    answer = (
+        "Stewardship means taking care of something entrusted to you. "
+        "It matters because ordinary choices accumulate and responsible care "
+        "helps preserve trust and usefulness."
+    )
+    assert not composition._has_stewardship_consent_relationship(answer)
+
+
+def test_consent_is_not_reduced_to_consultation():
+    answer = (
+        "Stewardship creates responsibility, but it does not automatically confer "
+        "authority. Consent is not merely consultation; it protects the agency "
+        "and right of affected people to refuse."
+    )
+    assert composition._has_stewardship_consent_relationship(answer)
