@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from deterministic_answer_recovery import compose_task_specific_recovery
-from main import _guide_restore_verified_doorway, _normalize_authoritative_recommendation
+from main import _guide_restore_verified_doorway, _is_fsd_request, _normalize_authoritative_recommendation
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs" / "qa" / "gold_standard_registry.json"
@@ -97,3 +97,10 @@ def test_shared_final_visitor_boundary_preserves_a_verified_task_recovery_doorwa
     assert result["recommendation"]["url"] == "https://geralddaquila.com/boundary-conditions/"
     assert result["doorway_decision"] == "selected"
     assert result["doorway_selection_source"] == "registered_task_recovery"
+
+
+def test_problem_boundary_system_paraphrase_stays_in_guide_not_fsd():
+    question = "How should I define the boundaries around a system problem, and what stays outside scope?"
+    assert compose_task_specific_recovery(question)["recovery_id"] == "task_problem_boundary_calibration"
+    assert _is_fsd_request(question) is False
+    assert _is_fsd_request("Please open the Fractal Systems Diagnostic for this system problem.") is True
