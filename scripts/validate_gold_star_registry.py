@@ -698,7 +698,29 @@ def main():
             "NOT_APPROVED_CONCEPTUAL_MISMATCH",
         }
         if doorway is None:
-            if doorway_status not in withheld_states:
+            if doorway_status in withheld_states:
+                pass
+            elif doorway_status == "NOT_EVALUATED":
+                # NOT_EVALUATED is a recorded unknown, not an approved omission.
+                # Preserve that distinction: no exact-answer or deterministic-fallback
+                # authority may be inferred from the missing doorway.
+                capabilities = record.get("gold_star_capabilities")
+                boundary = (
+                    str(capabilities.get("abstention_boundary") or "")
+                    if isinstance(capabilities, dict) else ""
+                )
+                if (
+                    not isinstance(capabilities, dict)
+                    or capabilities.get("exact_answer_authority") is not False
+                    or capabilities.get("deterministic_fallback_eligible") is not False
+                    or "NOT_EVALUATED" not in boundary
+                    or "Do not infer" not in boundary
+                ):
+                    fail(
+                        f"{record['benchmark_id']} has NOT_EVALUATED doorway state "
+                        "without an explicit non-omission authority boundary"
+                    )
+            else:
                 fail(f"{record['benchmark_id']} has no explicit approved/withheld doorway state")
         else:
             if doorway_status == "INTENTIONALLY_NONE_APPROVED":
