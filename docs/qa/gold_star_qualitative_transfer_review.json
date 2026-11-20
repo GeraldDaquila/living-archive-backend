@@ -1103,6 +1103,15 @@
       "qualifying_context": "Visitors asking how to frame a problem, define analytical or system boundaries, decide what belongs inside or outside scope, or account for dependencies, externalities, affected parties, time horizons, and evidence limits.",
       "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply excluded factors are unimportant, exclude affected parties because they lack decision authority, collapse analytical scope into the wider system, or assume causal relationships without evidence. Do not transfer the exact answer or its doorway to unrelated questions; do not grant exact-answer authority or deterministic fallback eligibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-community-2026-10-24",
+      "question": "What is the purpose of reciprocity in a community?",
+      "reasoning_family": "community_reciprocity_mutual_support_over_time",
+      "transferable_discipline": "Explain reciprocity in community life as mutual support that can move in both directions over time without requiring equal or immediate repayment. Use an ordinary example to show how contributions and needs vary across circumstances. Preserve the voluntary and non-coercive boundary: reciprocity does not create entitlement to access, obedience, or repayment, and mutual aid must not become a debt ledger.",
+      "qualifying_context": "Visitors asking about the purpose, role, or value of reciprocity in community life, especially mutual aid, shared support, changing needs, and contributions made across time.",
+      "abstention_boundary": "Apply only to questions about the purpose or role of reciprocity in community mutual support, including close paraphrases. Do not transfer this answer or doorway to generic definitions, commercial exchanges, contractual or legal duties, financial reciprocity, or unrelated trust and stewardship questions. Do not infer consent, entitlement, or a debt from prior help; do not use reciprocity to justify coercion or compelled participation.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
