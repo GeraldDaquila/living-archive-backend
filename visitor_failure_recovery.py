@@ -33,7 +33,7 @@ def compose_visitor_failure_recovery(query: str) -> dict[str, str]:
             "This is a bounded general-knowledge orientation because the Guide's "
             "live answer and canonical-retrieval services were unavailable on this "
             "attempt. It is not presented as a synthesis of verified Living Archive "
-            "sources. Any separately selected Archive resource is a related " 
+            "sources. Any separately selected Archive resource is a related "
             "continuation, not evidence for this answer."
         )
         basis = (
