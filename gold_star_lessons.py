@@ -567,6 +567,13 @@ def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
     Exact matches are accepted; cross-question analogues require a stronger
     confidence floor. Only structural discipline and its boundary are returned.
     """
+    # An exact approved benchmark is an explicit capability boundary. If that
+    # exact exemplar is not deterministic-fallback eligible, do not let a looser
+    # cross-question analogue override its declared authority.
+    exact = [x for x in _LESSONS if _normalized_phrase(x["query"]) == _normalized_phrase(query)]
+    if exact:
+        if len(exact) != 1 or not exact[0].get("deterministic_fallback_eligible"):
+            return None
     selected = select_lesson(query, required_capability="deterministic_fallback_eligible")
     if not selected:
         return None
