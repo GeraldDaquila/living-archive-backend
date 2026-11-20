@@ -1,0 +1,50 @@
+name: Guide Problem Boundary Gold Star QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "deterministic_answer_recovery.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "tests/test_guide_problem_boundary_gold_star.py"
+      - "scripts/guide_problem_boundary_api_smoke.py"
+      - ".github/workflows/guide-problem-boundary-gold-star-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  problem-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install runtime and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Compile changed runtime units
+        run: python -m py_compile main.py deterministic_answer_recovery.py general_guide_composition.py
+      - name: Validate canonical Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
+      - name: Run focused and adjacent regression suites
+        run: |
+          PYTHONPATH=. python -m pytest -q \
+            tests/test_guide_problem_boundary_gold_star.py \
+            tests/test_gold_standard_registry.py \
+            tests/test_gold_star_remedy_selection.py \
+            tests/test_gold_star_qualitative_transfer_review.py \
+            tests/test_gold_star_transferability_map.py \
+            tests/test_gold_star_exact_only_successor_validation.py \
+            tests/test_guide_systemwide_three_paragraph_default.py
+      - name: Exercise exact and paraphrased API requests without providers or Pinecone
+        run: python scripts/guide_problem_boundary_api_smoke.py
