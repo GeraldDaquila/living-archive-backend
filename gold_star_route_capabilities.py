@@ -46,6 +46,14 @@ _ROUTE_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "abstention_modes": ["outside_boundary", "clarification"],
         "scope": "Only the explicitly registered early deterministic contracts in the Guide runtime.",
     },
+    "guide_epistemic_category_early_boundary": {
+        "route_class": "answer_first_conceptual_deterministic",
+        "supported_task_families": ["epistemic_category_distinction", "bounded_general_reasoning_framework"],
+        "unsupported_task_families": ["adjudication_of_specific_empirical_claims", "formal_field_specific_doctrine", "unbounded_multi_source_research"],
+        "evidence_modes": ["bounded_general_knowledge", "explicit_epistemic_boundaries"],
+        "abstention_modes": ["field_specific_definition_required", "specific_claim_requires_source_evidence"],
+        "scope": "Answers a bounded conceptual distinction among evidence, interpretation, hypothesis, and normative judgment; any Archive resource selection remains a separate verified decision.",
+    },
     "guide_meta_coverage_policy_early_boundary": {
         "route_class": "meta_governance_deterministic",
         "supported_task_families": ["guide_meta_coverage_policy", "archive_coverage_gap_evidence_threshold_explanation"],
