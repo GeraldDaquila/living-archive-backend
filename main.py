@@ -274,6 +274,28 @@ def _select_verified_doorway_conceptual_family(query):
     from institutional_learning_failure_contract import is_institutional_learning_failure_question
     if is_institutional_learning_failure_question(text):
         return "institutional_learning_failure"
+    # A bounded transformation/rebranding inquiry asks whether changed language
+    # is accompanied by changed system behavior. Route it to the reviewed
+    # correspondence/correctability synthesis, without capturing personal-brand
+    # or ordinary brand-refresh questions.
+    transformation_rebranding = (
+        re.search(r"\btransform(?:ation|ing|ed)?\b", text, re.I)
+        and re.search(r"\brebrand(?:ing|ed)?\b", text, re.I)
+        and (
+            re.search(
+                r"\b(?:system|institution|organizational|organisational|governance|structural|structure|decision rights|incentives)\b",
+                text,
+                re.I,
+            )
+            or re.search(
+                r"\bwhen does\b[\W_]{0,8}transformation\b.{0,50}\bmere rebranding\b",
+                text,
+                re.I,
+            )
+        )
+    )
+    if transformation_rebranding:
+        return "transformation_rebranding"
     if is_stewardship_consent_relationship_question(text):
         return "stewardship_consent_relational_legitimacy"
     # Keep this selector self-contained: it is also exercised as an isolated
@@ -545,6 +567,18 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
             "change an institution's understanding, and how that understanding can "
             "or cannot change the way it operates. It is a deeper continuation, "
             "not the evidence source for this general explanation."
+        ),
+    },
+    "transformation_rebranding": {
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+        "rationale": (
+            "This Living Archive synthesis distinguishes real learning from change "
+            "that leaves the behavior-producing pattern intact. It examines whether "
+            "experience can revise a system's understanding and whether that revised "
+            "understanding can change its actions. It offers a direct test for "
+            "distinguishing structural transformation from rebranding; it is a "
+            "related continuation, not the evidence source for this general answer."
         ),
     },
     "use_doorway_selection": {
@@ -7907,6 +7941,16 @@ def _guide_finalize_visitor_payload(payload, query):
     # Enforce a bounded, source-independent first answer after all provider/retrieval routes.
     # Frozen exact Gold Standards and safety responses have already exited above.
     finalized = apply_institutional_learning_failure_boundary(query, finalized)
+    # Provider-independent failure recovery must not treat answer provenance as
+    # a navigation decision. Re-run the shared terminal policy after every
+    # question-specific finalizer so a relevant, independently verified Archive
+    # continuation survives even when live answer/retrieval providers failed.
+    _recovery_provenance = finalized.get("response_provenance")
+    if (
+        isinstance(_recovery_provenance, dict)
+        and _recovery_provenance.get("class") == "visitor_failure_recovery"
+    ):
+        finalized = _guide_enforce_terminal_doorway_policy(finalized, query)
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):

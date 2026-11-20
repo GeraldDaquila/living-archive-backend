@@ -1,8 +1,8 @@
-"""Provider-independent visitor recovery for exhausted Guide request paths.
+"""Provider-independent answer recovery for exhausted Guide request paths.
 
-This module deliberately makes no Archive-source or doorway claims. It supplies
-a bounded conceptual orientation for a small set of safe, recognizable question
-families and a transparent continuation response for everything else.
+This module owns bounded answer content and its provenance disclosure only.
+Canonical navigation is selected independently by the shared visitor boundary;
+a related doorway must never be represented as evidence for the recovery answer.
 """
 from __future__ import annotations
 
@@ -33,12 +33,15 @@ def compose_visitor_failure_recovery(query: str) -> dict[str, str]:
             "This is a bounded general-knowledge orientation because the Guide's "
             "live answer and canonical-retrieval services were unavailable on this "
             "attempt. It is not presented as a synthesis of verified Living Archive "
-            "sources; no canonical doorway has been inferred."
+            "sources. Any separately selected Archive resource is a related "
+            "continuation, not evidence for this answer."
         )
         basis = (
             "A provider-independent conceptual orientation. Live generation and "
             "canonical retrieval were unavailable, so no Living Archive source "
-            "attribution or destination is claimed."
+            "attribution is claimed. The shared visitor boundary may independently "
+            "select a verified, relevant Archive continuation; that destination "
+            "does not substantiate this general-knowledge answer."
         )
         return {"response": response, "basis_explanation": basis}
 
