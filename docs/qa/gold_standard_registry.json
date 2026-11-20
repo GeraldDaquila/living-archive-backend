@@ -7952,7 +7952,7 @@
       "user_approved_at": "2026-11-20"
     }
   ],
-  "last_reconciliation_note": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 0 structural candidates remain pending live review and are excluded from the approved count.",
+  "last_reconciliation_note": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8084,7 +8084,7 @@
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 125,
     "registry_record_count": 163,
-    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 0 structural candidates remain pending live review and are excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 125 approved Gold Stars; 39 assigned display serials #56–#94; 86 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
@@ -8195,7 +8195,7 @@
     "last_audit_date": "2026-11-20",
     "approved_gold_star_count": 125,
     "registry_record_count": 163,
-    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 0 structural candidates remain pending live review and are excluded from the approved count.",
+    "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. One structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 125 approved Gold Stars; 39 assigned display serials #56–#94; 86 approved records explicitly UNASSIGNED with reasons. This exemplar receives no display serial because none was requested.",
@@ -8205,6 +8205,6 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 0
+    "structural_candidates_pending_live_review": 1
   }
 }
