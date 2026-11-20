@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.313 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION: v489.314 — Bounded Pinecone retrieval budget
 # Preserve the redacted request-boundary contract used by provider diagnostics.
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
@@ -155,7 +155,7 @@ else:
 # Runtime provenance must identify the source actually serving requests.
 # Human release labels may remain stable across commits, but acceptance and
 # forensics must never mistake a label for the deployed source revision.
-APP_VERSION = "v489.313"
+APP_VERSION = "v489.314"
 _DEPLOYED_SOURCE_COMMIT = (
     os.getenv("RENDER_GIT_COMMIT")
     or os.getenv("GIT_COMMIT")
@@ -163,12 +163,12 @@ _DEPLOYED_SOURCE_COMMIT = (
     or "source-commit-unavailable"
 )
 # Stable release identity retained for canonical QA and human release tracing.
-DEPLOYMENT_FINGERPRINT = "USE-v489.313-source-derived"
+DEPLOYMENT_FINGERPRINT = "USE-v489.314-source-derived"
 # Runtime provenance is intentionally separate from the stable release identity.
 # The deployed source revision is the authoritative request-to-deployment key.
 RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
 # Canonical build ID remains a stable release-contract identity.
-CANONICAL_BUILD_ID = "USE-BUILD-v489.313-canonical"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.314-canonical"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -897,7 +897,7 @@ RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Preserve the canonical release-label invariant while source revision remains
 # a separate provenance identity.
-if str(APP_VERSION) != "v489.313":
+if str(APP_VERSION) != "v489.314":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 # Runtime provenance integrity is a startup invariant. Release labels and
 # source revisions are deliberately separate identities.
@@ -10899,7 +10899,7 @@ except Exception:
     _gold_star_shadow_observation = None
     _gold_star_active_quality_contribution = None
 
-def _basic_inquiry_response(query, history=None, raw_body=None):
+def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only: returned metadata is discarded and cannot influence composition.
     try:
         if _gold_star_shadow_observation is not None:
@@ -11300,8 +11300,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # fallbacks and not transfers of approved exemplar answer text. Exact
     # approved standards retain precedence.
     _task_recovery = (
-        None if _resolve_exact_guide_gold_standard(query) is not None
-        else _compose_task_specific_recovery(query)
+        task_recovery if isinstance(task_recovery, dict)
+        else (
+            None if _resolve_exact_guide_gold_standard(query) is not None
+            else _compose_task_specific_recovery(query)
+        )
     )
     if isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip():
         _task_answer = str(_task_recovery["response"]).strip()
@@ -15525,6 +15528,27 @@ async def _use_request_boundary(scope, receive, send):
                 "request_id": request_id,
                 "visitor_boundary_version": APP_VERSION,
             }, 503)
+
+    # Problem-boundary calibration is a bounded Guide reasoning task, not
+    # an FSD diagnostic request. Give this explicit question family precedence
+    # over the broader FSD detector (for example, "system problem" must not
+    # turn a scope-framing question into an FSD handoff). Approved exact Gold
+    # Star standards retain their existing precedence.
+    _early_task_recovery = (
+        None if _resolve_exact_guide_gold_standard(query) is not None
+        else _compose_task_specific_recovery(query)
+    )
+    if isinstance(_early_task_recovery, dict):
+        _early_task_result = _basic_inquiry_response(
+            query, history, raw_body, task_recovery=_early_task_recovery
+        )
+        if isinstance(_early_task_result, dict):
+            print(
+                "The Guide early task-family router: "
+                f"recovery={_early_task_recovery.get('recovery_id')}, "
+                "precedence=before_fsd_handoff"
+            )
+            return await _use_send_json(send, _early_task_result)
 
     # Immediate FSD handoff: FSD is a native standalone diagnostic
     # surface. Do not spend a routing-model call; send the visitor directly
