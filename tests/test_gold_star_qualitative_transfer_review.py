@@ -135,7 +135,7 @@ def test_canonical_audit_metadata_is_derived_not_independent():
 
 def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkeypatch):
     # Exercise the same invariant the CI validator uses: compare the proposed
-    # registry against the exact merge-base registry, not a stale branch count.
+    # registry directly against canonical main, not a stale branch count.
     from scripts import validate_gold_star_registry as validator
 
     base_records = _registry()["records"]
