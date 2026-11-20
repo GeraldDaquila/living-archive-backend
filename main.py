@@ -8719,13 +8719,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # This is a bounded general explanation, not a claim of a single canonical Archive definition.
     if "reciprocity" in q and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q):
         response = (
-            "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
-            "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
-            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\n"
-            "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
-            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\n"
-            "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
-            "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
+            "Reciprocity means people support one another over time. It does not mean keeping score or "
+            "expecting every act to be repaid immediately or in equal measure. People may give more at "
+            "one point and need more help at another; what matters is that support can move in both "
+            "directions over time.\\n\\n"
+            "Think of neighbors taking turns checking on an older resident or helping one another with "
+            "errands. One neighbor may do more during a difficult week and receive help later. The "
+            "relationship can still be reciprocal even when each exchange is different.\\n\\n"
+            "Reciprocity should never be used to demand access, obedience, or repayment from someone "
+            "who cannot freely offer it. Mutual support works best when people respond to one another's "
+            "real circumstances, not when kindness becomes a debt ledger."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
