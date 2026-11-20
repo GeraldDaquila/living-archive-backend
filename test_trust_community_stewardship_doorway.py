@@ -91,7 +91,7 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
                 key.value for key in node.keys
                 if isinstance(key, ast.Constant) and isinstance(key.value, str)
             }.issuperset({
-                "response", "recommendation", "canonical_doorway",
+                "response", "recommendation", "canonical_doorway", "processing",
                 "doorway_title", "doorway_url", "doorway_rationale",
                 "doorway_selection_source",
             })
