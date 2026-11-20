@@ -6255,10 +6255,6 @@ def _guide_finalize_visitor_payload(payload, query):
     # them before every broader recovery family so no conceptual contract or
     # deterministic fallback can overwrite an approved calibration exemplar.
     exact_standard = _resolve_exact_guide_gold_standard(query)
-    # Shared answer-first semantic floor: a doorway cannot stand in for the requested explanation.
-    if exact_standard is None:
-        from event_pattern_structure_contract import apply_event_pattern_structure_boundary
-        payload = apply_event_pattern_structure_boundary(query, payload)
     if exact_standard is not None:
         safe = dict(payload)
         exact_answer = str(exact_standard.get("expected_response") or "").strip()
@@ -7702,6 +7698,27 @@ def _guide_finalize_visitor_payload(payload, query):
         "and any incidental recommendation; deterministic recovery used."
     )
     return safe
+
+
+# Keep the event/pattern/system-structure contract outside the legacy visitor
+# finalizer. That function has many specialist early returns; wrapping it here
+# guarantees the answer-first floor runs after every non-safety, non-exact-Gold-
+# Star path rather than being bypassed by a later specialist recovery.
+_guide_finalize_visitor_payload_inner = _guide_finalize_visitor_payload
+
+
+def _guide_finalize_visitor_payload(payload, query):
+    finalized = _guide_finalize_visitor_payload_inner(payload, query)
+    if not isinstance(finalized, dict):
+        return finalized
+    if str(finalized.get("intent") or "").strip().upper() in {
+        "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
+    }:
+        return finalized
+    if _resolve_exact_guide_gold_standard(query) is not None:
+        return finalized
+    from event_pattern_structure_contract import apply_event_pattern_structure_boundary
+    return apply_event_pattern_structure_boundary(query, finalized)
 
 
 _BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
