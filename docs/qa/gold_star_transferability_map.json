@@ -292,6 +292,9 @@
     },
     "complicated_vs_complex_conceptual_distinction": {
       "description": "Clarify the difference between complicated systems that can be analyzed through decomposition and expertise, and complex systems shaped by adaptive interaction, feedback, and emergence."
+    },
+    "community_reciprocity_mutual_support": {
+      "description": "Explain mutual support as reciprocal across time without requiring equal or immediate repayment; preserve voluntariness and reject coercive debt, access, or obedience claims."
     }
   },
   "entries": [
@@ -1374,13 +1377,21 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to questions explicitly comparing complicated and complex concepts or close paraphrases. Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy; do not transfer the exact answer or doorway to unrelated queries."
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-community-2026-10-24",
+      "family": "community_reciprocity_mutual_support_over_time",
+      "structural_lesson": "Explain reciprocity in community life as mutual support that can move in both directions over time without requiring equal or immediate repayment. Use an ordinary example to show how contributions and needs vary across circumstances. Preserve the voluntary and non-coercive boundary: reciprocity does not create entitlement to access, obedience, or repayment, and mutual aid must not become a debt ledger.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to questions about the purpose or role of reciprocity in community mutual support, including close paraphrases. Do not transfer this answer or doorway to generic definitions, commercial exchanges, contractual or legal duties, financial reciprocity, or unrelated trust and stewardship questions. Do not infer consent, entitlement, or a debt from prior help; do not use reciprocity to justify coercion or compelled participation."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
     "registry_content_sha": "12220238e431703f7cdbff1324b629b83e80cc07",
-    "qualitative_transfer_review_entries": 124,
-    "general_purpose_runtime_transfer_records": 120,
-    "map_entries": 120
+    "qualitative_transfer_review_entries": 125,
+    "general_purpose_runtime_transfer_records": 121,
+    "map_entries": 121
   }
 }
