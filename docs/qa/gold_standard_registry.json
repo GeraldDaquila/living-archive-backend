@@ -7954,7 +7954,7 @@
     },
     {
       "benchmark_id": "gs-2026-11-20-complicated-complex-distinction",
-      "status": "CANDIDATE",
+      "status": "APPROVED",
       "subsystem": "general-purpose-guide",
       "query": "What is the difference between complicated and complex?",
       "expected_response": "A **complicated system** can have many parts and require considerable expertise, but its components and their relationships can usually be identified and analyzed. Its behavior is sufficiently stable that specialists can break the problem into parts, understand how those parts work, and often reproduce a reliable result. An aircraft engine is complicated: designing or repairing one is demanding, but the components, specifications, and causal relationships can be studied and tested.\n\nA **complex system** is different because the interactions among its parts keep shaping one another. People, organisms, or other adaptive elements respond to conditions and to each other; feedback, changing relationships, and nonlinear effects can produce outcomes that cannot be reliably predicted by examining each part separately. An ecosystem or a community is complex: understanding its elements helps, but the whole also changes through their ongoing interaction.\n\nSo the distinction is not simply that one is easy and the other difficult. **Complicated means difficult but, in principle, analyzable through decomposition and expertise; complex means adaptive and emergent, so understanding develops through observation, feedback, and learning over time.** A complicated problem often benefits from specialist analysis, planning, and precise execution. A complex situation calls for listening to the system, testing proportionate interventions, watching what changes, and adapting. A real situation can contain both: its technical components may be complicated while the human or ecological system around them is complex.",
@@ -7965,23 +7965,24 @@
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "rating_out_of_10": 9.8,
-      "user_reviewed_response": false,
+      "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "USER AUTHORIZED STRUCTURAL CORRECTION AND GOLD STAR CREATION; EXACT ANSWER AWAITS USER REVIEW",
+      "approval_state": "USER APPROVED EXACT FROZEN GOLD STAR EXEMPLAR",
       "elevation_approval_evidence": "The user explicitly instructed: fix the failure at both architectural and query levels and turn it into a Gold Star on 2026-11-20. This authorizes implementation and candidate registration. The exact newly authored answer remains subject to user review before frozen Gold Star activation.",
-      "freeze_policy": "candidate_pending_exact_user_review_no_runtime_learning",
-      "runtime_transfer": false,
+      "freeze_policy": "frozen_exact_answer_and_transferable_reasoning_lesson",
+      "runtime_transfer": true,
       "reasoning_family": "complicated_vs_complex_conceptual_distinction",
       "transferable_lesson": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
       "transfer_boundary": "Apply only to questions explicitly comparing complicated and complex concepts or close paraphrases. Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy; do not transfer the exact answer or doorway to unrelated queries.",
       "gold_star_capabilities": {
-        "generation_class": "candidate_for_exact_user_review",
-        "exact_answer_authority": false,
-        "active_quality_contributor": false,
-        "deterministic_fallback_eligible": false,
+        "generation_class": "approved_gold_star",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
         "reasoning_family": "complicated_vs_complex_conceptual_distinction",
         "transferable_discipline": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
-        "abstention_boundary": "Apply only to explicit complicated-versus-complex comparison questions and close paraphrases. Do not over-trigger on incidental co-mentions, label difficulty alone as complexity, imply complex systems are unknowable, or transfer the exact answer or doorway to unrelated queries."
+        "abstention_boundary": "Apply only to explicit complicated-versus-complex comparison questions and close paraphrases. Do not over-trigger on incidental co-mentions, label difficulty alone as complexity, imply complex systems are unknowable, or transfer the exact answer or doorway to unrelated queries.",
+        "runtime_transfer": true
       },
       "assertions": [
         "Answer the conceptual distinction directly before offering navigation.",
@@ -8009,10 +8010,15 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star creation but did not separately request a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "No display serial was requested; stable benchmark_id remains canonical identity.",
+      "exact_answer_authority": true,
+      "active_quality_contributor": true,
+      "deterministic_fallback_eligible": true,
+      "approval_date": "2026-11-20",
+      "approval_evidence": "User explicitly approved the exact proposed answer on 2026-11-20."
     }
   ],
-  "last_reconciliation_note": "2026-11-20: Added the complicated-versus-complex conceptual distinction as a candidate after architectural and query-level correction. The verified Structural Frameworks doorway is a separate continuation. Exact answer awaits user review; it is excluded from approved Gold Star count and runtime learning.",
+  "last_reconciliation_note": "2026-11-20: Complicated-versus-complex distinction exact answer explicitly approved by user; frozen as approved Gold Star. Structural and query-level contract integrated in candidate branch. Production activation awaits successful full CI, merge, and deployment verification.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8142,7 +8148,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 125,
+    "approved_gold_star_count": 126,
     "registry_record_count": 164,
     "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. Two structural candidates remain pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
@@ -8154,7 +8160,8 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 2
+    "structural_candidates_pending_live_review": 1,
+    "last_approval": "gs-2026-11-20-complicated-complex-distinction approved by user 2026-11-20"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8253,7 +8260,7 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 125,
+    "approved_gold_star_count": 126,
     "registry_record_count": 164,
     "review_reconciliation": "Canonical approved inventory is 125 records: 123 active structural-learning contributors with matching qualitative-transfer reviews, one exact-query-only successor, and one superseded historical duplicate. One separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. Two structural candidates remain pending live review and are excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
@@ -8265,6 +8272,6 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 2
+    "structural_candidates_pending_live_review": 1
   }
 }
