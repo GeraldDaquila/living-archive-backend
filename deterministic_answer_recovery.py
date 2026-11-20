@@ -1287,6 +1287,62 @@ def compose_task_specific_recovery(question):
     if not q:
         return None
 
+    # Problem-boundary questions are answerable without model generation or
+    # retrieval. Resolve the analytical boundary itself before the provider
+    # bank so provider exhaustion cannot turn a complete conceptual question
+    # into a generic fallback. This is a bounded reasoning family, not an
+    # exact-answer copy of a Gold Star record.
+    if (
+        re.search(r"\\b(?:boundaries|boundary|scope|limits?)\\b", q)
+        and re.search(r"\\b(?:problem|issue|question|inquiry|system)\\b", q)
+        and re.search(r"\\b(?:drawn|set|define|defined|frame|framed|around|include|exclude|outside|inside)\\b", q)
+        and re.search(r"\\b(?:what|which|kinds?|types?|should|exclude|excluded|outside)\\b", q)
+    ):
+        doorway = {
+            "title": "Boundary Conditions",
+            "url": "https://geralddaquila.com/boundary-conditions/",
+            "rationale": (
+                "Boundary Conditions explains why every method has a domain, "
+                "why its limits must be made explicit, and how disciplined "
+                "inquiry distinguishes what can be established from what lies "
+                "beyond its warranted reach."
+            ),
+        }
+        return {
+            "recovery_id": "task_problem_boundary_calibration",
+            "response": (
+                "A useful problem boundary is not a line around everything that seems related. "
+                "It is a reasoned statement of what the inquiry is trying to explain, at what level, "
+                "over what period, and from whose point of view. Draw it across several dimensions: "
+                "the **phenomenon** (the specific condition or outcome being examined); the **system** "
+                "(the people, relationships, rules, incentives, resources, and dependencies that can "
+                "produce or shape it); the **scale and place** (individual, team, organization, community, "
+                "or wider environment); the **time horizon** (the immediate episode, its history, and "
+                "delayed effects); and the **stakeholder and authority boundary** (who is affected, who "
+                "decides, and who carries the consequences). Also mark the **evidence boundary**: what "
+                "is observed, what is inferred, and what remains unknown.\n\n"
+                "Exclude material that is merely adjacent and does not materially change the explanation "
+                "or the decision the inquiry must support. But do not confuse 'outside the chosen scope' "
+                "with 'irrelevant.' An upstream cause, downstream consequence, affected group, or external "
+                "condition may sit beyond the immediate problem boundary and still need to be recorded as "
+                "a dependency, constraint, risk, or consequence. In particular, do not exclude people who "
+                "bear the costs simply because they lack decision-making power, or exclude causes merely "
+                "because they are difficult for the organization to control. State what is out of scope, "
+                "why it is out, and where its effects will still be monitored.\n\n"
+                "A practical test is: **if including this factor could materially change the diagnosis, "
+                "the distribution of benefits or burdens, the available options, or the likely consequences, "
+                "it belongs inside the analysis—or must remain visible at its boundary.** Keep the boundary "
+                "provisional and revise it when new evidence or feedback shows that an excluded relationship "
+                "is shaping the result. A well-drawn boundary makes inquiry manageable without pretending "
+                "that the world stops where the analysis does."
+            ),
+            "recommendation": doorway,
+            "canonical_doorway": doorway,
+            "doorway_title": doorway["title"],
+            "doorway_url": doorway["url"],
+            "doorway_rationale": doorway["rationale"],
+        }
+
     # Policy/procedure is a plain-language distinction, not a resource-discovery task.
     if (
         re.search(r"\bpolicy\b", q)
