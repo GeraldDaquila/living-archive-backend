@@ -102,7 +102,9 @@ def build_institutional_learning_failure_response() -> str:
         "occurred without effective correction.\n\n"
         "These are common mechanisms, not a diagnosis of every organization. "
         "Identifying the dominant cause in a particular case requires evidence about "
-        "its decisions, incentives, accountability, and follow-through."
+        "its decisions, incentives, accountability, and follow-through. "
+        "If you have a particular organization in mind, which part of this sequence "
+        "seems most likely to be breaking down?"
     )
 
 
