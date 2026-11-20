@@ -101,6 +101,28 @@ def test_semantic_shadow_does_not_break_existing_integrity_regexes():
     assert unsafe["status"] == "fail"
 
 
+def test_epistemic_category_distinction_is_a_distinct_query_type_with_four_category_checks():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = "What counts as evidence, interpretation, hypothesis, and normative judgment?"
+    answer = compose_recovery(query)
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+
+    assert classify_question(query)["type"] == "epistemic_category_distinction"
+    assert result["question_type"] == "epistemic_category_distinction"
+    assert result["semantic_certification"] is False
+    assert result["status"] == "review_required"
+    assert all(check["passed"] for check in result["checks"])
+
+
+def test_epistemic_category_contract_flags_missing_normative_boundary():
+    query = "What counts as evidence, interpretation, hypothesis, and normative judgment?"
+    weak = "Evidence is records. Interpretation is meaning. A hypothesis is a guess. Normative judgment is an opinion."
+    result = evaluate_semantic_contract(query, {"ok": True, "response": weak})
+    assert result["status"] == "review_required"
+    assert any(not check["passed"] for check in result["checks"])
+
+
 def test_guide_meta_coverage_policy_is_a_distinct_query_type_with_four_outcome_checks():
     from deterministic_answer_recovery import compose_recovery
 
