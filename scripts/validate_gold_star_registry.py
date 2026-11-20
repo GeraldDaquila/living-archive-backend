@@ -276,22 +276,16 @@ def ensure_canonical_main_ref():
 
 
 def validate_numbering_against_base(current_records, current_registry=None):
-    """Compare the PR registry with its merge-base version from canonical main."""
+    """Compare the candidate registry directly with the fetched canonical main registry."""
     ensure_canonical_main_ref()
     try:
-        merge_base = subprocess.run(
-            ["git", "merge-base", "HEAD", BASELINE_REF],
-            cwd=ROOT, check=True, capture_output=True, text=True,
-        ).stdout.strip()
-        if not merge_base:
-            fail("cannot resolve merge base with origin/main")
         base_text = subprocess.run(
-            ["git", "show", f"{merge_base}:docs/qa/gold_standard_registry.json"],
+            ["git", "show", f"{BASELINE_REF}:docs/qa/gold_standard_registry.json"],
             cwd=ROOT, check=True, capture_output=True, text=True,
         ).stdout
         base_registry = json.loads(base_text)
     except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
-        fail(f"cannot load canonical base registry for immutable-number check: {exc}")
+        fail(f"cannot load canonical main registry for immutable-number check: {exc}")
 
     base_records = base_registry.get("records", [])
     base_ids = {r.get("benchmark_id") for r in base_records}
