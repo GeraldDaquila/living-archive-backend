@@ -36,7 +36,7 @@ A decision made under incomplete knowledge must remain correctable. Name observa
 _QUERY_CONTRACT = """QUERY-LEVEL REQUIREMENTS — GIVE A PRACTICAL METHOD FOR ACTING UNDER UNCERTAINTY:
 Answer the visitor's question directly and make the method usable without turning it into a long checklist. The response must make four things unmistakable:
 1. WHAT IS KNOWN AND NOT KNOWN: separate established facts from inference, assumptions, unknowns, and missing perspectives; indicate where confidence is limited and what evidence or voice could change the picture.
-2. WHAT THE SITUATION ALLOWS NOW: assess stakes, urgency, affected people, legitimate authority, capacity, and reversibility. Distinguish safe immediate steps from actions that require checking, consultation, expertise, safeguards, escalation, or deferral.
+2. WHAT THE SITUATION ALLOWS NOW — what can safely be done now: assess stakes, urgency, affected people, legitimate authority, capacity, and reversibility. Distinguish safe immediate steps from actions that require checking, consultation, expertise, safeguards, escalation, or deferral.
 3. HOW TO ACT PROPORTIONATELY: recommend a next step that fits the evidence and stakes, preserves options where appropriate, and does not shift costs or risks invisibly onto others. State when waiting is unsafe and a least-harm protective action is warranted.
 4. HOW TO REMAIN CORRECTABLE: identify what to monitor, who is accountable, when or on what signal to review, and what would trigger continuing, adapting, reversing, or stopping the decision.
 
