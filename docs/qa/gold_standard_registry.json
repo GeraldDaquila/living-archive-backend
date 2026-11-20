@@ -1378,7 +1378,7 @@
         "source_date": "2026-10-24",
         "source": "User-provided live screenshot reviewed in this conversation",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "approval_evidence": "The exact answer remains a candidate pending user review of the live visitor response; doorway relevance has now been independently verified.",
+        "approval_evidence": "The answer has not yet been reviewed and approved as the exact live visitor response. The candidate remains pending user review; doorway relevance has now been independently verified.",
         "evidence_boundary": "Candidate benchmark records the observed live answer and behavioral invariants. The user has not explicitly approved it as a frozen gold standard. The displayed resource title is not yet verified as directly relevant.",
         "source_path": "docs/qa/gold_standard_registry.json",
         "source_ref": "qa/register-community-trust-reciprocity-2026-10-24",
