@@ -198,6 +198,11 @@ def test_terminal_doorway_policy_recognizes_the_reviewed_conceptual_family():
     assert restored["doorway_selection_source"] == "reviewed_conceptual_family"
     assert restored["recommendation"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
     assert restored["doorway_url"] == restored["recommendation"]["url"]
+    reconciled = main._guide_reconcile_verified_doorway_recovery(restored)
+    assert reconciled["recommendation"] == restored["recommendation"]
+    assert reconciled["canonical_doorway"] == restored["canonical_doorway"]
+    assert reconciled["answer_basis"]["kind"] == "general_knowledge"
+    assert reconciled["evidence"] == []
 
 
 def test_substantive_answer_is_preserved_but_verified_doorway_is_restored():
