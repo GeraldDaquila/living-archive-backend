@@ -1,20 +1,17 @@
-"""Bounded reflexive critique recognition and retrieval planning."""
+"""First-class answer planning for reflexive institutional critique."""
 from __future__ import annotations
 import re
 from typing import Any
-
-VERSION = "1.0"
+VERSION = "2.0"
 _ARCHIVE = (r"\b(?:the\s+)?(?:living\s+)?archive(?:'s|’s)?\b", r"\b(?:this\s+)?archive(?:'s|’s)?\b")
 _CRITIQUE = (r"\bgood[- ]faith\s+critique\b", r"\bcritique\b", r"\bcritically\s+(?:examine|assess|evaluate|interrogate)\b", r"\b(?:challenge|test|scrutinize|scrutinise)\b", r"\bstrengths?\s+and\s+weaknesses\b", r"\blimitations?\b")
 _WORLDVIEW = (r"\bworldviews?\b", r"\b(?:epistemolog(?:y|ical)|ontolog(?:y|ical))\b", r"\bunderlying\s+assumptions?\b", r"\bphilosoph(?:y|ical)\s+foundations?\b", r"\bcore\s+assumptions?\b")
 _DIMENSIONS = ["reconstruct_the_archive_position_fairly", "clarify_definitions_and_hidden_assumptions", "separate_empirical_interpretive_and_normative_claims", "assess_provenance_evidence_and_independent_corroboration", "test_falsifiability_revisability_and_counterexamples", "examine_internal_coherence_and_external_validity", "consider_cultural_historical_and_power_effects", "identify_exclusions_and_unintended_consequences", "state_what_evidence_would_change_the_assessment"]
-
+_ANSWER_REQUIREMENTS = ["define_good_faith_critique_in_direct_answer_to_the_visitor", "give_operational_criteria_not_only_a_list_of_topics", "apply_criteria_to_archive_claims_only_when_retrieved_sources_support_them", "distinguish_archive_self_description_from_independent_evidence", "include_strong_objections_and_fair_replies_without_false_balance", "identify_claim_specific_evidence_that_could_change_the_assessment", "state_retrieval_gaps_without_abandoning_the_answerable_general_question", "offer_no_doorway_unless_existing_canonical_authority_and_relevance_gates_pass"]
 def build_reflexive_critique_plan(query: str) -> dict[str, Any] | None:
     raw = re.sub(r"\s+", " ", str(query or "")).strip()
-    if not raw: return None
-    if not (any(re.search(p, raw, re.I) for p in _ARCHIVE) and any(re.search(p, raw, re.I) for p in _CRITIQUE) and any(re.search(p, raw, re.I) for p in _WORLDVIEW)):
+    if not raw or not (any(re.search(p, raw, re.I) for p in _ARCHIVE) and any(re.search(p, raw, re.I) for p in _CRITIQUE) and any(re.search(p, raw, re.I) for p in _WORLDVIEW)):
         return None
-    retrieval_query = ("Living Archive stated worldview and philosophical foundations; underlying assumptions, ontology, epistemology, definitions, and normative commitments; evidence and provenance for empirical claims; independent corroboration and counterevidence; falsifiability, revisability, internal coherence, external validity, cultural and historical contingency, power effects, exclusions, unintended consequences, and limitations. Retrieve canonical published source bodies that state the Archive's own position and relevant sources that permit critical examination. Do not treat Archive publications as independent validation of their claims.")
-    return {"version": VERSION, "mode": "reflexive_institutional_critique", "retrieval_query": retrieval_query, "evaluation_dimensions": list(_DIMENSIONS), "original_query_preserved": True, "doorway_authority": "unchanged_existing_canonical_gates"}
-
+    retrieval_query = "Living Archive worldview and philosophical foundations; retrieve canonical source bodies that explicitly state its purpose, ontology, epistemology, model of human development, sensemaking, stewardship, and claims about knowledge, systems, agency, responsibility, and change. Also retrieve sources that define the limits, scope, evidence, provenance, assumptions, and conditions of application of those claims. Seek materially different canonical perspectives and documented qualifications, not merely passages that repeat the same thesis. Do not treat Archive publications as independent validation of their claims."
+    return {"version": VERSION, "mode": "reflexive_institutional_critique", "task_class": "answer_first_critical_evaluation", "retrieval_query": retrieval_query, "evaluation_dimensions": list(_DIMENSIONS), "answer_requirements": list(_ANSWER_REQUIREMENTS), "response_contract": {"primary_deliverable": "a direct explanation of what constitutes a good-faith critique, applied to the Archive where evidence permits", "minimum_operations": ["define", "operationalize", "apply", "challenge", "identify_revision_conditions"], "retrieval_role": "evidence_for_application_not_a_substitute_for_the_answer", "fallback": "answer_the_general_methodological_question_and_bound_archive_specific_claims", "doorway_policy": "existing_canonical_authority_and_relevance_gates_only"}, "original_query_preserved": True, "doorway_authority": "unchanged_existing_canonical_gates"}
 __all__ = ["VERSION", "build_reflexive_critique_plan"]
