@@ -31,6 +31,22 @@ def test_completed_answer_envelope_separates_route_provenance_and_doorway():
     assert validate_answer_envelope(envelope)["valid"] is True
 
 
+def test_canonical_doorway_is_not_mislabeled_as_intentional_omission():
+    query = "What is the relationship between power and responsibility?"
+    payload = {
+        "ok": True,
+        "response": "A bounded conceptual answer.",
+        "route_source": "guide_basic_inquiry",
+        "canonical_doorway": {
+            "title": "Leadership Foundations",
+            "url": "https://example.org/leadership-foundations",
+        },
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["doorway"]["state"] == "present_requires_canonical_validation"
+    assert envelope["doorway"]["separate_from_answer"] is True
+
+
 def test_unregistered_route_and_missing_capability_declaration_remain_unknown():
     query = "Explain a complex issue."
     payload = {"ok": True, "response": "A bounded answer.", "route_source": "new_route_not_yet_registered"}

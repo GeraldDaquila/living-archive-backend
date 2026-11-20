@@ -16646,6 +16646,23 @@ def _guide_sync_power_responsibility_final_metadata(payload):
         "claim_support_status": "not_applicable",
         "semantic_certification": False,
     }
+    doorway_status = str(safe.get("doorway_selection_status") or "").strip().upper()
+    selected_doorway = (
+        safe.get("canonical_doorway")
+        or safe.get("recommendation")
+        or safe.get("doorway")
+    )
+    doorway_contract = None
+    if (
+        doorway_status == "VERIFIED_RELEVANT_DESTINATION"
+        and isinstance(selected_doorway, dict)
+        and str(selected_doorway.get("url") or "").strip()
+    ):
+        doorway_contract = {
+            "state": "present_requires_canonical_validation",
+            "separate_from_answer": True,
+            "prohibited_by_question_contract": False,
+        }
 
     safe["response_provenance"] = provenance
     safe["answer_basis"] = answer_basis
@@ -16660,6 +16677,8 @@ def _guide_sync_power_responsibility_final_metadata(payload):
         route["model_present"] = False
         envelope["route"] = route
         envelope["evidence"] = envelope_evidence
+        if doorway_contract is not None:
+            envelope["doorway"] = doorway_contract
         safe["answer_envelope"] = envelope
 
     quality_floor = safe.get("gold_star_v2_quality_floor")
@@ -16673,6 +16692,8 @@ def _guide_sync_power_responsibility_final_metadata(payload):
             floor_route["model_present"] = False
             floor_envelope["route"] = floor_route
             floor_envelope["evidence"] = envelope_evidence
+            if doorway_contract is not None:
+                floor_envelope["doorway"] = doorway_contract
             quality_floor["answer_envelope"] = floor_envelope
         quality_floor["evidence_validation"] = evidence_validation
         safe["gold_star_v2_quality_floor"] = quality_floor
