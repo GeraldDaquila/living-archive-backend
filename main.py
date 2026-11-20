@@ -14450,12 +14450,6 @@ async def _use_send_json(send, payload, status_code=200):
             payload = _apply_registered_personal_decision_agency_contract(
                 payload, _boundary_query
             )
-            # The shared JSON sender is the last common visitor boundary. Apply
-            # the bounded event/pattern/system-structure contract here as well
-            # as in the Guide finalizer so alternate routes and early returns
-            # cannot bypass the answer-first requirement.
-            from event_pattern_structure_contract import apply_event_pattern_structure_boundary
-            payload = apply_event_pattern_structure_boundary(_boundary_query, payload)
         # Provider and deterministic routes share one substantive quality floor.
         # Exact approved/candidate standards remain terminal and are never rewritten.
         if (
@@ -14638,6 +14632,19 @@ async def _use_send_json(send, payload, status_code=200):
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
             if _sender_doorway:
                 payload["doorway_omission_reason"] = None
+
+    # Last-mile answer-first enforcement belongs after every route and
+    # doorway policy, immediately before the shared response-integrity floor.
+    # This closes bypasses from alternate composers and prevents a later generic
+    # doorway selector from displacing the query-approved application destination.
+    if (
+        isinstance(payload, dict)
+        and _boundary_query
+        and _boundary_standard is None
+        and not _boundary_safety
+    ):
+        from event_pattern_structure_contract import apply_event_pattern_structure_boundary
+        payload = apply_event_pattern_structure_boundary(_boundary_query, payload)
 
     # Deterministic, safety, specialist, and provider routes share one
     # question/capability context and one integrity-floor implementation.
