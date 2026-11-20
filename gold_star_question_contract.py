@@ -65,8 +65,15 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         from deterministic_answer_recovery import (
             is_guide_meta_coverage_policy_question,
             build_guide_meta_coverage_policy_contract,
+            is_epistemic_category_distinction_question,
+            build_epistemic_category_distinction_contract,
         )
         meta_coverage_policy = is_guide_meta_coverage_policy_question(normalized)
+        epistemic_category_distinction = is_epistemic_category_distinction_question(normalized)
+        epistemic_distinction_contract = (
+            build_epistemic_category_distinction_contract()
+            if epistemic_category_distinction else None
+        )
         meta_governance_contract = (
             build_guide_meta_coverage_policy_contract()
             if meta_coverage_policy else None
@@ -74,6 +81,8 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     except Exception:
         meta_coverage_policy = False
         meta_governance_contract = None
+        epistemic_category_distinction = False
+        epistemic_distinction_contract = None
 
     task_candidate = (
         {"type": "guide_meta_coverage_policy"}
@@ -107,7 +116,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         },
         "domain": {"primary": "unknown", "subdomain": "unknown"},
         "stakes": {"level": "unknown", "consequence_of_error": "not_assessed"},
-        "requested_outcome": ("recover_existing_personal_reference" if personal_reference else ("critically_examine_archive_worldview" if reflexive_critique_plan else "unresolved")),
+        "requested_outcome": ("recover_existing_personal_reference" if personal_reference else ("critically_examine_archive_worldview" if reflexive_critique_plan else ("distinguish_evidence_interpretation_hypothesis_and_normative_judgment" if epistemic_category_distinction else "unresolved"))),
         "institutional_critique": {"detected": bool(reflexive_critique_plan), "target": "living_archive_worldview" if reflexive_critique_plan else "unresolved", "mode": "reflexive_institutional_critique" if reflexive_critique_plan else "not_applicable", "evaluation_dimensions": reflexive_critique_plan["evaluation_dimensions"] if reflexive_critique_plan else [], "anti_defensiveness_required": bool(reflexive_critique_plan), "evidence_boundary": "distinguish_archive_claims_from_independent_validation" if reflexive_critique_plan else "not_applicable", "answer_requirements": reflexive_critique_plan["answer_requirements"] if reflexive_critique_plan else [], "response_contract": reflexive_critique_plan["response_contract"] if reflexive_critique_plan else {}},
         "personal_reference": {
             "detected": personal_reference,
@@ -123,7 +132,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "no_external_research": no_external_research,
             "no_followup": no_handoff,
         },
-        "reasoning_mode": "critical_evaluation" if reflexive_critique_plan else "unresolved",
+        "reasoning_mode": "critical_evaluation" if reflexive_critique_plan else ("epistemic_category_distinction" if epistemic_category_distinction else "unresolved"),
         "evidence": {
             "standard": "route_to_determine",
             "provenance_required": True,
@@ -171,6 +180,32 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         }
         contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
         contract["meta_governance"] = meta_governance_contract
+    elif epistemic_category_distinction:
+        contract["domain"] = {
+            "primary": "epistemology_and_reasoning",
+            "subdomain": "evidence_interpretation_hypothesis_normative_judgment",
+        }
+        contract["requested_outcome"] = "distinguish_evidence_interpretation_hypothesis_and_normative_judgment"
+        contract["reasoning_mode"] = "epistemic_category_distinction"
+        contract["evidence"] = {
+            "standard": "bounded_epistemic_category_framework",
+            "provenance_required": False,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "whether_the_visitor_wants_a_field_specific_formal_definition"
+        ]
+        contract["response"] = {
+            "shape": "four_category_distinction_with_relationships",
+            "completion_criteria": [
+                "define_all_four_categories",
+                "distinguish_evidence_from_interpretation",
+                "distinguish_hypothesis_from_established_fact",
+                "make_values_and_normative_premises_explicit",
+                "explain_how_the_categories_constrain_one_another",
+                "include_a_concrete_example",
+            ],
+        }
+        contract["epistemic_distinction"] = epistemic_distinction_contract
 
     return contract
 

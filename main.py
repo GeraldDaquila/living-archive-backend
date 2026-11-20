@@ -10536,6 +10536,56 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "gold_star_question_contract": _build_gold_star_question_contract(query),
             "visitor_boundary_version": APP_VERSION,
         }
+    # Epistemic-category questions require an answer-first conceptual response.
+    # Resource discovery is a separate decision and must not replace the explanation.
+    from deterministic_answer_recovery import (
+        is_epistemic_category_distinction_question as _is_epistemic_category_distinction,
+        has_epistemic_category_distinction_explanation as _has_epistemic_category_distinction,
+        _epistemic_category_distinction_recovery as _epistemic_category_distinction_answer,
+    )
+    if _is_epistemic_category_distinction(query):
+        _answer = general_guide_composition.enforce_response_contracts(
+            query, _epistemic_category_distinction_answer()
+        )
+        if not _has_epistemic_category_distinction(_answer):
+            raise RuntimeError("Epistemic-category recovery failed its completeness contract.")
+        _request_id = "guide-epistemic-distinction-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        print(
+            "The Guide answer-first deterministic boundary: source=epistemic_category_distinction, "
+            "answer_retrieval_invoked=false, provider_invoked=false, resource_selection=separate"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_omission_reason": "Answer-first conceptual explanation; any Archive continuation must be independently verified.",
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "Epistemic category framework",
+                "explanation": "A general reasoning distinction, not an assertion of official Living Archive doctrine or a verdict on a particular claim.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "bounded_epistemic_category_distinction_recovery",
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            },
+            "processing": "guide_epistemic_category_distinction_deterministic",
+            "route_source": "guide_epistemic_category_early_boundary",
+            "recovery": "epistemic_category_distinction",
+            "gold_star_question_contract": _build_gold_star_question_contract(query),
+            "visitor_boundary_version": APP_VERSION,
+        }
     # Capability-evidence questions are answerable without retrieval or a live
     # provider. Resolve them before the provider bank so outages cannot replace
     # the requested evaluation framework with generic continuity prose.

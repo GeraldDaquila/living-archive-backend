@@ -140,6 +140,30 @@ def test_personal_stewardship_invitation_is_reflective_inquiry_not_definition_ca
     assert contract["uncertainty"]["classification_confidence"] == "not_scored"
 
 
+def test_epistemic_category_distinction_receives_a_dedicated_answer_first_contract():
+    query = "What counts as evidence, interpretation, hypothesis, and normative judgment?"
+    contract = build_question_contract(query)
+
+    assert contract["task"]["primary"] == "epistemic_category_distinction_candidate"
+    assert contract["domain"]["primary"] == "epistemology_and_reasoning"
+    assert contract["requested_outcome"] == "distinguish_evidence_interpretation_hypothesis_and_normative_judgment"
+    assert contract["reasoning_mode"] == "epistemic_category_distinction"
+    assert contract["response"]["shape"] == "four_category_distinction_with_relationships"
+    assert [item["id"] for item in contract["epistemic_distinction"]["categories"]] == [
+        "evidence", "interpretation", "hypothesis", "normative_judgment"
+    ]
+
+
+def test_epistemic_category_detector_does_not_capture_single_concept_questions():
+    from deterministic_answer_recovery import is_epistemic_category_distinction_question
+
+    assert not is_epistemic_category_distinction_question("What is evidence?")
+    assert not is_epistemic_category_distinction_question("Where can I find resources about interpretation?")
+    assert is_epistemic_category_distinction_question(
+        "How do evidence, interpretation, hypothesis, and value judgment differ?"
+    )
+
+
 def test_guide_meta_coverage_policy_receives_a_dedicated_governance_contract():
     query = "When should The Guide say 'the Archive does not yet address this directly'?"
     contract = build_question_contract(query)

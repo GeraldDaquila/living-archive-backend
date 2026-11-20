@@ -10,6 +10,10 @@ from typing import Any
 VERSION = "1.2"
 _PATTERNS = {
     "explicit_no_handoff": re.compile(r"\b(?:do not|don't|without|no)\b.{0,80}\b(?:links?|resources?|recommendations?|follow[- ]?up|next steps?|doorways?)\b", re.I),
+    "epistemic_category_distinction": re.compile(
+        r"(?=.*\bevidence\b)(?=.*\binterpretation\b)(?=.*\bhypothes(?:is|es)\b)(?=.*\b(?:normative judgment|value judgment|what ought)\b)"
+        r"(?=.*\b(?:what counts as|distinguish|difference|between|differ|separate)\b).*", re.I
+    ),
     "guide_meta_coverage_policy": re.compile(
         r"\b(?:when|under what conditions|what evidence|what standard)\b.{0,100}"
         r"\b(?:should|may|must)\b.{0,60}\b(?:the\s+)?guide\b.{0,100}"
@@ -31,7 +35,7 @@ def classify_question(query: str) -> dict[str, Any]:
     if not q:
         return {"version": VERSION, "type": "unknown", "confidence": "none"}
     # Explicit user constraints take precedence over generic task verbs.
-    for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
+    for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
             return {"version": VERSION, "type": kind, "confidence": "high"}
     return {"version": VERSION, "type": "unknown", "confidence": "none"}
@@ -92,6 +96,17 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             and not re.search(r"https?://|www\\.", answer, re.I)
         )
         add("no_archive_doorway_for_policy_question", no_doorway, "This is a Guide-policy question, not an Archive-resource request.")
+    elif kind == "epistemic_category_distinction":
+        category_checks = all((
+            _has(low, ("evidence",)) and _has(low, ("observation", "records", "measurements", "testimony")),
+            _has(low, ("interpretation",)) and _has(low, ("meaning", "context")),
+            _has(low, ("hypothesis",)) and _has(low, ("provisional", "testable", "investigated")),
+            _has(low, ("normative judgment",)) and _has(low, ("ought", "should", "values", "principles")),
+        ))
+        add("all_four_categories_defined", category_checks, "Define evidence, interpretation, hypothesis, and normative judgment distinctly.")
+        add("fact_value_boundary", _has(low, ("facts alone", "does not follow from facts", "evidence matters", "values and principles")), "Do not present a normative conclusion as if it followed from facts alone.")
+        add("categories_related_without_collapse", _has(low, ("evidence constrains", "hypothesis guides", "evidence to seek", "interpretation can suggest")), "Explain how the categories inform one another without treating them as interchangeable.")
+        add("concrete_application", _has(low, ("for example", "for instance", "a policy example", "in practice")), "Show how the distinctions operate in a concrete case.")
     elif kind == "technical_verification":
         add("presence_not_disclosure", _has(low, ("os.getenv", "os.environ", "environment variable")) and _has(low, ("is not none", "bool(", "presence check", "configured")), "Explain a boolean/presence check.")
         add("secret_not_printed", not _has(low, ("print(os.getenv", "print(os.environ", "logger.info(os.getenv", "logging the secret value")), "Do not expose secret values.")

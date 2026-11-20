@@ -3559,6 +3559,15 @@ def enforce_response_contracts(question: str, response: str) -> str:
         and not has_guide_meta_coverage_policy_explanation(candidate)
     ):
         candidate = _guide_meta_coverage_policy_recovery()
+    # Enforce the four-way epistemic distinction after every provider and recovery path.
+    # A retrieval miss must not displace an answerable general conceptual question.
+    from deterministic_answer_recovery import (
+        is_epistemic_category_distinction_question,
+        has_epistemic_category_distinction_explanation,
+        _epistemic_category_distinction_recovery,
+    )
+    if is_epistemic_category_distinction_question(question) and not has_epistemic_category_distinction_explanation(candidate):
+        candidate = _epistemic_category_distinction_recovery()
     # Enforce this task family after every provider and deterministic route.
     # A source/provenance limitation must not erase an answerable general concept.
     from deterministic_answer_recovery import (
