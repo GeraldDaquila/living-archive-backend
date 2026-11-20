@@ -192,7 +192,7 @@ def test_terminal_doorway_policy_recognizes_the_reviewed_conceptual_family():
         LIVE_QUESTION,
         {"response": "generic"},
     )
-    restored = main._guide_restore_verified_doorway(recovered, LIVE_QUESTION)
+    restored = main._guide_enforce_terminal_doorway_policy(recovered, LIVE_QUESTION)
     assert restored["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
     assert restored["doorway_selection_source"] == "reviewed_conceptual_family"
     assert restored["recommendation"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
