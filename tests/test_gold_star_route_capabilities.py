@@ -17,7 +17,7 @@ OBSERVED_GUIDE_ROUTES = (
     "guide_basic_inquiry_recovery",
     "guide_broad_conceptual_boundary",
     "guide_direct_attribute_fail_closed",
-    "guide_early_deterministic_boundary",
+    "guide_early_answer_boundary",\n    "guide_early_deterministic_boundary",
     "guide_meta_coverage_policy_early_boundary",
     "guide_epistemic_category_early_boundary",
     "guide_explicit_home_navigation",
@@ -137,4 +137,13 @@ def test_guide_meta_coverage_policy_early_route_has_a_narrow_non_navigational_ca
     assert "guide_meta_coverage_policy" in capability["supported_task_families"]
     assert "archive_resource_discovery" in capability["unsupported_task_families"]
     assert "no_archive_doorway" in capability["abstention_modes"]
+    assert capability["semantic_competence_certified"] is False
+
+def test_reflexive_critique_route_is_answer_first_and_keeps_archive_claims_bounded():
+    capability = route_capability("guide_early_answer_boundary")
+    assert capability["declaration_status"] == "declared"
+    assert capability["route_class"] == "answer_first_deterministic_method"
+    assert "reflexive_institutional_critique_method" in capability["supported_task_families"]
+    assert "verification_of_archive_specific_doctrinal_truth" in capability["unsupported_task_families"]
+    assert "archive_specific_claim_requires_source_evidence" in capability["abstention_modes"]
     assert capability["semantic_competence_certified"] is False
