@@ -36,5 +36,5 @@ def test_original_question_remains_available_to_answer_and_doorway_logic():
     handler = source[start:end]
 
     assert "_select_direct_attribute_doorway(\n            query," in handler
+    assert "composition_result = general_guide_composition.compose(\n                use_core=use_core,\n                query=query," in handler
     assert "_basic_inquiry_round1_deterministic_response(\n                                query," in handler
-    assert "query=query" not in handler or "query" in handler
