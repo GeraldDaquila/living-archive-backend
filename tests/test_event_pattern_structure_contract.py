@@ -37,3 +37,38 @@ def test_complete_answer_is_not_rewritten():
 def test_unrelated_payload_is_unchanged():
     payload = {"response": "An unrelated answer."}
     assert contract.apply_event_pattern_structure_boundary("What is photosynthesis?", payload) is payload
+
+
+def test_definition_and_relationship_paraphrases_are_recognized_without_broad_capture():
+    assert contract.is_event_pattern_structure_question(
+        "What are events, patterns, and system structures?"
+    )
+    assert contract.is_event_pattern_structure_question(
+        "How do events become patterns shaped by system structures?"
+    )
+    assert not contract.is_event_pattern_structure_question(
+        "What is a pattern in a poem?"
+    )
+
+
+def test_recovery_provenance_clears_unsupported_retrieval_evidence_and_preserves_doorway():
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    doorway = {"title": "Fractal Systems Diagnostic", "url": "https://geralddaquila.com/fractal-systems-diagnostic-2/"}
+    payload = {
+        "response": "A restatement, not an answer.",
+        "provider": "test-provider",
+        "model": "test-model",
+        "evidence": [{"title": "Unrelated source"}],
+        "recommendation": doorway,
+        "answer_envelope": {"route": {"provider_present": True, "model_present": True}, "evidence": {"references_present": True}},
+    }
+    result = contract.apply_event_pattern_structure_boundary(query, payload)
+    assert result["response_provenance"]["class"] == "deterministic_recovery"
+    assert result["response_provenance"]["provider"] == "bounded_event_pattern_structure_answer_first"
+    assert result["response_provenance"]["llm_invoked"] is True
+    assert result["provider"] is None and result["model"] is None
+    assert result["evidence"] == []
+    assert result["evidence_validation"]["status"] == "not_applicable"
+    assert result["answer_envelope"]["evidence"]["references_present"] is False
+    assert result["answer_envelope"]["route"]["provider_present"] is False
+    assert result["recommendation"] == doorway
