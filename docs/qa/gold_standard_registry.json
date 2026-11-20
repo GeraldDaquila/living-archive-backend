@@ -30,7 +30,7 @@
     },
     {
       "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
-      "status": "FROZEN_REFERENCE_ONLY",
+      "status": "SUPERSEDED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What does reciprocity mean in the Living Archive?",
       "expected_response": "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\nFor example, neighbors might take turns checking on an older resident or helping each other with errands. One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\nReciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger.",
@@ -52,7 +52,10 @@
         "source_status": "FROZEN_REFERENCE_ONLY",
         "caveat": "Recovered from an open, unmerged historical PR branch; not yet on main."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "superseded_by_benchmark_id": "general-guide-reciprocity-community-2026-10-24",
+      "supersession_class": "historical_reference_only",
+      "supersession_note": "Superseded on 2026-11-20 after review found the newer community-reciprocity answer materially stronger: it removes self-referential Archive framing, states the community purpose directly, clarifies support moving both ways over time despite unequal contributions, and strengthens the voluntary/non-coercive boundary. The original question and exact answer are retained unchanged for provenance; the new response answers a distinct but closely related question and is not substituted as the exact answer to the older query."
     },
     {
       "benchmark_id": "general-guide-stewardship-compound-2026-10",
@@ -1390,7 +1393,7 @@
         }
       },
       "rating": null,
-      "rating_out_of_10": null,
+      "rating_out_of_10": 9.5,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "assistant_assessment_out_of_10": 9.5,
@@ -1416,7 +1419,9 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The approval gate authorizes Gold Star elevation but does not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
-      "legacy_approval_grandfathered": false
+      "legacy_approval_grandfathered": false,
+      "supersedes_benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+      "supersession_scope": "Supersedes the older frozen reciprocity response as the general-purpose Guide's preferred community-reciprocity calibration. The older query and answer remain preserved as historical provenance; this newer answer is not claimed to be a verbatim answer to the older query."
     },
     {
       "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
