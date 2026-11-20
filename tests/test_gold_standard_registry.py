@@ -2349,6 +2349,6 @@ def test_trust_community_stewardship_candidate_matches_reviewable_fixture_withou
     assert record["expected_doorway"] == fixture["expected_doorway"]
     assert len(record["expected_response"].split(chr(10) * 2)) == 2
     assert record["rating_out_of_10"] is None
-    assert "explicitly approves" in record["freeze_policy"] or "explicitly approves" in fixture["approval_boundary"]
+    assert "explicit user approval" in record["freeze_policy"] or "Explicit user approval" in fixture["approval_boundary"]
     assert record.get("runtime_transfer") is not True
     assert "not asserted" in record["provenance"]["evidence_boundary"]
