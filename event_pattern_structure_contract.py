@@ -51,7 +51,12 @@ def has_event_pattern_structure_explanation(response: str) -> bool:
         text,
     ))
     example = bool(re.search(r"\b(?:for example|for instance|imagine)\b", text))
-    return has_event and has_pattern and has_structure and causal and example
+    causal_calibration = bool(re.search(
+        r"\b(?:not prove|not proved|does not prove|doesn't prove|not establish|"
+        r"does not by itself|not necessarily|other explanations|alternative explanations)\b",
+        text,
+    ))
+    return has_event and has_pattern and has_structure and causal and example and causal_calibration
 
 
 def event_pattern_structure_recovery() -> str:
