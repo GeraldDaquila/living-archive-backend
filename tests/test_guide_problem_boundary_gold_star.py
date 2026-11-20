@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from deterministic_answer_recovery import compose_task_specific_recovery
-from main import _normalize_authoritative_recommendation
+from main import _guide_restore_verified_doorway, _normalize_authoritative_recommendation
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs" / "qa" / "gold_standard_registry.json"
@@ -63,3 +63,26 @@ def test_main_early_task_route_preserves_a_verified_recovery_doorway():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert '"recommendation": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway"))' in source
     assert '"doorway_url": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("url") or _task_recovery.get("doorway_url") or "") or None' in source
+
+
+def test_shared_final_visitor_boundary_preserves_a_verified_task_recovery_doorway():
+    recovery = compose_task_specific_recovery(QUERY)
+    doorway = _normalize_authoritative_recommendation(recovery["recommendation"])
+    payload = {
+        "query": QUERY,
+        "response": recovery["response"],
+        "recommendation": doorway,
+        "canonical_doorway": doorway,
+        "doorway_title": doorway["title"],
+        "doorway_url": doorway["url"],
+        "doorway_rationale": doorway["rationale"],
+        "doorway_selection_source": "registered_task_recovery",
+        "doorway_selection_evaluated": True,
+        "route_source": "guide_early_deterministic_boundary",
+        "response_provenance": {"class": "deterministic_recovery"},
+    }
+    result = _guide_restore_verified_doorway(payload, QUERY)
+    assert result["recommendation"]["title"] == "Boundary Conditions"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/boundary-conditions/"
+    assert result["doorway_decision"] == "selected"
+    assert result["doorway_selection_source"] == "registered_task_recovery"
