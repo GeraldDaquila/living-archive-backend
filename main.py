@@ -4533,22 +4533,24 @@ def _is_trust_community_stewardship_question(query):
 
 
 def _trust_community_stewardship_recovery():
-    """Give a substantive three-paragraph explanation when provider inference is unavailable."""
+    """Explain trust as enabling infrastructure for accountable shared care."""
     return (
-        "Trust helps people in a community rely on one another without having to supervise "
-        "every small act. It makes cooperation possible: people can share knowledge, "
-        "coordinate work, honour commitments, and accept some vulnerability because they "
-        "have reason to expect competence, consistency, fairness, and reciprocity. Trust "
-        "is not simply believing that people mean well; it is confidence built through "
+        "Trust is what lets a community share responsibility without having to supervise "
+        "every action. Trust helps people in a community rely on one another without "
+        "having to supervise every small act. It makes cooperation possible: people can "
+        "share knowledge, coordinate work, honour commitments, and accept some vulnerability "
+        "because they have reason to expect competence, consistency, fairness, and reciprocity. "
+        "Trust is not simply believing that people mean well; it is confidence built through "
         "conduct, including honest communication, follow-through, and a willingness to "
-        "acknowledge when something has gone wrong.\n\n"
+        "acknowledge when something has gone wrong.\\n\\n"
         "Think of a shared garden. The soil, water, tools, and harvest are common concerns, "
         "but no one person can tend every bed or watch every action. People need confidence "
         "that others will contribute, that decisions about water and harvest will be fair, "
         "and that problems can be raised without punishment. Stewardship is tending the "
         "garden together: caring for what is shared, noticing what is being depleted, and "
         "making sure the conditions for future growth are not sacrificed for an immediate "
-        "private gain.\n\n"
+        "private gain. When a commitment is missed, people name what happened, listen to "
+        "its impact, and agree on a repair.\\n\\n"
         "That trust must not be blind. It is earned and renewed through observable "
         "practices: capable work, kept commitments, transparent decisions, fair distribution "
         "of costs and benefits, accountability when mistakes happen, and meaningful ways "
@@ -4558,6 +4560,7 @@ def _trust_community_stewardship_recovery():
         "cooperation and what communities can steward, continue with the Living Archive's "
         "[Trust Architecture cornerstone](https://geralddaquila.com/trust-architecture/)."
     )
+
 
 def _trust_community_stewardship_canonical_recommendation(query, context_data=None):
     """Return the approved, topic-matched doorway for this bounded concept."""
