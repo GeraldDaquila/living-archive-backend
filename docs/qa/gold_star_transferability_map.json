@@ -289,6 +289,9 @@
     },
     "stewardship_consent_relational_legitimacy": {
       "description": "Explain stewardship as entrusted responsibility and consent as a boundary on how that responsibility may involve other people's agency; distinguish care from authority and consultation from consent."
+    },
+    "complicated_vs_complex_conceptual_distinction": {
+      "description": "Clarify the difference between complicated systems that can be analyzed through decomposition and expertise, and complex systems shaped by adaptive interaction, feedback, and emergence."
     }
   },
   "entries": [
@@ -1362,13 +1365,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply that excluded factors are unimportant, exclude affected parties because they lack authority, or collapse the distinction between the chosen analytic scope and the wider system. Do not transfer the exact response or doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-complicated-complex-distinction",
+      "question": "What is the difference between complicated and complex?",
+      "family": "complicated_vs_complex_conceptual_distinction",
+      "structural_lesson": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to questions explicitly comparing complicated and complex concepts or close paraphrases. Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy; do not transfer the exact answer or doorway to unrelated queries."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
     "registry_content_sha": "12220238e431703f7cdbff1324b629b83e80cc07",
-    "qualitative_transfer_review_entries": 123,
-    "general_purpose_runtime_transfer_records": 119,
-    "map_entries": 119
+    "qualitative_transfer_review_entries": 124,
+    "general_purpose_runtime_transfer_records": 120,
+    "map_entries": 120
   }
 }
