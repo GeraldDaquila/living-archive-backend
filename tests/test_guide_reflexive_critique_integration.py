@@ -118,3 +118,16 @@ def test_critique_evidence_integrity_marks_empty_archive_evidence_unavailable():
     assert filtered["generation_authority_protected_docs"] == []
     assert filtered["context_blocks"] == ""
     assert filtered["evidence_sufficiency_unavailable"] is True
+
+
+def test_reflexive_critique_answer_boundary_precedes_retrieval_and_provider_paths():
+    source = Path("main.py").read_text(encoding="utf-8")
+    start = source.index("def _basic_inquiry_response(query")
+    end = source.index("\\ndef _v48831_basic_inquiry_seam_self_audit", start)
+    handler = source[start:end]
+    route = handler.index("_reflexive_critique_answer = _build_reflexive_critique_answer(query)")
+    retrieval = handler.index("context_data = use_core.fetch_canonical_context(resource_query)")
+    assert route < retrieval
+    assert "retrieval_invoked=false, provider_invoked=false" in handler[route:retrieval]
+    assert "len(_answer) < 1200" in handler[route:retrieval]
+    assert "resource_selection=separate" in handler[route:retrieval]
