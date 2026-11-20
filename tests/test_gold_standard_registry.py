@@ -1177,7 +1177,7 @@ def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new
     assert "No existing approved record" in policy["allocation_rule"]
     assert policy["does_not_change_adaptive_learning_identity"] is True
     assert registry["numbering_gap_register"] == []
-    allocation_85 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 86)
+    allocation_85 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
     allocation_86 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 86)
     assert allocation_85["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
     assert allocation_86["benchmark_id"] == "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
@@ -1186,7 +1186,7 @@ def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new
     assert allocation_85["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
     assert allocation_86["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
     assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 2
-    assert next(r for r in registry["records"] if r.get("gold_star_number") == 86)["benchmark_id"] == allocation_85["benchmark_id"]
+    assert next(r for r in registry["records"] if r.get("gold_star_number") == 85)["benchmark_id"] == allocation_85["benchmark_id"]
     assert next(r for r in registry["records"] if r.get("gold_star_number") == 86)["benchmark_id"] == allocation_86["benchmark_id"]
 
 
@@ -1566,7 +1566,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     registry = _registry()
     record = next(item for item in registry["records"] if item["benchmark_id"] == fixture["benchmark_id"])
     assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["gold_star_number"] == fixture["gold_star_number"] == 86
+    assert record["gold_star_number"] == fixture["gold_star_number"] == 85
     assert record["numbering_status"] == "ASSIGNED"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
@@ -1755,7 +1755,7 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
     assert len(assigned) + len(unassigned) == len(approved)
     assert "125 approved Gold Stars" in narrative
     assert "39 assigned display serials" in narrative
-    assert "85 approved records explicitly UNASSIGNED" in narrative
+    assert "86 approved records explicitly UNASSIGNED" in narrative
     assert "99 approved Gold Stars" not in narrative
     assert "61 approved records explicitly UNASSIGNED" not in narrative
 
