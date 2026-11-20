@@ -8,6 +8,10 @@ on:
       - "general_guide_composition.py"
       - "institutional_extraction_incentives_contract.py"
       - "tests/test_institutional_extraction_incentives_contract.py"
+      - "tests/test_gold_standard_registry.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - "docs/qa/GOLD_STANDARD_REGISTRY.md"
       - ".github/workflows/institutional-extraction-qa.yml"
   push:
     branches: [fix/institutional-extraction-incentive-contract]
