@@ -48,7 +48,7 @@ def test_reflexive_critique_plan_requires_a_direct_answer_even_with_no_sources()
 def test_reflexive_critique_cannot_be_overwritten_by_subject_discovery():
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_response(query")
-    end = source.index("\\ndef _v48831_basic_inquiry_seam_self_audit", start)
+    end = source.index("def _v48831_basic_inquiry_seam_self_audit", start)
     handler = source[start:end]
     plan = handler.index("_reflexive_critique_plan = _build_reflexive_critique_plan(query)")
     suppress = handler.index("discovery_subject = \"\"", plan)
