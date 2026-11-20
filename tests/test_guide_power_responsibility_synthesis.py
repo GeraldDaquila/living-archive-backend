@@ -41,3 +41,8 @@ def test_final_boundary_and_shared_composer_contract_are_wired():
     assert "final_visitor_boundary_power_responsibility_synthesis" in main
     assert "RELATIONAL SYNTHESIS CONTRACT" in composition
     assert "excerpts are evidence, not the answer" in composition
+    assert 'safe["response_provenance"] = _final_response_provenance' in main
+    assert '"class": "deterministic_by_design"' in main
+    assert 'safe["answer_basis"] = _final_answer_basis' in main
+    assert 'safe["evidence"] = []' in main
+    assert '"source_evidence=not_attributed"' in main
