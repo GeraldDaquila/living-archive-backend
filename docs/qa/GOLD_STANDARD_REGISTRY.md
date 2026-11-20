@@ -862,3 +862,16 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Adaptive-learning boundary:** Transfer the evidence-calibration discipline only. Do not transfer the exact answer to unrelated questions, overstate what sources were checked, or infer a corpus-wide gap from incomplete retrieval.
 - **Numbering:** `UNASSIGNED`; no display serial was separately requested.
 - **Freeze policy:** Preserve the exact approved response and intentional no-doorway exception. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Registry candidate — doorway non-selection evidence governance (2026-11-20)
+
+- **Benchmark:** `general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20`
+- **Status:** `CANDIDATE`; not an approved Gold Star and not active runtime-learning authority.
+- **Response:** The complete supplied response distinguishing evidence, interpretation, hypothesis, and normative judgment is preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Assessment:** 9.4/10 for substantive response quality. This is an assistant assessment, not a user-supplied rating or Gold Star approval.
+- **Doorway state:** `NOT_EVALUATED`. The response contains no doorway, but no canonical-candidate retrieval trace, source inspection, or selector decision record was supplied. The absence is not certified as intentional abstention.
+- **Governance principle:** A complete answer does not create an automatic obligation to attach a resource. However, a missing doorway is not evidence of successful restraint. The selector must distinguish a verified relevant destination, an authorized omission under the existing doorway contract, and a process failure in which selection or source verification did not occur.
+- **Existing-contract boundary:** This candidate does not expand the authorized reasons for omission or override the approved general-continuation rule. It requires the selector to document the actual evaluation and apply existing omission authority rather than inventing a new exception.
+- **Promotion gate:** Exact visitor query, canonical candidate evaluation, source-inspection evidence, applicable omission authority, regression tests, and user-reviewed live behavior must be established before any Gold Star or runtime-transfer promotion.
+- **Numbering:** Not applicable while candidate; no serial allocated.
