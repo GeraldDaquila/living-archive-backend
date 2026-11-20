@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.312 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION: v489.313 — Bounded Pinecone retrieval budget
 # Preserve the redacted request-boundary contract used by provider diagnostics.
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
@@ -155,7 +155,7 @@ else:
 # Runtime provenance must identify the source actually serving requests.
 # Human release labels may remain stable across commits, but acceptance and
 # forensics must never mistake a label for the deployed source revision.
-APP_VERSION = "v489.312"
+APP_VERSION = "v489.313"
 _DEPLOYED_SOURCE_COMMIT = (
     os.getenv("RENDER_GIT_COMMIT")
     or os.getenv("GIT_COMMIT")
@@ -163,12 +163,12 @@ _DEPLOYED_SOURCE_COMMIT = (
     or "source-commit-unavailable"
 )
 # Stable release identity retained for canonical QA and human release tracing.
-DEPLOYMENT_FINGERPRINT = "USE-v489.312-source-derived"
+DEPLOYMENT_FINGERPRINT = "USE-v489.313-source-derived"
 # Runtime provenance is intentionally separate from the stable release identity.
 # The deployed source revision is the authoritative request-to-deployment key.
 RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
 # Canonical build ID remains a stable release-contract identity.
-CANONICAL_BUILD_ID = "USE-BUILD-v489.312-canonical"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.313-canonical"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -897,7 +897,7 @@ RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Preserve the canonical release-label invariant while source revision remains
 # a separate provenance identity.
-if str(APP_VERSION) != "v489.312":
+if str(APP_VERSION) != "v489.313":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 # Runtime provenance integrity is a startup invariant. Release labels and
 # source revisions are deliberately separate identities.
@@ -6021,6 +6021,35 @@ def _guide_restore_verified_doorway(payload, query):
         )
         safe["doorway_omission_reason"] = safe["doorway_omission_exception_reason"]
         return safe
+
+    # A registered deterministic task recovery may already have selected a
+    # canonical destination from the Guide's reviewed task contract. Preserve
+    # that validated pair at the shared visitor boundary; do not discard it and
+    # then re-run an unrelated generic selector simply because retrieval was
+    # intentionally bypassed.
+    trusted_task_selection = (
+        safe.get("route_source") == "guide_early_deterministic_boundary"
+        and safe.get("doorway_selection_source") == "registered_task_recovery"
+        and safe.get("doorway_selection_evaluated") is True
+        and isinstance(safe.get("response_provenance"), dict)
+        and safe["response_provenance"].get("class") == "deterministic_recovery"
+    )
+    if trusted_task_selection:
+        task_doorway = _normalize_authoritative_recommendation(
+            safe.get("recommendation") or safe.get("canonical_doorway")
+        )
+        if task_doorway is not None:
+            safe["recommendation"] = task_doorway
+            safe["canonical_doorway"] = task_doorway
+            safe["doorway_title"] = task_doorway.get("title")
+            safe["doorway_url"] = task_doorway.get("url")
+            safe["doorway_rationale"] = task_doorway.get("rationale")
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "registered_task_recovery"
+            safe["doorway_omission_reason"] = None
+            return safe
 
     selection_trace = {"status": "NOT_EVALUATED", "canonical_search_attempted": False}
     family = _select_verified_doorway_conceptual_family(query)
@@ -11277,6 +11306,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip():
         _task_answer = str(_task_recovery["response"]).strip()
         _no_handoff = _guide_query_explicitly_forbids_handoff(query)
+        _task_doorway = (
+            None if _no_handoff else _normalize_authoritative_recommendation(
+                _task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")
+            )
+        )
         _request_id = "task-recovery-" + hashlib.sha1(
             (query + "|" + str(_task_recovery.get("recovery_id") or "")).encode("utf-8")
         ).hexdigest()[:16]
@@ -11293,15 +11327,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "query": query,
             "intent": "TOPICAL_INQUIRY",
             "response": _task_answer,
-            "recommendation": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")),
-            "canonical_doorway": _normalize_authoritative_recommendation(_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")),
-            "doorway_title": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("title") or _task_recovery.get("doorway_title") or "") or None,
-            "doorway_url": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("url") or _task_recovery.get("doorway_url") or "") or None,
-            "doorway_rationale": str((_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway") or {}).get("rationale") or _task_recovery.get("doorway_rationale") or "") or None,
-            "doorway_decision": "omit" if _no_handoff else ("select" if (_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")) else "omit"),
+            "recommendation": _task_doorway,
+            "canonical_doorway": _task_doorway,
+            "doorway_title": _task_doorway.get("title") if _task_doorway else None,
+            "doorway_url": _task_doorway.get("url") if _task_doorway else None,
+            "doorway_rationale": _task_doorway.get("rationale") if _task_doorway else None,
+            "doorway_decision": "selected" if _task_doorway else "omit",
+            "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION" if _task_doorway else "NOT_EVALUATED",
+            "doorway_selection_evaluated": bool(_task_doorway),
+            "doorway_selection_source": "registered_task_recovery" if _task_doorway else "no_verified_task_doorway",
             "doorway_omission_reason": (
                 "visitor_explicitly_forbids_handoff"
-                if _no_handoff else ("no_verified_direct_archive_continuation" if not (_task_recovery.get("recommendation") or _task_recovery.get("canonical_doorway")) else None)
+                if _no_handoff else ("no_verified_direct_archive_continuation" if not _task_doorway else None)
             ),
             "answer_basis": {
                 "kind": "general_knowledge",
