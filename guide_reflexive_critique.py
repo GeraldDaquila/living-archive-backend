@@ -32,7 +32,7 @@ _DIMENSIONS = [
     "state_what_evidence_would_change_the_assessment",
 ]
 _ANSWER_REQUIREMENTS = [
-    "open_with_a_direct_answer_defining_good_faith_critique",
+    "define_good_faith_critique_in_direct_answer_to_the_visitor",
     "explain_operational_tests_not_merely_list_topics",
     "reconstruct_the_archive_claim_before_evaluating_it",
     "separate_descriptive_empirical_normative_and_metaphysical_claims",
@@ -95,8 +95,7 @@ def build_reflexive_critique_plan(query: str) -> dict[str, Any] | None:
             ],
             "retrieval_role": "evidence_for_application_not_a_substitute_for_the_answer",
             "fallback": (
-                "Give the full general methodological answer; explicitly bound or omit "
-                "Archive-specific factual judgments when substantive evidence is absent."
+                "answer_the_general_methodological_question_and_bound_archive_specific_claims"
             ),
             "forbidden_substitutes": [
                 "resource_catalogue_summary",
