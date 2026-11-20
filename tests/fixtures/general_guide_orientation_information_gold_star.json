@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "gs-2026-11-20-orientation-vs-information-practical-distinction",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "What does “orientation rather than information” mean in practice?",
+  "expected_response": "Information gives you facts, data, or claims. Orientation helps you understand what that information means in the situation you are actually facing: what matters, what is reliable, how the relevant parts relate, and what responsibilities or possible actions follow. Orientation uses information; it does not reject it. It connects what you know to the context in which you must judge and act.\n\nFor example, an AI system may give you a fluent, detailed answer. The text is information, but orientation means asking whether its claims are reliable and adequately supported, whether they address the real question, what important context or consequences may be missing, and what should responsibly be done with the answer. A confident response is not a substitute for human judgment.\n\nThis is the distinction developed in the Living Archive Cornerstone “When Knowledge Is Everywhere”: the aim is not simply to accumulate more knowledge, but to cultivate orientation, judgment, discernment, responsibility, and wise participation in complex systems. Orientation does not eliminate ambiguity; it makes ambiguity more navigable.",
+  "expected_doorway_title": "When Knowledge Is Everywhere",
+  "expected_doorway_url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+  "expected_doorway_rationale": "The answer explicitly develops the distinction through this canonical Cornerstone; the Continue Exploring card offers the directly relevant next step without displacing the substantive answer.",
+  "rating_out_of_10": 9.5,
+  "numbering_status": "UNASSIGNED"
+}
