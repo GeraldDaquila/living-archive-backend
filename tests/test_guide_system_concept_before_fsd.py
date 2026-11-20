@@ -13,3 +13,114 @@ def test_recovery_answers_concept_with_three_paragraphs():
     assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     for term in ("parts", "feedback", "whole", "separate problems", "FSD"):
         assert term.casefold() in answer.casefold()
+
+
+def test_event_pattern_structure_is_answered_before_fsd_application():
+    from event_pattern_structure_contract import (
+        apply_event_pattern_structure_boundary,
+        event_pattern_structure_recovery,
+        has_event_pattern_structure_explanation,
+    )
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    payload = {
+        "response": "Your question asks what the difference is. Continue exploring.",
+        "recommendation": {
+            "title": "Fractal Systems Diagnostic",
+            "url": "https://geralddaquila.com/fractal-systems-diagnostic-2/",
+        },
+    }
+    result = apply_event_pattern_structure_boundary(query, payload)
+    assert has_event_pattern_structure_explanation(result["response"])
+    assert result["response"] == event_pattern_structure_recovery()
+    assert result["recommendation"]["title"] == payload["recommendation"]["title"]
+    assert result["recommendation"]["url"] == payload["recommendation"]["url"]
+    assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
+
+
+def test_event_pattern_structure_does_not_overwrite_a_complete_answer():
+    from event_pattern_structure_contract import (
+        apply_event_pattern_structure_boundary,
+        event_pattern_structure_recovery,
+    )
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    answer = event_pattern_structure_recovery()
+    result = apply_event_pattern_structure_boundary(query, {"response": answer})
+    assert result["response"] == answer
+    assert "event_pattern_structure_contract" not in result
+
+
+def test_live_visitor_finalizer_enforces_answer_before_fsd_and_keeps_the_doorway_separate():
+    from main import _guide_finalize_visitor_payload, _resolve_exact_guide_gold_standard
+    from event_pattern_structure_contract import has_event_pattern_structure_explanation
+
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    assert _resolve_exact_guide_gold_standard(query) is None
+    result = _guide_finalize_visitor_payload(
+        {
+            "response": "Your question asks about three concepts. Continue to the diagnostic.",
+            "provider": "test-provider",
+            "model": "test-model",
+        },
+        query,
+    )
+    assert has_event_pattern_structure_explanation(result["response"])
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+    assert result["answer_basis"]["kind"] == "general_knowledge"
+    assert result["response_provenance"]["class"] == "deterministic_recovery"
+    assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
+
+
+def test_shared_json_sender_enforces_event_pattern_structure_after_route_bypasses():
+    import asyncio
+    import json
+    from main import _use_send_json
+    from event_pattern_structure_contract import (
+        event_pattern_structure_recovery,
+        has_event_pattern_structure_explanation,
+    )
+
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    payload = {
+        "query": query,
+        "response": "Your question asks about three concepts. Continue exploring.",
+        "provider": "test-provider",
+        "model": "test-model",
+        "route_source": "test_alternate_route",
+    }
+    asyncio.run(_use_send_json(capture, payload))
+
+    body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+    assert has_event_pattern_structure_explanation(result["response"])
+    assert result["response"] == event_pattern_structure_recovery()
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+    assert result["response_provenance"]["class"] == "deterministic_recovery"
+    assert result["gold_star_v2_quality_floor"]["status"] == "pass"
+
+
+def test_shared_json_sender_preserves_safety_priority():
+    import asyncio
+    import json
+    from main import _use_send_json
+
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    asyncio.run(_use_send_json(capture, {
+        "query": "What is the difference between an event, a pattern, and a system structure?",
+        "intent": "SAFETY_INTERRUPT",
+        "response": "Safety response takes priority.",
+    }))
+    body = next(message["body"] for message in sent if message.get("type") == "http.response.body")
+    safety = json.loads(body.decode("utf-8"))
+    assert safety["response"] == "Safety response takes priority."
+    assert "event_pattern_structure_contract" not in safety

@@ -324,3 +324,20 @@ def test_collapse_adaptation_regeneration_gold_star_is_active_structural_learnin
     # Another previously approved analogue may qualify independently; this
     # exemplar itself remains explicitly ineligible for deterministic fallback.
     assert deterministic is None or deterministic["benchmark_id"] != result["benchmark_id"]
+
+
+def test_event_pattern_structure_gold_star_is_active_bounded_structural_learning():
+    query = "What is the difference between an event, a pattern, and a system structure?"
+    selected = lessons.select_lesson(query)
+    assert selected is not None
+    assert selected["benchmark_id"] == "gs-2026-11-20-event-pattern-system-structure-answer-first"
+    assert selected["exact"] is True
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == selected["benchmark_id"]
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["discipline"]
+    assert contribution["abstention_boundary"]
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
+    assert lessons.deterministic_fallback_contribution(query) is None

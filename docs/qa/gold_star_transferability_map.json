@@ -280,6 +280,12 @@
     },
     "power_responsibility_proportional_accountability": {
       "description": "Explain how responsibility scales with actual influence and how accountability gives power legitimate limits and purpose."
+    },
+    "event_pattern_system_structure_distinction": {
+      "description": "Answer the distinction among event, pattern, and system structure directly; trace how underlying arrangements can shape recurring patterns without inferring a single cause from recurrence alone."
+    },
+    "institutional_extraction_incentive_governance": {
+      "description": "Diagnose how institutional rules distribute rewards, depletion, delayed costs, authority, and voice; redesign incentives with accountable measures, affected-party participation, independent review, and testable correction."
     }
   },
   "entries": [
@@ -1317,13 +1323,31 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-event-pattern-system-structure-answer-first",
+      "question": "What is the difference between an event, a pattern, and a system structure?",
+      "family": "event_pattern_system_structure_conceptual_distinction",
+      "structural_lesson": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only when the visitor asks to distinguish events, patterns, and system structures or a close conceptual paraphrase. Do not infer a single cause from repeated events, present a plausible mechanism as established fact, or transfer the exact answer or Fractal Systems Diagnostic doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-institutional-extraction-incentive-governance",
+      "question": "How should a leader respond when institutional incentives reward short-term extraction?",
+      "family": "institutional_extraction_incentive_governance",
+      "structural_lesson": "Diagnose incentive structures and the distribution of gains and delayed costs; redesign governance and measures to support long-term capacity and replenishment; align authority with responsibility; protect dissent and independent review; test changes through bounded pilots and observable outcomes; distinguish leader-level authority from governing-body mandate.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to questions about leadership responses to institutional incentives that reward short-term extraction or depletion. Do not reduce structural incentives to individual virtue, assume a leader has unilateral authority to redesign institutional rules, prescribe one universal metric set, or transfer this exact answer or doorway to unrelated questions."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "bbc34ddb64d83471980a6f5600fa1e4eee81d31e",
-    "qualitative_transfer_review_entries": 119,
-    "general_purpose_runtime_transfer_records": 115,
-    "map_entries": 115
+    "registry_content_sha": "7b1933b0b03f5db307e95bf059793e465dd5b4a3",
+    "qualitative_transfer_review_entries": 121,
+    "general_purpose_runtime_transfer_records": 117,
+    "map_entries": 117
   }
 }

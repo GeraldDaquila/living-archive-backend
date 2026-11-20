@@ -7700,6 +7700,27 @@ def _guide_finalize_visitor_payload(payload, query):
     return safe
 
 
+# Keep the event/pattern/system-structure contract outside the legacy visitor
+# finalizer. That function has many specialist early returns; wrapping it here
+# guarantees the answer-first floor runs after every non-safety, non-exact-Gold-
+# Star path rather than being bypassed by a later specialist recovery.
+_guide_finalize_visitor_payload_inner = _guide_finalize_visitor_payload
+
+
+def _guide_finalize_visitor_payload(payload, query):
+    finalized = _guide_finalize_visitor_payload_inner(payload, query)
+    if not isinstance(finalized, dict):
+        return finalized
+    if str(finalized.get("intent") or "").strip().upper() in {
+        "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
+    }:
+        return finalized
+    if _resolve_exact_guide_gold_standard(query) is not None:
+        return finalized
+    from event_pattern_structure_contract import apply_event_pattern_structure_boundary
+    return apply_event_pattern_structure_boundary(query, finalized)
+
+
 _BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
     "A partial source sentence … [evidence excerpt bounded by USE]"
 )
@@ -14611,6 +14632,19 @@ async def _use_send_json(send, payload, status_code=200):
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
             if _sender_doorway:
                 payload["doorway_omission_reason"] = None
+
+    # Last-mile answer-first enforcement belongs after every route and
+    # doorway policy, immediately before the shared response-integrity floor.
+    # This closes bypasses from alternate composers and prevents a later generic
+    # doorway selector from displacing the query-approved application destination.
+    if (
+        isinstance(payload, dict)
+        and _boundary_query
+        and _boundary_standard is None
+        and not _boundary_safety
+    ):
+        from event_pattern_structure_contract import apply_event_pattern_structure_boundary
+        payload = apply_event_pattern_structure_boundary(_boundary_query, payload)
 
     # Deterministic, safety, specialist, and provider routes share one
     # question/capability context and one integrity-floor implementation.

@@ -1076,6 +1076,15 @@
       "qualifying_context": "Visitors asking how a leader should respond when an institution rewards short-term returns through depletion, externalized costs, or incentives that undermine long-term organizational, social, or ecological capacity.",
       "abstention_boundary": "Do not apply to ordinary personal productivity or generic leadership questions without institutional extraction incentives. Do not assume unilateral authority, impose universal metrics, treat all production as extraction, or transfer the exact answer or doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-event-pattern-system-structure-answer-first",
+      "question": "What is the difference between an event, a pattern, and a system structure?",
+      "reasoning_family": "event_pattern_system_structure_conceptual_distinction",
+      "transferable_discipline": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
+      "qualifying_context": "Visitors explicitly asking to distinguish events, recurring patterns, and system structures or close paraphrases.",
+      "abstention_boundary": "Do not infer a single cause from repeated events, over-apply this conceptual distinction to unrelated questions, or use a diagnostic doorway instead of answering.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
