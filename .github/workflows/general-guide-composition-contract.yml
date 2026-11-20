@@ -54,7 +54,7 @@ on:
       - "docs/qa/gold_standard_registry.json"
       - "scripts/qa/report_gold_standard_registry.py"
       - "tests/test_gold_standard_registry.py"
-      - "tests/test_guide_terminal_doorway_omission.py"
+      - "tests/test_guide_terminal_doorway_omission.py tests/test_guide_power_responsibility_synthesis.py"
       - "tests/test_regeneration_invitation_discernment_gold_star.py"
       - "tests/test_gold_star_structural_change_direct_answer.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
