@@ -9043,7 +9043,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "reducing waste and unnecessary extraction through reuse, repair, renewal, and recovery. "
                 "Regeneration asks the broader question of whether a system restores and renews the "
                 "ecological, social, and institutional conditions on which it depends. "
-                "\\n\\n"
+                "\n\n"
                 "The distinction matters because a system can become more circular without becoming "
                 "regenerative: resources may circulate more efficiently while deeper patterns of depletion "
                 "or damage remain unchanged. Circularity can therefore contribute to regeneration, but it "
