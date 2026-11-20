@@ -6330,6 +6330,51 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Stewardship under incomplete knowledge is a final visitor-boundary
+    # contract, not only a provider prompt. Provider exhaustion and legacy
+    # deterministic recovery must answer the same practical decision question.
+    from guide_incomplete_knowledge import (
+        build_incomplete_knowledge_plan,
+        build_incomplete_knowledge_recovery,
+        incomplete_knowledge_response_meets_contract,
+    )
+    incomplete_knowledge_plan = build_incomplete_knowledge_plan(query)
+    if incomplete_knowledge_plan is not None:
+        current_response = str(payload.get("response") or payload.get("answer") or "").strip()
+        if not incomplete_knowledge_response_meets_contract(current_response):
+            recovery = build_incomplete_knowledge_recovery(query)
+            if not isinstance(recovery, dict) or not str(recovery.get("response") or "").strip():
+                raise RuntimeError("Incomplete-knowledge final boundary could not build its bounded recovery.")
+            safe = dict(payload)
+            safe["response"] = recovery["response"]
+            if "answer" in safe:
+                safe["answer"] = recovery["response"]
+            safe["response_provenance"] = {
+                "class": "deterministic_recovery",
+                "provider": "bounded_stewardship_under_incomplete_knowledge_recovery",
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            }
+            safe["provider"] = None
+            safe["model"] = None
+            safe["answer_basis"] = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": (
+                    "This is a bounded decision method for acting under uncertainty. "
+                    "The separately selected canonical doorway is a related continuation, "
+                    "not proof for every statement in the answer."
+                ),
+            }
+            safe["evidence"] = []
+            safe["processing"] = "final_visitor_boundary_stewardship_incomplete_knowledge_recovery"
+            safe["route_source"] = "guide_final_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            safe = _guide_reconcile_verified_doorway_recovery(safe)
+            print("The Guide final visitor boundary: enforced stewardship-under-incomplete-knowledge recovery.")
+            return safe
+
     # Personal-reference requests are retrieval tasks, not unfamiliar-term
     # definition requests. This shared finalizer protects LLM, deterministic,
     # and specialist routes from the known generic-definition failure mode.
