@@ -832,6 +832,8 @@ def _trust_community_stewardship_recovery():
         "continue with the Living Archive's [Trust Architecture cornerstone]("
         "https://geralddaquila.com/trust-architecture/)."
     )
+
+
 def is_spiritual_community_accountability_question(question):
     """Recognize spiritual-community questions that explicitly pair charismatic authority with weak accountability."""
     q = _clean(question).casefold()
