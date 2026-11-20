@@ -7848,8 +7848,15 @@ def _guide_finalize_visitor_payload(payload, query):
     if _resolve_exact_guide_gold_standard(query) is not None:
         return finalized
     from event_pattern_structure_contract import apply_event_pattern_structure_boundary
-    # final_visitor_boundary_stewardship_consent_relational_contract
+    from complicated_complex_distinction_contract import (
+        apply_complicated_complex_distinction_boundary,
+    )
+    # Keep conceptual distinction recovery at the shared final visitor boundary,
+    # after every provider/specialist route and before downstream relationship rules.
     finalized = apply_event_pattern_structure_boundary(query, finalized)
+    finalized = apply_complicated_complex_distinction_boundary(query, finalized)
+    # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
+    # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
         return _apply_stewardship_consent_relationship_boundary(query, finalized)
     return finalized

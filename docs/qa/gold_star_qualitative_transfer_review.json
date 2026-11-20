@@ -1103,6 +1103,15 @@
       "qualifying_context": "Visitors asking how to frame a problem, define analytical or system boundaries, decide what belongs inside or outside scope, or account for dependencies, externalities, affected parties, time horizons, and evidence limits.",
       "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply excluded factors are unimportant, exclude affected parties because they lack decision authority, collapse analytical scope into the wider system, or assume causal relationships without evidence. Do not transfer the exact answer or its doorway to unrelated questions; do not grant exact-answer authority or deterministic fallback eligibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-complicated-complex-distinction",
+      "question": "What is the difference between complicated and complex?",
+      "reasoning_family": "complicated_vs_complex_conceptual_distinction",
+      "transferable_discipline": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
+      "qualifying_context": "Visitors explicitly comparing complicated and complex systems, problems, or situations, including close paraphrases that ask how the concepts differ or can be distinguished.",
+      "abstention_boundary": "Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy. Do not trigger on incidental co-mentions or transfer the exact answer or Structural Frameworks doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
