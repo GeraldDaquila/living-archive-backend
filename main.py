@@ -7009,6 +7009,7 @@ def _guide_finalize_visitor_payload(payload, query):
     # conceptual-relationship classifier used by earlier layers.
     from deterministic_answer_recovery import (
         is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
         _guide_meta_coverage_policy_recovery,
     )
     _outer_registered_recovery = (
@@ -7042,6 +7043,10 @@ def _guide_finalize_visitor_payload(payload, query):
         general_guide_composition.is_generic_nonanswer(query, response_text)
         or general_guide_composition.is_meta_answer_failure(response_text)
         or _outer_legacy_abstention
+        or (
+            is_guide_meta_coverage_policy_question(query)
+            and not has_guide_meta_coverage_policy_explanation(response_text)
+        )
     )
     if _outer_registered_recovery_valid and _outer_response_failure:
         safe = dict(payload)
