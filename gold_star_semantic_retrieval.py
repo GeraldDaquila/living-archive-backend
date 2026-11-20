@@ -31,7 +31,7 @@ def _lesson_vectors():
     lessons = _LESSON_SOURCE()
     model = _model()
     texts = [
-        "passage: " + " | ".join((
+        " | ".join((
             str(item.get("query") or ""),
             str(item.get("known_theme") or ""),
             str(item.get("reasoning_family") or ""),
@@ -57,7 +57,7 @@ def rank_semantic_lessons(query: str, candidates: List[Dict[str, Any]]) -> Dict[
     if not candidates:
         return {}
     model = _model()
-    query_text = "query: " + str(query)
+    query_text = str(query)
     if hasattr(model, "query_embed"):
         query_embedding = next(iter(model.query_embed([query_text])))
     else:
