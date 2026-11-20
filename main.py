@@ -10737,18 +10737,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     if concept_subject and not correction_subject:
         discovery_subject = concept_subject
+    # Keep the evidence/subject query separate from the candidate-retrieval
+    # formulation. Expanded retrieval may improve recall, but must never relax
+    # the original-question relevance and evidence-sufficiency gates below.
     resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    retrieval_query = resource_query
     # Multi-axis epistemic questions need relational retrieval, not a flat bag
-    # of four terms. The plan changes only the retrieval formulation: the
-    # visitor's original question remains authoritative for composition,
-    # evidence grading, and final doorway adjudication.
+    # of four terms. Only the initial candidate-retrieval formulation changes;
+    # composition, evidence grading, and doorway adjudication retain the
+    # visitor's original question (or the existing explicit subject correction).
     _epistemic_retrieval_plan = _build_epistemic_retrieval_plan(query)
     if _epistemic_retrieval_plan and not correction_subject and not source_trace_request:
-        resource_query = _epistemic_retrieval_plan["retrieval_query"]
+        retrieval_query = _epistemic_retrieval_plan["retrieval_query"]
     # Check the published Glossary before vector/canonical Archive retrieval.
     # Carry the exact source snapshot into composition to avoid a second fetch.
     glossary_documents, glossary_instruction = general_guide_composition.resolve_glossary_context(query)
-    context_data = use_core.fetch_canonical_context(resource_query)
+    context_data = use_core.fetch_canonical_context(retrieval_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
     context_data["_canonical_glossary_checked"] = True
