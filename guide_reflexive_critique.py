@@ -63,7 +63,7 @@ def build_reflexive_critique_plan(query: str) -> dict[str, Any] | None:
         "and uncertainty; knowledge and evidence; agency and interdependence; systems; "
         "stewardship and responsibility; and human change. Prefer direct definitions, "
         "principles, assumptions, qualifications, limits, and constitutional or "
-        "cornerstone source passages. Exclude WordPress media records, image captions, "
+        "constitutional or cornerstone texts and source passages. Exclude WordPress media records, image captions, "
         "header or featured-image metadata, attachment descriptions, alt text, URLs, "
         "navigation labels, site boilerplate, and markup fragments. Exclude unrelated "
         "applied examples about commons contributions, resource sharing, or group "
