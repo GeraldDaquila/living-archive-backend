@@ -20,6 +20,7 @@ from gold_star_evidence_validation import validate_evidence_payload
 
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
+SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure"})
 ANSWER_KEYS = ("response", "answer")
 NON_ANSWER_MARKERS = (
     "i cannot answer that question",
@@ -161,6 +162,38 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     # Shadow diagnostics are metadata only. A semantic hard failure is not
     # promoted into the v2 enforcement status and cannot change the answer.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
+    semantic = result["semantic_shadow"]
+    if (
+        not exact_standard
+        and semantic.get("question_type") in SEMANTIC_ENFORCED_QUESTION_TYPES
+    ):
+        semantic_failed = semantic.get("status") == "fail"
+        result["semantic_enforcement"] = {
+            "version": "1.0",
+            "mode": "bounded_supported_contract",
+            "status": "fail" if semantic_failed else "pass",
+            "enforced": True,
+            "question_type": semantic.get("question_type"),
+            "failed_checks": semantic.get("failed_checks") or [],
+            "reason": (
+                "supported_semantic_contract_failed"
+                if semantic_failed else "supported_semantic_contract_satisfied"
+            ),
+        }
+        if semantic_failed:
+            result["status"] = "fail"
+            result["reason"] = "supported_semantic_contract_failed"
+    else:
+        result["semantic_enforcement"] = {
+            "version": "1.0",
+            "mode": "bounded_supported_contract",
+            "status": "not_applicable",
+            "enforced": False,
+            "reason": (
+                "exact_gold_standard_immutable"
+                if exact_standard else "no_enforced_supported_question_type"
+            ),
+        }
     return result
 
 
