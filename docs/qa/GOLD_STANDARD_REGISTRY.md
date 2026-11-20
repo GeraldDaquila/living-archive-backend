@@ -2,13 +2,14 @@
 
 ## Current Gold Star numbering authority — 2026-11-20
 
+- **Newly elevated 2026-11-20:** `gs-2026-11-20-power-responsibility-proportional-accountability` preserves the exact live answer to “What is the relationship between power and responsibility?” It explains formal and informal influence, proportional accountability, the limits imposed by actual capacity and wider constraints, and the reciprocal role of responsibility in limiting power. Its verified doorway is **Leadership Foundations**; display serial remains `UNASSIGNED`.
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-reflexive-institutional-critique` preserves the exact live answer to “What would constitute a good-faith critique of the Archive’s worldview?” It establishes fair claim reconstruction, claim-type distinction, independent evidence testing, counterargument, and revision conditions. Its no-doorway state is intentional because an immediate self-referential Archive link would undermine this independence-sensitive critique request; display serial remains `UNASSIGNED`.
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-guide-coverage-gap-evidence-governance` preserves the exact live answer defining when The Guide may declare an Archive coverage gap. It distinguishes direct coverage, adjacent coverage, verified absence after bounded checks, and retrieval or verification failure. Its meta-policy doorway is intentionally absent; display serial remains `UNASSIGNED`.
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-orientation-vs-information-practical-distinction` preserves the exact live three-paragraph answer to “What does “orientation rather than information” mean in practice?”, its 9.5/10 user approval, and the verified **When Knowledge Is Everywhere** doorway. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
 
-- **Canonical inventory:** 157 registry records; 119 approved-status Gold Star records. Of these, 117 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
-- **Serial inventory:** 39 approved records carry display serials #56–#94. 80 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
-- **Counting rule:** 119 is the canonical approved-status inventory; 117 is the active cross-question structural-learning pool. The exact-query-only successor and superseded historical duplicate remain separately governed. Never use these figures interchangeably.
+- **Canonical inventory:** 158 registry records; 120 approved-status Gold Star records. Of these, 118 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
+- **Serial inventory:** 39 approved records carry display serials #56–#94. 81 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Counting rule:** 120 is the canonical approved-status inventory; 118 is the active cross-question structural-learning pool. The exact-query-only successor and superseded historical duplicate remain separately governed. Never use these figures interchangeably.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
@@ -899,3 +900,19 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Runtime authority:** Active qualitative contributor only; exact-answer authority and deterministic fallback remain disabled.
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved answer and bounded methodological discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star — Power, responsibility, and proportional accountability (2026-11-20)
+
+- **Benchmark:** `gs-2026-11-20-power-responsibility-proportional-accountability`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live visitor-facing answer frozen after explicit user elevation.
+- **Question:** “What is the relationship between power and responsibility?”
+- **Answer:** Exact three-paragraph visitor-facing response preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Reasoning discipline:** Trace formal and informal influence; scale responsibility to actual influence, knowledge, role, and capacity; account for affected people's agency and preventable harm; distinguish meaningful responsibility from outcomes beyond reasonable control; show how accountability gives power legitimate limits and purpose.
+- **Doorway:** Verified **Leadership Foundations** — https://geralddaquila.com/leadership-foundations/ — with the live card's explanation of leadership as a human systems function.
+- **Rating:** 9.6/10 (assistant assessment; not represented as a user-supplied numerical rating).
+- **Approval:** User explicitly instructed “elevate to gold star registry!” on 2026-11-20 after reviewing the live Guide response.
+- **Adaptive-learning boundary:** Transfer proportionality, influence visibility, affected-party agency, and accountability discipline only. Do not transfer the exact answer or doorway, or assign unlimited responsibility for conditions outside actual control.
+- **Runtime authority:** Active qualitative contributor only; exact-answer authority and deterministic fallback remain disabled.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
+- **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
