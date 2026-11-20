@@ -794,7 +794,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         return safe
 
     exact_standard = _resolve_exact_guide_gold_standard(query)
-    explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
+    # Shared answer-first semantic floor: a doorway cannot stand in for the requested explanation.\n    if exact_standard is None:\n        from event_pattern_structure_contract import apply_event_pattern_structure_boundary\n        payload = apply_event_pattern_structure_boundary(query, payload)\n    explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
     # Provider/recovery omission text is advisory, not a terminal routing decision.
     # The shared boundary must still attempt canonical retrieval and the approved
