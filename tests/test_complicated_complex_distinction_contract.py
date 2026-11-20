@@ -73,3 +73,35 @@ def test_safety_payload_is_never_overridden():
         "What is the difference between complicated and complex?", payload
     )
     assert result is payload
+
+
+
+def test_explicit_no_handoff_request_is_respected():
+    result = apply_complicated_complex_distinction_boundary(
+        "What is the difference between complicated and complex? No links or resources.",
+        {"response": "generic", "recommendation": {"title": "old"}},
+    )
+    assert result["response"]
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_decision"] == "omit"
+
+
+def test_provenance_records_prior_provider_generation_truthfully():
+    result = apply_complicated_complex_distinction_boundary(
+        "What is the difference between complicated and complex?",
+        {"response": "generic", "provider": "provider-x", "model": "model-y"},
+    )
+    assert result["provider"] is None
+    assert result["model"] is None
+    assert result["response_provenance"]["llm_invoked"] is True
+    assert result["response_provenance"]["prior_generation_present"] is True
+
+
+def test_shared_main_finalizer_integrates_contract_after_existing_boundary():
+    from pathlib import Path
+    source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
+    assert "apply_complicated_complex_distinction_boundary(query, finalized)" in source
+    assert source.index("apply_event_pattern_structure_boundary(query, finalized)") < source.index(
+        "apply_complicated_complex_distinction_boundary(query, finalized)"
+    )
