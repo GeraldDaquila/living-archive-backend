@@ -76,6 +76,7 @@ from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_a
 import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
+from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan
 _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
     "guide_canonical_doorway_search_attempted",
     default=False,
@@ -10737,6 +10738,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if concept_subject and not correction_subject:
         discovery_subject = concept_subject
     resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    # Reflexive institutional critique needs retrieval of the Archive's stated
+    # worldview plus material that permits examination of assumptions, evidence,
+    # limitations, and counterarguments. Preserve the visitor's original query
+    # for composition and canonical doorway adjudication.
+    _reflexive_critique_plan = _build_reflexive_critique_plan(query)
+    if _reflexive_critique_plan and not correction_subject and not source_trace_request:
+        resource_query = _reflexive_critique_plan["retrieval_query"]
     # Check the published Glossary before vector/canonical Archive retrieval.
     # Carry the exact source snapshot into composition to avoid a second fetch.
     glossary_documents, glossary_instruction = general_guide_composition.resolve_glossary_context(query)
