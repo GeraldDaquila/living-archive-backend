@@ -331,15 +331,7 @@ def test_reflexive_institutional_critique_gold_star_is_registered_and_bounded():
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
-    from general_guide_gold_standards import resolve_exact_gold_standard
-    resolved = resolve_exact_gold_standard(record["query"])
-    assert resolved is not None
-    assert resolved["benchmark_id"] == benchmark_id
-    assert resolved["expected_response"] == expected
-    assert resolved["doorway_title"] == "Leadership Foundations"
-    assert resolved["doorway_url"] == "https://geralddaquila.com/leadership-foundations/"
-    assert resolve_exact_gold_standard("What is the relationship between power and accountability?") is None
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
     assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
@@ -383,7 +375,15 @@ def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounde
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    resolved = resolve_exact_gold_standard(record["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == benchmark_id
+    assert resolved["expected_response"] == expected
+    assert resolved["doorway_title"] == "Leadership Foundations"
+    assert resolved["doorway_url"] == "https://geralddaquila.com/leadership-foundations/"
+    assert resolve_exact_gold_standard("What is the relationship between power and accountability?") is None
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"] == {
         "title": "Leadership Foundations",
