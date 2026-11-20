@@ -7064,14 +7064,8 @@ def _guide_finalize_visitor_payload(payload, query):
         if is_guide_meta_coverage_policy_question(query)
         else general_guide_composition._conceptual_relationship_recovery(query)
     )
-    _outer_registered_recovery_valid = bool(
-        _outer_registered_recovery
-        and not general_guide_composition.is_generic_nonanswer(
-            query, _outer_registered_recovery
-        )
-        and not general_guide_composition.is_meta_answer_failure(
-            _outer_registered_recovery
-        )
+    _outer_registered_recovery_valid = _guide_outer_registered_recovery_is_valid(
+        query, _outer_registered_recovery
     )
     # Treat the legacy "unable to verify / no relevant Archive resource" template
     # as a response failure explicitly. Some legacy paths phrase this as a fluent
@@ -7100,21 +7094,25 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             _outer_registered_recovery
         )
-        # Recovery of the answer must not silently erase a relevant doorway.
-        # Preserve an already-verified recommendation; if none survives, ask the
-        # same verified doorway selector used by the composition layer.
-        _preserved = _normalize_authoritative_recommendation(safe.get("recommendation"))
-        if not _preserved:
-            try:
-                _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
-                _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
-                _preserved = (
-                    {"title": _selected["doorway_title"], "url": _selected["doorway_url"]}
-                    if _selected.get("doorway_title") and _selected.get("doorway_url")
-                    else None
-                )
-            except Exception:
-                _preserved = None
+        # Answer recovery and navigation are independent. Preserve verified
+        # doorways for resource-seeking questions, but a Guide meta-policy
+        # question is terminally non-navigational by task contract.
+        from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
+        if is_guide_meta_coverage_policy_question(query):
+            _preserved = None
+        else:
+            _preserved = _normalize_authoritative_recommendation(safe.get("recommendation"))
+            if not _preserved:
+                try:
+                    _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
+                    _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
+                    _preserved = (
+                        {"title": _selected["doorway_title"], "url": _selected["doorway_url"]}
+                        if _selected.get("doorway_title") and _selected.get("doorway_url")
+                        else None
+                    )
+                except Exception:
+                    _preserved = None
         safe["recommendation"] = _preserved
         safe["processing"] = "outer_visitor_boundary_registered_recovery"
         safe["route_source"] = "guide_outer_visitor_boundary"
@@ -10480,6 +10478,64 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
     composition_repair_attempted = False
     query = str(query or "").strip()
+    # Guide coverage-policy questions are answered from the shared meta-
+    # governance contract. They do not require Archive retrieval or a provider,
+    # and they must never produce an Archive doorway.
+    from deterministic_answer_recovery import (
+        is_guide_meta_coverage_policy_question,
+        has_guide_meta_coverage_policy_explanation,
+        _guide_meta_coverage_policy_recovery,
+    )
+    if is_guide_meta_coverage_policy_question(query):
+        _answer = general_guide_composition.enforce_response_contracts(
+            query, _guide_meta_coverage_policy_recovery()
+        )
+        if not has_guide_meta_coverage_policy_explanation(_answer):
+            raise RuntimeError("Guide meta-coverage policy recovery failed its shared response contract.")
+        _request_id = "guide-meta-coverage-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        print(
+            "The Guide early deterministic boundary: "
+            "source=guide_meta_coverage_policy, retrieval_invoked=false, provider_invoked=false, doorway=omitted"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_decision": "omit",
+            "doorway_omission_reason": (
+                "This is a question about The Guide's coverage policy, not a request for an Archive resource."
+            ),
+            "navigation_suppressed_by_task_contract": True,
+            "answer_basis": {
+                "kind": "guide_policy",
+                "label": "Guide coverage policy",
+                "explanation": (
+                    "This explains The Guide's evidence threshold for coverage claims; "
+                    "it makes no claim about a specific Archive topic."
+                ),
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "guide_meta_coverage_policy_contract",
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            },
+            "processing": "guide_meta_coverage_policy_deterministic",
+            "route_source": "guide_meta_coverage_policy_early_boundary",
+            "recovery": "guide_meta_coverage_policy",
+            "gold_star_question_contract": _build_gold_star_question_contract(query),
+            "visitor_boundary_version": APP_VERSION,
+        }
     # Capability-evidence questions are answerable without retrieval or a live
     # provider. Resolve them before the provider bank so outages cannot replace
     # the requested evaluation framework with generic continuity prose.
