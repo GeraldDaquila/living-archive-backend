@@ -2,12 +2,12 @@
 /**
  * Plugin Name: Living Archive — Answer + Doorway Standard
  * Description: Shared, hardened visitor-facing doorway presentation for Living Archive modules.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
-define('LA_ANSWER_DOORWAY_VERSION', '1.0.3');
+define('LA_ANSWER_DOORWAY_VERSION', '1.0.4');
 define('LA_ANSWER_DOORWAY_URL', plugin_dir_url(__FILE__));
 
 function la_answer_doorway_is_canonical_url($value) {
@@ -84,8 +84,6 @@ add_filter('rest_post_dispatch', 'la_answer_doorway_filter_rest_response', 99, 3
 
 add_action('wp_enqueue_scripts', function () {
     if (is_admin()) return;
-    // Small, dependency-free shared renderer. Load before module scripts so
-    // every adapter consumes the same URL and DOM safety boundary.
     wp_enqueue_style(
         'la-answer-doorway-standard',
         LA_ANSWER_DOORWAY_URL . 'assets/answer-doorway.css',
