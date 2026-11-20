@@ -29,12 +29,7 @@ def compose_visitor_failure_recovery(query: str) -> dict[str, str]:
             "change is largely cosmetic. Genuine transformation produces durable, "
             "observable differences in how the system works and how people "
             "experience it—and makes those differences open to scrutiny and "
-            "correction.\n\n"
-            "This is a bounded general-knowledge orientation because the Guide's "
-            "live answer and canonical-retrieval services were unavailable on this "
-            "attempt. It is not presented as a synthesis of verified Living Archive "
-            "sources. Any separately selected Archive resource is a related "
-            "continuation, not evidence for this answer."
+            "correction."
         )
         basis = (
             "A provider-independent conceptual orientation. Live generation and "

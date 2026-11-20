@@ -573,12 +573,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "When Experience Can Change Us: The Two Capacities of a Living System",
         "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
         "rationale": (
-            "This Living Archive synthesis distinguishes real learning from change "
-            "that leaves the behavior-producing pattern intact. It examines whether "
-            "experience can revise a system's understanding and whether that revised "
-            "understanding can change its actions. It offers a direct test for "
-            "distinguishing structural transformation from rebranding; it is a "
-            "related continuation, not the evidence source for this general answer."
+            "This Living Archive synthesis explores the two capacities that make "
+            "transformation real: experience must be able to revise a system's "
+            "understanding, and that revised understanding must be able to change "
+            "how the system acts. It offers a deeper lens for testing whether a "
+            "change reaches the structures and practices that reproduce outcomes."
         ),
     },
     "use_doorway_selection": {
@@ -7971,6 +7970,13 @@ def _guide_finalize_visitor_payload(payload, query):
         and _recovery_provenance.get("class") == "visitor_failure_recovery"
     ):
         finalized = _guide_enforce_terminal_doorway_policy(finalized, query)
+        # Apply visitor-language policy at the shared outer boundary, after every
+        # question-specific finalizer and doorway pass. This is the cumulative
+        # enforcement point: provider-recovery answers must not leak outage or
+        # provenance diagnostics into the visitor's substantive answer.
+        _visitor_response = finalized.get("response")
+        if isinstance(_visitor_response, str):
+            finalized["response"] = _sanitize_basic_inquiry_response(_visitor_response)
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):

@@ -9,9 +9,10 @@ def test_transformation_rebranding_question_gets_bounded_substantive_recovery():
     assert "decision rights" in response
     assert "incentives" in response
     assert "durable" in response
-    assert "not presented as a synthesis" in response
-    assert "related continuation, not evidence for this answer" in response
-    assert "no canonical doorway has been inferred" not in response
+    assert "not presented as a synthesis" not in response
+    assert "related continuation, not evidence for this answer" not in response
+    assert "services were unavailable" not in response
+    assert "decision rights" in response
     assert "does not substantiate this general-knowledge answer" in result["basis_explanation"]
 
 
@@ -76,7 +77,15 @@ def test_transformation_rebranding_selects_the_reviewed_learning_and_correctabil
         "ok": True,
         "query": query,
         "intent": "TOPICAL_INQUIRY",
-        "response": compose_visitor_failure_recovery(query)["response"],
+        # Deliberately inject the legacy visitor-facing outage paragraph:
+        # the outer finalizer must repair already-composed recovery payloads too.
+        "response": (
+            compose_visitor_failure_recovery(query)["response"]
+            + "\n\nThis is a bounded general-knowledge orientation because the Guide's "
+            "live answer and canonical-retrieval services were unavailable on this attempt. "
+            "It is not presented as a synthesis of verified Living Archive sources. "
+            "Any separately selected Archive resource is a related continuation, not evidence for this answer."
+        ),
         "recommendation": None,
         "canonical_doorway": None,
         "answer_basis": {
@@ -110,13 +119,16 @@ def test_transformation_rebranding_selects_the_reviewed_learning_and_correctabil
     assert doorway["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
     assert doorway["url"] == "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
     assert "experience" in doorway["rationale"].casefold()
-    assert "change its actions" in doorway["rationale"].casefold()
+    assert "change how the system acts" in doorway["rationale"].casefold()
     assert finalized["canonical_doorway"] == doorway
     assert finalized["doorway_title"] == doorway["title"]
     assert finalized["doorway_url"] == doorway["url"]
     assert finalized["response_provenance"]["class"] == "visitor_failure_recovery"
-    assert "not presented as a synthesis of verified Living Archive sources" in finalized["response"]
-    assert "related continuation, not evidence for this answer" in finalized["response"]
+    assert "not presented as a synthesis of verified Living Archive sources" not in finalized["response"]
+    assert "related continuation, not evidence for this answer" not in finalized["response"]
+    assert "services were unavailable" not in finalized["response"]
+    assert "related continuation, not the evidence source" not in doorway["rationale"]
+    assert "change how the system acts" in doorway["rationale"]
 
 
 def test_transformation_rebranding_doorway_respects_explicit_no_handoff():
