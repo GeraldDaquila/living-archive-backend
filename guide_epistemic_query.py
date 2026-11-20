@@ -14,39 +14,39 @@ VERSION = "1.0"
 
 _AXIS_PATTERNS = {
     "evidence": (
-        r"\\bevidence\\b",
-        r"\\bfacts?\\b",
-        r"\\bobservations?\\b",
-        r"\\bsources?\\b",
+        r"\bevidence\b",
+        r"\bfacts?\b",
+        r"\bobservations?\b",
+        r"\bsources?\b",
     ),
     "interpretation": (
-        r"\\binterpretations?\\b",
-        r"\\binferences?\\b",
-        r"\\bmeaning[- ]making\\b",
-        r"\\bmeaning\\b",
+        r"\binterpretations?\b",
+        r"\binferences?\b",
+        r"\bmeaning[- ]making\b",
+        r"\bmeaning\b",
     ),
     "hypothesis": (
-        r"\\bhypotheses?\\b",
-        r"\\bprovisional explanations?\\b",
-        r"\\btestable explanations?\\b",
-        r"\\btheories?\\b",
+        r"\bhypotheses?\b",
+        r"\bprovisional explanations?\b",
+        r"\btestable explanations?\b",
+        r"\btheories?\b",
     ),
     "normative_judgment": (
-        r"\\bnormative judg(?:e)?ments?\\b",
-        r"\\bvalue[- ]judg(?:e)?ments?\\b",
-        r"\\bwhat ought to be\\b",
-        r"\\bwhat should be\\b",
+        r"\bnormative judg(?:e)?ments?\b",
+        r"\bvalue[- ]judg(?:e)?ments?\b",
+        r"\bwhat ought to be\b",
+        r"\bwhat should be\b",
     ),
 }
 
 _RELATIONAL_INTENT = (
-    r"\\bwhat counts as\\b",
-    r"\\bdistinguish(?:es|ing)?\\b",
-    r"\\bdifference(?:s)? between\\b",
-    r"\\bhow do .{0,80} differ\\b",
-    r"\\bseparate .{0,80} from\\b",
-    r"\\brelationship between\\b",
-    r"\\bcompare\\b",
+    r"\bwhat counts as\b",
+    r"\bdistinguish(?:es|ing)?\b",
+    r"\bdifference(?:s)? between\b",
+    r"\bhow do .{0,80} differ\b",
+    r"\bseparate .{0,80} from\b",
+    r"\brelationship between\b",
+    r"\bcompare\b",
 )
 
 _AXIS_RETRIEVAL_LANGUAGE = {
@@ -59,7 +59,7 @@ _AXIS_RETRIEVAL_LANGUAGE = {
 
 def build_epistemic_retrieval_plan(query: str) -> dict[str, Any] | None:
     """Return a bounded retrieval plan for genuinely multi-axis epistemic questions."""
-    raw = re.sub(r"\\s+", " ", str(query or "")).strip()
+    raw = re.sub(r"\s+", " ", str(query or "")).strip()
     if not raw or not re.search(r"[?]", raw):
         return None
     if not any(re.search(pattern, raw, re.I) for pattern in _RELATIONAL_INTENT):
