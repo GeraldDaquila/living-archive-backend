@@ -20,7 +20,7 @@ def test_registered_named_concept_has_bounded_general_knowledge_orientation():
     )
 
 
-def test_existing_known_definition_bank_remains_unchanged():
+def test_reciprocity_definition_bank_uses_superseding_approved_response():
     answer = compose_definition_significance("reciprocity")
     assert answer.startswith("Reciprocity means people support one another over time.")
     assert "Think of neighbors taking turns checking on an older resident" in answer
