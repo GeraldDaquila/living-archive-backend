@@ -24,8 +24,8 @@ _DOORWAY = {
 
 _WHY = re.compile(r"\b(?:why|how come|what explains|what causes)\b", re.I)
 _INSTITUTION = re.compile(
-    r"\b(?:organizations?|organisations?|institutions?|companies|agencies|"
-    r"governments?|nonprofits?|teams?)\b",
+    r"\b(?:organizations?|organisations?|organizational|organisational|"
+    r"institutions?|institutional|companies|agencies|governments?|nonprofits?|teams?)\b",
     re.I,
 )
 _RECURRENCE = re.compile(
