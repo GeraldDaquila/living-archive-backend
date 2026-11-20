@@ -1,0 +1,114 @@
+from institutional_learning_failure_contract import (
+    apply_institutional_learning_failure_boundary,
+    build_institutional_learning_failure_response,
+    institutional_learning_failure_response_checks,
+    institutional_learning_failure_response_meets_contract,
+    is_institutional_learning_failure_question,
+)
+
+
+LIVE_QUESTION = "Why do organizations repeat failures they publicly acknowledge?"
+
+
+def test_exact_live_question_and_natural_paraphrases_match():
+    queries = [
+        LIVE_QUESTION,
+        "Why do institutions keep repeating mistakes they have already admitted?",
+        "How come organizations reproduce the same problems after publicly recognizing them?",
+        "Why are acknowledged institutional failures still recurring?",
+        "What explains companies continuing to make the same errors after reporting them?",
+    ]
+    assert all(is_institutional_learning_failure_question(q) for q in queries)
+
+
+def test_adjacent_questions_do_not_trigger_the_bounded_recovery():
+    queries = [
+        "What is institutional learning?",
+        "How can an organization improve its feedback process?",
+        "Why do organizations fail?",
+        "What are common organizational problems?",
+        "Why do organizations repeat a successful process?",
+        "How can a team learn from mistakes?",
+    ]
+    assert not any(is_institutional_learning_failure_question(q) for q in queries)
+
+
+def test_recovery_answer_meets_every_substantive_requirement():
+    answer = build_institutional_learning_failure_response()
+    assert institutional_learning_failure_response_meets_contract(answer)
+    assert all(check["passed"] for check in institutional_learning_failure_response_checks(answer))
+    for phrase in (
+        "acknowledging a failure",
+        "incentives",
+        "authority",
+        "institutional memory",
+        "understanding",
+        "what it does",
+        "Who owns the correction?",
+        "not a diagnosis of every organization",
+    ):
+        assert phrase.casefold() in answer.casefold()
+
+
+def test_generic_question_echo_is_replaced_with_a_substantive_first_answer_and_doorway():
+    failed = (
+        "Your question asks why organizations repeat failures they publicly acknowledge. "
+        "That gives you a starting point; the separately selected Archive resource offers a place to explore further."
+    )
+    result = apply_institutional_learning_failure_boundary(
+        LIVE_QUESTION,
+        {"response": failed, "recommendation": None, "provider": "provider-x", "model": "model-y"},
+    )
+    assert result["institutional_learning_failure_contract"]["recovery_applied"] is True
+    assert result["response"] == result["answer"] if "answer" in result else True
+    assert "Because acknowledging a failure" in result["response"]
+    assert result["recommendation"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_url"].endswith("/when-experience-can-change-us-the-two-capacities-of-a-living-system/")
+    assert result["answer_basis"]["kind"] == "general_knowledge"
+    assert result["evidence"] == []
+    assert result["response_provenance"]["llm_invoked"] is True
+
+
+def test_substantive_answer_is_preserved_but_verified_doorway_is_restored():
+    answer = build_institutional_learning_failure_response()
+    result = apply_institutional_learning_failure_boundary(
+        LIVE_QUESTION,
+        {"response": answer, "recommendation": None},
+    )
+    assert result["response"] == answer
+    assert result["institutional_learning_failure_contract"]["recovery_applied"] is False
+    assert result["doorway_decision"] == "include"
+
+
+def test_explicit_no_handoff_is_respected_even_during_recovery():
+    result = apply_institutional_learning_failure_boundary(
+        LIVE_QUESTION + " No links or resources.",
+        {"response": "Your question asks about organizations.", "recommendation": {"title": "Old"}},
+    )
+    assert result["institutional_learning_failure_contract"]["recovery_applied"] is True
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_decision"] == "omit"
+
+
+def test_safety_routes_are_never_overridden():
+    payload = {"intent": "SAFETY_INTERRUPT", "response": "safety response"}
+    assert apply_institutional_learning_failure_boundary(LIVE_QUESTION, payload) is payload
+
+
+def test_nonmatching_queries_are_unchanged():
+    payload = {"response": "original"}
+    assert apply_institutional_learning_failure_boundary("What is institutional learning?", payload) is payload
+
+
+def test_shared_finalizer_invokes_contract_after_inner_routes_and_preserves_exact_standards():
+    from pathlib import Path
+    source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
+    assert "apply_institutional_learning_failure_boundary(query, finalized)" in source
+    assert source.index("if _resolve_exact_guide_gold_standard(query) is not None:") < source.index(
+        "apply_institutional_learning_failure_boundary(query, finalized)"
+    )
+    assert source.index("apply_institutional_learning_failure_boundary(query, finalized)") < source.index(
+        "return finalized", source.index("apply_institutional_learning_failure_boundary(query, finalized)")
+    )
