@@ -650,6 +650,8 @@ def main():
             }
             capabilities = record.get("gold_star_capabilities") or {}
             modern_values = {
+                "reasoning_family": record.get("reasoning_family")
+                or capabilities.get("reasoning_family"),
                 "transferable_lesson": record.get("transferable_lesson")
                 or capabilities.get("transferable_discipline"),
                 "transfer_boundary": record.get("transfer_boundary")
