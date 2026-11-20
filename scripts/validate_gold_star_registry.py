@@ -224,8 +224,41 @@ def validate_numbering_metadata(registry, records):
         fail("a serial cannot be both assigned and listed as an unassigned gap")
 
 
+def ensure_canonical_main_ref():
+    """Fetch origin/main when an isolated QA checkout lacks its remote-tracking ref.
+
+    The validator remains fail-closed: it never substitutes the candidate registry
+    or a local branch for canonical main. A failed fetch or verification aborts QA.
+    """
+    try:
+        subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", BASELINE_REF],
+            cwd=ROOT, check=True, capture_output=True, text=True,
+        )
+        return
+    except subprocess.CalledProcessError:
+        pass
+
+    fetch = subprocess.run(
+        ["git", "fetch", "--no-tags", "origin", f"main:{BASELINE_REF}"],
+        cwd=ROOT, check=False, capture_output=True, text=True,
+    )
+    if fetch.returncode != 0:
+        detail = (fetch.stderr or fetch.stdout or "no diagnostic returned").strip()
+        fail(f"cannot fetch canonical origin/main for immutable-number check: {detail}")
+
+    try:
+        subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", BASELINE_REF],
+            cwd=ROOT, check=True, capture_output=True, text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        fail(f"canonical origin/main ref is still unavailable after fetch: {exc}")
+
+
 def validate_numbering_against_base(current_records, current_registry=None):
     """Compare the PR registry with its merge-base version from canonical main."""
+    ensure_canonical_main_ref()
     try:
         merge_base = subprocess.run(
             ["git", "merge-base", "HEAD", BASELINE_REF],
