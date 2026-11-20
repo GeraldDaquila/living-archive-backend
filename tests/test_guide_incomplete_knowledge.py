@@ -16,16 +16,16 @@ def test_incomplete_knowledge_stewardship_question_gets_full_contract():
     }
     architectural = plan["architectural_contract"].casefold()
     for phrase in (
-        "directly known", "inferred", "assumed", "unknown",
-        "reversibility", "affected people's situated knowledge",
-        "least harmful protective action", "reviewed",
+        "directly known facts", "interpretations and inferences", "assumptions",
+        "material unknowns", "reversibility", "situated knowledge",
+        "least harmful protective action", "review point or trigger",
         "continuation, adaptation, reversal, or stopping",
         "ai and other tools", "accountability",
     ):
         assert phrase in architectural
     query_contract = plan["composition_instruction"].casefold()
     for phrase in (
-        "answer how to act", "what can safely be done now",
+        "give a practical method for acting under uncertainty", "what can safely be done now",
         "deferred, or escalated", "observable signals",
         "conditions for changing or stopping course",
         "retain any independently verified",
