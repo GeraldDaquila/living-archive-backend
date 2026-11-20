@@ -76,16 +76,32 @@ def apply_complicated_complex_distinction_boundary(
 
     answer = build_complicated_complex_response()
     safe: Dict[str, Any] = dict(payload)
+    prior_generation_present = bool(safe.get("provider") or safe.get("model"))
+    no_handoff = bool(re.search(
+        r"\\b(?:do not|don't|without|no)\\b.{0,60}\\b(?:links?|resources?|recommendations?|doorways?|pages?)\\b",
+        str(question or ""),
+        re.I,
+    ))
     safe["response"] = answer
     if "answer" in safe:
         safe["answer"] = answer
-    doorway = dict(_DOORWAY)
-    safe["recommendation"] = doorway
-    safe["canonical_doorway"] = dict(doorway)
-    safe["doorway_title"] = doorway["title"]
-    safe["doorway_url"] = doorway["url"]
-    safe["doorway_rationale"] = doorway["rationale"]
-    safe.pop("doorway_omission_exception_reason", None)
+    if no_handoff:
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["doorway_rationale"] = None
+        safe["doorway_decision"] = "omit"
+        safe["doorway_omission_reason"] = "visitor_explicitly_requested_no_handoff"
+    else:
+        doorway = dict(_DOORWAY)
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = dict(doorway)
+        safe["doorway_title"] = doorway["title"]
+        safe["doorway_url"] = doorway["url"]
+        safe["doorway_rationale"] = doorway["rationale"]
+        safe["doorway_decision"] = "include"
+        safe.pop("doorway_omission_exception_reason", None)
     safe["answer_basis"] = {
         "kind": "general_knowledge",
         "label": "General knowledge",
@@ -96,11 +112,12 @@ def apply_complicated_complex_distinction_boundary(
         ),
     }
     safe["response_provenance"] = {
-        "class": "deterministic_by_design",
+        "class": "deterministic_recovery",
         "provider": "bounded_complicated_complex_conceptual_contract",
         "model": None,
         "quality_adjusted_llm_eligible": False,
-        "llm_invoked": False,
+        "llm_invoked": prior_generation_present,
+        "prior_generation_present": prior_generation_present,
     }
     safe["provider"] = None
     safe["model"] = None
@@ -120,6 +137,44 @@ def apply_complicated_complex_distinction_boundary(
             "reason": "no_temporal_claims_in_response",
         },
         "semantic_certification": False,
+    }
+    recovery_evidence = {
+        "provenance_class": "deterministic_recovery",
+        "references_present": False,
+        "validation_status": "not_applicable",
+        "claim_support_status": "not_applicable",
+        "semantic_certification": False,
+    }
+    envelope = safe.get("answer_envelope")
+    if isinstance(envelope, dict):
+        envelope = dict(envelope)
+        route = dict(envelope.get("route") or {})
+        route["provider_present"] = False
+        route["model_present"] = False
+        envelope["route"] = route
+        envelope["evidence"] = recovery_evidence
+        safe["answer_envelope"] = envelope
+    quality_floor = safe.get("gold_star_v2_quality_floor")
+    if isinstance(quality_floor, dict):
+        quality_floor = dict(quality_floor)
+        quality_floor["evidence_validation"] = safe["evidence_validation"]
+        floor_envelope = quality_floor.get("answer_envelope")
+        if isinstance(floor_envelope, dict):
+            floor_envelope = dict(floor_envelope)
+            floor_route = dict(floor_envelope.get("route") or {})
+            floor_route["provider_present"] = False
+            floor_route["model_present"] = False
+            floor_envelope["route"] = floor_route
+            floor_envelope["evidence"] = recovery_evidence
+            quality_floor["answer_envelope"] = floor_envelope
+        safe["gold_star_v2_quality_floor"] = quality_floor
+    safe["response_shape"] = "conceptual_distinction"
+    safe["complicated_complex_distinction_contract"] = {
+        "version": "1.0",
+        "answer_first_enforced": True,
+        "recovery_applied": True,
+        "concepts_covered": ["complicated", "complex"],
+        "navigation_is_separate": not no_handoff,
     }
     safe["processing"] = "final_visitor_boundary_complicated_complex_distinction"
     safe["route_source"] = "guide_final_visitor_boundary"
