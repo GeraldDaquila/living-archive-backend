@@ -50,10 +50,10 @@ _RELATIONAL_INTENT = (
 )
 
 _AXIS_RETRIEVAL_LANGUAGE = {
-    "evidence": "observable evidence, source quality, provenance, corroboration, and factual observations",
-    "interpretation": "interpretation, inference, meaning-making, and the distinction between what is observed and what is inferred",
-    "hypothesis": "hypotheses as provisional, testable explanations that may be supported or revised by evidence",
-    "normative_judgment": "normative or value judgments, ethical evaluation, and claims about what ought to be",
+    "evidence": "observable evidence, factual observations, source quality, provenance, and corroboration",
+    "interpretation": "interpretations and inferences, distinguished from direct observation",
+    "hypothesis": "hypotheses as provisional, testable explanations that evidence may support or revise",
+    "normative_judgment": "normative or value judgments about what ought to be, distinguished from descriptive claims",
 }
 
 
@@ -77,9 +77,7 @@ def build_epistemic_retrieval_plan(query: str) -> dict[str, Any] | None:
     retrieval_query = (
         "Epistemic distinctions and relationships: "
         + "; ".join(_AXIS_RETRIEVAL_LANGUAGE[axis] for axis in axes)
-        + ". Distinguish descriptive claims from interpretive inferences, "
-          "provisional explanatory hypotheses, and normative or ethical judgments. "
-          "Examine claim provenance, uncertainty, corroboration, and what evidence "
+        + ". Examine claim provenance, uncertainty, corroboration, and what evidence "
           "would support, challenge, or revise each kind of claim."
     )
     return {
