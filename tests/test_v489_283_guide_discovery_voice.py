@@ -107,4 +107,3 @@ def test_reciprocity_fallback_does_not_claim_archive_source_authority():
     )
     assert "Reciprocity means people support one another over time" in result["response"]
     assert "canonical definition" not in result["response"]
-    assert "canonical definition" not in result["response"]
