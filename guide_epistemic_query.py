@@ -26,7 +26,7 @@ _AXIS_PATTERNS = {
         r"\bmeaning\b",
     ),
     "hypothesis": (
-        r"\bhypotheses?\b",
+        r"\bhypothes(?:is|es)\b",
         r"\bprovisional explanations?\b",
         r"\btestable explanations?\b",
         r"\btheories?\b",
