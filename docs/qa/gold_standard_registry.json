@@ -7705,7 +7705,7 @@
     "active_quality_contributor_count": 116,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 0
+    "pending_approval_evidence_count": 1
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
