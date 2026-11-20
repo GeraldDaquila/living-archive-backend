@@ -523,6 +523,9 @@ def select_lesson_candidates(
             + 0.08 * len(shared_family),
         )
         score = min(0.97, 0.78 * semantic_score + 0.22 * lexical_support)
+        # Similarity alone must clear a minimum combined relevance floor.
+        if score < 0.50:
+            continue
         ranked.append((score, semantic_score, len(shared_signature), item["id"], item))
 
     ranked.sort(key=lambda row: (-row[0], -row[1], -row[2], row[3]))
