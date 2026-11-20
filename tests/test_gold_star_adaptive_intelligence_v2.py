@@ -188,25 +188,34 @@ def test_consent_is_not_reduced_to_consultation():
 
 def test_stewardship_consent_contract_reaches_the_actual_provider_system_message(monkeypatch):
     captured = {}
+    candidate_answer = (
+        "Stewardship is the responsibility to care for something entrusted to your role; "
+        "consent concerns whether and within what limits another person's participation "
+        "or interests may legitimately be involved. They complement but are not "
+        "interchangeable: stewardship does not automatically confer authority, and "
+        "consent is not merely consultation. Where consent is the relevant basis, "
+        "agreement should be informed, voluntary, and specific, with room to refuse, "
+        "withdraw, or renegotiate. This does not mean every routine act of care requires "
+        "permission; the boundary depends on the decision and the steward's authorized "
+        "role. For example, a coordinator may maintain a shared garden, but that role "
+        "does not automatically grant authority to enter a neighbor's private plot or "
+        "use their resources. The practical test is to distinguish routine care within "
+        "the role from decisions requiring permission or shared authority."
+    )
 
     def fake_route(**kwargs):
         captured.update(kwargs)
         return {
             "parsed": {
-                "response": (
-                    "Stewardship and consent are complementary but distinct. "
-                    "Stewardship creates a responsibility to care for what is entrusted, "
-                    "but that responsibility does not automatically grant authority to "
-                    "decide for affected people. Consent protects their agency and their "
-                    "ability to refuse or renegotiate participation."
-                )
+                "response": candidate_answer,
+                "response_shape": "explanatory",
             }
         }
 
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
     monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
     composition._COMPOSITION_CACHE.clear()
-    result = composition.compose(
+    composition.compose(
         use_core=object(),
         query="What is the relationship between stewardship and consent?",
         context_data={},
@@ -218,6 +227,4 @@ def test_stewardship_consent_contract_reaches_the_actual_provider_system_message
     )
     assert "RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS" in system_message
     assert "Being entrusted with responsibility does not automatically confer authority" in system_message
-    assert composition._has_stewardship_consent_relationship(
-        result.get("response") or result.get("parsed", {}).get("response", "")
-    )
+    assert composition._has_stewardship_consent_relationship(candidate_answer)
