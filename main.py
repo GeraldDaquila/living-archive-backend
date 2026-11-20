@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.314 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION: v489.315 — Bounded Pinecone retrieval budget
 # Preserve the redacted request-boundary contract used by provider diagnostics.
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
@@ -155,7 +155,7 @@ else:
 # Runtime provenance must identify the source actually serving requests.
 # Human release labels may remain stable across commits, but acceptance and
 # forensics must never mistake a label for the deployed source revision.
-APP_VERSION = "v489.314"
+APP_VERSION = "v489.315"
 _DEPLOYED_SOURCE_COMMIT = (
     os.getenv("RENDER_GIT_COMMIT")
     or os.getenv("GIT_COMMIT")
@@ -163,12 +163,12 @@ _DEPLOYED_SOURCE_COMMIT = (
     or "source-commit-unavailable"
 )
 # Stable release identity retained for canonical QA and human release tracing.
-DEPLOYMENT_FINGERPRINT = "USE-v489.314-source-derived"
+DEPLOYMENT_FINGERPRINT = "USE-v489.315-source-derived"
 # Runtime provenance is intentionally separate from the stable release identity.
 # The deployed source revision is the authoritative request-to-deployment key.
 RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
 # Canonical build ID remains a stable release-contract identity.
-CANONICAL_BUILD_ID = "USE-BUILD-v489.314-canonical"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.315-canonical"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -897,7 +897,7 @@ RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Preserve the canonical release-label invariant while source revision remains
 # a separate provenance identity.
-if str(APP_VERSION) != "v489.314":
+if str(APP_VERSION) != "v489.315":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 # Runtime provenance integrity is a startup invariant. Release labels and
 # source revisions are deliberately separate identities.
@@ -4702,6 +4702,22 @@ def _guide_route_fallback(query, history=None):
             }
     except Exception:
         pass
+
+    # Keep bounded problem-framing questions in the Guide even when the
+    # deterministic fallback router is used. "System problem" is not, by
+    # itself, a request to run the Fractal Systems Diagnostic.
+    if (
+        _resolve_exact_guide_gold_standard(query) is None
+        and _compose_task_specific_recovery(query) is not None
+    ):
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.98,
+            "reason": "bounded problem-boundary calibration task belongs to the Guide",
+            "alternatives": ["guide"],
+            "source": "deterministic-problem-boundary-guide",
+        }
 
     if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):
         return {
