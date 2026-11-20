@@ -10,8 +10,9 @@ def test_transformation_rebranding_question_gets_bounded_substantive_recovery():
     assert "incentives" in response
     assert "durable" in response
     assert "not presented as a synthesis" in response
-    assert "canonical doorway has been inferred" in response
-    assert result["basis_explanation"]
+    assert "related continuation, not evidence for this answer" in response
+    assert "no canonical doorway has been inferred" not in response
+    assert "does not substantiate this general-knowledge answer" in result["basis_explanation"]
 
 
 def test_unknown_question_gets_transparent_nonempty_recovery_not_fake_answer():
@@ -62,3 +63,89 @@ def test_runtime_failure_branch_keeps_original_question_and_no_fabricated_destin
     assert '"query": query' in branch
     assert '"recommendation": None' in branch
     assert '"canonical_doorway": None' in branch
+
+
+
+def test_transformation_rebranding_selects_the_reviewed_learning_and_correctability_doorway(monkeypatch):
+    import main
+
+    query = "When does “transformation” become mere rebranding?"
+    assert main._select_verified_doorway_conceptual_family(query) == "transformation_rebranding"
+
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": compose_visitor_failure_recovery(query)["response"],
+        "recommendation": None,
+        "canonical_doorway": None,
+        "answer_basis": {
+            "kind": "general_knowledge",
+            "label": "Bounded recovery orientation",
+            "explanation": compose_visitor_failure_recovery(query)["basis_explanation"],
+        },
+        "response_provenance": {
+            "class": "visitor_failure_recovery",
+            "provider": "provider_independent_visitor_recovery",
+            "model": None,
+            "quality_adjusted_llm_eligible": False,
+            "llm_invoked": False,
+        },
+        "processing": "visitor_failure_containment",
+        "route_source": "guide_basic_inquiry_recovery",
+    }
+
+    terminal_calls = []
+    original_terminal_policy = main._guide_enforce_terminal_doorway_policy
+
+    def observe_terminal_policy(candidate, candidate_query):
+        terminal_calls.append(candidate_query)
+        return original_terminal_policy(candidate, candidate_query)
+
+    monkeypatch.setattr(main, "_guide_enforce_terminal_doorway_policy", observe_terminal_policy)
+    finalized = main._guide_finalize_visitor_payload(payload, query)
+
+    assert terminal_calls == [query]
+    doorway = finalized["recommendation"]
+    assert doorway["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
+    assert doorway["url"] == "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
+    assert "experience" in doorway["rationale"].casefold()
+    assert "change its actions" in doorway["rationale"].casefold()
+    assert finalized["canonical_doorway"] == doorway
+    assert finalized["doorway_title"] == doorway["title"]
+    assert finalized["doorway_url"] == doorway["url"]
+    assert finalized["response_provenance"]["class"] == "visitor_failure_recovery"
+    assert "not presented as a synthesis of verified Living Archive sources" in finalized["response"]
+    assert "related continuation, not evidence for this answer" in finalized["response"]
+
+
+def test_transformation_rebranding_doorway_respects_explicit_no_handoff():
+    import main
+
+    query = "When does transformation become mere rebranding? No links or resources, please."
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": compose_visitor_failure_recovery(query)["response"],
+        "recommendation": None,
+        "canonical_doorway": None,
+        "answer_basis": {"kind": "general_knowledge", "label": "Bounded recovery orientation"},
+        "response_provenance": {"class": "visitor_failure_recovery"},
+        "processing": "visitor_failure_containment",
+    }
+    finalized = main._guide_finalize_visitor_payload(payload, query)
+    assert finalized["recommendation"] is None
+    assert finalized["canonical_doorway"] is None
+    assert finalized["doorway_decision"] == "omit"
+
+
+def test_transformation_rebranding_selector_does_not_capture_personal_or_brand_refresh_questions():
+    import main
+
+    assert main._select_verified_doorway_conceptual_family(
+        "When does personal transformation become mere rebranding?"
+    ) != "transformation_rebranding"
+    assert main._select_verified_doorway_conceptual_family(
+        "How should I rebrand a small business?"
+    ) != "transformation_rebranding"
