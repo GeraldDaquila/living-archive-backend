@@ -40,10 +40,10 @@ _ACKNOWLEDGMENT = re.compile(
     re.I,
 )
 _MULTI_INTENT = re.compile(
-    r"\b(?:and\s+(?:also\s+)?(?:how|what|which|whether|compare|explain|"
+    r"\b(?:and\s+(?:also\s+)?(?:how|what|why|which|whether|where|when|compare|explain|"
     r"analy[sz]e|recommend|draft|calculate|identify|evaluate)\b|"
     r"then\s+(?:explain|compare|evaluate|recommend|draft|calculate|identify|analy[sz]e)\b|"
-    r"first|secondly|additionally|in addition)\b",
+    r"firstly|secondly|additionally|in addition)\b",
     re.I,
 )
 _NO_HANDOFF = re.compile(
