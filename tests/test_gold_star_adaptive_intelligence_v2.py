@@ -184,3 +184,39 @@ def test_consent_is_not_reduced_to_consultation():
         "and right of affected people to refuse."
     )
     assert composition._has_stewardship_consent_relationship(answer)
+
+
+def test_stewardship_consent_contract_reaches_the_actual_provider_system_message(monkeypatch):
+    captured = {}
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        return {
+            "parsed": {
+                "response": (
+                    "Stewardship and consent are complementary but distinct. "
+                    "Stewardship creates a responsibility to care for what is entrusted, "
+                    "but that responsibility does not automatically grant authority to "
+                    "decide for affected people. Consent protects their agency and their "
+                    "ability to refuse or renegotiate participation."
+                )
+            }
+        }
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
+    result = composition.compose(
+        use_core=object(),
+        query="What is the relationship between stewardship and consent?",
+        context_data={},
+    )
+
+    assert result is not None
+    system_message = next(
+        item["content"] for item in captured["messages"] if item["role"] == "system"
+    )
+    assert "RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS" in system_message
+    assert "Being entrusted with responsibility does not automatically confer authority" in system_message
+    assert composition._has_stewardship_consent_relationship(
+        result.get("response") or result.get("parsed", {}).get("response", "")
+    )
