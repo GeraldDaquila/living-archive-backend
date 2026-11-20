@@ -8231,9 +8231,74 @@
       "user_approved_at": "2026-11-21",
       "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-21-transformation-rebranding-structural-change",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "When does “transformation” become mere rebranding?",
+      "expected_response": "Transformation becomes mere rebranding when the language, identity, structure, or promises change while the system's underlying behaviour remains materially the same. The test is not whether new names or strategies appear, but whether decision rights, incentives, resource flows, accountability, everyday practices, and outcomes change. If the same people retain the same power, the same costs are pushed onto others, and the same behaviours continue to be rewarded, the change is largely cosmetic. Genuine transformation produces durable, observable differences in how the system works and how people experience it—and makes those differences open to scrutiny and correction.",
+      "expected_doorway": {
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+        "rationale": "This Living Archive synthesis explores the two capacities that make transformation real: experience must be able to revise a system's understanding, and that revised understanding must be able to change how the system acts. It offers a deeper lens for testing whether a change reaches the structures and practices that reproduce outcomes."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STANDARD — LIVE RESPONSE REVIEWED; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "The user supplied the live Guide screenshot, explicitly requested a structural fix at architectural and query levels and said to 'turn this into a gold star'; after reviewing the corrected live screen and the Gold Star assessment, the user instructed 'proceed'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "structural_transformation_vs_symbolic_rebranding",
+      "transferable_lesson": "Distinguish structural transformation from symbolic rebranding by testing whether decision rights, incentives, resource flows, accountability, everyday practices, outcomes, and the distribution of power and costs materially change. Treat durable, observable differences in system operation and lived experience—not new labels, strategies, or promises—as the evidence of transformation. Keep those differences open to scrutiny and correction.",
+      "transfer_boundary": "Apply to questions assessing whether an organization, institution, or wider system has genuinely transformed or merely changed its language, identity, strategy, or promises. Do not apply automatically to personal transformation, emotional relief, or every use of the word transformation. Do not diagnose a named system without evidence, assume every listed mechanism is present, or transfer the exact answer, its examples, or its doorway to unrelated questions.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "structural_transformation_vs_symbolic_rebranding",
+        "transferable_discipline": "Distinguish structural transformation from symbolic rebranding by testing whether decision rights, incentives, resource flows, accountability, everyday practices, outcomes, and the distribution of power and costs materially change. Treat durable, observable differences in system operation and lived experience—not new labels, strategies, or promises—as the evidence of transformation. Keep those differences open to scrutiny and correction.",
+        "abstention_boundary": "Apply to questions assessing whether an organization, institution, or wider system has genuinely transformed or merely changed its language, identity, strategy, or promises. Do not apply automatically to personal transformation, emotional relief, or every use of the word transformation. Do not diagnose a named system without evidence, assume every listed mechanism is present, or transfer the exact answer, its examples, or its doorway to unrelated questions."
+      },
+      "assertions": [
+        "Answer directly identifies when transformation is merely rebranding: labels, identity, structures, or promises change while underlying system behaviour remains materially the same.",
+        "Tests actual changes in decision rights, incentives, resource flows, accountability, everyday practices, and outcomes rather than relying on new names or strategies.",
+        "Recognizes unchanged power distribution, displaced costs, and rewarded old behaviours as evidence that the change is cosmetic.",
+        "Defines genuine transformation through durable, observable differences in system operation and lived experience.",
+        "Keeps those differences open to scrutiny and correction.",
+        "Presents the canonical essay as an optional deeper continuation, not as evidence for the general conceptual answer."
+      ],
+      "known_theme": "organizational transformation, symbolic rebranding, structural change, decision rights, incentives, resource flows, accountability, power, cost distribution, observable outcomes",
+      "provenance": {
+        "source": "User-provided screenshots of the live Guide visitor-facing response before and after the Answer + Doorway v1.0.4 presentation correction.",
+        "source_date": "2026-11-21",
+        "live_surface": "The Guide visitor-facing query response",
+        "evidence_boundary": "The screenshots establish the exact visitor question, substantive answer, and visible canonical doorway after the content and presentation corrections. The user explicitly requested Gold Star elevation and then instructed the assistant to proceed. Approval authorizes bounded structural learning; it does not authorize exact-answer runtime substitution or deterministic fallback.",
+        "canonical_doorway_verification": {
+          "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+          "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/",
+          "verification_source": "Existing canonical Gold Star registry reference general-guide-original-gold-standard-08-2026-10-21 and the live visitor-facing screenshot.",
+          "verification_date": "2026-11-21"
+        },
+        "review_assessment": "Assistant assessment: 9.7/10 for directness, structural specificity, attention to power and cost distribution, observable tests of change, and a relevant canonical continuation."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "exact_answer_authority": false,
+      "active_quality_contributor": true,
+      "deterministic_fallback_eligible": false,
+      "approval_date": "2026-11-21",
+      "approval_evidence": "User instruction accompanying the screenshot: 'proceed with structural fix at both architectural and query-level and turn this into a gold star'; subsequent instruction after reviewing the corrected visitor-facing screen: 'proceed'.",
+      "user_approved_at": "2026-11-21",
+      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
+      "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "2026-11-21: User explicitly elevated the live Guide response to “Why do organizations repeat failures they publicly acknowledge?” as a Gold Star. The exact screenshot-observed response is frozen with a verified canonical continuation and bounded organizational-learning discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
+  "last_reconciliation_note": "2026-11-21: User explicitly elevated the live Guide response to “When does ‘transformation’ become mere rebranding?” as a Gold Star. The exact screenshot-observed answer is frozen with a verified canonical continuation and bounded structural-transformation discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8363,20 +8428,20 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 130,
-    "registry_record_count": 166,
-    "review_reconciliation": "Canonical approved inventory is 130 records: 128 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
+    "approved_gold_star_count": 131,
+    "registry_record_count": 167,
+    "review_reconciliation": "Canonical approved inventory is 131 records: 129 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 130 approved Gold Stars; 39 assigned display serials #56–#94; 91 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the newly elevated organizational-acknowledgment exemplar.",
-    "unassigned_approved_gold_star_count": 91,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 131 approved Gold Stars; 39 assigned display serials #56–#94; 92 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the transformation-versus-rebranding exemplar.",
+    "unassigned_approved_gold_star_count": 92,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 128,
+    "active_quality_contributor_count": 129,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-21-organizational-acknowledgment-without-learning approved by user 2026-11-21"
+    "last_approval": "gs-2026-11-21-transformation-rebranding-structural-change approved by user 2026-11-21"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8475,19 +8540,20 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-21",
-    "approved_gold_star_count": 130,
-    "registry_record_count": 166,
-    "review_reconciliation": "Canonical approved inventory is 130 records: 128 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
+    "approved_gold_star_count": 131,
+    "registry_record_count": 167,
+    "review_reconciliation": "Canonical approved inventory is 131 records: 129 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 130 approved Gold Stars; 39 assigned display serials #56–#94; 91 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the newly elevated organizational-acknowledgment exemplar.",
-    "unassigned_approved_gold_star_count": 91,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 131 approved Gold Stars; 39 assigned display serials #56–#94; 92 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the transformation-versus-rebranding exemplar.",
+    "unassigned_approved_gold_star_count": 92,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 128,
+    "active_quality_contributor_count": 129,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-21-organizational-acknowledgment-without-learning approved by user 2026-11-21"
-  }
+    "last_approval": "gs-2026-11-21-transformation-rebranding-structural-change approved by user 2026-11-21"
+  },
+  "last_reconciled": "2026-11-21"
 }
