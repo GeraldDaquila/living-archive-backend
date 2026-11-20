@@ -9,6 +9,10 @@ on:
       - "stewardship_consent_contract.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - "docs/qa/gold_star_transferability_map.json"
+      - "docs/qa/GOLD_STANDARD_REGISTRY.md"
+      - "tests/test_gold_standard_registry.py"
+      - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - "tests/test_stewardship_consent_contract.py"
       - ".github/workflows/stewardship-consent-qa.yml"
 
