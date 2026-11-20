@@ -1010,6 +1010,7 @@ def has_registered_recovery(question):
         or is_community_project_tradeoff_question(question)
         or is_orientation_information_contrast_question(question)
         or is_guide_meta_coverage_policy_question(question)
+        or is_epistemic_category_distinction_question(question)
     )
 
 
@@ -1482,6 +1483,93 @@ def _orientation_information_contrast_recovery():
     )
 
 
+def is_epistemic_category_distinction_question(question):
+    """Recognize a request to distinguish evidence, interpretation, hypothesis, and values."""
+    q = _clean(question).casefold()
+    categories = (
+        bool(re.search(r"\bevidence\b", q)),
+        bool(re.search(r"\binterpretation\b", q)),
+        bool(re.search(r"\bhypothes(?:is|es)\b", q)),
+        bool(re.search(r"\b(?:normative judgment|value judgment|what ought)\b", q)),
+    )
+    asks_for_distinction = bool(re.search(
+        r"\b(?:what counts as|distinguish|difference between|differences between|"
+        r"how do .{0,100} differ|separate|tell apart|differentiate)\b", q
+    ))
+    return sum(categories) >= 3 and asks_for_distinction
+
+
+def has_epistemic_category_distinction_explanation(response):
+    """Require all four categories, their boundaries, and their relationship."""
+    text = _clean(response).casefold()
+    definitions = all((
+        re.search(r"\bevidence\b.{0,180}\b(?:supports?|bears on|relevant to)\b", text),
+        re.search(r"\binterpretation\b.{0,180}\b(?:meaning|sense|context)\b", text),
+        re.search(r"\bhypothes(?:is|es)\b.{0,180}\b(?:provisional|testable|tested|expectation)\b", text),
+        re.search(r"\bnormative judgment\b.{0,220}\b(?:ought|should|right|fair|value|principle)\b", text),
+    ))
+    boundaries = bool(re.search(
+        r"\b(?:facts alone|does not follow from facts|not the same as|cannot by itself|"
+        r"not automatically|must be made explicit)\b", text
+    ))
+    relationships = bool(re.search(
+        r"\b(?:evidence constrains|evidence can challenge|interpretation.*hypothes|"
+        r"hypothesis.*evidence|values.*evidence|evidence.*values)\b", text
+    ))
+    return bool(definitions and boundaries and relationships)
+
+
+def build_epistemic_category_distinction_contract():
+    """Describe the bounded task without claiming Archive doctrine."""
+    return {
+        "version": "1.0",
+        "question_class": "epistemic_category_distinction",
+        "categories": [
+            {"id": "evidence", "criterion": "Information that bears on a claim, assessed for provenance, relevance, method, independence, and counterevidence."},
+            {"id": "interpretation", "criterion": "The meaning assigned to evidence in context, including assumptions and framing."},
+            {"id": "hypothesis", "criterion": "A provisional explanatory proposition that generates expectations and can be investigated or revised."},
+            {"id": "normative_judgment", "criterion": "An evaluation of what ought to be done or valued, requiring explicit values, principles, and reasons."},
+        ],
+        "required_distinctions": [
+            "evidence_is_not_self_interpreting",
+            "interpretation_is_not_observation",
+            "hypothesis_is_not_established_fact",
+            "normative_conclusion_does_not_follow_from_facts_alone",
+        ],
+        "relationship": "Evidence constrains interpretation; interpretations can generate hypotheses; hypotheses guide further inquiry; normative judgments combine empirical understanding with explicit, contestable values.",
+        "scope": "General reasoning framework only; not an official Living Archive definition or a verdict on a particular empirical or ethical dispute.",
+        "handoff_policy": "Answer the conceptual question first; any Archive resource recommendation is a separate, verified decision.",
+    }
+
+
+def _epistemic_category_distinction_recovery():
+    """Explain the four categories and how they constrain one another."""
+    return (
+        "These four terms describe different kinds of work in reasoning. They are connected, but they are not interchangeable.\n\n"
+        "Evidence is information that bears on a claim: for example, observations, measurements, records, documents, or testimony. "
+        "Evidence is not automatically strong just because it exists. Its weight depends on where it came from, how it was gathered, "
+        "whether it is relevant to the claim, whether independent sources converge, and what counterevidence or uncertainty remains. "
+        "Evidence constrains what can responsibly be said, but it does not interpret itself.\n\n"
+        "Interpretation is the meaning we assign to evidence in context. It connects observations to a possible explanation or significance. "
+        "Interpretations are necessary, but they are shaped by assumptions, prior knowledge, interests, and the frame through which a situation is viewed. "
+        "A careful interpretation makes those assumptions visible and remains open to revision when the evidence does not fit.\n\n"
+        "A hypothesis is a provisional explanation or proposition that can be investigated. It should generate expectations: what would we expect to observe "
+        "if it were a useful explanation, and what evidence would count against it? A hypothesis is not an established fact; it is a disciplined possibility "
+        "that inquiry may strengthen, qualify, or reject.\n\n"
+        "A normative judgment evaluates what ought to be done, what is right or fair, or what deserves priority. It draws on values, principles, duties, and "
+        "judgments about consequences. Evidence matters because it helps establish what is happening and what different choices may cause, but a conclusion about "
+        "what ought to happen does not follow from facts alone. The values and principles doing the evaluative work should be stated and open to reasoned challenge.\n\n"
+        "The relationship is iterative, not a rigid one-way ladder: evidence constrains interpretation; interpretation can suggest a hypothesis; a hypothesis "
+        "guides what further evidence to seek; and normative judgment weighs the likely consequences alongside explicit values. A policy example makes the "
+        "distinction concrete: service records showing that a district receives fewer clinic visits are evidence; reading that pattern as a sign of poor access "
+        "is an interpretation; proposing that longer clinic hours would improve access is a hypothesis to test; deciding whether to fund those hours is a normative "
+        "judgment involving fairness, need, cost, and public responsibility.\n\n"
+        "A useful check is to ask four separate questions: What is observed and where did it come from? What meaning am I assigning to it? What explanation could "
+        "be tested, and what might disconfirm it? Which values or principles support the judgment I am making? Keeping those questions distinct helps prevent an "
+        "interpretation from masquerading as evidence, a hypothesis from becoming certainty, or a value judgment from being presented as a purely factual conclusion."
+    )
+
+
 def is_guide_meta_coverage_policy_question(question):
     """Recognize questions about when The Guide may declare an Archive coverage gap."""
     q = _clean(question).casefold()
@@ -1599,6 +1687,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     if is_guide_meta_coverage_policy_question(q):
         return _guide_meta_coverage_policy_recovery()
+
+    if is_epistemic_category_distinction_question(q):
+        return _epistemic_category_distinction_recovery()
 
     # A request for one near-term stewardship act needs a practical, bounded
     # application of the public Stewardship gateway, not a generic reflection.
