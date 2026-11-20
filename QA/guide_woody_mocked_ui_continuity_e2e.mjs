@@ -182,6 +182,16 @@ await page.route("**/*", async route => {
       intent: "TOPICAL_INQUIRY",
       response: answer,
       recommendation,
+      canonical_doorway: recommendation,
+      authoritative_doorway: recommendation,
+      doorway: recommendation,
+      doorway_title: recommendation?.title || null,
+      doorway_url: recommendation?.url || null,
+      doorway_rationale: recommendation?.rationale || null,
+      doorway_decision: recommendation ? "selected" : "omit",
+      doorway_selection_status: recommendation ? "VERIFIED_RELEVANT_DESTINATION" : "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH",
+      doorway_selection_evaluated: true,
+      doorway_selection_source: recommendation ? "reviewed_conceptual_family" : "bounded_search",
       answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
       processing: "qa_mock",
       route_source: "qa_ui_contract",
@@ -271,10 +281,18 @@ try {
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
+      const selectedDoorway = query === qaQuestions[2] ? recommendation : (query === qaQuestions[4] ? institutionalDoorway : null);
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
-        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: query === qaQuestions[2] ? recommendation : (query === qaQuestions[4] ? institutionalDoorway : null),
+        query, intent: "TOPICAL_INQUIRY", response: answer, recommendation: selectedDoorway,
+        canonical_doorway: selectedDoorway, authoritative_doorway: selectedDoorway, doorway: selectedDoorway,
+        doorway_title: selectedDoorway?.title || null, doorway_url: selectedDoorway?.url || null,
+        doorway_rationale: selectedDoorway?.rationale || null,
+        doorway_decision: selectedDoorway ? "selected" : "omit",
+        doorway_selection_status: selectedDoorway ? "VERIFIED_RELEVANT_DESTINATION" : "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH",
+        doorway_selection_evaluated: true,
+        doorway_selection_source: selectedDoorway ? "reviewed_conceptual_family" : "bounded_search",
         answer_basis: { kind: "general_knowledge", label: "General knowledge", explanation: "QA fixture response only." },
         processing: "qa_mock", route_source: "qa_ui_contract", visitor_boundary_version: "qa"
       } : { ok: false, error: "Unexpected QA query" };
