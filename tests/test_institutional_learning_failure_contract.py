@@ -130,7 +130,8 @@ def test_generic_question_echo_is_replaced_with_a_substantive_first_answer_and_d
         {"response": failed, "recommendation": None, "provider": "provider-x", "model": "model-y"},
     )
     assert result["institutional_learning_failure_contract"]["recovery_applied"] is True
-    assert result["response"] == result["answer"] if "answer" in result else True
+    if "answer" in result:
+        assert result["response"] == result["answer"]
     assert "Because acknowledging a failure" in result["response"]
     assert result["recommendation"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
     assert result["canonical_doorway"] == result["recommendation"]
