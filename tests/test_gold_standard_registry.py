@@ -2227,3 +2227,34 @@ def test_stewardship_incomplete_knowledge_gold_star_is_structural_not_exact_answ
     assert "established facts" in record["expected_response"]
     assert "observable signals" in record["expected_response"]
     assert "decision authority and accountability" in record["expected_response"]
+
+
+def test_institutional_extraction_incentive_governance_gold_star_is_registered_and_bounded():
+    registry = _registry()
+    benchmark_id = "gs-2026-11-20-institutional-extraction-incentive-governance"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    query = "How should a leader respond when institutional incentives reward short-term extraction?"
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == query
+    assert record["rating_out_of_10"] == 9.7
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["runtime_transfer"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["title"] == "Regenerative Governance: What Comes After Extraction-Based Systems?"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/"
+    assert len(record["expected_response"].split("\\n\\n")) == 3
+    for phrase in ("incentive-design problem", "delayed costs", "protect dissent", "board or governing authority", "circulation and renewal"):
+        assert phrase.casefold() in record["expected_response"].casefold()
+
+    reviews = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    review = next(item for item in reviews["entries"] if item["benchmark_id"] == benchmark_id)
+    assert review["activation"] == "active_quality_contributor"
+    assert "delayed costs" in review["transferable_discipline"]
+    assert "governing-body mandate" in review["transferable_discipline"]
