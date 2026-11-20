@@ -7954,7 +7954,7 @@
     },
     {
       "benchmark_id": "gs-2026-11-20-complicated-complex-distinction",
-      "status": "APPROVED",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What is the difference between complicated and complex?",
       "expected_response": "A **complicated system** can have many parts and require considerable expertise, but its components and their relationships can usually be identified and analyzed. Its behavior is sufficiently stable that specialists can break the problem into parts, understand how those parts work, and often reproduce a reliable result. An aircraft engine is complicated: designing or repairing one is demanding, but the components, specifications, and causal relationships can be studied and tested.\n\nA **complex system** is different because the interactions among its parts keep shaping one another. People, organisms, or other adaptive elements respond to conditions and to each other; feedback, changing relationships, and nonlinear effects can produce outcomes that cannot be reliably predicted by examining each part separately. An ecosystem or a community is complex: understanding its elements helps, but the whole also changes through their ongoing interaction.\n\nSo the distinction is not simply that one is easy and the other difficult. **Complicated means difficult but, in principle, analyzable through decomposition and expertise; complex means adaptive and emergent, so understanding develops through observation, feedback, and learning over time.** A complicated problem often benefits from specialist analysis, planning, and precise execution. A complex situation calls for listening to the system, testing proportionate interventions, watching what changes, and adapting. A real situation can contain both: its technical components may be complicated while the human or ecological system around them is complex.",
@@ -7969,7 +7969,7 @@
       "explicit_user_elevation_approval": true,
       "approval_state": "USER APPROVED EXACT FROZEN GOLD STAR EXEMPLAR",
       "elevation_approval_evidence": "The user explicitly instructed: fix the failure at both architectural and query levels and turn it into a Gold Star on 2026-11-20. This authorizes implementation and candidate registration. The exact newly authored answer remains subject to user review before frozen Gold Star activation.",
-      "freeze_policy": "frozen_exact_answer_and_transferable_reasoning_lesson",
+      "freeze_policy": "immutable_user_approved_gold_standard",
       "runtime_transfer": true,
       "reasoning_family": "complicated_vs_complex_conceptual_distinction",
       "transferable_lesson": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
@@ -8018,7 +8018,7 @@
       "approval_evidence": "User explicitly approved the exact proposed answer on 2026-11-20."
     }
   ],
-  "last_reconciliation_note": "2026-11-20: Complicated-versus-complex distinction exact answer explicitly approved by user; frozen as approved Gold Star. Structural and query-level contract integrated in candidate branch. Production activation awaits successful full CI, merge, and deployment verification.",
+  "last_reconciliation_note": "2026-11-20: User approved the exact complicated-versus-complex answer. Frozen as USER_APPROVED_GOLD_STANDARD, with exact-answer authority and transferable reasoning lesson. Production activation still awaits passing CI, merge, and runtime verification.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
