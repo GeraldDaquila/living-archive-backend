@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.311 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION: v489.312 — Stewardship-consent relational boundary
 # Preserve the redacted request-boundary contract used by provider diagnostics.
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
@@ -111,6 +111,12 @@ from institutional_extraction_incentives_contract import (
     is_institutional_extraction_incentives_question,
     recovery_response as _institutional_extraction_incentives_recovery,
     canonical_doorway as _institutional_extraction_incentives_doorway,
+)
+from stewardship_consent_contract import (
+    is_stewardship_consent_relationship_question,
+    recovery_response as _stewardship_consent_recovery,
+    canonical_doorway as _stewardship_consent_doorway,
+    has_stewardship_consent_relationship_explanation,
 )
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
@@ -266,6 +272,8 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    if is_stewardship_consent_relationship_question(text):
+        return "stewardship_consent_relational_legitimacy"
     # Keep this selector self-contained: it is also exercised as an isolated
     # AST-extracted unit. Require the combined leadership, institutional,
     # incentive, and extraction signals before selecting the reviewed doorway.
@@ -473,6 +481,7 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
     "stewardship_significance": {
         "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
@@ -6343,6 +6352,47 @@ def _guide_finalize_visitor_payload(payload, query):
                 exact_standard.get("doorway_omission_exception_reason") or ""
             ).strip()
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Stewardship/consent is a relational synthesis obligation shared by every
+    # provider and recovery route. Enforce it before broad stewardship fallbacks;
+    # keep the canonical continuation independent from the substantive answer.
+    if is_stewardship_consent_relationship_question(query):
+        safe = dict(payload)
+        current = str(safe.get("response") or safe.get("answer") or "").strip()
+        if not has_stewardship_consent_relationship_explanation(current):
+            safe["response"] = _sanitize_basic_inquiry_response(
+                _stewardship_consent_recovery()
+            )
+            if "answer" in safe:
+                safe["answer"] = safe["response"]
+            safe["response_provenance"] = {
+                "class": "deterministic_recovery",
+                "provider": "stewardship_consent_relational_contract",
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            }
+            safe["provider"] = None
+            safe["model"] = None
+        _consent_doorway = _normalize_authoritative_recommendation(
+            _stewardship_consent_doorway()
+        )
+        safe["recommendation"] = _consent_doorway
+        safe["canonical_doorway"] = _consent_doorway
+        safe["doorway_title"] = _consent_doorway.get("title") if _consent_doorway else None
+        safe["doorway_url"] = _consent_doorway.get("url") if _consent_doorway else None
+        safe["doorway_rationale"] = _consent_doorway.get("rationale") if _consent_doorway else None
+        safe["doorway_decision"] = "selected" if _consent_doorway else "omit"
+        safe["doorway_selection_status"] = (
+            "VERIFIED_RELEVANT_DESTINATION" if _consent_doorway else "NO_RELEVANT_CANDIDATE"
+        )
+        safe["doorway_selection_evaluated"] = True
+        safe["doorway_selection_source"] = "stewardship_consent_relational_family"
+        safe["doorway_omission_reason"] = None if _consent_doorway else "verified_doorway_unavailable"
+        safe["processing"] = "final_visitor_boundary_stewardship_consent_relational_contract"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
