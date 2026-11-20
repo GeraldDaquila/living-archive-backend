@@ -72,7 +72,8 @@ def test_main_early_task_route_preserves_a_verified_recovery_doorway():
     asgi_task = source.index("_early_task_recovery = (")
     asgi_fsd = source.index("# Immediate FSD handoff", asgi_task)
     assert asgi_task < asgi_fsd
-    assert "task_recovery=task_recovery" in source
+    assert "task_recovery=_early_task_recovery" in source
+    assert "task_recovery if isinstance(task_recovery, dict)" in source
 
 
 def test_shared_final_visitor_boundary_preserves_a_verified_task_recovery_doorway():
