@@ -1008,6 +1008,7 @@ def has_registered_recovery(question):
         or is_stewardship_failure_repair_question(question)
         or is_community_continuity_revision_question(question)
         or is_community_project_tradeoff_question(question)
+        or is_orientation_information_contrast_question(question)
     )
 
 
@@ -1022,6 +1023,16 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_orientation_information_contrast_question(question):
+        return {
+            "title": "When Knowledge Is Everywhere",
+            "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+            "rationale": (
+                "This published Living Archive Cornerstone directly develops the distinction between accumulating "
+                "information and cultivating orientation, judgment, discernment, responsibility, and wise participation. "
+                "It also explains that orientation makes ambiguity more navigable rather than promising certainty."
+            ),
+        }
     if is_interpretation_revision_evidence_question(question):
         return {
             "title": "Seeing Patterns Without Fooling Yourself",
@@ -1413,6 +1424,63 @@ def compose_task_specific_recovery(question):
     return None
 
 
+def is_orientation_information_contrast_question(question):
+    """Recognize common phrasings of the orientation/information conceptual contrast."""
+    q = re.sub(r"\s+", " ", _clean(question)).casefold()
+    contrast = bool(re.search(
+        r"\b(?:orientation|being oriented|orienting|orient)\b.{0,70}"
+        r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
+        r".{0,40}\b(?:information|being informed|informing|inform)\b"
+        r"|\b(?:information|being informed|informing)\b.{0,70}"
+        r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
+        r".{0,40}\b(?:orientation|being oriented|orienting|orient)\b"
+        r"|\bdifference between (?:orientation and information|being oriented and being informed)\b"
+        r"|\bhow (?:is|does) orientation differ(?:ent)? from information\b",
+        q,
+    ))
+    asks_meaning = bool(re.search(
+        r"\b(?:what does|what do|what is|how is|how does|explain|meaning of|mean in practice|"
+        r"difference between|understand|put .* into practice)\b",
+        q,
+    ))
+    return contrast and asks_meaning
+
+
+def has_orientation_information_explanation(response):
+    """Check that both terms, their relationship, and practical application are explained."""
+    text = _clean(response).casefold()
+    return bool(
+        re.search(r"\binformation\b.{0,100}\b(?:facts|data|details|knowledge)\b", text)
+        and re.search(r"\borientation\b.{0,180}\b(?:context|relationships|stakes|conditions)\b", text)
+        and re.search(
+            r"\b(?:orientation|it)\b.{0,100}\b(?:depends on|uses|places|organizes|organises|"
+            r"puts|situates|connects|place)\b.{0,100}\binformation\b"
+            r"|\binformation\b.{0,100}\b(?:is placed|is put|is situated|is organized|is organised)\b",
+            text,
+        )
+        and re.search(r"\b(?:decide|judg|act|navigate|prioriti[sz])\w*\b", text)
+        and re.search(r"\b(?:for example|in practice|imagine|suppose)\b", text)
+    )
+
+
+def _orientation_information_contrast_recovery():
+    """Explain the practical distinction using the Archive's published Cornerstone."""
+    return (
+        "Information gives you facts, data, or claims. Orientation helps you understand what that information means "
+        "in the situation you are actually facing: what matters, what is reliable, how the relevant parts relate, "
+        "and what responsibilities or possible actions follow. Orientation uses information; it does not reject it. "
+        "It connects what you know to the context in which you must judge and act.\n\n"
+        "For example, an AI system may give you a fluent, detailed answer. The text is information, but orientation "
+        "means asking whether its claims are reliable and adequately supported, whether they address the real question, "
+        "what important context or consequences may be missing, and what should responsibly be done with the answer. "
+        "A confident response is not a substitute for human judgment.\n\n"
+        "This is the distinction developed in the Living Archive Cornerstone “When Knowledge Is Everywhere”: "
+        "the aim is not simply to accumulate more knowledge, but to cultivate orientation, judgment, discernment, "
+        "responsibility, and wise participation in complex systems. Orientation does not eliminate ambiguity; "
+        "it makes ambiguity more navigable."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -1420,6 +1488,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # This conceptual contrast is an ordinary explanatory task, not an unfamiliar
+    # Archive term requiring a formal-definition abstention.
+    if is_orientation_information_contrast_question(q):
+        return _orientation_information_contrast_recovery()
 
     # A request for one near-term stewardship act needs a practical, bounded
     # application of the public Stewardship gateway, not a generic reflection.
