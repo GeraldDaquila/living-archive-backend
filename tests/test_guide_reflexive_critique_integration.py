@@ -27,3 +27,20 @@ def test_question_contract_keeps_critique_distinct_from_archive_description():
     assert critique["requested_outcome"] == "critically_examine_archive_worldview"
     assert description["requested_outcome"] == "unresolved"
     assert description["institutional_critique"]["detected"] is False
+
+ 
+def test_first_class_critique_plan_survives_retrieval_and_composition():
+    main = Path("main.py").read_text(encoding="utf-8")
+    composition = Path("general_guide_composition.py").read_text(encoding="utf-8")
+    assert 'context_data["_reflexive_institutional_critique"] = _reflexive_critique_plan' in main
+    assert "answer_first=true" in main
+    assert "REFLEXIVE CRITIQUE ANSWER-FIRST CONTRACT" in composition
+    assert "A retrieved passage is evidence to analyze, never the answer by itself" in composition
+    assert "Never respond by quoting or paraphrasing one Archive passage and then saying no resource was found" in composition
+
+
+def test_reflexive_critique_plan_requires_a_direct_answer_even_with_no_sources():
+    from guide_reflexive_critique import build_reflexive_critique_plan
+    plan = build_reflexive_critique_plan("What would constitute a good-faith critique of the Archive’s worldview?")
+    assert plan["response_contract"]["fallback"] == "answer_the_general_methodological_question_and_bound_archive_specific_claims"
+    assert "offer_no_doorway_unless_existing_canonical_authority_and_relevance_gates_pass" in plan["answer_requirements"]
