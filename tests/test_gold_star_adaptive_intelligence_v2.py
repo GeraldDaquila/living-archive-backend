@@ -205,6 +205,7 @@ def test_stewardship_consent_contract_reaches_the_actual_provider_system_message
 
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
     monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
+    composition._COMPOSITION_CACHE.clear()
     result = composition.compose(
         use_core=object(),
         query="What is the relationship between stewardship and consent?",
