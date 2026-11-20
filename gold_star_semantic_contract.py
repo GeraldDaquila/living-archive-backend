@@ -7,7 +7,12 @@ from __future__ import annotations
 import re
 from typing import Any
 
-VERSION = "1.2"
+from institutional_learning_failure_contract import (
+    institutional_learning_failure_response_checks,
+    is_institutional_learning_failure_question,
+)
+
+VERSION = "1.3"
 _PATTERNS = {
     "explicit_no_handoff": re.compile(r"\b(?:do not|don't|without|no)\b.{0,80}\b(?:links?|resources?|recommendations?|follow[- ]?up|next steps?|doorways?)\b", re.I),
     "epistemic_category_distinction": re.compile(
@@ -34,6 +39,8 @@ def classify_question(query: str) -> dict[str, Any]:
     q = str(query or "").strip()
     if not q:
         return {"version": VERSION, "type": "unknown", "confidence": "none"}
+    if is_institutional_learning_failure_question(q):
+        return {"version": VERSION, "type": "institutional_learning_failure", "confidence": "high"}
     # Explicit user constraints take precedence over generic task verbs.
     for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
@@ -70,7 +77,15 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
     def add(name: str, passed: bool, rationale: str, *, hard: bool = False) -> None:
         checks.append({"name": name, "passed": bool(passed), "rationale": rationale,
                        "severity": "hard" if hard else "review"})
-    if kind == "explicit_no_handoff":
+    if kind == "institutional_learning_failure":
+        for item in institutional_learning_failure_response_checks(low):
+            add(
+                item["name"],
+                item["passed"],
+                "Answer the causal question by distinguishing acknowledgment from learning, naming structural mechanisms, connecting understanding to changed action, and offering a calibrated corrective test.",
+                hard=True,
+            )
+    elif kind == "explicit_no_handoff":
         add("no_resource_handoff", not payload.get("recommendation") and not re.search(r"https?://|www\.", answer, re.I), "Respect explicit no-resource/no-link instructions.", hard=True)
         add("no_unrequested_followup", not _has(low, ("would you like", "if you want, i can", "you may want to explore", "next, you could", "i recommend reading", "a useful next question", "the next question is", "the next step is", "a good next step", "one useful next step")), "Do not append an unrequested next step.")
     elif kind == "guide_meta_coverage_policy":
