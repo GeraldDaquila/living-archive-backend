@@ -55,7 +55,7 @@ def compose_visitor_failure_recovery(query: str) -> dict[str, str]:
     )
     basis = (
         "Service-limited recovery message. The Guide could not complete generation "
-        "or verify canonical sources, so no substantive answer or Archive attribution "
-        "is claimed."
+        "or verify Living Archive canonical sources, so no substantive answer or "
+        "Living Archive attribution is claimed."
     )
     return {"response": response, "basis_explanation": basis}
