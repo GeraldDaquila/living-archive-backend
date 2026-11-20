@@ -67,7 +67,7 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
     def test_answer_contains_a_real_markdown_doorway(self):
         response = CONTRACT["_trust_community_stewardship_recovery"]()
         self.assertIn(
-            f"[Trust Architecture: The Missing Infrastructure Behind Functional Societies]({self.EXPECTED_URL})",
+            f"[Trust Architecture cornerstone]({self.EXPECTED_URL})",
             response,
         )
 
