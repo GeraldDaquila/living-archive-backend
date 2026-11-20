@@ -153,11 +153,10 @@ def _approved_query_doorway() -> dict[str, str] | None:
     }
 
 
-def _explicitly_requests_no_doorway(query: str, payload: dict[str, Any]) -> bool:
-    if str(payload.get("doorway_decision") or "").strip().casefold() == "omit":
-        return True
-    if payload.get("doorway_omission_reason"):
-        return True
+def _explicitly_requests_no_doorway(query: str) -> bool:
+    # Only visitor intent suppresses the approved continuation. A prior selector's
+    # generic omission state is not authoritative when this exact query has a
+    # separately verified, approved application doorway.
     return bool(re.search(
         r"\b(?:do not|don't|without|no)\b.{0,60}\b(?:links?|resources?|recommendations?|doorways?|pages?)\b",
         str(query or ""),
@@ -204,7 +203,7 @@ def apply_event_pattern_structure_boundary(query: str, payload: Any) -> Any:
     # explanation is already complete, so answer quality cannot suppress a useful
     # continuation.
     has_existing_doorway = bool(safe.get("recommendation") or safe.get("canonical_doorway"))
-    if not has_existing_doorway and not _explicitly_requests_no_doorway(query, safe):
+    if not has_existing_doorway and not _explicitly_requests_no_doorway(query):
         doorway = _approved_query_doorway()
         if doorway:
             safe["recommendation"] = doorway
