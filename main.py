@@ -279,16 +279,16 @@ def _select_verified_doorway_conceptual_family(query):
     # correspondence/correctability synthesis, without capturing personal-brand
     # or ordinary brand-refresh questions.
     transformation_rebranding = (
-        re.search(r"\\btransform(?:ation|ing|ed)?\\b", text, re.I)
-        and re.search(r"\\brebrand(?:ing|ed)?\\b", text, re.I)
+        re.search(r"\btransform(?:ation|ing|ed)?\b", text, re.I)
+        and re.search(r"\brebrand(?:ing|ed)?\b", text, re.I)
         and (
             re.search(
-                r"\\b(?:system|institution|organizational|organisational|governance|structural|structure|decision rights|incentives)\\b",
+                r"\b(?:system|institution|organizational|organisational|governance|structural|structure|decision rights|incentives)\b",
                 text,
                 re.I,
             )
             or re.search(
-                r"\\bwhen does transformation become mere rebranding\\b",
+                r"\bwhen does transformation become mere rebranding\b",
                 text,
                 re.I,
             )
