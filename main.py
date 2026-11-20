@@ -6368,6 +6368,52 @@ def _guide_finalize_visitor_payload(payload, query):
                 ),
             }
             safe["evidence"] = []
+            safe["evidence_validation"] = {
+                "version": "1.0",
+                "status": "not_applicable",
+                "reason": "deterministic_recovery_not_attributed_to_retrieved_sources",
+                "reference_count": 0,
+                "claim_support": {
+                    "status": "not_applicable",
+                    "reason": "bounded_general_knowledge_recovery",
+                    "semantic_certification": False,
+                },
+                "temporal_validity": {
+                    "status": "not_applicable",
+                    "reason": "no_temporal_claims_in_response",
+                },
+                "semantic_certification": False,
+            }
+            _recovery_evidence = {
+                "provenance_class": "deterministic_recovery",
+                "references_present": False,
+                "validation_status": "not_applicable",
+                "claim_support_status": "not_applicable",
+                "semantic_certification": False,
+            }
+            _answer_envelope = safe.get("answer_envelope")
+            if isinstance(_answer_envelope, dict):
+                _answer_envelope = dict(_answer_envelope)
+                _route = dict(_answer_envelope.get("route") or {})
+                _route["provider_present"] = False
+                _route["model_present"] = False
+                _answer_envelope["route"] = _route
+                _answer_envelope["evidence"] = _recovery_evidence
+                safe["answer_envelope"] = _answer_envelope
+            _quality_floor = safe.get("gold_star_v2_quality_floor")
+            if isinstance(_quality_floor, dict):
+                _quality_floor = dict(_quality_floor)
+                _quality_floor["evidence_validation"] = safe["evidence_validation"]
+                _floor_envelope = _quality_floor.get("answer_envelope")
+                if isinstance(_floor_envelope, dict):
+                    _floor_envelope = dict(_floor_envelope)
+                    _floor_route = dict(_floor_envelope.get("route") or {})
+                    _floor_route["provider_present"] = False
+                    _floor_route["model_present"] = False
+                    _floor_envelope["route"] = _floor_route
+                    _floor_envelope["evidence"] = _recovery_evidence
+                    _quality_floor["answer_envelope"] = _floor_envelope
+                safe["gold_star_v2_quality_floor"] = _quality_floor
             safe["processing"] = "final_visitor_boundary_stewardship_incomplete_knowledge_recovery"
             safe["route_source"] = "guide_final_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
