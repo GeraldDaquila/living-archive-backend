@@ -353,3 +353,42 @@ def test_reflexive_institutional_critique_gold_star_is_registered_and_bounded():
         item.get("status") == "USER_APPROVED_GOLD_STANDARD" and item.get("runtime_transfer") is True
         for item in registry["records"]
     )
+
+
+def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounded_transfer():
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    transfer_map = json.loads((root / "docs/qa/gold_star_transferability_map.json").read_text(encoding="utf-8"))
+    benchmark_id = "gs-2026-11-20-power-responsibility-proportional-accountability"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+    mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == benchmark_id)
+
+    expected = "Power and responsibility are connected because the ability to influence what happens creates a corresponding need to account for how that influence is used and what effects it has. Power is not limited to holding a formal position or issuing decisions: it can also operate through control of information, access, resources, attention, relationships, or the choices available to other people. Responsibility concerns how a person or institution answers for the use of that influence and for consequences within its meaningful sphere of control.\n\nThe relationship is proportional, but not a simple equation. The more influence someone has over an outcome, the stronger the reason to explain decisions, consider who may be affected, respect other people's agency, and correct preventable harm. Formal authority can make these duties visible, but quiet or informal influence can carry responsibility too. At the same time, responsibility should not be assigned as though someone controlled conditions they could not reasonably change. A fair account distinguishes a person's actual influence, knowledge, role, and capacity from outcomes imposed by wider constraints.\n\nThis connection also works in the other direction: responsibility gives power its proper limits and purpose. Without accountability, influence can become arbitrary or self-serving; without enough agency or authority to act, responsibility can become an unfair burden rather than a meaningful obligation. The practical test is to ask: who can shape this decision or condition, who will experience its effects, what can the influential person reasonably do, and how can those affected question, correct, or seek an explanation? The aim is not to eliminate power, but to make its exercise answerable and proportionate to its reach."
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What is the relationship between power and responsibility?"
+    assert record["expected_response"] == expected
+    assert len(expected.split("\n\n")) == 3
+    assert record["rating_out_of_10"] == 9.6
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["expected_doorway"] == {
+        "title": "Leadership Foundations",
+        "url": "https://geralddaquila.com/leadership-foundations/",
+        "rationale": "The live Continue Exploring card identifies leadership as a human systems function through self-governance, relationships, responsibility, governance, pressure, and decision making.",
+    }
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == record["reasoning_family"]
+    assert entry["transferable_discipline"] == record["transferable_lesson"]
+    assert entry["abstention_boundary"] == record["transfer_boundary"]
+    assert mapped["family"] == record["reasoning_family"]
+    assert mapped["structural_lesson"] == record["transferable_lesson"]
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 118
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 114
