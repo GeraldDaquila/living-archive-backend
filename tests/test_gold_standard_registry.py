@@ -401,8 +401,14 @@ def test_community_trust_candidate_preserves_sequence_and_evidence_boundary():
     )
     assert record["status"] == "CANDIDATE"
     assert record["query"] == "What is the role of trust in community stewardship?"
-    assert record["expected_response"] is None
-    assert "Exact prior trust answer text" in record["provenance"]["evidence_boundary"]
+    fixture = json.loads(
+        (ROOT / "tests" / "fixtures" / "general_guide_trust_community_stewardship_candidate.json").read_text(encoding="utf-8")
+    )
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"]["title"] == "Trust Architecture"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/trust-architecture/"
+    assert record["status"] == fixture["status"] == "CANDIDATE"
+    assert "no Gold Star elevation or runtime activation is asserted" in record["provenance"]["evidence_boundary"]
 
 
 def test_reciprocity_community_gold_standard_is_approved_bounded_and_supersedes_old_reference():
@@ -2351,4 +2357,4 @@ def test_trust_community_stewardship_candidate_matches_reviewable_fixture_withou
     assert record["rating_out_of_10"] is None
     assert "explicit user approval" in record["freeze_policy"] or "Explicit user approval" in fixture["approval_boundary"]
     assert record.get("runtime_transfer") is not True
-    assert "not asserted" in record["provenance"]["evidence_boundary"]
+    assert "no Gold Star elevation or runtime activation is asserted" in record["provenance"]["evidence_boundary"]
