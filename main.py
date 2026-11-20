@@ -8234,29 +8234,49 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
     # Superseded reciprocity definitions must not be recovered from the older
-    # Archive glossary path. Route both the community-purpose query and the
-    # earlier Archive-framed wording to the approved successor answer.
-    if _is_reciprocity_community_purpose_question(query):
-        _reciprocity_contract = _reciprocity_community_final_contract(query)
-        return {
-            "response": _reciprocity_contract["response"],
-            "answer_basis": dict(_reciprocity_contract["answer_basis"]),
-            "recommendation": _reciprocity_contract["recommendation"],
-            "canonical_doorway": _reciprocity_contract["recommendation"],
-            "doorway_title": str((_reciprocity_contract["recommendation"] or {}).get("title") or ""),
-            "doorway_url": str((_reciprocity_contract["recommendation"] or {}).get("url") or ""),
-            "provider": "bounded_reciprocity_community_recovery",
-            "model": "deterministic-contract-recovery",
-        }
+    # Archive glossary path. Route the community-purpose query and the earlier
+    # Archive-framed wording to the approved successor answer.
     if (
         "reciprocity" in q
-        and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q)
         and not re.search(r"\b(?:trust|stewardship)\b", q)
+        and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean|purpose|role|why|how)\b", q)
     ):
         from deterministic_answer_recovery import compose_definition_significance
+        _reciprocity_answer = compose_definition_significance("reciprocity")
+        _community_reciprocity_query = (
+            "community" in q
+            and re.search(r"\b(?:purpose|role|meaning|what|how|why)\b", q)
+        )
+        _reciprocity_doorway = None
+        if _community_reciprocity_query:
+            _reciprocity_doorway = {
+                "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+                "url": (
+                    "https://geralddaquila.com/2026/06/01/"
+                    "reciprocity-before-bureaucracy-how-communities-coordinated-without-modern-institutions/"
+                ),
+                "rationale": (
+                    "This essay examines reciprocity as social infrastructure: how mutual support, "
+                    "extended obligations, and shared risk help communities coordinate without "
+                    "requiring immediate repayment. It is a focused continuation of the question, "
+                    "not presented as the source of the general explanation above."
+                ),
+            }
         return {
-            "response": compose_definition_significance("reciprocity"),
-            "doorway_title": "",
+            "response": _reciprocity_answer,
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "Conceptual explanation",
+                "explanation": (
+                    "This is a general conceptual explanation. The Reciprocity Before Bureaucracy "
+                    "essay is offered separately as a related Living Archive resource, not represented "
+                    "as the source of this answer."
+                ),
+            },
+            "recommendation": _reciprocity_doorway,
+            "canonical_doorway": _reciprocity_doorway,
+            "doorway_title": str((_reciprocity_doorway or {}).get("title") or ""),
+            "doorway_url": str((_reciprocity_doorway or {}).get("url") or ""),
             "provider": "bounded_general_knowledge_recovery",
             "model": "",
         }
