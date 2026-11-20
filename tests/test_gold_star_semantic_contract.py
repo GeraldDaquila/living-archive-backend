@@ -99,3 +99,43 @@ def test_semantic_shadow_does_not_break_existing_integrity_regexes():
     assert safe["status"] == "pass"
     assert safe["semantic_shadow"]["mode"] == "shadow_only"
     assert unsafe["status"] == "fail"
+
+
+def test_guide_meta_coverage_policy_is_a_distinct_query_type_with_four_outcome_checks():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = "When should The Guide say 'the Archive does not yet address this directly'?"
+    answer = compose_recovery(query)
+    result = evaluate_semantic_contract(
+        query,
+        {"ok": True, "response": answer, "recommendation": None},
+    )
+
+    assert classify_question(query)["type"] == "guide_meta_coverage_policy"
+    assert result["question_type"] == "guide_meta_coverage_policy"
+    assert result["semantic_certification"] is False
+    assert result["status"] == "review_required"
+    assert all(check["passed"] for check in result["checks"])
+
+
+def test_meta_coverage_semantic_contract_rejects_compatibility_doorway_aliases():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = "When should The Guide say 'the Archive does not yet address this directly'?"
+    result = evaluate_semantic_contract(
+        query,
+        {
+            "ok": True,
+            "response": compose_recovery(query),
+            "recommendation": None,
+            "canonical_doorway": {
+                "title": "Unrelated",
+                "url": "https://geralddaquila.com/unrelated/",
+            },
+        },
+    )
+    doorway_check = next(
+        check for check in result["checks"]
+        if check["name"] == "no_archive_doorway_for_policy_question"
+    )
+    assert doorway_check["passed"] is False
