@@ -315,7 +315,7 @@ def test_reflexive_institutional_critique_gold_star_is_registered_and_bounded():
     assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
     assert record["expected_doorway"] is None
     assert "independence-sensitive" in record["doorway_omission_exception_reason"]
-    assert len(record["expected_response"].split("\\n\\n")) == 6
+    assert len(record["expected_response"].split("\n\n")) == 6
     for phrase in (
         "independent corroboration",
         "internal coherence and external adequacy",
