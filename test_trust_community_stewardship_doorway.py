@@ -6,6 +6,7 @@ They deliberately avoid importing the production ASGI graph and its external ser
 import ast
 import re
 import unittest
+import deterministic_answer_recovery as deterministic_recovery
 from pathlib import Path
 
 
@@ -66,6 +67,16 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
             f"[Trust Architecture cornerstone]({self.EXPECTED_URL})",
             response,
         )
+
+    def test_task_recovery_and_provider_exhaustion_recovery_are_identical(self):
+        self.assertTrue(deterministic_recovery.has_registered_recovery(self.QUERY))
+        self.assertEqual(
+            deterministic_recovery._trust_community_stewardship_recovery(),
+            CONTRACT["_trust_community_stewardship_recovery"](),
+        )
+        doorway = deterministic_recovery.registered_recovery_recommendation(self.QUERY)
+        self.assertEqual(doorway["url"], self.EXPECTED_URL)
+        self.assertTrue(doorway["rationale"])
 
     def test_final_payload_exports_nested_and_flat_doorway_contract(self):
         payload_node = next(
