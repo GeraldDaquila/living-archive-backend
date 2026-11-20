@@ -18,6 +18,7 @@ OBSERVED_GUIDE_ROUTES = (
     "guide_broad_conceptual_boundary",
     "guide_direct_attribute_fail_closed",
     "guide_early_deterministic_boundary",
+    "guide_meta_coverage_policy_early_boundary",
     "guide_explicit_home_navigation",
     "guide_final_visitor_boundary",
     "guide_hypothetical_safety_calibration",
@@ -114,3 +115,14 @@ def test_route_registry_stays_reconciled_with_main_runtime_route_sources():
     source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
     observed = set(re.findall(r"""["']route_source["']\s*:\s*["']([^"']+)["']""", source))
     assert observed == set(registered_route_sources())
+
+
+def test_guide_meta_coverage_policy_early_route_has_a_narrow_non_navigational_capability():
+    capability = route_capability("guide_meta_coverage_policy_early_boundary")
+
+    assert capability["declaration_status"] == "declared"
+    assert capability["route_class"] == "meta_governance_deterministic"
+    assert "guide_meta_coverage_policy" in capability["supported_task_families"]
+    assert "archive_resource_discovery" in capability["unsupported_task_families"]
+    assert "no_archive_doorway" in capability["abstention_modes"]
+    assert capability["semantic_competence_certified"] is False
