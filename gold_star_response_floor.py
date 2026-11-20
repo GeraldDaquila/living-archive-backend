@@ -160,8 +160,8 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         },
         "personal_reference_resolution": question_contract.get("personal_reference"),
     }
-    # Shadow diagnostics are metadata only. A semantic hard failure is not
-    # promoted into the v2 enforcement status and cannot change the answer.
+    # Semantic observations remain non-enforcing by default. Only the explicitly
+    # supported question families below can contribute bounded v2 requirements.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
     semantic = result["semantic_shadow"]
     supported_semantic_type = (
