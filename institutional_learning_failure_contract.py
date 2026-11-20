@@ -30,7 +30,7 @@ _INSTITUTION = re.compile(
 )
 _RECURRENCE = re.compile(
     r"\b(?:repeat\w*|recur\w*|reproduc\w*|keep\s+(?:making|having|experiencing|"
-    r"encountering|producing)|continue\s+to\s+(?:make|have|experience|produce))\b",
+    r"encountering|producing)|continu\w*\s+to\s+(?:make|have|experience|produce))\b",
     re.I,
 )
 _FAILURE = re.compile(r"\b(?:failures?|mistakes?|errors?|problems?|breakdowns?|setbacks?)\b", re.I)
