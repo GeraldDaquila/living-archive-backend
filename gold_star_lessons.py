@@ -205,6 +205,9 @@ def validate_learning_integrity(
                 "LEGACY_INCOMPLETE_NOT_APPROVED",
                 "NOT_APPROVED_CONCEPTUAL_MISMATCH",
                 "TITLE_OBSERVED_URL_NOT_CAPTURED",
+                # Explicit unknown historical state; recognized for integrity only,
+                # never interpreted as an approved omission or a no-match result.
+                "NOT_EVALUATED",
             }:
                 raise GoldStarRegistryIntegrityError(
                     f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."

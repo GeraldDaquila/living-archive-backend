@@ -2102,6 +2102,23 @@ def test_live_orientation_information_gold_star_is_registered_verbatim_and_unass
     assert "human judgment" in review_entry["abstention_boundary"]
 
 
+
+def test_approved_gold_star_may_preserve_not_evaluated_doorway_without_authorizing_omission():
+    """NOT_EVALUATED is a valid recorded state, not an omission decision."""
+    registry = _registry()
+    benchmark_id = "general-guide-doorway-nonselection-evidence-governance-candidate-2026-11-20"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] is None
+    assert not record.get("doorway_omission_exception_reason")
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+
+
 def test_guide_coverage_gap_governance_gold_star_preserves_intentional_no_doorway():
     registry = _registry()
     record = next(
