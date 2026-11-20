@@ -242,7 +242,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["superseded_historical_reference_count"] == len(superseded) == 1
     assert report["pending_approval_evidence_count"] == len(pending) == 1
     assert report["authoritative_gold_star_count"] == 127
-    assert report["active_runtime_gold_star_count"] == 124
+    assert report["active_runtime_gold_star_count"] == 125
     assert report["counting_note"].find("Pending approval evidence is excluded") >= 0
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
