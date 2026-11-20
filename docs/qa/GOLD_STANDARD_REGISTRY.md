@@ -872,12 +872,12 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Answer:** The exact visitor-facing response distinguishing evidence, interpretation, hypothesis, and normative judgment is preserved verbatim in `docs/qa/gold_standard_registry.json`.
 - **Rating:** 9.4/10.
 - **Approval scope:** The exact answer and the transferable discipline of separating answer formation from evidenced doorway selection are approved. This does not certify that the original missing doorway was an intentional omission.
-- **Doorway state:** `NOT_EVALUATED` for the original observed response. The post-deployment rendered result for this exact query has not yet been supplied for acceptance review.
+- **Doorway state:** The original response's absent doorway remains `NOT_EVALUATED`; the supplied live screenshot verifies the post-deployment answer, not intentional omission or corpus-wide destination absence.
 - **Governance principle:** A complete answer does not create an automatic obligation to attach a resource. However, a missing doorway is not evidence of successful restraint. The selector must distinguish a verified relevant destination, no relevant destination after completed bounded checks, retrieval or source-verification failure, a selection that was not evaluated, and an omission authorized under the existing contract.
 - **Existing-contract boundary:** This Gold Star does not expand authorized reasons for omission or override the approved general-continuation rule. It requires the selector to record the actual evaluation and apply existing omission authority rather than inventing a new exception.
-- **Runtime transfer:** Disabled pending separate live visitor acceptance and transfer review. The correction is deployed, but the exact query's post-deployment rendered behavior has not yet been reviewed.
+- **Runtime transfer:** Active as a qualitative quality contributor after the user supplied the post-deployment live Guide screenshot and directed a streamlined approval process. Transfer is limited to the evidence-governance discipline; exact-answer enforcement and deterministic fallback remain disabled.
 - **Production application:** PR #1754 merged to main at `c6e370f2649a37207b908cfa6c8f4db2f8742423`; Gerald workspace primary and USE2 mirror deployments are live.
 - **Standalone QA:** 163 targeted regression tests passed; Guide composition QA V489.243 passed; registry integrity passed.
 - **Numbering:** `UNASSIGNED`; no display serial was separately requested.
-- **Freeze policy:** Preserve the exact approved answer and bounded governance discipline. Do not reinterpret the original missing doorway as intentional, enable runtime transfer, or alter the existing omission contract without separate evidence and authorization.
+- **Freeze policy:** Preserve the exact approved answer and bounded governance discipline. Do not reinterpret the original missing doorway as intentional or alter the existing omission contract.
 
