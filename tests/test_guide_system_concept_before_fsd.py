@@ -54,21 +54,17 @@ def test_live_visitor_finalizer_enforces_answer_before_fsd_and_keeps_the_doorway
 
     query = "What is the difference between an event, a pattern, and a system structure?"
     assert _resolve_exact_guide_gold_standard(query) is None
-    doorway = {
-        "title": "Fractal Systems Diagnostic",
-        "url": "https://geralddaquila.com/fractal-systems-diagnostic-2/",
-    }
     result = _guide_finalize_visitor_payload(
         {
             "response": "Your question asks about three concepts. Continue to the diagnostic.",
-            "recommendation": doorway,
             "provider": "test-provider",
             "model": "test-model",
         },
         query,
     )
     assert has_event_pattern_structure_explanation(result["response"])
-    assert result["recommendation"] == doorway
+    assert result["recommendation"]["title"] == "Fractal Systems Diagnostic"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/fractal-systems-diagnostic-2/"
     assert result["answer_basis"]["kind"] == "general_knowledge"
     assert result["response_provenance"]["class"] == "deterministic_recovery"
     assert result["event_pattern_structure_contract"]["answer_first_enforced"] is True
