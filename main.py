@@ -766,6 +766,9 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         ):
             safe[key] = None
         safe["doorway_decision"] = "omit"
+        safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
+        safe["doorway_selection_evaluated"] = False
+        safe["doorway_selection_source"] = "guide_coverage_policy_contract"
         safe["doorway_omission_reason"] = (
             "This is a question about The Guide's coverage policy, not a request for an Archive resource."
         )
@@ -808,6 +811,12 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             if key in safe:
                 safe[key] = None
         safe["doorway_decision"] = "omit"
+        safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
+        safe["doorway_selection_evaluated"] = False
+        safe["doorway_selection_source"] = (
+            "reviewed_gold_star_exception" if reviewed_omission
+            else "explicit_visitor_refusal"
+        )
         if not str(safe.get("doorway_omission_reason") or "").strip():
             safe["doorway_omission_reason"] = (
                 str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
@@ -5924,15 +5933,12 @@ def _gold_star_default_doorway():
 def _guide_restore_verified_doorway(payload, query):
     """Restore one verified canonical doorway at the terminal visitor boundary.
 
-    A narrowly reviewed conceptual-family destination takes precedence over a
-    merely adjacent upstream candidate. All public aliases are synchronized,
-    including the rationale required by the shared frontend renderer.
+    Answer formation and resource selection are independent. A retrieval-free
+    answer must not be mistaken for an evaluated no-doorway decision: when the
+    route is a general-knowledge answer, run the bounded canonical selector
+    before recording an omission. All public aliases remain synchronized.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
-    # Preserve the explicit no-doorway decision for this bounded general-
-    # knowledge recovery. The terminal visitor boundary must not append a
-    # generic Learning Arc or Compass after the answer has declared that no
-    # verified direct Archive continuation materially advances the inquiry.
     exact_standard = _resolve_exact_guide_gold_standard(query)
     exact_gold_star_omission = (
         exact_standard is not None
@@ -5949,30 +5955,21 @@ def _guide_restore_verified_doorway(payload, query):
         )
     except Exception:
         registered_candidate = None
-    verified_family = _select_verified_doorway_conceptual_family(query)
-    no_archive_destination_was_declared = (
-        safe.get("processing") == "basic_inquiry"
-        and isinstance(answer_basis, dict)
-        and answer_basis.get("kind") == "general_knowledge"
-        and not verified_family
-        and not registered_candidate
-        # An incidental upstream recommendation is not proof of relevance.
-        # Only an independently verified conceptual family, registered recovery
-        # doorway, or canonical source context can authorize navigation here.
-        and not str(safe.get("canonical_link_context") or "").strip()
-    )
+
+    # A reviewed Gold Star omission and the separately governed internal
+    # remedy-selection recovery remain terminal. A merely absent upstream
+    # doorway is not an authorized omission.
     explicit_general_knowledge_omission = (
         exact_gold_star_omission
-        or no_archive_destination_was_declared
         or (
-        safe.get("processing") == "gold_star_remedy_selection_recovery"
-        and isinstance(answer_basis, dict)
-        and answer_basis.get("kind") == "general_knowledge"
-        and isinstance(response_provenance, dict)
-        and response_provenance.get("class") == "deterministic_recovery"
-        and safe.get("doorway_omission_reason") == "no_verified_direct_archive_continuation"
-        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
-        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+            safe.get("processing") == "gold_star_remedy_selection_recovery"
+            and isinstance(answer_basis, dict)
+            and answer_basis.get("kind") == "general_knowledge"
+            and isinstance(response_provenance, dict)
+            and response_provenance.get("class") == "deterministic_recovery"
+            and safe.get("doorway_omission_reason") == "no_verified_direct_archive_continuation"
+            and not _normalize_authoritative_recommendation(safe.get("recommendation"))
+            and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
         )
     )
     if explicit_general_knowledge_omission:
@@ -5984,40 +5981,74 @@ def _guide_restore_verified_doorway(payload, query):
         safe["doorway_omission_exception_reason"] = (
             str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
             if exact_gold_star_omission else (
-                "No directly relevant canonical Archive destination has been verified for this inquiry."
-                if no_archive_destination_was_declared else (
-                    "The answer is complete general-knowledge guidance about an internal "
-                    "USE learning-governance method. There is no verified direct Archive continuation "
-                    "that materially advances the inquiry."
-                )
+                "The answer is complete general-knowledge guidance about an internal "
+                "USE learning-governance method. There is no verified direct Archive continuation "
+                "that materially advances the inquiry."
             )
         )
         safe["doorway_decision"] = "omit"
+        safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
+        safe["doorway_selection_evaluated"] = False
+        safe["doorway_selection_source"] = (
+            "reviewed_gold_star_exception"
+            if exact_gold_star_omission else "existing_internal_recovery_contract"
+        )
         safe["doorway_omission_reason"] = safe["doorway_omission_exception_reason"]
         return safe
 
+    selection_trace = {"status": "NOT_EVALUATED", "canonical_search_attempted": False}
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
-    if not doorway and (
-        safe.get("generation_authority_protected_docs")
-        or safe.get("question_authority_protected_docs")
-        or safe.get("canonical_link_context")
-        or safe.get("context_blocks")
-    ):
+    if doorway:
+        selection_trace.update({
+            "status": "VERIFIED_RELEVANT_DESTINATION",
+            "source": "reviewed_conceptual_family",
+        })
+
+    # Deterministic answer-first routes intentionally have no retrieval context.
+    # That is not a reason to skip navigation evaluation. Run one bounded
+    # canonical selection pass for these general-knowledge answer routes.
+    requires_independent_selection = (
+        isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and safe.get("processing") in {
+            "basic_inquiry",
+            "guide_epistemic_category_distinction_deterministic",
+        }
+    )
+    has_selection_evidence = any(
+        safe.get(key)
+        for key in (
+            "generation_authority_protected_docs",
+            "question_authority_protected_docs",
+            "canonical_link_context",
+            "context_blocks",
+        )
+    )
+    if not doorway and (has_selection_evidence or requires_independent_selection):
+        evidence_context = dict(safe)
+        evidence_context["_doorway_selection_trace"] = selection_trace
         try:
-            evidence_context = dict(safe)
-            evidence_context["_skip_doorway_search_recovery"] = True
             evidence_candidate = _general_guide_authoritative_doorway(
                 query, evidence_context
             )
-        except Exception:
+        except Exception as exc:
+            selection_trace.update({
+                "status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
+                "error_type": type(exc).__name__,
+            })
             evidence_candidate = None
         doorway = _normalize_authoritative_recommendation(evidence_candidate)
+        if doorway:
+            selection_trace.update({
+                "status": "VERIFIED_RELEVANT_DESTINATION",
+                "source": "canonical_evidence_selector",
+            })
+
     if not doorway:
         # Reviewed query-specific selectors are more precise than generic
-        # registered recovery candidates. Give them priority so their
-        # question-calibrated rationale is preserved for the visitor.
+        # registered recovery candidates. Preserve their calibrated rationale.
         for selector_name in (
             "_healthy_community_canonical_recommendation",
             "_trust_community_stewardship_canonical_recommendation",
@@ -6029,86 +6060,52 @@ def _guide_restore_verified_doorway(payload, query):
                 specialized = _normalize_authoritative_recommendation(
                     selector(query, safe)
                 )
-            except Exception:
+            except Exception as exc:
+                selection_trace.update({
+                    "status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
+                    "error_type": type(exc).__name__,
+                })
                 specialized = None
             if specialized:
                 doorway = specialized
+                selection_trace.update({
+                    "status": "VERIFIED_RELEVANT_DESTINATION",
+                    "source": "reviewed_query_selector",
+                })
                 break
+
     if not doorway and registered_candidate:
         doorway = registered_candidate
-    if not doorway:
-        upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
-        if not upstream_candidate:
-            upstream_candidate = _normalize_authoritative_recommendation(
-                {
-                    "title": safe.get("doorway_title"),
-                    "url": safe.get("doorway_url"),
-                    "rationale": safe.get("doorway_rationale"),
-                }
-            )
-        if upstream_candidate:
-            # Validate the candidate against its canonical source, not merely its
-            # provider-supplied title, URL, or rationale.
-            candidate_docs = []
-            for evidence_key in (
-                "generation_authority_protected_docs",
-                "question_authority_protected_docs",
-            ):
-                evidence_items = safe.get(evidence_key) or []
-                if isinstance(evidence_items, list):
-                    candidate_docs.extend(
-                        item for item in evidence_items if isinstance(item, dict)
-                    )
-            context = str(
-                safe.get("canonical_link_context")
-                or safe.get("context_blocks")
-                or ""
-            )
-            if context:
-                try:
-                    candidate_docs.extend(_parse_context_documents(context))
-                except Exception:
-                    pass
-            for node in _guide_node_registry_snapshot():
-                if not isinstance(node, dict):
-                    continue
-                node_url = str(
-                    node.get("canonical_url") or node.get("url") or node.get("permalink") or ""
-                ).strip()
-                if node_url.rstrip("/") == str(upstream_candidate.get("url") or "").rstrip("/"):
-                    hints = node.get("semantic_hints") or []
-                    if not isinstance(hints, (list, tuple)):
-                        hints = []
-                    candidate_docs.append({
-                        "title": str(node.get("title") or upstream_candidate.get("title") or ""),
-                        "url": node_url,
-                        "text": " ".join([str(node.get("purpose") or ""), *[str(hint) for hint in hints]]),
-                    })
-            profile = _base._inquiry_profile(query)
-            for candidate_doc in candidate_docs:
-                candidate_url = str(
-                    candidate_doc.get("url") or candidate_doc.get("canonical_url") or ""
-                ).rstrip("/")
-                if candidate_url != str(upstream_candidate.get("url") or "").rstrip("/"):
-                    continue
-                if _eligible_outward_doc(query, candidate_doc, profile, min_relevance=2):
-                    doorway = upstream_candidate
-                    break
+        selection_trace.update({
+            "status": "VERIFIED_RELEVANT_DESTINATION",
+            "source": "registered_recovery_candidate",
+        })
+
     if not doorway:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
-        except Exception:
+        except Exception as exc:
             candidate = None
+            selection_trace.update({
+                "status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
+                "error_type": type(exc).__name__,
+            })
         doorway = _normalize_authoritative_recommendation(candidate)
-    # The shared browser renderer requires a visitor-facing rationale as
-    # well as a canonical URL. A title/URL pair without that rationale is
-    # not a complete doorway; do not let it silently disappear at render time.
+        if doorway:
+            selection_trace.update({
+                "status": "VERIFIED_RELEVANT_DESTINATION",
+                "source": "approved_guide_node_registry",
+            })
+
+    # The shared browser renderer requires a visitor-facing rationale as well
+    # as a canonical URL. A title/URL pair without that rationale is incomplete.
     if doorway and not str(doorway.get("rationale") or "").strip():
         doorway = None
+        selection_trace.update({
+            "status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
+            "reason": "selected_destination_missing_visitor_rationale",
+        })
 
-    # Ordinary visitor answers require a verified relevant candidate. The broad
-    # Gold Star default is applied only by the exact Gold Star finalizer, never
-    # as a global substitute for relevance.
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
     safe["doorway_title"] = doorway.get("title") if doorway else None
@@ -6116,13 +6113,42 @@ def _guide_restore_verified_doorway(payload, query):
     safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
     safe["doorway_decision"] = "selected" if doorway else "omit"
     if doorway:
-        # A verified selection supersedes any weaker upstream omission note.
+        safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+        safe["doorway_selection_evaluated"] = True
+        safe["doorway_selection_source"] = selection_trace.get("source") or "verified_selector"
         safe["doorway_omission_reason"] = None
         safe["doorway_omission_exception_reason"] = None
-    elif not str(safe.get("doorway_omission_reason") or "").strip():
-        safe["doorway_omission_reason"] = (
-            "No verified canonical Archive resource materially advances this inquiry."
-        )
+    else:
+        trace_status = str(selection_trace.get("status") or "NOT_EVALUATED")
+        if trace_status in {
+            "NO_RELEVANT_CANDIDATE_AFTER_BOUNDED_SEARCH",
+            "NO_RELEVANT_CANDIDATE_IN_RETRIEVED_CONTEXT",
+        }:
+            safe["doorway_selection_status"] = "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "canonical_search_and_existing_relevance_gates"
+            safe["doorway_omission_reason"] = (
+                "The bounded canonical candidate search and existing relevance and authority "
+                "checks completed; no materially relevant destination passed those checks. "
+                "No doorway is inferred."
+            )
+        elif trace_status == "RETRIEVAL_OR_VERIFICATION_FAILURE":
+            safe["doorway_selection_status"] = "RETRIEVAL_OR_VERIFICATION_FAILURE"
+            safe["doorway_selection_evaluated"] = False
+            safe["doorway_selection_source"] = "canonical_search_or_source_verification"
+            safe["doorway_omission_reason"] = (
+                "Canonical doorway retrieval or source verification failed. The missing doorway "
+                "is not certified as an intentional omission."
+            )
+        else:
+            safe["doorway_selection_status"] = "NOT_EVALUATED"
+            safe["doorway_selection_evaluated"] = False
+            safe["doorway_selection_source"] = "no_selection_trace"
+            safe["doorway_omission_reason"] = (
+                "No doorway was selected, and the canonical selection process was not verified "
+                "as completed for this response."
+            )
+        safe["doorway_omission_exception_reason"] = None
     return safe
 
 
@@ -9075,15 +9101,29 @@ def _general_guide_authoritative_doorway(query, context_data):
     keeps this selection independent of provider-generated text and fallback URLs.
     """
     from deterministic_answer_recovery import is_guide_meta_coverage_policy_question
+    trace = (
+        context_data.get("_doorway_selection_trace")
+        if isinstance(context_data, dict) else None
+    )
+
+    def _record_selection_state(status, **details):
+        if isinstance(trace, dict):
+            trace.update({"status": status, **details})
+
     if is_guide_meta_coverage_policy_question(query):
+        _record_selection_state("AUTHORIZED_OMISSION", reason="guide_coverage_policy_question")
         return None
     if not isinstance(context_data, dict):
+        _record_selection_state("NOT_EVALUATED", reason="invalid_selection_context")
         return None
     if context_data.get("canonical_doorway_search_attempted"):
+        _record_selection_state("PRIOR_SEARCH_ALREADY_ATTEMPTED")
         return None
+    _record_selection_state("EVALUATING")
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
+            _record_selection_state("POLICY_SUPPRESSED", reason="risk_gate")
             return None
 
         candidates = []
@@ -9295,6 +9335,12 @@ def _general_guide_authoritative_doorway(query, context_data):
             # A missing recommendation is preferable to an unrelated doorway.
             # The caller keeps the answer intact and serializes no recommendation.
             print("The Guide canonical doorway: no candidate passed relevance after bounded search recovery.")
+            _record_selection_state(
+                "NO_RELEVANT_CANDIDATE_AFTER_BOUNDED_SEARCH"
+                if recovered_from_search else "NO_RELEVANT_CANDIDATE_IN_RETRIEVED_CONTEXT",
+                canonical_search_attempted=bool(recovered_from_search),
+                candidates_considered=len(shadow_observation_candidates),
+            )
             # Record the no-selection outcome too, so shadow evaluation can
             # distinguish an absent doorway from a disagreement on a selection.
             try:
@@ -9326,9 +9372,23 @@ def _general_guide_authoritative_doorway(query, context_data):
         title = re.sub(r"\s+", " ", title).strip()
         url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
         if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+            _record_selection_state(
+                "RETRIEVAL_OR_VERIFICATION_FAILURE",
+                reason="selected_candidate_failed_canonical_url_validation",
+            )
             return None
+        _record_selection_state(
+            "VERIFIED_RELEVANT_DESTINATION",
+            canonical_search_attempted=bool(recovered_from_search),
+            title=title,
+            url=url,
+        )
         return {"title": title, "url": url}
     except Exception as exc:
+        _record_selection_state(
+            "RETRIEVAL_OR_VERIFICATION_FAILURE",
+            error_type=type(exc).__name__,
+        )
         print(
             "The Guide General Guide doorway selection failed safely: "
             "exception=" + type(exc).__name__
