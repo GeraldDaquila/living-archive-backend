@@ -1,13 +1,14 @@
-"""Regression contract for passive friendship routing and isolated HRN sessions in v489.104.
+"""Current contract for lived relationship inquiries on the Guide request boundary.
 
-Exercises both the authoritative boundary decision and the real ASGI /api/query
-request boundary. Definition-only and explicit Archive-search requests remain bounded.
+The lived-relational detector remains useful evidence, but HRN redirect/session
+handoff is retired: ordinary relationship questions are answered natively by
+The Guide. This suite tests both the detector and that current visitor boundary.
 """
 import asyncio
 import json
-import re
 from pathlib import Path
 
+import pytest
 import main as use_main
 
 SOURCE = Path(__file__).resolve().parents[1] / "main.py"
@@ -15,6 +16,10 @@ TEXT = SOURCE.read_text(encoding="utf-8")
 
 TARGET = "I am struggling with a friendship where I want to be understood but also need boundaries."
 NATURAL_TARGET = "I keep putting off a conversation with a friend because I am afraid it will change the friendship."
+COMPACT_TARGET = (
+    "I keep trying to explain why the same argument hurts me, but we end up "
+    "arguing about whether I should still feel hurt."
+)
 
 
 def _function_body(name: str, next_marker: str) -> str:
@@ -63,12 +68,15 @@ async def _post_query(query: str, session_id: str | None = None):
     return start["status"], json.loads(response_body.decode("utf-8"))
 
 
-def test_passive_friendship_boundary_cues_are_present():
-    assert r'\b(?:a|this|our|my)\s+friendship\b' in TEXT
-    assert r'\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b' in TEXT
+def _assert_native_guide_response(status, payload):
+    assert status == 200
+    assert payload["intent"] == "TOPICAL_INQUIRY"
+    assert payload.get("handoff") != "relationship"
+    assert payload.get("relational_delegation") is None
+    assert isinstance(payload.get("response"), str) and payload["response"].strip()
 
 
-def test_exact_passive_friendship_query_opens_hrn_boundary():
+def test_passive_friendship_detector_preserves_lived_structure():
     decision = use_main._relational_boundary_decision(TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
@@ -77,7 +85,7 @@ def test_exact_passive_friendship_query_opens_hrn_boundary():
     assert decision["signals"]["inquiry"] is True
 
 
-def test_natural_friend_conversation_cues_open_hrn_boundary():
+def test_natural_friend_conversation_detector_preserves_lived_structure():
     decision = use_main._relational_boundary_decision(NATURAL_TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
@@ -86,45 +94,8 @@ def test_natural_friend_conversation_cues_open_hrn_boundary():
     assert decision["signals"]["dynamic"] is True
 
 
-def test_natural_friend_conversation_request_hands_off_to_hrn():
-    status, payload = asyncio.run(_post_query(NATURAL_TARGET))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
-
-
-def test_real_query_request_boundary_hands_off_to_hrn():
-    status, payload = asyncio.run(_post_query(TARGET))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["handoff_mode"] == "immediate"
-    assert payload["handoff_pending"] is True
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
-    assert re.fullmatch(r"relationship-[0-9a-f]{24}", payload["relational_delegation"]["session_id"])
-
-
-def test_identical_opening_queries_receive_distinct_hrn_sessions():
-    _, first = asyncio.run(_post_query(TARGET))
-    _, second = asyncio.run(_post_query(TARGET))
-    first_id = first["relational_delegation"]["session_id"]
-    second_id = second["relational_delegation"]["session_id"]
-    assert first_id != second_id, "Identical visitor questions must not share a persisted HRN ledger."
-
-
-def test_explicit_client_session_token_is_stable_across_retries():
-    token = "browser-session-token-1234567890"
-    _, first = asyncio.run(_post_query(TARGET, session_id=token))
-    _, second = asyncio.run(_post_query(TARGET, session_id=token))
-    assert first["relational_delegation"]["session_id"] == second["relational_delegation"]["session_id"]
-
-
-
-def test_compact_repeated_argument_explanation_opens_hrn_boundary():
-    decision = use_main._relational_boundary_decision(
-        "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
-    )
+def test_compact_repeated_argument_detector_preserves_lived_structure():
+    decision = use_main._relational_boundary_decision(COMPACT_TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
@@ -132,26 +103,28 @@ def test_compact_repeated_argument_explanation_opens_hrn_boundary():
     assert decision["signals"]["inquiry"] is True
 
 
-def test_compact_repeated_argument_request_hands_off_to_hrn():
-    query = (
-        "I keep trying to explain why the same argument hurts me, but we end up "
-        "arguing about whether I should still feel hurt."
-    )
+@pytest.mark.parametrize("query", [TARGET, NATURAL_TARGET, COMPACT_TARGET])
+def test_lived_relationship_questions_are_answered_natively_by_the_guide(query):
     status, payload = asyncio.run(_post_query(query))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["handoff_mode"] == "immediate"
-    assert payload["handoff_pending"] is True
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
-    assert payload["relational_delegation"]["seed_message"] == query
-    assert re.fullmatch(
-        r"relationship-[0-9a-f]{24}",
-        payload["relational_delegation"]["session_id"],
-    )
+    _assert_native_guide_response(status, payload)
 
 
-def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
+def test_identical_openings_do_not_create_legacy_hrn_sessions():
+    _, first = asyncio.run(_post_query(TARGET))
+    _, second = asyncio.run(_post_query(TARGET))
+    assert first.get("handoff") != "relationship"
+    assert second.get("handoff") != "relationship"
+    assert "relational_delegation" not in first
+    assert "relational_delegation" not in second
+
+
+def test_client_session_token_does_not_revive_retired_hrn_handoff():
+    token = "browser-session-token-1234567890"
+    status, payload = asyncio.run(_post_query(TARGET, session_id=token))
+    _assert_native_guide_response(status, payload)
+
+
+def test_explanatory_and_archive_queries_do_not_open_lived_relational_boundary():
     explanatory = use_main._relational_boundary_decision(
         "What is a relationship and why are relationships important?"
     )
@@ -169,9 +142,7 @@ def test_bounded_archive_and_definition_exclusions_remain():
     assert "bounded_archive_or_definition_request" in body
 
 
-def test_version_integrity_is_sequential():
-    # Validate the current release identity as a coherent set without pinning
-    # this regression test to a retired version number or fingerprint.
+def test_version_integrity_checks_current_release_and_source_identity_contracts():
     version_line = next(
         (line for line in TEXT.splitlines() if line.startswith('APP_VERSION = "')),
         None,
@@ -182,5 +153,5 @@ def test_version_integrity_is_sequential():
     assert f'DEPLOYMENT_FINGERPRINT = "USE-{app_version}-' in TEXT
     assert f'CANONICAL_BUILD_ID = "USE-BUILD-{app_version}-' in TEXT
     assert f'if str(APP_VERSION) != "{app_version}":' in TEXT
-    assert 'if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):' in TEXT
+    assert 'if not str(RUNTIME_SOURCE_FINGERPRINT).startswith(f"USE-{APP_VERSION}-source-"):' in TEXT
     assert 'if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):' in TEXT
