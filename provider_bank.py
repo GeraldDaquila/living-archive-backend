@@ -2939,6 +2939,7 @@ def _emit_gold_star_provider_route_terminal(summary):
     print(
         "gold_star_provider_route_terminal "
         + "request_id=" + str(summary.get("request_id"))
+        + " request_ledger_version=" + str(summary.get("request_ledger_version") or "unknown")
         + " attempt_ordinal=" + str(summary.get("attempt_ordinal"))
         + " provider_route_ordinal=" + str(summary.get("provider_route_ordinal"))
         + " operation=general_guide_composition"
