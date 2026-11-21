@@ -190,3 +190,13 @@ def test_wp3_capture_workflow_uses_mirror_and_guarded_github_actions_not_standal
     assert "living-archive-gold-star-v2-qa.onrender.com" not in workflow
     assert "identity-wait-seconds 900" in workflow
     assert "--min-llm-captures 1" in workflow
+
+
+
+def test_batch_rejects_repeated_case_even_with_distinct_evaluation_ids():
+    pair = _pair("case-1", "conceptual")
+    duplicate = copy.deepcopy(pair)
+    duplicate["evaluation_id"] = "eval-case-1-duplicate"
+    result = evaluation.evaluate_batch([pair, duplicate, _pair("case-2", "practical")])
+    assert result["valid"] is False
+    assert result["reason"] == "duplicate_case_or_evaluation_id"
