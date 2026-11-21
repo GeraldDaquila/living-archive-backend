@@ -42,3 +42,10 @@ This is intentionally conservative. The aggregate count is a diagnostic lead, no
 ## Retirement gate
 
 A retirement is complete only when the exact test node ID is recorded here with a supported disposition, its replacement/coverage implications are reviewed, the active suite still covers the current contract, and CI confirms the change. Until then, the test remains unresolved—not archived.
+
+## Reproducible baseline execution
+
+- Archive bootstrap commit: `ee2772e7154ae8a4b9557772e45283c8374dc41a`.
+- The first post-bootstrap GitHub Actions run is the authoritative per-test inventory for the current mainline. It must be evaluated independently from the earlier aggregate snapshot above.
+- The JUnit XML and generated Markdown inventory are retained as the `historical-test-failure-inventory` workflow artifact for 30 days. The exact workflow run, commit, counts, and artifact reference should be recorded here after completion.
+- This diagnostic does not automatically retire tests. All findings begin as UNRESOLVED until reviewed against current contracts.
