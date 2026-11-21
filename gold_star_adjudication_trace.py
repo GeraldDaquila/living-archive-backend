@@ -14,6 +14,7 @@ import re
 from contextvars import ContextVar
 
 VERSION = "1.0"
+REQUEST_LEDGER_VERSION = "2"
 MAX_CANDIDATES = 3
 _SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "human_reviewed_selected", "human_reviewed_rejected"}
 _APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
@@ -71,6 +72,7 @@ def current_request_context() -> dict:
     if not isinstance(state, dict):
         return {
             "request_id": None,
+            "request_ledger_version": REQUEST_LEDGER_VERSION,
             "composition_attempt_count": 0,
             "provider_route_count": 0,
             "provider_attempt_count": 0,
@@ -81,6 +83,7 @@ def current_request_context() -> dict:
         }
     return {
         "request_id": state.get("request_id"),
+        "request_ledger_version": REQUEST_LEDGER_VERSION,
         "composition_attempt_count": int(state.get("composition_attempt_count") or 0),
         "provider_route_count": int(state.get("provider_route_count") or 0),
         "provider_attempt_count": int(state.get("provider_attempt_count") or 0),
@@ -124,6 +127,7 @@ def begin_provider_route(operation: str):
     route_ordinal = int(state.get("provider_route_count") or 0) + 1
     route = {
         "request_id": request_id,
+        "request_ledger_version": REQUEST_LEDGER_VERSION,
         "attempt_ordinal": attempt_ordinal,
         "provider_route_ordinal": route_ordinal,
         "eligible_candidate_count": None,
