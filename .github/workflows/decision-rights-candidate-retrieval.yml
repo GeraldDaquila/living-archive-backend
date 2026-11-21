@@ -1,0 +1,33 @@
+name: Decision-rights candidate retrieval baseline (real BGE)
+
+on:
+  pull_request:
+    paths:
+      - "gold_star_lessons.py"
+      - "gold_star_semantic_retrieval.py"
+      - "requirements.txt"
+      - "docs/qa/decision_rights_candidate_set_benchmark.json"
+      - "tests/test_decision_rights_candidate_retrieval_diagnostic.py"
+      - ".github/workflows/decision-rights-candidate-retrieval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-model-baseline:
+    name: Measure real-BGE candidate-set baseline (diagnostic only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install semantic runtime and test runner
+        run: python -m pip install -r requirements.txt pytest
+      - name: Measure candidate sets against steward-selected benchmark
+        run: python -m pytest -q -s tests/test_decision_rights_candidate_retrieval_diagnostic.py
