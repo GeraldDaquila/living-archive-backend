@@ -4904,7 +4904,23 @@ def compose(
             cached_at, cached_value = cached_entry
             if time.monotonic() - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
                 _COMPOSITION_CACHE.move_to_end(cache_key)
-                return dict(cached_value)
+                # Another in-flight request populated the cache first. This
+                # request's provider candidate is discarded, so its adjudication
+                # must not be attached to the different answer being returned.
+                cached_result = dict(cached_value)
+                cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
+                if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
+                    raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
+                cached_result["_gold_star_adjudication_trace"] = cached_trace
+                _emit_guide_outcome(
+                    "gold_star_adjudication_cache_race_reuse",
+                    trace_version=cached_trace["version"],
+                    candidate_count=cached_trace["candidate_count"],
+                    provider_adjudication_status=cached_trace["provider_adjudication_status"],
+                    selection=cached_trace["selection"],
+                    composition=cached_trace["composition"],
+                )
+                return cached_result
             del _COMPOSITION_CACHE[cache_key]
 
         _COMPOSITION_CACHE[cache_key] = (time.monotonic(), dict(candidate))
