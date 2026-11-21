@@ -726,3 +726,33 @@ def test_wordpress_source_fetch_fails_closed_when_canonical_evidence_bridge_is_u
     assert "/wp-json/living-archive/v1/canonical-evidence/21767" in calls[0]
     assert any("http_status=403" in entry for entry in logs)
 
+
+
+def test_expand_context_result_reports_freshness_and_no_candidate(monkeypatch):
+    monkeypatch.setattr(archive_crosslink, "search_wordpress_canonical_assets", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "select_crosslinks", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": __import__("time").time(),
+        "assets": [],
+    })
+    result = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
+    assert result["status"] == "no_snapshot_candidate"
+    assert result["documents"] == []
+    assert result["snapshot_age_seconds"] is not None
+
+
+def test_expand_context_compatibility_list_retains_structured_status(monkeypatch):
+    monkeypatch.setattr(archive_crosslink, "search_wordpress_canonical_assets", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "select_crosslinks", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": 0,
+        "assets": [],
+    })
+    docs = archive_crosslink.expand_context("institutional learning", [], None, FakeCore())
+    assert isinstance(docs, list)
+    assert docs.status == "stale_snapshot_no_candidate"
+    assert docs.snapshot_age_seconds is not None
