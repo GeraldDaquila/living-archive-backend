@@ -40,6 +40,14 @@ def _passages(documents: Sequence[Any]) -> list[dict[str, str]]:
     for index, document in enumerate(documents or []):
         if not isinstance(document, Mapping):
             continue
+        # Only an explicit trusted caller assertion may cross the visitor boundary.
+        # Protected authority material is never implicitly public merely because it
+        # was available to generation or internal question selection.
+        if document.get("visitor_visible") is not True:
+            continue
+        access_class = str(document.get("access_class") or "").strip().casefold()
+        if access_class in {"private", "protected", "steward", "guardian", "t4", "restricted"}:
+            continue
         title = str(document.get("title") or "").strip()[:300]
         url = str(document.get("url") or "").strip()[:1000]
         source_id = str(document.get("id") or "").strip()[:128]
@@ -57,7 +65,7 @@ def _passages(documents: Sequence[Any]) -> list[dict[str, str]]:
             seen.add(passage_id)
             result.append({
                 "passage_id": passage_id,
-                "source_id": source_id or _digest(url + title)[:24],
+                "source_id": _digest(source_id or url + title)[:24],
                 "title": title,
                 "url": url,
                 "text": chunk,
@@ -85,6 +93,9 @@ def adjudicate_answer_claims(
 ) -> dict[str, Any]:
     """Extract and adjudicate claims using injected provider-neutral callables.
 
+    ``documents`` must be pre-filtered visitor-visible sources. A document must
+    explicitly carry ``visitor_visible=True``; protected, private, Steward,
+    Guardian, T4, and restricted material is rejected even if mislabelled visible.
     The callbacks must be bounded by the caller's request deadline. Exceptions,
     missing callbacks, malformed structures, and unverifiable citations never
     become positive or negative findings.
