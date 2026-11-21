@@ -1,5 +1,7 @@
 """Read-only integrity audit for the published Living Archive crosslink snapshot.
 
+Audit-run branch: audit/crosslink-integrity-main-20261121 (2026-11-21).
+
 This command compares the versioned v2 snapshot with an independently collected
 published WordPress posts/pages registry. It never writes to WordPress, the
 snapshot, the checksum, Pinecone, or the running Guide.
