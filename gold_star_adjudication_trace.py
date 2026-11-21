@@ -141,6 +141,26 @@ def mark_final_delivery(
     return result
 
 
+def mark_evaluation_outcome(trace: Mapping[str, Any], evaluation: Any) -> dict[str, Any]:
+    """Record only a valid, explicitly human-reviewed paired evaluation verdict."""
+    result = dict(trace)
+    if not isinstance(evaluation, Mapping):
+        return result
+    if evaluation.get("valid") is not True or evaluation.get("human_reviewed") is not True:
+        return result
+    status = evaluation.get("status")
+    verdict = evaluation.get("reviewer_verdict")
+    if status == "reviewed_improvement" and verdict == "improved":
+        result["outcome"] = "human_reviewed_improved"
+    elif status in {"reviewed_no_improvement", "reviewed_regression"} and verdict in {
+        "not_improved", "regressed"
+    }:
+        result["outcome"] = "human_reviewed_not_improved"
+    elif status == "review_required" or verdict == "inconclusive":
+        result["outcome"] = "review_required"
+    return result
+
+
 def validate_trace(trace: Any) -> dict[str, Any]:
     """Validate allowed fields, metadata lengths, and epistemic stage labels."""
     if not isinstance(trace, Mapping):
