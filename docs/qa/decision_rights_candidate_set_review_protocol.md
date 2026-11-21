@@ -24,8 +24,9 @@ For each query, provide reviewers with:
   transferable discipline, qualifying context, and abstention boundary;
 - stable anonymized candidate labels for the first-pass review.
 
-Withhold the steward's expected roles, current selector output, semantic scores,
-and other reviewers' labels until each independent first pass is submitted.
+Conduct a blinded first-pass review: withhold the steward's expected roles,
+current selector output, semantic scores, and other reviewers' labels until
+each independent first pass is submitted.
 
 ## Required independent annotations
 
