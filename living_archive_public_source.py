@@ -30,11 +30,11 @@ MAX_RESPONSE_BYTES = 1_000_000
 REQUEST_TIMEOUT_SECONDS = 2.5
 CACHE_TTL_SECONDS = 60
 _ALLOWED_TYPES = {"post", "page"}
-_BLOCK_COMMENT_RE = re.compile(r"<!--\\s*/?wp:[\\s\\S]*?-->", re.I)
-_SHORTCODE_RE = re.compile(r"\\[/?[a-zA-Z][\\w:-]*(?:\\s[^\\]]*)?\\]", re.I)
+_BLOCK_COMMENT_RE = re.compile(r"<!--\s*/?wp:[\s\S]*?-->", re.I)
+_SHORTCODE_RE = re.compile(r"\[/?[a-zA-Z][\w:-]*(?:\s[^\]]*)?\]", re.I)
 _PRIVATE_SHORTCODE_RE = re.compile(
-    r"\\[/?(?:swpm|member|members|protected|password|steward|guardian|t4)[\\w:-]*"
-    r"(?:\\s[^\\]]*)?\\]",
+    r"\[/?(?:swpm|member|members|protected|password|steward|guardian|t4)[\w:-]*"
+    r"(?:\s[^\]]*)?\]",
     re.I,
 )
 _PRIVATE_PATH_RE = re.compile(
@@ -84,8 +84,8 @@ def _clean_text(value: Any) -> str:
         parser.close()
     except Exception:
         return ""
-    text = re.sub(r"[\\t\\r ]+", " ", " ".join(parser.parts))
-    text = re.sub(r"\\n\\s*\\n+", "\\n", text).strip()
+    text = re.sub(r"[\t\r ]+", " ", " ".join(parser.parts))
+    text = re.sub(r"\n\s*\n+", "\n", text).strip()
     return text[:MAX_PASSAGE_CHARS]
 
 
@@ -223,7 +223,7 @@ class PublicLivingArchiveClient:
                 post_id = hit.get("id")
                 if not str(post_id).isdigit():
                     continue
-                endpoint = f"{REST_ROOT}/{quote(subtype)}/{int(post_id)}?"
+                endpoint = f"{REST_ROOT}/{"posts" if subtype == "post" else "pages"}/{int(post_id)}?"
                 endpoint += urlencode({
                     "context": "view",
                     "_fields": "id,status,type,link,title,content,modified,modified_gmt",
