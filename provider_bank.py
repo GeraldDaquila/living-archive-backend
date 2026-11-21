@@ -2717,9 +2717,7 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
             f"elapsed_seconds={elapsed:.3f}, "
             f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
             f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
-            + _gold_star_provider_route_log_fields(
-                "general_guide_composition" if gold_star_route_active else None
-            )
+            + _gold_star_provider_route_log_fields(operation)
         )
         reservation.release()
 
@@ -2925,17 +2923,27 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
 
 
 def _gold_star_provider_route_log_fields(operation):
-    """Return content-free request correlation for Guide composition provider logs."""
-    if str(operation or "") != "general_guide_composition":
+    """Return request correlation for adaptive and supplemental Guide provider logs."""
+    operation = str(operation or "")
+    if operation not in {"general_guide_composition", "claim_adjudication"}:
         return ""
-    context = _gold_star_trace.current_provider_route_context()
-    if not context:
+    request = _gold_star_trace.current_request_context()
+    request_id = str(request.get("request_id") or "").strip()
+    if not request_id:
         return ""
-    return (
-        " request_id=" + str(context.get("request_id") or "")
-        + " attempt_ordinal=" + str(context.get("attempt_ordinal") or "")
-        + " provider_route_ordinal=" + str(context.get("provider_route_ordinal") or "")
+    fields = (
+        " request_id=" + request_id
+        + " request_ledger_version=" + str(request.get("request_ledger_version") or "unknown")
+        + " operation=" + operation
     )
+    if operation == "general_guide_composition":
+        route = _gold_star_trace.current_provider_route_context()
+        if route:
+            fields += (
+                " attempt_ordinal=" + str(route.get("attempt_ordinal") or "")
+                + " provider_route_ordinal=" + str(route.get("provider_route_ordinal") or "")
+            )
+    return fields
 
 
 def _emit_gold_star_provider_route_terminal(summary):
