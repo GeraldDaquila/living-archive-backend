@@ -4227,7 +4227,7 @@ def compose(
         candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
         selection=gold_star_adjudication_trace["selection"],
         application=gold_star_adjudication_trace["application"],
-        outcome=gold_star_adjudication_trace["outcome"],
+        outcome_state=gold_star_adjudication_trace["outcome"],
     )
     if gold_star_quality:
         # Cross-question Gold Star participation is structural guidance only.
@@ -4736,7 +4736,7 @@ def compose(
         composition=gold_star_adjudication_trace.get("composition", "unobserved"),
         selection=gold_star_adjudication_trace["selection"],
         application=gold_star_adjudication_trace["application"],
-        outcome=gold_star_adjudication_trace["outcome"],
+        outcome_state=gold_star_adjudication_trace["outcome"],
     )
     candidate = {
         "response": response,
