@@ -2264,13 +2264,16 @@ def _recommendation_first_fetch(query_str):
                             frame_neutral_fn = getattr(
                                 use_core, "_frame_neutral_generation_documents", None
                             )
-                            frame_neutral_unavailable = False
+                            frame_neutral_boundary_active = False
                             if callable(frame_neutral_fn):
-                                generation_docs, frame_neutral_unavailable = frame_neutral_fn(
+                                generation_docs, frame_neutral_boundary_active = frame_neutral_fn(
                                     generation_docs,
                                     str(query_str or ""),
                                     str(data.get("intent") or ""),
                                 )
+                            frame_neutral_unavailable = (
+                                frame_neutral_boundary_active and not generation_docs
+                            )
                             sufficiency_fn = getattr(
                                 use_core, "_evidence_sufficiency_gate", None
                             )
@@ -2281,12 +2284,33 @@ def _recommendation_first_fetch(query_str):
                                     str(query_str or ""),
                                     str(data.get("intent") or ""),
                                 )
-                            if generation_docs and not frame_neutral_unavailable and not sufficiency_unavailable:
+                            question_fit_fn = getattr(
+                                use_core, "_v208_question_evidence_fit_gate", None
+                            )
+                            question_fit_unavailable = False
+                            if (
+                                callable(question_fit_fn)
+                                and not frame_neutral_unavailable
+                                and not sufficiency_unavailable
+                            ):
+                                generation_docs, question_fit_unavailable = question_fit_fn(
+                                    generation_docs,
+                                    str(query_str or ""),
+                                    str(data.get("intent") or ""),
+                                )
+                            if (
+                                generation_docs
+                                and not frame_neutral_unavailable
+                                and not sufficiency_unavailable
+                                and not question_fit_unavailable
+                            ):
                                 data["context_blocks"] = _serialize_context_documents(generation_docs)
                                 if "frame_neutral_evidence_unavailable" in data:
                                     data["frame_neutral_evidence_unavailable"] = False
                                 if "evidence_sufficiency_unavailable" in data:
                                     data["evidence_sufficiency_unavailable"] = False
+                                if "question_evidence_fit_unavailable" in data:
+                                    data["question_evidence_fit_unavailable"] = False
                                 print(
                                     "The Guide live canonical evidence recovery: "
                                     f"verified_bodies={len(verified_additions)}, "
@@ -2299,7 +2323,8 @@ def _recommendation_first_fetch(query_str):
                                     f"verified_bodies={len(verified_additions)}, "
                                     f"evidence_gate=unavailable, "
                                     f"frame_neutral_unavailable={frame_neutral_unavailable}, "
-                                    f"sufficiency_unavailable={sufficiency_unavailable}"
+                                    f"sufficiency_unavailable={sufficiency_unavailable}, "
+                                    f"question_fit_unavailable={question_fit_unavailable}"
                                 )
         except Exception as exc:
             print(f"The Guide full-corpus meta-crosslink failed safely: {type(exc).__name__}")
