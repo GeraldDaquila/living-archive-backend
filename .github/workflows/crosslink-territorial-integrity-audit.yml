@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - audit/crosslink-full-destination-20261121
     paths:
       - "scripts/audit_archive_crosslink_integrity.py"
       - "archive_crosslink_snapshot.json"
@@ -34,7 +35,7 @@ permissions:
 jobs:
   territorial-integrity:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - name: Checkout audit branch
         uses: actions/checkout@v4
@@ -61,7 +62,7 @@ jobs:
           git checkout -- archive_crosslink_snapshot.json archive_crosslink_snapshot.sha256
       - name: Run read-only integrity audit
         env:
-          LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
+          LINK_CHECK: ${{ (github.event_name == 'workflow_dispatch' && inputs.link_check) || (github.event_name == 'push' && github.ref_name == 'audit/crosslink-full-destination-20261121' && 'full-destination-check') || 'identity-only' }}
       # Automated verification is identity-first. Full destination checks are manual,
       # bounded investigations because public WordPress endpoints may rate-limit bulk traffic.
         run: |
