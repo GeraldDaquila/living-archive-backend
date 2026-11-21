@@ -303,22 +303,27 @@ def _pace_link_request() -> None:
         _LINK_NEXT_REQUEST_AT = time.monotonic() + LINK_DELAY_SECONDS
 
 
-def _retry_after_seconds(exc: HTTPError, attempt: int) -> float:
-    """Honor Retry-After when present; otherwise use bounded exponential backoff."""
+def _retry_after_seconds(exc: HTTPError, attempt: int) -> float | None:
+    """Honor Retry-After; defer rather than retry early when its wait is too long."""
     headers = getattr(exc, "headers", None) or getattr(exc, "hdrs", None)
     raw = headers.get("Retry-After") if headers is not None else None
     if raw:
+        delay = None
         try:
-            return min(LINK_429_BACKOFF_MAX_SECONDS, max(0.0, float(raw)))
+            delay = max(0.0, float(raw))
         except (TypeError, ValueError):
             try:
                 retry_at = parsedate_to_datetime(str(raw))
                 if retry_at.tzinfo is None:
                     retry_at = retry_at.replace(tzinfo=timezone.utc)
-                delay = (retry_at - datetime.now(timezone.utc)).total_seconds()
-                return min(LINK_429_BACKOFF_MAX_SECONDS, max(0.0, delay))
+                delay = max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
             except (TypeError, ValueError, OverflowError):
-                pass
+                delay = None
+        if delay is not None:
+            # Do not ignore the server's requested wait by retrying sooner. If
+            # it exceeds this audit's bounded wait budget, leave the URL
+            # indeterminate as rate_limited and let a later audit retry it.
+            return delay if delay <= LINK_429_BACKOFF_MAX_SECONDS else None
     return min(
         LINK_429_BACKOFF_MAX_SECONDS,
         LINK_429_BACKOFF_BASE_SECONDS * (2 ** max(0, attempt)),
@@ -334,7 +339,10 @@ def _open_destination(request: Request):
         except HTTPError as exc:
             if exc.code != 429 or attempt >= LINK_429_RETRIES:
                 raise
-            time.sleep(_retry_after_seconds(exc, attempt))
+            retry_delay = _retry_after_seconds(exc, attempt)
+            if retry_delay is None:
+                raise
+            time.sleep(retry_delay)
     raise RuntimeError("Destination request retry loop exited unexpectedly")
 
 
@@ -450,13 +458,16 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
     refreshed_at = float(snapshot.get("refreshed_at") or 0)
     age_seconds = max(0.0, time.time() - refreshed_at)
     actual_sha_matches = bool(checksum_expected and checksum_expected == snapshot_sha)
-    broken = [item for item in link_results if item["status"] != "ok"]
+    # A transport failure or rate limit is not evidence that a destination is
+    # broken. Keep these indeterminate so the audit cannot overstate breakage.
+    broken = [item for item in link_results if item["status"] in {"invalid_url", "http_error"}]
+    indeterminate = [item for item in link_results if item["status"] not in {"ok", "invalid_url", "http_error"}]
     redirects = [item for item in link_results if item.get("status") == "ok" and normalize_url(item.get("final_url")) != item.get("url")]
     canonical_match = not (
         comparison["stale_wp_ids"] or comparison["identity_mismatches"]
         or comparison["duplicate_wp_ids_in_registry"] or comparison["duplicate_wp_ids_in_snapshot"]
     )
-    links_ok = link_check_performed and not broken
+    links_ok = link_check_performed and not broken and not indeterminate
     declared_count_matches = snapshot.get("asset_count") == len(assets)
     complete = bool(
         actual_sha_matches and declared_count_matches and canonical_match
@@ -504,6 +515,9 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
             "performed": link_check_performed,
             "checked_count": len(link_results),
             "broken_count": len(broken),
+            "indeterminate_count": len(indeterminate),
+            "rate_limited_count": sum(item["status"] == "rate_limited" for item in indeterminate),
+            "network_error_count": sum(item["status"] == "network_error" for item in indeterminate),
             "redirect_count": len(redirects),
             "results": link_results,
         },
@@ -515,13 +529,15 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
             "all_snapshot_assets_have_unique_wp_identity": comparison["snapshot_identity_count"] == len(assets),
             "all_assets_metadata_addressable": addressability["non_addressable_count"] == 0,
             "destination_check_performed": link_check_performed,
+            "destination_results_determinate": link_check_performed and not indeterminate,
             "no_broken_destinations": link_check_performed and not broken,
         },
         "notes": [
             "This is a read-only diagnostic. It never mutates WordPress, the snapshot, Pinecone, or production runtime.",
             "Duplicate titles and URLs are reported as evidence for human review; they are not silently treated as interchangeable identities.",
             "Addressability is a necessary metadata condition, not proof that each asset is semantically reachable for every query.",
-            "A complete status requires a full destination check. Use --skip-link-check only for a faster identity-only diagnostic, which will remain ATTENTION REQUIRED.",
+            "A complete status requires a full destination check with no confirmed broken destinations and no indeterminate transport results. Rate limits and network failures are indeterminate, not broken links.",
+            "Use --skip-link-check only for a faster identity-only diagnostic, which will remain ATTENTION REQUIRED.",
         ],
     }
 
@@ -558,6 +574,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"| Non-addressable assets | {address['non_addressable_count']} |",
         f"| Destinations checked | {links['checked_count']} |",
         f"| Broken destinations | {links['broken_count']} |",
+        f"| Indeterminate destinations | {links['indeterminate_count']} |",
+        f"| Rate-limited destinations | {links['rate_limited_count']} |",
+        f"| Network-error destinations | {links['network_error_count']} |",
         f"| Redirects | {links['redirect_count']} |",
         "",
         "## Completeness gates",
