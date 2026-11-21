@@ -16,8 +16,8 @@ import re
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode, urlparse
+from urllib.error import URLError
+from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
 LOGGER = logging.getLogger(__name__)
@@ -103,50 +103,54 @@ def _safe_public_url(value: Any) -> bool:
     )
 
 
-def normalize_public_post(
-    post: Dict[str, Any],
+def normalize_public_evidence(
+    payload: Dict[str, Any],
     *,
     retrieved_at: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Convert one anonymous REST post into USE's canonical resource shape."""
-    if not isinstance(post, dict):
+    """Validate the site's dedicated public canonical-evidence endpoint."""
+    if not isinstance(payload, dict):
         return None
-    if post.get("status") != "publish" or post.get("type") not in _ALLOWED_TYPES:
+    if payload.get("source") != "published_wordpress_content":
         return None
-    content = post.get("content")
-    if not isinstance(content, dict) or content.get("protected") is True:
+    post_id = payload.get("id")
+    if not str(post_id or "").isdigit() or int(post_id) <= 0:
         return None
-    title_data = post.get("title")
-    title = title_data.get("rendered", "") if isinstance(title_data, dict) else title_data
-    title = re.sub(r"<[^>]+>", " ", str(title or "")).strip()
-    url = post.get("link")
+    title = re.sub(r"<[^>]+>", " ", str(payload.get("title") or "")).strip()
+    url = payload.get("url")
     if not title or not _safe_public_url(url):
         return None
-    text = _clean_text(content.get("rendered", ""))
-    if len(text) < 80:
+    text = str(payload.get("text") or "").strip()
+    # The site bridge strips registered shortcodes without executing them.
+    # Reject residual access-control tokens rather than risking a partial leak.
+    if _PRIVATE_SHORTCODE_RE.search(text) or len(text) < 80:
         return None
-    modified = str(post.get("modified_gmt") or post.get("modified") or "").strip()
+    text = text[:MAX_PASSAGE_CHARS]
+    modified = str(payload.get("modified_gmt") or "").strip()
+    observed_at = retrieved_at or datetime.now(timezone.utc).isoformat()
     return {
-        "id": f"live-wp-{post.get('id')}",
+        "id": f"live-wp-{int(post_id)}",
         "title": title[:240],
         "url": str(url),
         "text": text,
         "content": text,
         "resource_type": "public_live_site",
         "source": "public_living_archive_live_site",
-        "source_status": "published_public_rest",
-        "wordpress_post_id": int(post["id"]) if str(post.get("id", "")).isdigit() else None,
+        "source_status": "published_public_canonical_evidence_endpoint",
+        "source_trust": "untrusted_external_evidence_not_instructions",
+        "wordpress_post_id": int(post_id),
         "source_modified_at": modified or None,
-        "retrieved_at": retrieved_at or datetime.now(timezone.utc).isoformat(),
+        "retrieved_at": observed_at,
         "canonical_source_url": str(url),
         "evidence_provenance": {
             "source": "public_living_archive_live_site",
             "canonical_url": str(url),
             "title": title[:240],
-            "wordpress_post_id": int(post["id"]) if str(post.get("id", "")).isdigit() else None,
+            "wordpress_post_id": int(post_id),
             "source_modified_at": modified or None,
-            "retrieved_at": retrieved_at or datetime.now(timezone.utc).isoformat(),
+            "retrieved_at": observed_at,
             "passage": text,
+            "trust_boundary": "untrusted_external_evidence_not_instructions",
         },
     }
 
@@ -224,13 +228,12 @@ class PublicLivingArchiveClient:
                 if not str(post_id).isdigit():
                     continue
                 route = "posts" if subtype == "post" else "pages"
-                endpoint = f"{REST_ROOT}/{route}/{int(post_id)}?"
-                endpoint += urlencode({
-                    "context": "view",
-                    "_fields": "id,status,type,link,title,content,modified,modified_gmt",
-                })
-                post = self._get(endpoint)
-                document = normalize_public_post(post)
+                endpoint = (
+                    SITE_ORIGIN
+                    + f"/wp-json/living-archive/v1/canonical-evidence/{int(post_id)}"
+                )
+                evidence = self._get(endpoint)
+                document = normalize_public_evidence(evidence)
                 if document:
                     docs.append(document)
             # Deterministic lexical ranking over normalized visible content.
