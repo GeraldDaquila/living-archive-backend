@@ -2324,7 +2324,8 @@ def _recommendation_first_fetch(query_str):
                             data["evidence_sufficiency_unavailable"] = False
                             data["question_evidence_fit_unavailable"] = False
                             data["frame_neutral_evidence_unavailable"] = False
-                            data["live_site_fallback_status"] = "supported_by_verified_public_source"
+                            data["live_site_fallback_status"] = "relevant_source_available_unassessed_for_entailment"
+                            data["live_site_evidence_assessment"] = "question_relevance_only; no entailment or contradiction determination"
                             data["live_site_source_count"] = len(verified_additions)
                             data["live_site_source_provenance"] = [
                                 item.get("evidence_provenance")
@@ -2334,7 +2335,7 @@ def _recommendation_first_fetch(query_str):
                         elif not any(item.get("source_body_verified") for item in crosslinks):
                             data["live_site_fallback_status"] = "source_body_unavailable"
                         else:
-                            data["live_site_fallback_status"] = "no_relevant_public_source"
+                            data["live_site_fallback_status"] = "no_source_passed_relevance_gate"
                     print(
                         "The Guide canonical Meta-Net expansion: "
                         f"added={len(additions)}, evidence_admitted={len(verified_additions)}, "
