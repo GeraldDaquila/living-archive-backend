@@ -19,6 +19,7 @@ from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from gold_star_adjudication_trace import (
     build_adjudication_trace as _build_gold_star_adjudication_trace,
     mark_composition_result as _mark_gold_star_composition_result,
+    mark_guidance_exposure as _mark_gold_star_guidance_exposure,
     validate_trace as _validate_gold_star_adjudication_trace,
 )
 
@@ -4459,6 +4460,19 @@ def compose(
             "citations, or doorways.\\nRanked candidates (for adjudication, not automatic application):\\n"
             + candidate_evidence + "\\n\\n"
         )
+    gold_star_adjudication_trace = _mark_gold_star_guidance_exposure(
+        gold_star_adjudication_trace,
+        included_in_provider_prompt=bool(gold_star_quality_instruction),
+    )
+    if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
+        raise RuntimeError("Gold Star guidance-exposure trace failed validation.")
+    _emit_guide_outcome(
+        "gold_star_guidance_exposure",
+        trace_version=gold_star_adjudication_trace["version"],
+        candidate_count=gold_star_adjudication_trace["candidate_count"],
+        exposure=gold_star_adjudication_trace["guidance_exposure"],
+    )
+
     integrity_recovery_instruction = (
         "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
         "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
