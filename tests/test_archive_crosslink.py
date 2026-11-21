@@ -814,7 +814,7 @@ def test_expand_context_result_distinguishes_no_relevant_source_from_stale_snaps
         "assets": [],
     })
     current = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
-    assert current["status"] == "no_relevant_public_source"
+    assert current["status"] == "no_snapshot_candidate"
     assert current["documents"] == []
 
     monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
@@ -824,7 +824,7 @@ def test_expand_context_result_distinguishes_no_relevant_source_from_stale_snaps
         "assets": [],
     })
     stale = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
-    assert stale["status"] == "stale_snapshot"
+    assert stale["status"] == "stale_snapshot_no_candidate"
     assert stale["documents"] == []
 
 
