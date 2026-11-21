@@ -227,3 +227,24 @@ def test_combined_provider_exception_fails_closed():
     result = adjudicate_answer_claims("answer", DOCS, adjudicate_claims=broken)
     assert result["status"] == "unassessed"
     assert result["reason"] == "claim_adjudication_failed"
+
+
+def test_steward_access_alias_and_private_flags_are_rejected():
+    protected_variants = [
+        {"access_class": "Steward Access"},
+        {"access_class": "guardian_access"},
+        {"private": True},
+        {"steward_only": True},
+        {"is_protected": True},
+    ]
+    for index, flags in enumerate(protected_variants):
+        document = {
+            "id": "restricted-" + str(index),
+            "title": "Restricted source",
+            "url": "https://geralddaquila.com/restricted/",
+            "text": "Restricted content must not cross the visitor boundary.",
+            "visitor_visible": True,
+        }
+        document.update(flags)
+        result = adjudicate_answer_claims("answer", [document])
+        assert result["status"] == "no_relevant_public_source"
