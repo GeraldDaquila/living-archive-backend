@@ -53,3 +53,35 @@ def test_active_contribution_exposes_decision_rights_gold_star_to_composition(mo
     assert contribution["benchmark_id"] == TARGET
     assert contribution["authority_mode"] == "structural_guidance_only"
     assert "delegation" in contribution["discipline"].lower()
+
+
+def test_anchorless_semantic_candidate_below_high_confidence_floor_is_not_promoted(monkeypatch):
+    monkeypatch.setattr(
+        semantic,
+        "rank_semantic_lessons",
+        lambda _query, candidates: {
+            item["id"]: (0.81 if item["id"] == TARGET else 0.20)
+            for item in candidates
+        },
+    )
+    selected = lessons.select_lesson_candidates(QUESTION)
+    assert selected
+    assert all(item["benchmark_id"] != TARGET for item in selected)
+
+
+def test_anchorless_semantic_candidate_without_clear_lead_is_not_promoted(monkeypatch):
+    monkeypatch.setattr(
+        semantic,
+        "rank_semantic_lessons",
+        lambda _query, candidates: {
+            item["id"]: (
+                0.90 if item["id"] == TARGET
+                else 0.85 if item["id"] == "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13"
+                else 0.20
+            )
+            for item in candidates
+        },
+    )
+    selected = lessons.select_lesson_candidates(QUESTION)
+    assert selected
+    assert all(item["benchmark_id"] != TARGET for item in selected)
