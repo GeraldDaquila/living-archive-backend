@@ -84,7 +84,7 @@ def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[st
         return updated
     allowed = {
         "status", "selected_candidate_ids", "rejection_reason_codes",
-        "reasoning_discipline_ids", "application_evidence_present", "application",
+        "reasoning_discipline_ids", "application_evidence_present", "application_evidence_candidate_ids", "application",
     }
     if set(result) != allowed:
         return updated
