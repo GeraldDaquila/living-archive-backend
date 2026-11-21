@@ -94,29 +94,37 @@ def normalize_provider_adjudication(
 
     if seen != set(index):
         return base
+    # Selection and application evidence are separate evidence stages. A
+    # malformed, missing, or non-matching span must not erase a structurally
+    # valid candidate disposition; it simply earns no application credit.
     spans = value.get("application_evidence_spans")
     evidence_ids: list[str] = []
     if not selected:
         if spans not in (None, []):
             return base
     else:
-        if not isinstance(spans, list) or len(spans) != len(selected):
-            return base
-        for item in spans:
-            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
-                return base
-            candidate_id, span = item.get("candidate_id"), item.get("span")
-            if (
-                candidate_id not in selected
-                or candidate_id in evidence_ids
-                or not isinstance(span, str)
-                or not 12 <= len(span.strip()) <= MAX_EVIDENCE_SPAN
-                or span.strip() not in str(response or "")
-            ):
-                return base
-            evidence_ids.append(candidate_id)
-        if set(evidence_ids) != set(selected):
-            return base
+        spans_valid = isinstance(spans, list) and len(spans) == len(selected)
+        if spans_valid:
+            for item in spans:
+                if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
+                    spans_valid = False
+                    break
+                candidate_id, span = item.get("candidate_id"), item.get("span")
+                if (
+                    not isinstance(candidate_id, str)
+                    or candidate_id not in selected
+                    or candidate_id in evidence_ids
+                    or not isinstance(span, str)
+                    or not 12 <= len(span.strip()) <= MAX_EVIDENCE_SPAN
+                    or span.strip() not in str(response or "")
+                ):
+                    spans_valid = False
+                    break
+                evidence_ids.append(candidate_id)
+            if spans_valid and set(evidence_ids) != set(selected):
+                spans_valid = False
+        if not spans_valid:
+            evidence_ids = []
     span_present = bool(selected) and set(evidence_ids) == set(selected)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
