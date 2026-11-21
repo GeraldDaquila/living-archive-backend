@@ -4744,6 +4744,9 @@ def compose(
         "response_shape": parsed.get("response_shape", "explanatory"),
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
+        # Internal-only evidence travels with the composition candidate. The
+        # shared visitor boundary consumes and strips it before public delivery.
+        "_gold_star_adjudication_trace": dict(gold_star_adjudication_trace),
     }
 
     provider_key = candidate["provider"] + ":" + candidate["model"]
