@@ -183,7 +183,7 @@ def test_cache_reuse_resets_previous_request_provider_adjudication():
     })
     assert selected["provider_adjudication_status"] == "provider_reported_selected"
 
-    reused = trace.mark_cache_reuse(initial)
+    reused = trace.mark_cache_reuse(selected)
     assert reused["composition"] == "cached_candidate_reused"
     assert reused["provider_adjudication_status"] == "not_observed"
     assert reused["selected_candidate_ids"] == []
