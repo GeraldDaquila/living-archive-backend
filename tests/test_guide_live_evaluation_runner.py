@@ -1,4 +1,13 @@
-from scripts.guide_live_evaluation import build_human_review_template, evaluate_gold, evaluate_held
+import scripts.guide_live_evaluation as live_evaluation
+
+from scripts.guide_live_evaluation import (
+    build_human_review_template,
+    classify_llm_payload,
+    claim_adjudication_summary,
+    evaluate_gold,
+    evaluate_held,
+    select_gold_standard_sample,
+)
 
 
 def test_exact_approved_answer_is_enforced():
@@ -138,4 +147,113 @@ def test_live_evaluation_workflow_sets_repository_import_path_and_entrypoint_imp
     )
     assert result.returncode == 0, result.stderr
     assert "--base-url" in result.stdout
+    assert "--max-gold-standards" in result.stdout
+    assert "--identity-wait-seconds" in result.stdout
+
+def test_gold_standard_live_sample_is_stable_bounded_and_spans_registry():
+    records = [
+        {"benchmark_id": f"benchmark-{index:03d}", "query": f"Question {index}"}
+        for index in range(130)
+    ]
+    sample = select_gold_standard_sample(records, 6)
+    assert len(sample) == 6
+    assert sample == select_gold_standard_sample(records, 6)
+    assert sample[0]["benchmark_id"] == "benchmark-000"
+    assert sample[-1]["benchmark_id"] == "benchmark-129"
+    assert len({item["benchmark_id"] for item in sample}) == 6
+
+
+def test_llm_capture_requires_final_answer_provenance_not_provider_attempts():
+    deterministic = {
+        "provider": "gold_standard_registry",
+        "model": "approved-reference",
+        "response_provenance": {
+            "class": "deterministic_by_design",
+            "llm_invoked": False,
+        },
+    }
+    verified, metadata = classify_llm_payload(deterministic)
+    assert verified is False
+    assert metadata["verification_basis"] == "insufficient_or_deterministic_final_output_provenance"
+
+    llm = {
+        "response_provenance": {
+            "class": "llm",
+            "llm_invoked": True,
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+        },
+    }
+    verified, metadata = classify_llm_payload(llm)
+    assert verified is True
+    assert metadata["provider"] == "groq"
+    assert metadata["model"] == "qwen/qwen3.8-27b"
+
+
+def test_claim_adjudication_report_is_summary_only():
+    body = {
+        "claim_adjudication": {
+            "status": "assessed",
+            "reason": "all_claims_assessed",
+            "claim_count": 2,
+            "outcome_counts": {"supported": 1, "no_relevant_public_source": 1},
+            "claims": [{"claim": "private response text", "outcome": "supported"}],
+        }
+    }
+    summary = claim_adjudication_summary(body)
+    assert summary == {
+        "status": "assessed",
+        "reason": "all_claims_assessed",
+        "claim_count": 2,
+        "outcome_counts": {"supported": 1, "no_relevant_public_source": 1},
+    }
+    assert "claims" not in summary
+
+def test_live_evaluation_waits_for_exact_target_commit_before_capture(monkeypatch):
+    monkeypatch.setattr(
+        live_evaluation,
+        "get_json",
+        lambda url, timeout=90: {
+            "status": 200,
+            "error": None,
+            "body": {
+                "deployment_commit_sha": "expected-sha",
+                "version": "v489.315",
+                "fingerprint": "runtime-fingerprint",
+                "source_sha256": "source-hash",
+                "ok": False,
+                "available_capabilities_missing_adapters": ["advisory"],
+            },
+        },
+    )
+    identity = live_evaluation.verify_runtime_identity(
+        "https://living-archive-backend.onrender.com",
+        "expected-sha",
+        timeout_seconds=0,
+    )
+    assert identity["deployment_commit_sha"] == "expected-sha"
+    assert identity["integration_audit_ok"] is False
+    assert identity["integration_audit_warnings"]["available_capabilities_missing_adapters"] == ["advisory"]
+
+
+def test_live_evaluation_refuses_mismatched_target_commit(monkeypatch):
+    monkeypatch.setattr(
+        live_evaluation,
+        "get_json",
+        lambda url, timeout=90: {
+            "status": 200,
+            "error": None,
+            "body": {"deployment_commit_sha": "old-sha"},
+        },
+    )
+    try:
+        live_evaluation.verify_runtime_identity(
+            "https://living-archive-backend.onrender.com",
+            "expected-sha",
+            timeout_seconds=0,
+        )
+    except RuntimeError as exc:
+        assert "does not match expected" in str(exc)
+    else:
+        raise AssertionError("A mismatched deployment must never receive synthetic visitor queries.")
 
