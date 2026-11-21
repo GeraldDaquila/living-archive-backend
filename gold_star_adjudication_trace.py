@@ -57,6 +57,7 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         "rejection_reason_codes": [],
         "reasoning_discipline_ids": [],
         "application_evidence_present": False,
+        "application_evidence_candidate_ids": [],
         "contribution_retained": "not_evaluated",
         "selection": "not_observed" if count else "not_applicable",
         "application": "not_observed",
@@ -92,6 +93,7 @@ def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[st
     updated["rejection_reason_codes"] = list(result["rejection_reason_codes"])
     updated["reasoning_discipline_ids"] = list(result["reasoning_discipline_ids"])
     updated["application_evidence_present"] = result["application_evidence_present"] is True
+    updated["application_evidence_candidate_ids"] = list(result["application_evidence_candidate_ids"])
     updated["application"] = result["application"]
     return updated
 
@@ -177,7 +179,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     allowed = required | {
         "guidance_exposure", "provider_adjudication_status", "selected_candidate_ids",
         "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
-        "contribution_retained", "composition", "final_delivery", "final_provenance"
+        "application_evidence_candidate_ids", "contribution_retained", "composition", "final_delivery", "final_provenance"
     }
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
@@ -243,8 +245,17 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         selected_ids or set(rejection_ids) != set(ids) or disciplines
     ):
         return {"valid": False, "reason": "incomplete_reject_all_adjudication"}
-    if trace.get("application_evidence_present") is True and not selected_ids:
-        return {"valid": False, "reason": "application_span_without_selected_candidate"}
+    evidence_ids = trace.get("application_evidence_candidate_ids", [])
+    if not isinstance(evidence_ids, list) or len(evidence_ids) > count or any(
+        candidate_id not in selected_ids for candidate_id in evidence_ids
+    ) or len(set(evidence_ids)) != len(evidence_ids):
+        return {"valid": False, "reason": "invalid_application_evidence_candidate_ids"}
+    if trace.get("application_evidence_present") is True and (
+        not selected_ids or set(evidence_ids) != set(selected_ids)
+    ):
+        return {"valid": False, "reason": "application_span_without_complete_selected_candidate_coverage"}
+    if trace.get("application_evidence_present") is not True and evidence_ids:
+        return {"valid": False, "reason": "application_evidence_ids_without_verified_spans"}
     if trace.get("contribution_retained") == "provider_asserted_span_retained" and (
         trace.get("final_delivery") != "provider_candidate_delivered"
         or trace.get("application_evidence_present") is not True
