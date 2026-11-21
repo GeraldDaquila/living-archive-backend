@@ -8114,6 +8114,9 @@ def _guide_finalize_visitor_payload(payload, query):
             and isinstance(result.get("response_provenance"), dict)
             and result["response_provenance"].get("class") == "llm"
         )
+        cached_candidate_reused = (
+            adjudication_trace.get("composition") == "cached_candidate_reused"
+        )
         original_provenance = (
             safe_input.get("response_provenance")
             if isinstance(safe_input, dict) else None
@@ -8123,7 +8126,7 @@ def _guide_finalize_visitor_payload(payload, query):
             if isinstance(original_provenance, dict) else ""
         )
         final_provenance = (
-            "llm" if delivered
+            "llm" if delivered or cached_candidate_reused
             else "deterministic_by_design"
             if original_class == "deterministic_by_design"
             else "deterministic_recovery" if final_response
@@ -8133,6 +8136,7 @@ def _guide_finalize_visitor_payload(payload, query):
             adjudication_trace,
             provider_candidate_delivered=delivered,
             final_provenance=final_provenance,
+            cached_candidate_reused=cached_candidate_reused,
         )
         validation = _validate_gold_star_final_delivery_trace(trace)
         if not validation.get("valid"):
