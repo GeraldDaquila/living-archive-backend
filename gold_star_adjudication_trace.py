@@ -231,6 +231,25 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "not_evaluated", "not_applicable", "provider_asserted_span_retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_contribution_retention_state"}
+    rejection_ids = [item["candidate_id"] for item in rejections]
+    if len(set(rejection_ids)) != len(rejection_ids) or set(selected_ids) & set(rejection_ids):
+        return {"valid": False, "reason": "duplicate_or_conflicting_candidate_disposition"}
+    adjudication_status = trace.get("provider_adjudication_status", "not_observed")
+    if adjudication_status == "provider_reported_selected" and (
+        not selected_ids or set(selected_ids) | set(rejection_ids) != set(ids) or not disciplines
+    ):
+        return {"valid": False, "reason": "incomplete_selected_candidate_adjudication"}
+    if adjudication_status == "provider_reported_rejected_all" and (
+        selected_ids or set(rejection_ids) != set(ids) or disciplines
+    ):
+        return {"valid": False, "reason": "incomplete_reject_all_adjudication"}
+    if trace.get("application_evidence_present") is True and not selected_ids:
+        return {"valid": False, "reason": "application_span_without_selected_candidate"}
+    if trace.get("contribution_retained") == "provider_asserted_span_retained" and (
+        trace.get("final_delivery") != "provider_candidate_delivered"
+        or trace.get("application_evidence_present") is not True
+    ):
+        return {"valid": False, "reason": "retention_claim_without_delivered_verified_span"}
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
