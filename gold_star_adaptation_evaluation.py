@@ -1,10 +1,9 @@
 """Governed paired evaluation for Gold Star structural adaptation.
 
-This module evaluates whether reviewed Gold Star guidance improves answers on
-held-out benchmark cases. It is deliberately offline and non-mutating: it does
-not collect visitor content, select lessons at runtime, or promote registry
-records. Passing the gate means evidence is ready for human promotion review,
-not that a lesson is automatically approved.
+Uses the canonical Guide learning-evaluation rubric. This module is offline and
+non-mutating: it does not collect visitor content, select lessons at runtime, or
+promote registry records. Passing evidence means it is ready for human promotion
+review, not that a lesson is automatically approved.
 """
 from __future__ import annotations
 
@@ -13,20 +12,28 @@ from datetime import datetime
 from math import ceil
 from typing import Any
 
-VERSION = "1.0"
+VERSION = "1.1"
 SCORE_DIMENSIONS = (
-    "question_fit",
-    "substantive_resolution",
-    "reasoning_coherence",
-    "evidence_integrity",
-    "epistemic_calibration",
-    "practical_utility",
+    "answer_directness",
+    "factual_accuracy",
+    "archive_grounding_and_provenance",
+    "cosmology_fidelity",
+    "human_voice_and_respect",
+    "sentence_coherence",
+    "paragraph_purpose_and_concision",
+    "response_proportionality",
+    "fractal_coherence",
+    "uncertainty_honesty",
+    "doorway_relevance_and_timing",
+    "visitor_orientation",
 )
-HARD_GATE_DIMENSIONS = (
-    "evidence_integrity",
-    "epistemic_calibration",
-    "safety",
-)
+HARD_GATE_DIMENSIONS = ("safety", "evidence_integrity", "epistemic_calibration")
+NA_REASON_CODES = frozenset({
+    "not_relevant_to_question",
+    "no_archive_specific_claim",
+    "no_doorway_requested_or_permitted",
+    "dimension_not_applicable_to_case",
+})
 VERDICTS = frozenset({"improved", "not_improved", "regressed", "inconclusive"})
 FORBIDDEN_KEYS = frozenset({
     "question", "query", "answer", "response", "user_id", "session_id",
@@ -34,7 +41,7 @@ FORBIDDEN_KEYS = frozenset({
 })
 MIN_PAIRED_CASES = 3
 MIN_CASE_FAMILIES = 2
-MIN_MEAN_SCORE_DELTA = 0.5
+MIN_MEAN_SCORE_DELTA = 0.25
 MIN_IMPROVED_SHARE = 2 / 3
 
 
@@ -50,12 +57,23 @@ def _contains_forbidden_content(value: Any) -> bool:
     return False
 
 
-def _valid_scores(value: Any) -> bool:
-    return (
-        isinstance(value, Mapping)
-        and set(value) == set(SCORE_DIMENSIONS)
-        and all(type(value[key]) is int and 1 <= value[key] <= 5 for key in SCORE_DIMENSIONS)
-    )
+def _valid_scores(scores: Any, critical: list[str], na_reasons: Any) -> bool:
+    expected = set(SCORE_DIMENSIONS) | set(critical)
+    if not isinstance(scores, Mapping) or set(scores) != expected:
+        return False
+    if not all(
+        (type(scores[key]) is int and 0 <= scores[key] <= 2) or scores[key] == "NA"
+        for key in expected
+    ):
+        return False
+    if any(scores[key] == "NA" for key in critical):
+        return False
+    if not isinstance(na_reasons, Mapping):
+        return False
+    na_dimensions = {key for key in expected if scores[key] == "NA"}
+    if set(na_reasons) != na_dimensions:
+        return False
+    return all(reason in NA_REASON_CODES for reason in na_reasons.values())
 
 
 def _valid_gates(value: Any) -> bool:
@@ -69,8 +87,9 @@ def _valid_gates(value: Any) -> bool:
     )
 
 
-def _mean_score(scores: Mapping[str, int]) -> float:
-    return sum(scores[key] for key in SCORE_DIMENSIONS) / len(SCORE_DIMENSIONS)
+def _mean_score(scores: Mapping[str, Any]) -> float:
+    numeric = [value for value in scores.values() if type(value) is int]
+    return sum(numeric) / len(numeric) if numeric else 0.0
 
 
 def evaluate_paired_case(record: Any) -> dict[str, Any]:
@@ -84,7 +103,7 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         "evaluation_id", "case_id", "case_family", "runtime_commit",
         "composition_contract_version", "provider", "model", "blind_review",
         "reviewer_verdict", "reviewer_evidence_ref", "reviewed_at",
-        "control", "treatment",
+        "critical_dimensions", "control", "treatment",
     }
     missing = sorted(required - set(record))
     if missing:
@@ -96,6 +115,14 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         if not isinstance(record.get(key), str) or not record[key].strip():
             return {"valid": False, "status": "invalid", "reason": f"invalid_{key}"}
 
+    critical = record.get("critical_dimensions")
+    if (
+        not isinstance(critical, list)
+        or not critical
+        or any(not isinstance(item, str) or not item.strip() for item in critical)
+        or len(set(critical)) != len(critical)
+    ):
+        return {"valid": False, "status": "invalid", "reason": "invalid_critical_dimensions"}
     if record.get("blind_review") is not True:
         return {"valid": False, "status": "invalid", "reason": "review_not_blind"}
     if record.get("reviewer_verdict") not in VERDICTS:
@@ -114,7 +141,7 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
             return {"valid": False, "status": "invalid", "reason": f"invalid_{name}_condition"}
         if not isinstance(arm.get("output_artifact_ref"), str) or not arm["output_artifact_ref"].strip():
             return {"valid": False, "status": "invalid", "reason": f"missing_{name}_artifact"}
-        if not _valid_scores(arm.get("scores")):
+        if not _valid_scores(arm.get("scores"), critical, arm.get("na_reasons")):
             return {"valid": False, "status": "invalid", "reason": f"invalid_{name}_scores"}
         if not _valid_gates(arm.get("hard_gates")):
             return {"valid": False, "status": "invalid", "reason": f"invalid_{name}_hard_gates"}
@@ -129,6 +156,11 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
             arm_value = arms[arm_name].get(key)
             if not isinstance(arm_value, str) or arm_value != record[key]:
                 return {"valid": False, "status": "invalid", "reason": f"unpaired_{key}"}
+
+    control_na = {key for key, value in arms["control"]["scores"].items() if value == "NA"}
+    treatment_na = {key for key, value in arms["treatment"]["scores"].items() if value == "NA"}
+    if control_na != treatment_na:
+        return {"valid": False, "status": "invalid", "reason": "paired_applicability_mismatch"}
 
     baseline = _mean_score(arms["control"]["scores"])
     treatment = _mean_score(arms["treatment"]["scores"])
