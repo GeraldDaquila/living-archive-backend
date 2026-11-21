@@ -36,6 +36,7 @@ jobs:
         continue-on-error: true
         env:
           TARGET_SERVICE: ${{ inputs.target_service }}
+          PYTHONPATH: .
         run: |
           if [ "$TARGET_SERVICE" = "mirror" ]; then
             BASE_URL="https://living-archive-backend-mirror.onrender.com"
