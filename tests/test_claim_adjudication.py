@@ -224,7 +224,7 @@ def test_combined_provider_callback_uses_one_assessment_envelope():
                 "quote": "The archive defines stewardship as responsible care of shared conditions.",
             }],
         }]
-    result = adjudicate_answer_claims("the answer", DOCS, adjudicate_claims=combined)
+    result = adjudicate_answer_claims("Stewardship is responsible care.", DOCS, adjudicate_claims=combined)
     assert len(calls) == 1
     assert calls[0][0] == "the answer"
     assert result["claims"][0]["outcome"] == "supported"
@@ -256,7 +256,8 @@ def test_steward_access_alias_and_private_flags_are_rejected():
         }
         document.update(flags)
         result = adjudicate_answer_claims("answer", [document])
-        assert result["status"] == "no_relevant_public_source"
+        assert result["status"] == "unassessed"
+        assert result["reason"] == "no_public_evidence_and_adjudicator_unavailable"
 
 
 def test_combined_provider_cannot_invent_answer_claims():
