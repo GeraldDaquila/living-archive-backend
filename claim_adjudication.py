@@ -190,7 +190,7 @@ def adjudicate_answer_claims(
         })
 
     counts = {outcome: sum(1 for claim in output if claim["outcome"] == outcome) for outcome in sorted(OUTCOMES)}
-    overall = "pass" if output and all(item["outcome"] != "unassessed" for item in output) else "unassessed"
+    overall = "assessed" if output and all(item["outcome"] != "unassessed" for item in output) else "unassessed"
     return {
         "version": VERSION,
         "status": overall,
