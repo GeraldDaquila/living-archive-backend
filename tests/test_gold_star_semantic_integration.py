@@ -46,22 +46,20 @@ def test_real_bge_decision_rights_paraphrase_and_cross_domain_abstention():
     positive_scores = rank_semantic_lessons(positive_query, candidates)
     negative_scores = rank_semantic_lessons(negative_query, candidates)
 
-    print(
-        "REAL_BGE_DECISION_RIGHTS",
-        {
-            "target": target["id"],
-            "positive_target_score": positive_scores.get(target["id"]),
-            "positive_top": sorted(positive_scores.items(), key=lambda row: -row[1])[:5],
-            "negative_target_score": negative_scores.get(target["id"]),
-            "negative_top": sorted(negative_scores.items(), key=lambda row: -row[1])[:5],
-            "positive_selected": [
-                item["benchmark_id"]
-                for item in lessons.select_lesson_candidates(positive_query)
-            ],
-            "negative_selected": [
-                item["benchmark_id"]
-                for item in lessons.select_lesson_candidates(negative_query)
-            ],
-        },
-        flush=True,
+    positive_selected = lessons.select_lesson_candidates(positive_query)
+    negative_selected = lessons.select_lesson_candidates(negative_query)
+
+    assert positive_scores.get(target["id"], 0.0) >= 0.82, (
+        "Real BGE score for the anchorless decision-rights transfer did not "
+        f"clear the semantic-only floor: {positive_scores.get(target['id'])}; "
+        f"top candidates={sorted(positive_scores.items(), key=lambda row: -row[1])[:5]}"
+    )
+    assert positive_selected and positive_selected[0]["benchmark_id"] == target["id"], (
+        "The real-model decision-rights paraphrase did not recover Gold Star #77: "
+        f"selected={[item['benchmark_id'] for item in positive_selected]}"
+    )
+    assert target["id"] not in [item["benchmark_id"] for item in negative_selected], (
+        "A cross-domain gardening query incorrectly activated the delegated-judgment "
+        f"Gold Star: selected={[item['benchmark_id'] for item in negative_selected]}, "
+        f"target score={negative_scores.get(target['id'])}"
     )
