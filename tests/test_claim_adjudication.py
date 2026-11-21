@@ -140,9 +140,14 @@ def test_claim_count_is_bounded():
 
 
 def test_stale_or_unavailable_outcome_is_preserved_without_attribution():
+    stale_docs = [dict(DOCS[0], source_status="stale")]
     result = adjudicate_answer_claims(
-        "answer", DOCS, extract_claims=_extract,
-        assess_claim=_assess("stale_or_unavailable"),
+        "answer", stale_docs, extract_claims=_extract,
+        assess_claim=lambda _claim, _passages: {
+            "outcome": "stale_or_unavailable",
+            "reason": "The retrieved source metadata marks this source stale.",
+            "attributions": [],
+        },
     )
     assert result["claims"][0]["outcome"] == "stale_or_unavailable"
     assert result["status"] == "assessed"
@@ -265,3 +270,16 @@ def test_combined_provider_cannot_invent_answer_claims():
     result = adjudicate_answer_claims("Only a different sentence.", DOCS, adjudicate_claims=combined)
     assert result["claims"][0]["outcome"] == "unassessed"
     assert result["claims"][0]["reason"] == "unverifiable_answer_claim"
+
+
+def test_stale_outcome_without_source_metadata_fails_closed():
+    result = adjudicate_answer_claims(
+        "answer", DOCS, extract_claims=_extract,
+        assess_claim=lambda _claim, _passages: {
+            "outcome": "stale_or_unavailable",
+            "reason": "Provider says stale.",
+            "attributions": [],
+        },
+    )
+    assert result["claims"][0]["outcome"] == "unassessed"
+    assert result["claims"][0]["reason"] == "stale_or_unavailable_not_verified_by_source_metadata"
