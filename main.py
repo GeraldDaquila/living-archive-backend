@@ -17875,6 +17875,12 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                 "gold_star_request_terminal",
                 request_id=_ledger_state.get("request_id"),
                 composition_attempt_count=_ledger_attempts,
+                provider_route_count=int(_ledger_state.get("provider_route_count") or 0),
+                provider_attempt_count=int(_ledger_state.get("provider_attempt_count") or 0),
+                provider_success_count=int(_ledger_state.get("provider_success_count") or 0),
+                provider_failure_count=int(_ledger_state.get("provider_failure_count") or 0),
+                provider_admission_denied_count=int(_ledger_state.get("provider_admission_denied_count") or 0),
+                provider_terminal_state=str(_ledger_state.get("provider_terminal_state") or "not_observed"),
                 terminal_state=_ledger_terminal_state,
             )
         except Exception:
