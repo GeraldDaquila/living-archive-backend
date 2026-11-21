@@ -45,6 +45,7 @@ from pinecone import Pinecone
 from groq import Groq
 from fastembed import TextEmbedding
 import onnxruntime as _onnxruntime
+from embedding_runtime_policy import parse_onnx_cpu_mem_arena_enabled
 
 
 # =====================================================================
@@ -876,11 +877,18 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
+EMBEDDING_ENABLE_CPU_MEM_ARENA = parse_onnx_cpu_mem_arena_enabled(
+    os.getenv("USE_ONNX_ENABLE_CPU_MEM_ARENA")
+)
+embedding_model = TextEmbedding(
+    model_name="BAAI/bge-small-en-v1.5",
+    threads=1,
+    enable_cpu_mem_arena=EMBEDDING_ENABLE_CPU_MEM_ARENA,
+)
 
-# v292 retains provider/runtime observability from v288. This reads the
-# already-initialized FastEmbed/ONNX Runtime objects without changing model
-# configuration, provider selection, thread settings, or request behavior.
+# v292 retains provider/runtime observability from v288. The optional
+# USE_ONNX_ENABLE_CPU_MEM_ARENA setting controls only ONNX Runtime allocator
+# retention; the model, 384-dimensional output, provider, and thread count stay fixed.
 try:
     _embedding_runtime_model = getattr(embedding_model, "model", None)
     _embedding_runtime_session = getattr(_embedding_runtime_model, "model", None)
@@ -915,6 +923,7 @@ try:
         f"session_providers={_embedding_runtime_session_providers}, "
         f"provider_options={_embedding_runtime_provider_options}, "
         f"configured_threads={_embedding_runtime_threads}, "
+        f"cpu_mem_arena_enabled={EMBEDDING_ENABLE_CPU_MEM_ARENA}, "
         f"requested_providers={_embedding_runtime_requested_providers}, "
         f"cuda_mode={_embedding_runtime_cuda}, "
         f"cpu_count={_embedding_runtime_cpu_count}, "
