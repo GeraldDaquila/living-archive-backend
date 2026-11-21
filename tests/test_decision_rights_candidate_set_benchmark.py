@@ -81,6 +81,20 @@ def test_core_and_conditional_policy_is_explicit():
     assert all(case["abstain"] for case in benchmark["cases"] if case["case_id"].endswith("negative") or case["case_id"] == "underspecified-ambiguity")
 
 
+def test_steward_labels_are_not_misrepresented_as_independent_ground_truth():
+    benchmark = _load(BENCHMARK)
+    validation = benchmark["label_validation"]
+    assert validation["status"] == "STEWARD_SELECTED_PENDING_INDEPENDENT_REVIEW"
+    assert validation["ground_truth_eligible"] is False
+    assert "independent" in validation["required_next_step"].casefold()
+    protocol = ROOT / validation["protocol"]
+    assert protocol.is_file()
+    protocol_text = protocol.read_text(encoding="utf-8").casefold()
+    assert "complete inventory" in protocol_text
+    assert "blinded" in protocol_text
+    assert "two independent" in protocol_text
+
+
 def test_application_and_retrieval_are_separate_gates():
     benchmark = _load(BENCHMARK)
     gates = benchmark["evaluation_gates"]
