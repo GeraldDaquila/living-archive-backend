@@ -158,7 +158,16 @@ def adjudicate_answer_claims(
         if not claim or len(claim) > _MAX_CLAIM_CHARS:
             output.append(_unassessed(claim[:_MAX_CLAIM_CHARS], "malformed_claim"))
             continue
+        answer_quote = ""
         if combined_provider:
+            answer_quote = str(item.get("answer_quote") or "")
+            if (
+                not answer_quote.strip()
+                or len(answer_quote) > _MAX_QUOTE_CHARS
+                or answer_quote not in str(answer or "")
+            ):
+                output.append(_unassessed(claim, "unverifiable_answer_claim"))
+                continue
             assessment = item
         else:
             try:
@@ -211,12 +220,15 @@ def adjudicate_answer_claims(
         if outcome in {"stale_or_unavailable", "no_relevant_public_source"} and verified:
             output.append(_unassessed(claim, "unexpected_attribution_for_non_evidentiary_outcome"))
             continue
-        output.append({
+        output_item = {
             "claim": claim,
             "outcome": outcome,
             "reason": str(assessment.get("reason") or "")[:300],
             "attributions": verified,
-        })
+        }
+        if combined_provider:
+            output_item["answer_quote"] = answer_quote
+        output.append(output_item)
 
     counts = {outcome: sum(1 for claim in output if claim["outcome"] == outcome) for outcome in sorted(OUTCOMES)}
     overall = "assessed" if output and all(item["outcome"] != "unassessed" for item in output) else "unassessed"
