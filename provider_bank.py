@@ -2681,13 +2681,16 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         return _workers(token, account, model, messages, max_tokens, schema, timeout=timeout_override or 12)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
-def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None, operation=None):
+def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
     """Apply bounded quota admission and record safe latency diagnostics."""
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
     reservation = reserve_provider_call(provider, model, messages, max_tokens)
-    if operation == "general_guide_composition":
-        _gold_star_trace.record_provider_candidate_attempt(operation)
+    gold_star_route_active = bool(
+        _gold_star_trace.current_provider_route_context().get("active")
+    )
+    if gold_star_route_active:
+        _gold_star_trace.record_provider_candidate_attempt("general_guide_composition")
     started = time.perf_counter()
     outcome = "error"
     try:
@@ -2714,7 +2717,9 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
             f"elapsed_seconds={elapsed:.3f}, "
             f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
             f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
-            + _gold_star_provider_route_log_fields(operation)
+            + _gold_star_provider_route_log_fields(
+                "general_guide_composition" if gold_star_route_active else None
+            )
         )
         reservation.release()
 
@@ -3341,7 +3346,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   + _gold_star_provider_route_log_fields(operation))
             raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
-                timeout_override=attempt_timeout, operation=operation
+                timeout_override=attempt_timeout
             )
             try:
                 parsed = parse(raw_output)
