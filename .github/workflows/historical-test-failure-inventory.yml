@@ -1,6 +1,16 @@
 name: Historical test failure inventory
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "tests/**"
+      - "*.py"
+      - "requirements.txt"
+      - "scripts/summarize_pytest_junit.py"
+      - "docs/testing/HISTORICAL_FAILURE_ARCHIVE.md"
+      - ".github/workflows/historical-test-failure-inventory.yml"
   pull_request:
     paths:
       - "tests/**"
