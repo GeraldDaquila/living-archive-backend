@@ -187,7 +187,7 @@ def test_main_and_guide_runtime_protected_core_hashes_match_current_use_core_blo
 
     core_bytes = (Path(__file__).resolve().parents[1] / "use_core.py").read_bytes()
     actual_blob_sha = hashlib.sha1(
-        f"blob {len(core_bytes)}\\0".encode("utf-8") + core_bytes
+        f"blob {len(core_bytes)}\0".encode("utf-8") + core_bytes
     ).hexdigest()
     assert main.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
     assert guide_runtime.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
