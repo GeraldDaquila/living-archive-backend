@@ -9,13 +9,15 @@ ABSTENTION = (
 
 def test_final_boundary_overrides_care_commons_insufficiency_abstention():
     payload = {
+        "ok": True,
+        "query": QUESTION,
         "response": ABSTENTION,
         "recommendation": {
             "title": "Global Reset: Systems Change, Economic Transition, and Future Models",
             "url": "https://geralddaquila.com/global-reset-systems-change-economic-transition-and-future-models/",
         },
     }
-    result = main._apply_final_visitor_boundary(QUESTION, payload)
+    result = main._guide_finalize_visitor_payload(payload, QUESTION)
     assert composition._has_care_and_commons_economic_recognition_explanation(result["response"])
     assert "conditions that make other economic activity possible" in result["response"]
     assert "do not have enough grounded material" not in result["response"].casefold()
