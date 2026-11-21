@@ -120,6 +120,9 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
             return {"valid": False, "status": "invalid", "reason": f"invalid_{name}_hard_gates"}
         arms[name] = arm
 
+    if arms["control"]["output_artifact_ref"] == arms["treatment"]["output_artifact_ref"]:
+        return {"valid": False, "status": "invalid", "reason": "paired_outputs_not_distinct"}
+
     # Keep the comparison paired: only the adaptive-guidance condition may differ.
     for key in ("provider", "model", "runtime_commit", "composition_contract_version"):
         for arm_name in ("control", "treatment"):
