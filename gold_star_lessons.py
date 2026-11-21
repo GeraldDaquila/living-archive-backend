@@ -462,9 +462,9 @@ def select_lesson_candidates(
     if len(query_terms) < 2:
         return []
 
-    # Compatibility baseline: preserve the existing, audited lexical selector
-    # exactly whenever it has a match. Semantic retrieval is additive recovery,
-    # not a replacement that can reorder or erase proven outcomes.
+    # Build the established lexical ranking first; it remains available as
+    # a conservative fallback and is never discarded merely because semantic
+    # retrieval is unavailable.
     normalized_query_terms = _concept_terms(query)
     lexical_ranked = []
     for item in candidates:
@@ -482,64 +482,57 @@ def select_lesson_candidates(
             + 0.08 * len(shared_family) + 0.04 * len(shared_variant)
             + 0.12 * coverage,
         )
-        # Low-confidence lexical resemblance is not enough to transfer a
-        # governance lesson into an unrelated visitor domain.
-        if score < 0.50:
-            continue
-        lexical_ranked.append((score, len(shared_signature), item["id"], item))
+        if score >= 0.50:
+            lexical_ranked.append((score, len(shared_signature), item["id"], item))
     lexical_ranked.sort(key=lambda row: (-row[0], -row[1], row[2]))
-    if lexical_ranked:
-        return [
-            _lesson_candidate_payload(row[3], row[0])
-            for row in lexical_ranked[:limit]
-        ]
 
-    # Semantic recovery only runs when the proven selector abstains. Missing
-    # model/runtime support safely preserves the old abstention behaviour.
+    # Semantic retrieval now supplements, rather than waits for, lexical
+    # abstention. Anchorless paraphrase recovery is deliberately much stricter:
+    # a high absolute score and a clear lead over the runner-up are both
+    # required. This is guidance-only candidate discovery, not proof of use.
     try:
         from gold_star_semantic_retrieval import rank_semantic_lessons
         semantic_scores = rank_semantic_lessons(query, candidates)
     except Exception as exc:
         _TELEMETRY_LOG.warning(
-            "gold_star_semantic_retrieval unavailable; preserving legacy abstention: %s",
+            "gold_star_semantic_retrieval unavailable; retaining lexical candidates: %s",
             type(exc).__name__,
         )
-        return []
+        return [
+            _lesson_candidate_payload(row[3], row[0])
+            for row in lexical_ranked[:limit]
+        ]
 
-    ranked = []
-    for item in candidates:
-        semantic_score = float(semantic_scores.get(item["id"], 0.0))
-        shared_signature = normalized_query_terms & item.get("signature_terms", set())
-        shared_variant = normalized_query_terms & item.get("variant_terms", set())
-        shared_family = normalized_query_terms & item.get("reasoning_terms", set())
-        # A subject-identity anchor prevents broad conceptual analogy from
-        # crossing domains; semantic similarity supplies the paraphrase bridge.
-        if semantic_score < 0.65 or not (shared_signature or shared_variant):
-            continue
-        lexical_support = min(
-            1.0,
-            0.18 * len(shared_signature)
-            + 0.12 * len(shared_variant)
-            + 0.08 * len(shared_family),
+    semantic_order = sorted(
+        ((float(semantic_scores.get(item["id"], 0.0)), item["id"], item)
+         for item in candidates),
+        key=lambda row: (-row[0], row[1]),
+    )
+    strong_semantic = []
+    if semantic_order and semantic_order[0][0] >= 0.82:
+        clear_lead = (
+            len(semantic_order) == 1
+            or semantic_order[0][0] - semantic_order[1][0] >= 0.08
         )
-        score = min(0.97, 0.78 * semantic_score + 0.22 * lexical_support)
-        # Similarity alone must clear a minimum combined relevance floor.
-        if score < 0.50:
-            continue
-        ranked.append((score, semantic_score, len(shared_signature), item["id"], item))
+        if clear_lead:
+            strong_semantic.append(semantic_order[0])
 
-    ranked.sort(key=lambda row: (-row[0], -row[1], -row[2], row[3]))
-    if not ranked:
-        return []
-    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.025:
-        _TELEMETRY_LOG.info(
-            "gold_star_semantic_retrieval abstain=ambiguous top=%s second=%s",
-            ranked[0][3], ranked[1][3],
-        )
-        return []
+    merged = {
+        row[3]["id"]: (row[0], row[3])
+        for row in lexical_ranked
+    }
+    for semantic_score, _benchmark_id, item in strong_semantic:
+        current = merged.get(item["id"])
+        if current is None or semantic_score > current[0]:
+            merged[item["id"]] = (semantic_score, item)
+
+    ranked = sorted(
+        merged.values(),
+        key=lambda row: (-row[0], row[1]["id"]),
+    )
     return [
-        _lesson_candidate_payload(row[4], row[0])
-        for row in ranked[:limit]
+        _lesson_candidate_payload(item, score)
+        for score, item in ranked[:limit]
     ]
 
 
