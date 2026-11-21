@@ -2341,6 +2341,15 @@ def _recommendation_first_fetch(query_str):
                         f"added={len(additions)}, evidence_admitted={len(verified_additions)}, "
                         f"seed={len(existing_urls)}; pinecone_bypassed={_PINECONE_RETRIEVAL_BYPASS}"
                     )
+                if (
+                    evidence_recovery_requested
+                    and profile.get("action") not in {"recommendation", "navigation"}
+                    and not verified_additions
+                ):
+                    if any(item.get("source_body_verified") for item in crosslinks):
+                        data["live_site_fallback_status"] = "no_source_passed_relevance_gate"
+                    elif crosslinks:
+                        data["live_site_fallback_status"] = "source_body_unavailable"
         except Exception as exc:
             print(f"The Guide full-corpus meta-crosslink failed safely: {type(exc).__name__}")
 
