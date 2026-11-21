@@ -2080,6 +2080,7 @@ def _mirror_registry_context(query_str):
         "mirror_registry_count": len(docs),
         "mirror_source_body_count": verified_source_count,
         "mirror_orientation_metadata_only": verified_source_count == 0,
+        "canonical_public_source_recovery_attempted": True,
     }
 
 
@@ -2185,6 +2186,7 @@ def _recommendation_first_fetch(query_str):
             or _PINECONE_RETRIEVAL_BYPASS
         )
     ):
+        data["canonical_public_source_recovery_attempted"] = True
         try:
             recovery_token_count = len(
                 re.findall(
@@ -12001,6 +12003,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _is_conceptual_explanatory_request(query),
         )
         and not _conceptual_retrieval_doorway_ready
+        and not context_data.get("canonical_public_source_recovery_attempted")
     ):
         # Subject-finding requests always receive a bounded WordPress content
         # supplement, even when the initial vector pass did not set an evidence-
