@@ -1031,7 +1031,9 @@ def fetch_wordpress_source_documents(
     *,
     limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
 ) -> list[dict[str, Any]]:
-    """Fetch bounded, published source bodies for public snapshot assets."""
+    """Fetch bounded source bodies through the site's public canonical evidence bridge."""
+    from datetime import datetime, timezone
+
     documents: list[dict[str, Any]] = []
     for asset in (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]:
         if not isinstance(asset, dict):
@@ -1041,55 +1043,81 @@ def fetch_wordpress_source_documents(
         resource_type = str(asset.get("resource_type") or "").strip().casefold()
         wp_id = str(asset.get("wp_id") or "").strip()
         expected_url = _normalize_url(asset.get("url"))
-        if access_class not in {"public", "open", "open_access"} or tier == "T4" or resource_type not in {"page", "post"} or not wp_id.isdigit() or not expected_url:
+        if (
+            access_class not in {"public", "open", "open_access"}
+            or tier == "T4"
+            or resource_type not in {"page", "post"}
+            or not wp_id.isdigit()
+            or not expected_url
+        ):
             continue
-        wp_endpoint = {"page": "pages", "post": "posts"}[resource_type]
-        request_url = f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
-        request = UrlRequest(request_url, headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"}, method="GET")
+
+        # The site's dedicated bridge enforces published status, native
+        # password protection, and viewable post types. Unlike wp/v2 content,
+        # it reads stored post_content without running the_content or executing
+        # shortcodes. Do not fall back to a raw WordPress.com endpoint: that
+        # would bypass the site's own protected-content check.
+        request_url = (
+            "https://geralddaquila.com/wp-json/living-archive/v1/"
+            f"canonical-evidence/{quote(wp_id, safe='')}"
+        )
+        request = UrlRequest(
+            request_url,
+            headers={
+                "Accept": "application/json",
+                "Cache-Control": "no-cache",
+                "User-Agent": "LivingArchiveGuide/1.0",
+            },
+            method="GET",
+        )
         try:
-            try:
-                with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-            except Exception as primary_exc:
-                # WordPress.com can reject requests from some cloud egress IPs
-                # at the site-domain edge. Retry through its public REST API,
-                # then apply the identical publication/ID/canonical checks.
-                if getattr(primary_exc, "code", None) is None:
-                    raise
-                fallback_url = (
-                    "https://public-api.wordpress.com/wp/v2/sites/geralddaquila.com/"
-                    f"{wp_endpoint}/{quote(wp_id, safe='')}?"
-                    "_fields=id,link,title,excerpt,content,status"
-                )
-                fallback_request = UrlRequest(
-                    fallback_url,
-                    headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
-                    method="GET",
-                )
-                with urlopen(fallback_request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-                _log(
-                    "USE archive meta-crosslink WordPress source fetch: "
-                    f"id={wp_id}, transport=wordpress_com_public_api_fallback, "
-                    f"primary_http_status={getattr(primary_exc, 'code', 'unknown')}"
-                )
+            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
             if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
-                raise ValueError("WordPress source response exceeds size bound")
+                raise ValueError("WordPress canonical evidence response exceeds size bound")
             payload = json.loads(raw_bytes.decode("utf-8"))
-            if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish" or str(payload.get("id") or "") != wp_id:
+            if (
+                not isinstance(payload, dict)
+                or str(payload.get("source") or "") != "published_wordpress_content"
+                or str(payload.get("id") or "") != wp_id
+            ):
                 continue
-            fetched_url = _normalize_url(payload.get("link"))
+            fetched_url = _normalize_url(payload.get("url"))
             if not fetched_url or fetched_url != expected_url:
                 continue
-            title = _wordpress_rendered_text(payload.get("title"))[:300]
-            body = _wordpress_rendered_text(payload.get("content"))
+            title = _text(payload.get("title"), 300)
+            body = _text(payload.get("text"), 12000)
             if not title or len(body) < 120:
                 continue
+
+            retrieved_at = datetime.now(timezone.utc).isoformat()
+            source_modified_at = _text(payload.get("modified_gmt"), 80) or None
+            provenance = {
+                "source": "public_living_archive_canonical_evidence_bridge",
+                "canonical_url": fetched_url,
+                "title": title,
+                "wordpress_post_id": wp_id,
+                "source_modified_at": source_modified_at,
+                "retrieved_at": retrieved_at,
+                "passage": body,
+                "trust_boundary": "untrusted_external_evidence_not_instructions",
+            }
             metadata = {
-                "title": title, "url": fetched_url, "text": body, "content": body,
-                "excerpt": _wordpress_rendered_text(payload.get("excerpt"))[:1200],
-                "tier": tier or "T1", "access_class": access_class,
-                "lifecycle": asset.get("lifecycle", ""), "resource_type": resource_type,
+                "title": title,
+                "url": fetched_url,
+                "text": body,
+                "content": body,
+                "excerpt": _text(asset.get("summary"), 1200),
+                "tier": tier or "T1",
+                "access_class": access_class,
+                "lifecycle": asset.get("lifecycle", ""),
+                "resource_type": resource_type,
+                "source": "public_living_archive_canonical_evidence_bridge",
+                "source_status": "published_public_source_body_verified",
+                "source_trust": "untrusted_external_evidence_not_instructions",
+                "source_modified_at": source_modified_at,
+                "retrieved_at": retrieved_at,
+                "evidence_provenance": provenance,
             }
             if not _eligible(metadata, core):
                 continue
@@ -1100,24 +1128,24 @@ def fetch_wordpress_source_documents(
             if callable(navigable) and not navigable(metadata):
                 continue
             documents.append({
-                **metadata, "wp_id": wp_id, "summary": metadata["excerpt"],
-                "source_body_verified": True, "crosslink_mode": "wordpress_source_body",
+                **metadata,
+                "wp_id": wp_id,
+                "summary": metadata["excerpt"],
+                "source_body_verified": True,
+                "crosslink_mode": "wordpress_source_body",
             })
         except Exception as exc:
             http_status = getattr(exc, "code", None)
             if http_status is not None:
-                headers = getattr(exc, "headers", None)
-                server = headers.get("Server", "") if hasattr(headers, "get") else ""
-                retry_after = headers.get("Retry-After", "") if hasattr(headers, "get") else ""
-                reason = re.sub(r"\\s+", " ", str(getattr(exc, "reason", "") or ""))[:120]
                 _log(
                     "USE archive meta-crosslink WordPress source fetch: "
-                    f"id={wp_id}, status=http_error, http_status={http_status}, "
-                    f"reason={reason}, server={str(server)[:80]}, "
-                    f"retry_after={str(retry_after)[:40]}"
+                    f"id={wp_id}, status=http_error, http_status={http_status}"
                 )
             else:
-                _log(f"USE archive meta-crosslink WordPress source fetch: id={wp_id}, status=unavailable, error={type(exc).__name__}")
+                _log(
+                    "USE archive meta-crosslink WordPress source fetch: "
+                    f"id={wp_id}, status=unavailable, error={type(exc).__name__}"
+                )
             continue
     return documents
 
