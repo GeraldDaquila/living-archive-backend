@@ -128,16 +128,24 @@ def test_blinded_review_packet_covers_complete_active_inventory():
         f"C{index:03d}" for index in range(1, len(active) + 1)
     ]
     assert all("benchmark_id" not in item for item in candidates)
-    assert all(
-        item.get("approved_question")
-        and item.get("known_theme")
-        and item.get("reasoning_family")
-        and item.get("transferable_discipline")
-        and item.get("qualifying_context")
-        and item.get("abstention_boundary")
-        and item.get("activation")
-        for item in candidates
+    required_source_fields = (
+        "approved_question", "known_theme", "reasoning_family",
+        "transferable_discipline", "qualifying_context",
+        "abstention_boundary", "activation",
     )
+    for item in candidates:
+        assert all(field in item for field in required_source_fields)
+        assert all(
+            item.get(field)
+            for field in required_source_fields
+            if field != "qualifying_context"
+        )
+        expected_gaps = [
+            field for field in required_source_fields
+            if not str(item.get(field) or "").strip()
+        ]
+        assert item["source_field_gaps"] == expected_gaps
+    assert "must not infer" in packet["source_limitations"]
     benchmark = _load(BENCHMARK)
     assert packet["cases"] == [
         {"case_id": item["case_id"], "query": item["query"]}
