@@ -52,7 +52,7 @@ def test_contradiction_requires_exact_passage_quote():
         "Stewardship is control.",
         DOCS,
         extract_claims=_extract,
-        assess_claim=_assess("contradicted", "It distinguishes responsibility from control."),
+        assess_claim=_assess("contradicted", "It distinguishes responsibility from control.", passage_index=1),
     )
     assert result["claims"][0]["outcome"] == "contradicted"
 
