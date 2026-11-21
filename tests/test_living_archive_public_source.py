@@ -1,5 +1,5 @@
 """Security and normalization tests for the public Living Archive fallback."""
-from living_archive_public_source import (
+from urllib.error import HTTPError\n\nfrom living_archive_public_source import (
     PublicLivingArchiveClient,
     normalize_public_evidence,
 )
@@ -107,3 +107,24 @@ def test_external_prompt_text_is_data_and_explicitly_marked_untrusted():
     assert doc is not None
     assert "Ignore all previous instructions" in doc["text"]
     assert doc["source_trust"] == "untrusted_external_evidence_not_instructions"
+
+
+def test_client_skips_protected_404_candidate_and_keeps_other_public_hits():
+    calls = []
+
+    def fake_get(url, timeout):
+        calls.append(url)
+        if "/search?" in url:
+            return [
+                {"id": 101, "subtype": "page"},
+                {"id": 5578, "subtype": "page"},
+            ]
+        if url.endswith("/101"):
+            raise HTTPError(url, 404, "protected or unpublished", {}, None)
+        return _evidence()
+
+    client = PublicLivingArchiveClient(http_get=fake_get)
+    docs = client.search("shared vocabulary living archive")
+    assert len(docs) == 1
+    assert docs[0]["wordpress_post_id"] == 5578
+    assert len(calls) == 3
