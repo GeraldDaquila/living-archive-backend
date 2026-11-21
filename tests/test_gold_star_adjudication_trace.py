@@ -492,7 +492,7 @@ def test_provider_candidate_attempt_is_counted_only_after_quota_admission():
     end = source.index("\n\ndef _route_result", start)
     function_source = source[start:end]
     reservation = function_source.index("reservation = reserve_provider_call(")
-    counted = function_source.index("_gold_star_trace.record_provider_candidate_attempt(operation)")
+    counted = function_source.index("_gold_star_trace.record_provider_candidate_attempt("general_guide_composition")")
     call = function_source.index("result = _call(")
     assert reservation < counted < call
 
