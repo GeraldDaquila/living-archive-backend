@@ -802,3 +802,51 @@ def test_wordpress_source_fetch_fails_closed_on_bridge_http_error(monkeypatch):
     assert "/wp-json/living-archive/v1/canonical-evidence/21767" in calls[0]
     assert documents == []
     assert any("http_status=404" in entry for entry in logs)
+
+
+def test_expand_context_result_distinguishes_no_relevant_source_from_stale_snapshot(monkeypatch):
+    monkeypatch.setattr(archive_crosslink, "search_wordpress_canonical_assets", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "select_crosslinks", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": __import__("time").time(),
+        "assets": [],
+    })
+    current = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
+    assert current["status"] == "no_relevant_public_source"
+    assert current["documents"] == []
+
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": 0,
+        "assets": [],
+    })
+    stale = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
+    assert stale["status"] == "stale_snapshot"
+    assert stale["documents"] == []
+
+
+def test_expand_context_result_distinguishes_unavailable_source_body(monkeypatch):
+    asset = {
+        "title": "Institutional Learning",
+        "url": "https://geralddaquila.com/institutional-learning/",
+        "wp_id": "12345",
+        "resource_type": "page",
+        "tier": "T1",
+        "access_class": "public",
+        "summary": "Learning and correction in institutions.",
+    }
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": __import__("time").time(),
+        "assets": [asset],
+    })
+    monkeypatch.setattr(archive_crosslink, "search_wordpress_canonical_assets", lambda *_args, **_kwargs: [asset])
+    monkeypatch.setattr(archive_crosslink, "fetch_wordpress_source_documents", lambda *_args, **_kwargs: [])
+    result = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
+    assert result["status"] == "source_body_unavailable"
+    assert len(result["documents"]) == 1
+    assert result["documents"][0]["source_body_verified"] is False
