@@ -1232,7 +1232,7 @@ def expand_context_result(
     if not assets:
         _log("USE archive meta-crosslink: no_canonical_candidates=true")
         return {
-            "status": "stale_snapshot" if snapshot_stale else "no_relevant_public_source",
+            "status": "stale_snapshot_no_candidate" if snapshot_stale else "no_snapshot_candidate",
             "documents": [],
             "snapshot_age_seconds": snapshot_age_seconds,
         }
