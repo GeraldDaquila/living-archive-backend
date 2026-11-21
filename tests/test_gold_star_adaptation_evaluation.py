@@ -241,3 +241,12 @@ def test_malformed_na_reason_and_reviewer_verdict_fail_closed():
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "invalid_reviewer_verdict"
+
+
+
+def test_zero_in_a_case_critical_dimension_blocks_promotion_eligibility():
+    pair = _pair()
+    pair["treatment"]["scores"]["answer_directness"] = 0
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["status"] == "reviewed_regression"
+    assert result["treatment_critical_failures"] == ["answer_directness"]
