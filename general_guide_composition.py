@@ -4599,6 +4599,8 @@ def compose(
                 cached_result["_gold_star_adjudication_trace"] = cached_trace
                 _emit_guide_outcome(
                     "gold_star_adjudication_cache_reuse",
+                    request_id=cached_trace.get("request_id"),
+                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
                     trace_version=cached_trace["version"],
                     candidate_count=cached_trace["candidate_count"],
                     provider_adjudication_status=cached_trace["provider_adjudication_status"],
@@ -4844,6 +4846,8 @@ def compose(
         raise RuntimeError("Gold Star composition trace failed validation.")
     _emit_guide_outcome(
         "gold_star_adjudication_composition",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         composition=gold_star_adjudication_trace.get("composition", "unobserved"),
