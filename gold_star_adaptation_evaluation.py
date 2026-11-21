@@ -177,8 +177,12 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         if arms["control"]["hard_gates"][dimension] == "pass"
         and arms["treatment"]["hard_gates"][dimension] == "fail"
     ]
+    treatment_critical_failures = [
+        dimension for dimension in critical
+        if arms["treatment"]["scores"][dimension] == 0
+    ]
     verdict = record["reviewer_verdict"]
-    if treatment_hard_gate_failures or verdict == "regressed":
+    if treatment_hard_gate_failures or treatment_critical_failures or verdict == "regressed":
         status = "reviewed_regression"
     elif verdict == "improved" and delta > 0 and not regressions:
         status = "reviewed_improvement"
@@ -196,6 +200,7 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         "mean_score_delta": delta,
         "hard_gate_regressions": regressions,
         "treatment_hard_gate_failures": treatment_hard_gate_failures,
+        "treatment_critical_failures": treatment_critical_failures,
         "reviewer_verdict": verdict,
         "human_reviewed": True,
     }
@@ -235,6 +240,7 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
     improved = sum(item["reviewer_verdict"] == "improved" for item in evaluated)
     regressions = sum(
         bool(item["treatment_hard_gate_failures"])
+        or bool(item["treatment_critical_failures"])
         or bool(item["hard_gate_regressions"])
         or item["status"] == "reviewed_regression"
         for item in evaluated
