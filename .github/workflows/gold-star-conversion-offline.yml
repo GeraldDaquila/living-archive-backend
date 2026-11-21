@@ -1,0 +1,32 @@
+name: Gold Star conversion offline regressions
+
+on:
+  pull_request:
+    paths:
+      - "gold_star_lessons.py"
+      - "gold_star_semantic_retrieval.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - "tests/test_gold_star_decision_rights_transfer.py"
+      - ".github/workflows/gold-star-conversion-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  decision-rights-transfer:
+    name: Decision-rights Gold Star transfer (offline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Run deterministic mocked retrieval regressions
+        run: python -m pytest -q tests/test_gold_star_decision_rights_transfer.py
