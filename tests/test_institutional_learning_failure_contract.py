@@ -246,7 +246,7 @@ def test_shared_finalizer_invokes_contract_after_inner_routes_and_preserves_exac
         "apply_institutional_learning_failure_boundary(query, finalized)"
     )
     assert source.index("apply_institutional_learning_failure_boundary(query, finalized)") < source.index(
-        "return finalized", source.index("apply_institutional_learning_failure_boundary(query, finalized)")
+        "return _finish_gold_star_delivery_trace(finalized)", source.index("apply_institutional_learning_failure_boundary(query, finalized)")
     )
 
 
