@@ -13,8 +13,8 @@ from typing import Any, Mapping
 
 VERSION = "1.0"
 MAX_CANDIDATES = 3
-_SELECTION_STATES = {"not_applicable", "not_observed", "human_reviewed_selected", "human_reviewed_rejected"}
-_APPLICATION_STATES = {"not_observed", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
+_SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "human_reviewed_selected", "human_reviewed_rejected"}
+_APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
 _OUTCOME_STATES = {"not_evaluated", "review_required", "human_reviewed_improved", "human_reviewed_not_improved"}
 _FORBIDDEN_KEYS = {"query", "question", "answer", "response", "user_id", "session_id", "content_hash"}
 
@@ -108,7 +108,12 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
         else False
     )
     result["composition"] = "provider_candidate_returned" if returned else "provider_no_result"
-    result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
+    if result.get("provider_adjudication_status") == "provider_reported_selected":
+        result["selection"] = "provider_reported_selected"
+    elif result.get("provider_adjudication_status") == "provider_reported_rejected_all":
+        result["selection"] = "provider_reported_rejected_all"
+    else:
+        result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
     if result.get("provider_adjudication_status") == "not_observed":
         result["application"] = "not_observed"
     result["outcome"] = "not_evaluated"
@@ -192,7 +197,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         return {"valid": False, "reason": "invalid_selected_candidate_ids"}
     if not isinstance(rejections, list) or len(rejections) > count or not all(
         isinstance(x, Mapping) and set(x) == {"candidate_id", "reason_code"}
-        and x["candidate_id"] in ids and isinstance(x["reason_code"], str)
+        and x["candidate_id"] in ids and x["reason_code"] in {"subject_mismatch", "lexical_overlap_only", "redundant_contribution", "boundary_mismatch", "conflicting_discipline", "insufficient_relevance", "no_distinct_contribution"}
         for x in rejections
     ):
         return {"valid": False, "reason": "invalid_rejection_reason_codes"}
