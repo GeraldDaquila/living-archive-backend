@@ -142,6 +142,7 @@ def test_batch_can_become_eligible_for_human_review_but_never_auto_promotes():
     ]
     result = evaluation.evaluate_batch(pairs)
     assert result["status"] == "eligible_for_human_promotion_review"
+    assert result["outcome_state"] == "human_reviewed_improved"
     assert result["paired_case_count"] == 3
     assert result["case_family_count"] == 3
     assert result["registry_mutated"] is False
@@ -156,6 +157,7 @@ def test_batch_rejects_a_single_regression_even_when_mean_score_improves():
     ]
     result = evaluation.evaluate_batch(pairs)
     assert result["status"] == "evidence_insufficient"
+    assert result["outcome_state"] == "human_reviewed_not_improved"
     assert "hard_gate_or_reviewed_regression" in result["reasons"]
 
 
