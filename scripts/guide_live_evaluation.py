@@ -13,6 +13,7 @@ REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
 SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
+PROVIDER_PROBE_QUERY = "Why can a well-designed policy still fail during implementation?"
 
 def file_commit(path):
     try:
@@ -38,6 +39,85 @@ def post(base, question):
 
 def check(name, ok, detail):
     return {"name":name,"passed":bool(ok),"detail":detail}
+
+
+def select_gold_standard_sample(records, limit=6):
+    """Select a stable, evenly spaced subset; full registry coverage stays in offline CI."""
+    ordered = sorted(
+        [item for item in records if isinstance(item, dict)],
+        key=lambda item: str(item.get("benchmark_id") or item.get("query") or ""),
+    )
+    limit = max(0, int(limit))
+    if limit == 0:
+        return []
+    if len(ordered) <= limit:
+        return ordered
+    if limit == 1:
+        return [ordered[len(ordered) // 2]]
+    indices = [round(index * (len(ordered) - 1) / (limit - 1)) for index in range(limit)]
+    return [ordered[index] for index in indices]
+
+
+def classify_llm_payload(body):
+    """Require explicit final-answer LLM provenance; provider attempts alone do not count."""
+    body = body if isinstance(body, dict) else {}
+    provenance = body.get("response_provenance")
+    provenance = provenance if isinstance(provenance, dict) else {}
+    declared_class = str(provenance.get("class") or "").strip().casefold()
+    provider = str(body.get("provider") or provenance.get("provider") or "").strip()
+    model = str(body.get("model") or provenance.get("model") or "").strip()
+    envelope = body.get("answer_envelope")
+    envelope = envelope if isinstance(envelope, dict) else {}
+    envelope_evidence = envelope.get("evidence")
+    envelope_evidence = envelope_evidence if isinstance(envelope_evidence, dict) else {}
+    envelope_route = envelope.get("route")
+    envelope_route = envelope_route if isinstance(envelope_route, dict) else {}
+    envelope_class = str(envelope_evidence.get("provenance_class") or "").strip().casefold()
+    provider_present = envelope_route.get("provider_present") is True
+    model_present = envelope_route.get("model_present") is True
+    llm_invoked = provenance.get("llm_invoked") is True
+    deterministic_markers = ("deterministic", "fallback", "recovery", "gold_standard_registry")
+    is_deterministic = any(
+        marker in (provider + " " + model + " " + declared_class + " " + envelope_class).casefold()
+        for marker in deterministic_markers
+    )
+    explicit_llm = (
+        declared_class in {"llm", "language_model", "model_generation"}
+        and llm_invoked
+        and bool(provider and model)
+    )
+    envelope_llm = (
+        envelope_class in {"llm", "language_model", "model_generation"}
+        and provider_present
+        and model_present
+    )
+    verified = bool((explicit_llm or envelope_llm) and not is_deterministic)
+    return verified, {
+        "declared_class": declared_class or None,
+        "envelope_class": envelope_class or None,
+        "provider": provider or None,
+        "model": model or None,
+        "provider_present": provider_present,
+        "model_present": model_present,
+        "llm_invoked": llm_invoked,
+        "verification_basis": (
+            "explicit_response_provenance" if explicit_llm else
+            "answer_envelope_provenance" if envelope_llm and verified else
+            "insufficient_or_deterministic_final_output_provenance"
+        ),
+    }
+
+
+def claim_adjudication_summary(body):
+    value = body.get("claim_adjudication") if isinstance(body, dict) else None
+    if not isinstance(value, dict):
+        return None
+    return {
+        "status": value.get("status"),
+        "reason": value.get("reason"),
+        "claim_count": value.get("claim_count"),
+        "outcome_counts": value.get("outcome_counts") if isinstance(value.get("outcome_counts"), dict) else None,
+    }
 
 def evaluate_gold(record, transport):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}
@@ -154,23 +234,43 @@ def main():
     parser.add_argument("--base-url",default=PRIMARY)
     parser.add_argument("--output",default="artifacts/guide-live-evaluation-report.json")
     parser.add_argument("--delay-seconds",type=float,default=.25)
+    parser.add_argument("--max-gold-standards",type=int,default=6)
     args=parser.parse_args()
     base=args.base_url.rstrip("/")
     if base not in ALLOWED: parser.error("base URL must be the primary or mirror Render service")
+    if args.max_gold_standards < 1: parser.error("--max-gold-standards must be at least 1")
     rb,sb=REGISTRY.read_bytes(),SUITE.read_bytes()
     registry,suite=json.loads(rb),json.loads(sb)
-    records=[r for r in registry.get("records",[]) if r.get("subsystem")=="general-purpose-guide" and r.get("status") in {"USER_APPROVED_GOLD_STANDARD","FROZEN_REFERENCE_ONLY"} and r.get("query") and r.get("expected_response")]
+    eligible_records=[r for r in registry.get("records",[]) if r.get("subsystem")=="general-purpose-guide" and r.get("status") in {"USER_APPROVED_GOLD_STANDARD","FROZEN_REFERENCE_ONLY"} and r.get("query") and r.get("expected_response")]
+    records=select_gold_standard_sample(eligible_records,args.max_gold_standards)
     workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in suite.get("cases",[])]
-    report={"report_schema_version":"1.0.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None,"runtime_identity":None,"gold_standard_count":len(records),"heldout_count":len(suite.get("cases",[])),"results":[]}
+    report={"report_schema_version":"1.1.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None,"runtime_identity":None,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(suite.get("cases",[])),"results":[]}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
-        question=item["query"]; transport=post(base,question); body=transport.get("body")
+        question=item["query"]
+        request_started_at=datetime.now(timezone.utc).isoformat()
+        transport=post(base,question)
+        request_completed_at=datetime.now(timezone.utc).isoformat()
+        body=transport.get("body")
         body=body if isinstance(body,dict) else None
         checks=evaluate_gold(item,transport) if split=="gold_standard" else evaluate_held(item,transport)
         if body and report["runtime_identity"] is None: report["runtime_identity"]={"version":body.get("version"),"fingerprint":body.get("fingerprint"),"source_sha256":body.get("source_sha256")}
-        report["results"].append({"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
+        report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
+    provider_probe_started_at=datetime.now(timezone.utc).isoformat()
+    provider_probe_transport=post(base,PROVIDER_PROBE_QUERY)
+    provider_probe_completed_at=datetime.now(timezone.utc).isoformat()
+    provider_probe_body=provider_probe_transport.get("body")
+    provider_probe_body=provider_probe_body if isinstance(provider_probe_body,dict) else {}
+    provider_probe_llm,provider_probe_provenance=classify_llm_payload(provider_probe_body)
+    provider_probe_checks=[
+        check("http_200",provider_probe_transport.get("status")==200,f"HTTP status {provider_probe_transport.get('status')}; {provider_probe_transport.get('error') or ''}"),
+        check("api_ok",provider_probe_body.get("ok") is True,"API must return ok=true."),
+        check("nonempty_answer",bool(str(provider_probe_body.get("response") or "").strip()),"Provider probe must return a non-empty answer."),
+        check("attributable_llm",provider_probe_llm,"Final visitor response must carry explicit LLM provenance; provider attempts alone do not count."),
+    ]
+    report["provider_probe"]={"query":PROVIDER_PROBE_QUERY,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
     gold=[x for x in report["results"] if x["split"]=="gold_standard"]; held=[x for x in report["results"] if x["split"]=="held_out"]
-    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"overall_pass":all(x["passed"] for x in report["results"]),"interpretation":"Held-out checks are bounded heuristics requiring human review; no lesson is promoted automatically."}
+    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"gold_standard_registry_total":len(eligible_records),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"provider_probe_attributable_llm":provider_probe_llm,"provider_probe_provider":provider_probe_provenance.get("provider"),"provider_probe_model":provider_probe_provenance.get("model"),"provider_probe_passed":all(x["passed"] for x in provider_probe_checks),"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks),"interpretation":"Live run is a bounded sample of registered Gold Standards plus the complete held-out set and one attributable provider probe. Heuristic checks require human review; no lesson is promoted automatically."}
     report["evaluation_finished_at"]=datetime.now(timezone.utc).isoformat()
     out=Path(args.output); out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report["summary"],ensure_ascii=False,indent=2)); print(f"Full report: {out}")
