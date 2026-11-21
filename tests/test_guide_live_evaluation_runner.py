@@ -115,3 +115,26 @@ def test_cosmology_heldout_accepts_concrete_conditional_example():
     checks = evaluate_held(case, transport)
     example = next(item for item in checks if item["name"] == "concrete_implication")
     assert example["passed"], checks
+
+def test_live_evaluation_workflow_sets_repository_import_path_and_entrypoint_imports():
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "guide-live-evaluation.yml").read_text(encoding="utf-8")
+    assert "PYTHONPATH: ." in workflow
+
+    env = {**os.environ, "PYTHONPATH": str(root)}
+    result = subprocess.run(
+        [sys.executable, str(root / "scripts" / "guide_live_evaluation.py"), "--help"],
+        cwd=root,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--base-url" in result.stdout
+
