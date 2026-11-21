@@ -113,14 +113,15 @@ def adjudicate_answer_claims(
     become positive or negative findings.
     """
     source_passages = _passages(documents or [])
-    if not source_passages:
+    combined_provider = callable(adjudicate_claims)
+    if not source_passages and not combined_provider:
         return {
             "version": VERSION,
-            "status": "no_relevant_public_source",
+            "status": "unassessed",
+            "reason": "no_public_evidence_and_adjudicator_unavailable",
             "claims": [],
             "claim_count": 0,
         }
-    combined_provider = callable(adjudicate_claims)
     if not combined_provider and (not callable(extract_claims) or not callable(assess_claim)):
         return {
             "version": VERSION,
