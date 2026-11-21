@@ -177,6 +177,7 @@ def test_weak_internal_evidence_triggers_existing_live_site_crosslink_and_reopen
     assert result["live_site_source_provenance"][0]["wordpress_post_id"] == "12345"
     assert "UNTRUSTED PUBLIC SOURCE BODY" in result["context_blocks"]
     assert "Institutional Learning" in result["canonical_link_context"]
+    assert source["text"] in result["context_blocks"]
 
 
 def test_sufficient_internal_evidence_does_not_trigger_live_site_fallback(monkeypatch):
@@ -211,3 +212,46 @@ def test_sufficient_internal_evidence_does_not_trigger_live_site_fallback(monkey
     result = main._recommendation_first_fetch("Why does institutional learning fail?")
     assert result["canonical_link_context"].startswith("Title: Relevant")
     assert "live_site_fallback_status" not in result
+
+
+def test_metadata_only_crosslink_does_not_reopen_generation(monkeypatch):
+    _pass_all_evidence_gates(monkeypatch)
+    monkeypatch.setattr(
+        main._base,
+        "_inquiry_profile",
+        lambda _q: {"action": "answer", "risk": False, "grief": False},
+    )
+    monkeypatch.setattr(main, "_PINECONE_RETRIEVAL_BYPASS", False)
+    monkeypatch.setattr(
+        main,
+        "_original_fetch_canonical_context",
+        lambda _q: {
+            "intent": "TOPICAL_INQUIRY",
+            "context_blocks": "",
+            "canonical_link_context": "",
+            "evidence_sufficiency_unavailable": True,
+        },
+    )
+    metadata_only = {
+        "title": "Institutional Learning",
+        "url": "https://geralddaquila.com/institutional-learning/",
+        "summary": "Learning and correction in institutions.",
+        "source_body_verified": False,
+        "crosslink_mode": "territorial_navigation",
+    }
+    monkeypatch.setattr(
+        main.archive_crosslink,
+        "expand_context_result",
+        lambda *_args: {
+            "status": "source_body_unavailable",
+            "documents": [metadata_only],
+            "snapshot_age_seconds": 20,
+        },
+    )
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_args: None)
+    monkeypatch.setattr(main, "_verified_archive_doorway_fallback", lambda *_args: None)
+
+    result = main._recommendation_first_fetch("Why does institutional learning fail?")
+    assert result["evidence_sufficiency_unavailable"] is True
+    assert result["live_site_fallback_status"] == "source_body_unavailable"
+    assert result.get("context_blocks", "") == ""
