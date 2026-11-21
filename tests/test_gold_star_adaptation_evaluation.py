@@ -1,4 +1,5 @@
 import copy
+from pathlib import Path
 
 import gold_star_adaptation_evaluation as evaluation
 
@@ -7,23 +8,21 @@ def _arm(enabled, score, *, hard_gates=None):
     return {
         "adaptation_enabled": enabled,
         "output_artifact_ref": "ci-artifact://paired-case/" + ("treatment" if enabled else "control"),
-        "scores": {
-            "question_fit": score,
-            "substantive_resolution": score,
-            "reasoning_coherence": score,
-            "evidence_integrity": score,
-            "epistemic_calibration": score,
-            "practical_utility": score,
-        },
+        "scores": {dimension: score for dimension in evaluation.SCORE_DIMENSIONS},
+        "na_reasons": {},
         "hard_gates": hard_gates or {
+            "safety": "pass",
             "evidence_integrity": "pass",
             "epistemic_calibration": "pass",
-            "safety": "pass",
         },
+        "provider": "provider-a",
+        "model": "model-a",
+        "runtime_commit": "abc123",
+        "composition_contract_version": "v1.54",
     }
 
 
-def _pair(case_id="case-1", family="conceptual", *, baseline=3, treatment=4,
+def _pair(case_id="case-1", family="conceptual", *, baseline=1, treatment=2,
           verdict="improved"):
     return {
         "evaluation_id": f"eval-{case_id}",
@@ -37,20 +36,9 @@ def _pair(case_id="case-1", family="conceptual", *, baseline=3, treatment=4,
         "reviewer_verdict": verdict,
         "reviewer_evidence_ref": f"ci-artifact://review/{case_id}",
         "reviewed_at": "2026-11-21T10:00:00Z",
-        "control": {
-            **_arm(False, baseline),
-            "provider": "provider-a",
-            "model": "model-a",
-            "runtime_commit": "abc123",
-            "composition_contract_version": "v1.54",
-        },
-        "treatment": {
-            **_arm(True, treatment),
-            "provider": "provider-a",
-            "model": "model-a",
-            "runtime_commit": "abc123",
-            "composition_contract_version": "v1.54",
-        },
+        "critical_dimensions": ["answer_directness", "factual_accuracy"],
+        "control": _arm(False, baseline),
+        "treatment": _arm(True, treatment),
     }
 
 
@@ -60,6 +48,47 @@ def test_valid_pair_reports_measured_human_reviewed_improvement():
     assert result["status"] == "reviewed_improvement"
     assert result["mean_score_delta"] == 1.0
     assert result["human_reviewed"] is True
+
+
+def test_evaluation_uses_canonical_guide_rubric_dimensions():
+    assert set(evaluation.SCORE_DIMENSIONS) == {
+        "answer_directness",
+        "factual_accuracy",
+        "archive_grounding_and_provenance",
+        "cosmology_fidelity",
+        "human_voice_and_respect",
+        "sentence_coherence",
+        "paragraph_purpose_and_concision",
+        "response_proportionality",
+        "fractal_coherence",
+        "uncertainty_honesty",
+        "doorway_relevance_and_timing",
+        "visitor_orientation",
+    }
+
+
+def test_not_applicable_scores_require_a_controlled_reason_and_matching_pair_scope():
+    pair = _pair()
+    for arm_name in ("control", "treatment"):
+        arm = pair[arm_name]
+        arm["scores"]["cosmology_fidelity"] = "NA"
+        arm["na_reasons"] = {"cosmology_fidelity": "not_relevant_to_question"}
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is True
+
+    pair["treatment"]["na_reasons"]["cosmology_fidelity"] = "free-form explanation"
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "invalid_treatment_scores"
+
+
+def test_pair_rejects_different_applicability_between_control_and_treatment():
+    pair = _pair()
+    pair["control"]["scores"]["cosmology_fidelity"] = "NA"
+    pair["control"]["na_reasons"] = {"cosmology_fidelity": "not_relevant_to_question"}
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "invalid_treatment_scores"
 
 
 def test_candidate_delivery_without_blind_human_review_is_not_evaluation():
@@ -117,7 +146,7 @@ def test_batch_rejects_a_single_regression_even_when_mean_score_improves():
     pairs = [
         _pair("case-1", "conceptual"),
         _pair("case-2", "practical"),
-        _pair("case-3", "governance", baseline=4, treatment=3, verdict="regressed"),
+        _pair("case-3", "governance", baseline=2, treatment=1, verdict="regressed"),
     ]
     result = evaluation.evaluate_batch(pairs)
     assert result["status"] == "evidence_insufficient"
@@ -134,11 +163,10 @@ def test_content_and_identity_fields_are_prohibited_recursively():
 
 def test_score_dimensions_and_ranges_are_closed_contracts():
     pair = _pair()
-    pair["control"]["scores"]["question_fit"] = 6
+    pair["control"]["scores"]["answer_directness"] = 6
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "invalid_control_scores"
-
 
 
 def test_pair_requires_provider_and_runtime_identity_on_both_arms():
@@ -166,7 +194,6 @@ def test_malformed_hard_gate_values_fail_closed_without_raising():
     assert result["reason"] == "invalid_treatment_hard_gates"
 
 
-
 def test_control_and_treatment_must_reference_distinct_output_artifacts():
     pair = _pair()
     pair["treatment"]["output_artifact_ref"] = pair["control"]["output_artifact_ref"]
@@ -175,10 +202,16 @@ def test_control_and_treatment_must_reference_distinct_output_artifacts():
     assert result["reason"] == "paired_outputs_not_distinct"
 
 
+def test_batch_rejects_repeated_case_even_with_distinct_evaluation_ids():
+    pair = _pair("case-1", "conceptual")
+    duplicate = copy.deepcopy(pair)
+    duplicate["evaluation_id"] = "eval-case-1-duplicate"
+    result = evaluation.evaluate_batch([pair, duplicate, _pair("case-2", "practical")])
+    assert result["valid"] is False
+    assert result["reason"] == "duplicate_case_or_evaluation_id"
+
 
 def test_wp3_capture_workflow_uses_mirror_and_guarded_github_actions_not_standalone_qa():
-    from pathlib import Path
-
     workflow = (
         Path(__file__).resolve().parents[1]
         / ".github/workflows/gold-star-wp3-paired-capture.yml"
@@ -190,13 +223,3 @@ def test_wp3_capture_workflow_uses_mirror_and_guarded_github_actions_not_standal
     assert "living-archive-gold-star-v2-qa.onrender.com" not in workflow
     assert "identity-wait-seconds 900" in workflow
     assert "--min-llm-captures 1" in workflow
-
-
-
-def test_batch_rejects_repeated_case_even_with_distinct_evaluation_ids():
-    pair = _pair("case-1", "conceptual")
-    duplicate = copy.deepcopy(pair)
-    duplicate["evaluation_id"] = "eval-case-1-duplicate"
-    result = evaluation.evaluate_batch([pair, duplicate, _pair("case-2", "practical")])
-    assert result["valid"] is False
-    assert result["reason"] == "duplicate_case_or_evaluation_id"
