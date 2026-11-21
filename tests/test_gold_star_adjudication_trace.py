@@ -342,6 +342,25 @@ def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
         "gold_star_request_terminal",
     } <= emitted_events
 
+    terminal_call = next(
+        node for node in ast.walk(module)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_emit_guide_outcome"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value == "gold_star_request_terminal"
+    )
+    terminal_fields = {keyword.arg for keyword in terminal_call.keywords}
+    assert {
+        "provider_route_count",
+        "provider_attempt_count",
+        "provider_success_count",
+        "provider_failure_count",
+        "provider_admission_denied_count",
+        "provider_terminal_state",
+    } <= terminal_fields
+
 def test_request_ledger_tracks_provider_route_terminal_counts():
     token = trace.begin_request_context("33333333333333333333333333333333")
     try:
@@ -421,4 +440,70 @@ def test_composer_records_provider_no_result_before_fallback():
     assert 'provider_result=None' in no_result
     assert '"gold_star_adjudication_composition"' in no_result
     assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
+
+def test_provider_route_wrapper_classifies_success_and_no_eligible_candidates(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("55555555555555555555555555555555")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def successful_route(*_args, **kwargs):
+            operation = kwargs["operation"]
+            trace.set_provider_route_candidate_count(operation, 2)
+            trace.record_provider_candidate_attempt(operation)
+            trace.record_provider_candidate_outcome(operation, "success")
+            return {"provider": "controlled", "model": "test"}
+
+        result = provider_bank._track_gold_star_provider_route(successful_route)(
+            operation="general_guide_composition"
+        )
+        assert result["provider"] == "controlled"
+        assert "outcome=provider_succeeded" in capsys.readouterr().out
+
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def no_eligible_route(*_args, **kwargs):
+            trace.set_provider_route_candidate_count(kwargs["operation"], 0)
+            return None
+
+        assert provider_bank._track_gold_star_provider_route(no_eligible_route)(
+            operation="general_guide_composition"
+        ) is None
+        output = capsys.readouterr().out
+        assert "outcome=no_eligible_candidate" in output
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 2
+        assert request["provider_attempt_count"] == 1
+        assert request["provider_success_count"] == 1
+        assert request["provider_terminal_state"] == "no_eligible_candidate"
+    finally:
+        trace.end_request_context(token)
+
+
+def test_provider_candidate_attempt_is_counted_only_after_quota_admission():
+    source = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    start = source.index("def _quota_guarded_call(")
+    end = source.index("\n\ndef _route_result", start)
+    function_source = source[start:end]
+    reservation = function_source.index("reservation = reserve_provider_call(")
+    counted = function_source.index("_gold_star_trace.record_provider_candidate_attempt(operation)")
+    call = function_source.index("result = _call(")
+    assert reservation < counted < call
+
+
+def test_provider_exhaustion_trace_event_includes_provider_route_state():
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    compose = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "compose"
+    )
+    function_source = ast.get_source_segment(source, compose)
+    no_result = function_source[function_source.index("if not result:"):]
+    assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
+    assert 'provider_route_attempt_count=provider_route.get("attempt_count", 0)' in no_result
+    assert 'provider_route_eligible_candidate_count=provider_route.get("eligible_candidate_count")' in no_result
 
