@@ -43,6 +43,7 @@ def test_rejects_non_bridge_sources_invalid_ids_and_short_content():
     assert normalize_public_evidence(_evidence(source="published_wordpress_content_other")) is None
     assert normalize_public_evidence(_evidence(id=0)) is None
     assert normalize_public_evidence(_evidence(id="bad")) is None
+    assert normalize_public_evidence(_evidence(), expected_post_id=999) is None
     assert normalize_public_evidence(_evidence(text="too short")) is None
 
 
