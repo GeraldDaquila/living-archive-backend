@@ -2681,7 +2681,7 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         return _workers(token, account, model, messages, max_tokens, schema, timeout=timeout_override or 12)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
-def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None, operation=None):
     """Apply bounded quota admission and record safe latency diagnostics."""
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
@@ -2718,8 +2718,9 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
             f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
             f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
             + _gold_star_provider_route_log_fields(operation)
-        )
-        reservation.release()
+            )
+        finally:
+            reservation.release()
 
 
 def _route_result(result):
@@ -3354,7 +3355,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                   + _gold_star_provider_route_log_fields(operation))
             raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
-                timeout_override=attempt_timeout
+                timeout_override=attempt_timeout,
+                operation=operation,
             )
             try:
                 parsed = parse(raw_output)
