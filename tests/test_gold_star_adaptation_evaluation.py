@@ -223,3 +223,21 @@ def test_wp3_capture_workflow_uses_mirror_and_guarded_github_actions_not_standal
     assert "living-archive-gold-star-v2-qa.onrender.com" not in workflow
     assert "identity-wait-seconds 900" in workflow
     assert "--min-llm-captures 1" in workflow
+
+
+
+def test_malformed_na_reason_and_reviewer_verdict_fail_closed():
+    pair = _pair()
+    for arm_name in ("control", "treatment"):
+        arm = pair[arm_name]
+        arm["scores"]["cosmology_fidelity"] = "NA"
+        arm["na_reasons"] = {"cosmology_fidelity": []}
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "invalid_control_scores"
+
+    pair = _pair()
+    pair["reviewer_verdict"] = []
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "invalid_reviewer_verdict"
