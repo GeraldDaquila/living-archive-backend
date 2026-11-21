@@ -186,6 +186,15 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
             "cases": evaluated,
         }
     count = len(evaluated)
+    case_ids = [item["case_id"] for item in evaluated]
+    evaluation_ids = [item["evaluation_id"] for item in evaluated]
+    if len(set(case_ids)) != count or len(set(evaluation_ids)) != count:
+        return {
+            "valid": False,
+            "status": "invalid",
+            "reason": "duplicate_case_or_evaluation_id",
+            "cases": evaluated,
+        }
     families = {item["case_family"] for item in evaluated}
     mean_delta = round(sum(item["mean_score_delta"] for item in evaluated) / count, 4) if count else 0.0
     improved = sum(item["reviewer_verdict"] == "improved" for item in evaluated)
