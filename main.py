@@ -75,6 +75,10 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+
+# The outer visitor boundary and shared finalizer must emit through the same
+# privacy-minimized lifecycle logger used by the composer.
+_emit_guide_outcome = general_guide_composition._emit_guide_outcome
 import gold_star_adjudication_trace as _gold_star_ledger
 import comparative_traditions_contract
 import archive_crosslink
