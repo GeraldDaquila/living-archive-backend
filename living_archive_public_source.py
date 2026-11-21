@@ -227,7 +227,6 @@ class PublicLivingArchiveClient:
                 post_id = hit.get("id")
                 if not str(post_id).isdigit():
                     continue
-                route = "posts" if subtype == "post" else "pages"
                 endpoint = (
                     SITE_ORIGIN
                     + f"/wp-json/living-archive/v1/canonical-evidence/{int(post_id)}"
