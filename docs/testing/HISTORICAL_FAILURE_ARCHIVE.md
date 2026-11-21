@@ -113,3 +113,35 @@ The 84 remaining failures are still visible in the report and remain **UNRESOLVE
 The current PR head also passed the targeted Guide resource-discovery evidence workflow, provider-health regression, mocked-UI continuity contract, and the v487 production-validation workflow. These focused passes do not erase the 84 broader diagnostic failures.
 
 The authoritative row-by-row record is `docs/testing/HISTORICAL_FAILURE_REGISTER.csv`: 24 SUPERSEDED, 5 REPAIR (including the follow-up discovery), and 84 UNRESOLVED.
+
+### 2026-11-21 adjudication: retired HRN visitor handoff contract
+
+Six baseline failures in `tests.test_v489_93_passive_friendship_boundary` asserted that lived relationship inquiries must redirect from `/api/query` into HRN and create a relationship session ledger. The current v489.315 request boundary explicitly retains the relational detector as observational evidence while answering these inquiries natively through The Guide. The old tests therefore described a retired visitor-entry architecture, not a current session-isolation regression.
+
+Disposition: **6 SUPERSEDED**.
+
+The original v489.93 test file is preserved uncollected at:
+
+`docs/testing/historical-test-snapshots/test_v489_93_passive_friendship_boundary.py.archive`
+
+The active replacement retains detector coverage for:
+- a passive friendship/boundary question,
+- a postponed conversation with a friend,
+- a compact recurring-argument description.
+
+It now verifies that each is answered natively by The Guide, that no HRN redirect or `relational_delegation` is emitted, that identical openings do not create legacy HRN sessions, that a supplied client token does not revive that retired handoff, and that bounded Archive/definition requests remain excluded. Release identity assertions now inspect the actual runtime source-fingerprint and canonical-build guards.
+
+| Evidence | Record |
+|---|---|
+| Baseline failure inventory | [Run 44859727666](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/44859727666), tested main commit `a75f57502db221a1acd597634cf9c32beebe3051` |
+| Original failure register source | Run `44857281404`, commit `ee2772e7154ae8a4b9557772e45283c8374dc41a` |
+| Preservation commit | `067b23100bac3a71c16a6f8ee9bdc7850e557e8c` |
+| Replacement test commit | `0cc93d85f5b0c3869a18cd9ad11d3adbe1f83e9d` |
+| Register adjudication commit | `d6591d7973807115162ddce3577d86b1eaf2f319` |
+| Retirement date | 2026-11-21 |
+| Review PR | [#1843](https://github.com/GeraldDaquila/living-archive-backend/pull/1843) |
+
+The full-suite diagnostic on the PR head completed with **2,326 tests, 77 failures, 0 errors, and 3 skipped**. The six retired nodes no longer appear in the active failure inventory; their replacement native-Guide behavior tests passed. v487 production validation passed 52/52 steps, provider health passed 8/8, and mocked UI continuity passed. The full-suite workflow remains non-blocking and is an inventory generator, not a claim that all tests pass.
+
+No production runtime, WordPress integration, HRN adapter, provider configuration, Pinecone index, Render service, or visitor-facing code changed. Merge remains subject to the standard PR review/verification boundary.
+
