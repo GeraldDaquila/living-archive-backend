@@ -104,7 +104,8 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
 
     required = {
         "evaluation_id", "case_id", "case_family", "runtime_commit",
-        "composition_contract_version", "provider", "model", "blind_review",
+        "composition_contract_version", "provider", "model", "base_prompt_fingerprint",
+        "generation_config_fingerprint", "gold_star_registry_sha256", "blind_review",
         "reviewer_verdict", "reviewer_evidence_ref", "reviewed_at",
         "critical_dimensions", "control", "treatment",
     }
@@ -113,7 +114,8 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         return {"valid": False, "status": "invalid", "reason": "missing_fields", "missing": missing}
 
     for key in ("evaluation_id", "case_id", "case_family", "runtime_commit",
-                "composition_contract_version", "provider", "model",
+                "composition_contract_version", "provider", "model", "base_prompt_fingerprint",
+                "generation_config_fingerprint", "gold_star_registry_sha256",
                 "reviewer_evidence_ref", "reviewed_at"):
         if not isinstance(record.get(key), str) or not record[key].strip():
             return {"valid": False, "status": "invalid", "reason": f"invalid_{key}"}
@@ -154,7 +156,8 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         return {"valid": False, "status": "invalid", "reason": "paired_outputs_not_distinct"}
 
     # Keep the comparison paired: only the adaptive-guidance condition may differ.
-    for key in ("provider", "model", "runtime_commit", "composition_contract_version"):
+    for key in ("provider", "model", "runtime_commit", "composition_contract_version",
+                "base_prompt_fingerprint", "generation_config_fingerprint", "gold_star_registry_sha256"):
         for arm_name in ("control", "treatment"):
             arm_value = arms[arm_name].get(key)
             if not isinstance(arm_value, str) or arm_value != record[key]:
