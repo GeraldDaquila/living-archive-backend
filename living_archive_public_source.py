@@ -194,7 +194,15 @@ class PublicLivingArchiveClient:
                     SITE_ORIGIN
                     + f"/wp-json/living-archive/v1/canonical-evidence/{int(post_id)}"
                 )
-                evidence = self._get(endpoint)
+                try:
+                    evidence = self._get(endpoint)
+                except HTTPError as exc:
+                    # A 404/403 is the canonical bridge's expected fail-closed
+                    # response for unpublished or protected candidates. Skip
+                    # that candidate without discarding other public hits.
+                    if exc.code in {403, 404}:
+                        continue
+                    raise
                 document = normalize_public_evidence(evidence)
                 if document:
                     docs.append(document)
