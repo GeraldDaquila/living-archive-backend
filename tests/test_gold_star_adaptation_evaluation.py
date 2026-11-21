@@ -88,7 +88,7 @@ def test_pair_rejects_different_applicability_between_control_and_treatment():
     pair["control"]["na_reasons"] = {"cosmology_fidelity": "not_relevant_to_question"}
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
-    assert result["reason"] == "invalid_treatment_scores"
+    assert result["reason"] == "paired_applicability_mismatch"
 
 
 def test_candidate_delivery_without_blind_human_review_is_not_evaluation():
