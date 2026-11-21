@@ -1079,11 +1079,13 @@ def fetch_wordpress_source_documents(
             if not fetched_url or fetched_url != expected_url:
                 continue
             title = _text(payload.get("title"), 300)
-            body = _text(payload.get("text"), 12000)
+            raw_body = str(payload.get("text") or "")
+            body = _text(raw_body, 12000)
             if not title or len(body) < 120:
                 continue
             modified = _text(payload.get("modified_gmt"), 64)
             retrieved_at = time.time()
+            source_truncated = bool(payload.get("truncated")) or len(raw_body) > 12000
             metadata = {
                 "title": title,
                 "url": fetched_url,
@@ -1099,7 +1101,7 @@ def fetch_wordpress_source_documents(
                 "source_endpoint": "living-archive/v1/canonical-evidence",
                 "source_modified_at": modified or None,
                 "source_retrieved_at": retrieved_at,
-                "source_truncated": bool(payload.get("truncated")),
+                "source_truncated": source_truncated,
             }
             if not _eligible(metadata, core):
                 continue
