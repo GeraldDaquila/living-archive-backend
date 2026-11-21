@@ -164,3 +164,50 @@ def test_no_candidate_guidance_exposure_is_not_applicable():
     result = mark_guidance_exposure(initial, included_in_provider_prompt=False)
     assert result["guidance_exposure"] == "not_applicable"
     assert trace.validate_trace(result)["valid"]
+
+
+
+def test_cache_reuse_resets_previous_request_provider_adjudication():
+    initial = trace.build_adjudication_trace(_contribution())
+    selected = trace.mark_provider_adjudication(initial, {
+        "status": "provider_reported_selected",
+        "selected_candidate_ids": ["lesson-one"],
+        "rejection_reason_codes": [{
+            "candidate_id": "lesson-two",
+            "reason_code": "redundant_contribution",
+        }],
+        "reasoning_discipline_ids": ["evidence_discernment"],
+        "application_evidence_present": True,
+        "application_evidence_candidate_ids": ["lesson-one"],
+        "application": "provider_asserted_span_present",
+    })
+    assert selected["provider_adjudication_status"] == "provider_reported_selected"
+
+    reused = trace.mark_cache_reuse(selected)
+    assert reused["composition"] == "cached_candidate_reused"
+    assert reused["provider_adjudication_status"] == "not_observed"
+    assert reused["selected_candidate_ids"] == []
+    assert reused["rejection_reason_codes"] == []
+    assert reused["reasoning_discipline_ids"] == []
+    assert reused["application_evidence_present"] is False
+    assert reused["application_evidence_candidate_ids"] == []
+    assert reused["selection"] == "not_observed"
+    assert reused["application"] == "not_observed"
+    assert trace.validate_trace(reused)["valid"]
+
+
+def test_cached_candidate_delivery_preserves_origin_without_claiming_new_adjudication():
+    initial = trace.mark_cache_reuse(trace.build_adjudication_trace(_contribution()))
+    delivered = trace.mark_final_delivery(
+        initial,
+        provider_candidate_delivered=False,
+        final_provenance="llm",
+        cached_candidate_reused=True,
+    )
+    assert delivered["final_delivery"] == "cached_candidate_reused"
+    assert delivered["final_provenance"] == "llm"
+    assert delivered["provider_adjudication_status"] == "not_observed"
+    assert delivered["selection"] == "not_observed"
+    assert delivered["application"] == "not_observed"
+    assert delivered["contribution_retained"] == "not_verified"
+    assert trace.validate_trace(delivered)["valid"]
