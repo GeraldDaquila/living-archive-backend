@@ -1,5 +1,7 @@
 """Security and normalization tests for the public Living Archive fallback."""
-from urllib.error import HTTPError\n\nfrom living_archive_public_source import (
+from urllib.error import HTTPError
+
+from living_archive_public_source import (
     PublicLivingArchiveClient,
     normalize_public_evidence,
 )
