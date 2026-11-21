@@ -3,6 +3,7 @@ from claim_adjudication import adjudicate_answer_claims
 
 DOCS = [{
     "id": "source-1",
+    "visitor_visible": True,
     "title": "Canonical source",
     "url": "https://geralddaquila.com/example/",
     "text": "The archive defines stewardship as responsible care of shared conditions.\n\nIt distinguishes responsibility from control.",
@@ -34,7 +35,7 @@ def test_supported_requires_exact_passage_quote():
     )
     assert result["status"] == "assessed"
     assert result["claims"][0]["outcome"] == "supported"
-    assert result["claims"][0]["attributions"][0]["source_id"] == "source-1"
+    assert result["claims"][0]["attributions"][0]["source_id"] != "source-1"
 
 
 def test_partially_supported_is_retained_with_exact_attribution():
@@ -171,3 +172,31 @@ def test_mixed_claim_results_keep_individual_outcomes():
     result = adjudicate_answer_claims("answer", DOCS, extract_claims=extract, assess_claim=assess)
     assert [item["outcome"] for item in result["claims"]] == ["supported", "unassessed"]
     assert result["status"] == "unassessed"
+
+
+def test_protected_source_is_never_adjudicated_as_public():
+    protected = [{
+        "id": "secret-t4",
+        "title": "Private T4 Codex",
+        "url": "https://geralddaquila.com/private-codex/",
+        "text": "This protected passage must never be quoted to visitors.",
+        "access_class": "t4",
+        "visitor_visible": True,
+    }]
+    result = adjudicate_answer_claims(
+        "answer", protected, extract_claims=_extract,
+        assess_claim=_assess("supported", "This protected passage must never be quoted to visitors."),
+    )
+    assert result["status"] == "no_relevant_public_source"
+    assert result["claims"] == []
+
+
+def test_unmarked_source_is_not_assumed_public():
+    unmarked = [{
+        "id": "unknown",
+        "title": "Unclassified source",
+        "url": "https://geralddaquila.com/unknown/",
+        "text": "A passage with no visitor-visibility authorization.",
+    }]
+    result = adjudicate_answer_claims("answer", unmarked)
+    assert result["status"] == "no_relevant_public_source"
