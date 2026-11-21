@@ -9,6 +9,7 @@ from scripts.capture_gold_star_wp3_pairs import (
     classify_llm_payload,
     verify_runtime_identity,
     wait_for_runtime_identity,
+    select_evaluation_cases,
 )
 
 
@@ -240,7 +241,7 @@ def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
 
 
 
-def test_wait_for_runtime_identity_retries_stale_qa_commit_then_accepts_exact_sha(monkeypatch):
+def test_wait_for_runtime_identity_retries_stale_mirror_commit_then_accepts_exact_sha(monkeypatch):
     import scripts.capture_gold_star_wp3_pairs as capture
 
     calls = []
@@ -259,7 +260,7 @@ def test_wait_for_runtime_identity_retries_stale_qa_commit_then_accepts_exact_sh
     monkeypatch.setattr(capture.time, "sleep", lambda seconds: None)
 
     identity = wait_for_runtime_identity(
-        "https://living-archive-gold-star-v2-qa.onrender.com",
+        "https://living-archive-backend-mirror.onrender.com",
         "candidate-sha",
         timeout_seconds=30,
     )
@@ -268,7 +269,7 @@ def test_wait_for_runtime_identity_retries_stale_qa_commit_then_accepts_exact_sh
     assert identity["deployment_commit_sha"] == "candidate-sha"
 
 
-def test_wait_for_runtime_identity_fails_closed_when_qa_never_reaches_candidate(monkeypatch):
+def test_wait_for_runtime_identity_fails_closed_when_mirror_never_reaches_candidate(monkeypatch):
     import scripts.capture_gold_star_wp3_pairs as capture
 
     monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: {
@@ -279,7 +280,7 @@ def test_wait_for_runtime_identity_fails_closed_when_qa_never_reaches_candidate(
 
     try:
         wait_for_runtime_identity(
-            "https://living-archive-gold-star-v2-qa.onrender.com",
+            "https://living-archive-backend-mirror.onrender.com",
             "candidate-sha",
             timeout_seconds=30,
         )
@@ -313,7 +314,7 @@ def test_live_deterministic_capture_uses_actual_visitor_response_and_no_llm_prov
     assert verified is True
     assert provenance["verification_basis"] == "explicit_no_llm_invocation_at_visitor_boundary"
     assert captured["response"] == body["response"]
-    assert captured["capture"]["path"] == "standalone_qa_POST_api_query_deterministic_visitor_output"
+    assert captured["capture"]["path"] == "secondary_mirror_POST_api_query_deterministic_visitor_output"
     assert captured["route_source"] == "guide_early_deterministic_boundary"
 
 
@@ -377,3 +378,35 @@ def test_heldout_evaluator_accepts_explicit_cause_cannot_be_established_language
     })
     failed = [item for item in checks if not item["passed"]]
     assert failed == []
+
+
+
+def test_case_selector_supports_a_single_heldout_case_without_reordering():
+    cases = [
+        {"case_id": "case-a"},
+        {"case_id": "case-b"},
+        {"case_id": "case-c"},
+    ]
+    assert select_evaluation_cases(cases, ["case-b"]) == [{"case_id": "case-b"}]
+    assert select_evaluation_cases(cases, ["case-c", "case-a"]) == [
+        {"case_id": "case-c"}, {"case_id": "case-a"}
+    ]
+
+
+def test_case_selector_rejects_unknown_and_duplicate_case_ids():
+    cases = [{"case_id": "case-a"}, {"case_id": "case-b"}]
+    for requested in (["missing"], ["case-a", "case-a"]):
+        try:
+            select_evaluation_cases(cases, requested)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Unknown or duplicate case IDs must be rejected.")
+
+
+def test_capture_runner_has_no_standalone_qa_target():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "scripts/capture_gold_star_wp3_pairs.py").read_text(encoding="utf-8")
+    assert "living-archive-gold-star-v2-qa.onrender.com" not in source
+    assert "APPROVED_TARGETS = {MIRROR}" in source
