@@ -90,8 +90,8 @@ def test_canonical_initialization_baseline_is_not_misrepresented_as_independent_
     assert decision_path.is_file()
     decision = decision_path.read_text(encoding="utf-8").casefold()
     assert "waived their separate annotation/review right" in decision
-    assert "canonical initialization baseline" in decision
-    assert "not an independent" in decision
+    assert "initialization baseline" in decision
+    assert "not an independent or blinded external review" in decision
     assert "does not authorize merging pr #1861" in decision
 
 
