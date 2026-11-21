@@ -2289,15 +2289,22 @@ def _recommendation_first_fetch(query_str):
                     item for item in crosslinks
                     if str(item.get("url") or "").rstrip("/").casefold() not in existing_urls
                 ]
+                # A verified live body can strengthen an already-present URL
+                # whose Pinecone snippet was too weak. Admit it independently
+                # of URL deduplication; canonical links remain deduplicated.
+                verified_candidates = [
+                    item for item in crosslinks
+                    if isinstance(item, dict) and item.get("source_body_verified") is True
+                ]
                 verified_additions = _live_site_evidence_admission(
                     query_str,
                     str(data.get("intent") or use_core.classify_intent(query_str)),
-                    additions,
+                    verified_candidates,
                 )
                 if additions:
                     docs = docs + additions
-                    canonical_context = _serialize_context_documents(docs)
-                    data["canonical_link_context"] = canonical_context
+                    data["canonical_link_context"] = _serialize_context_documents(docs)
+                if additions or (evidence_recovery_requested and verified_additions):
                     existing_block_text = str(data.get("context_blocks") or "").strip()
                     if evidence_recovery_requested and profile.get("action") not in {"recommendation", "navigation"}:
                         # Only source bodies that independently pass the same
@@ -2324,12 +2331,10 @@ def _recommendation_first_fetch(query_str):
                                 for item in verified_additions
                                 if isinstance(item.get("evidence_provenance"), dict)
                             ]
+                        elif not any(item.get("source_body_verified") for item in crosslinks):
+                            data["live_site_fallback_status"] = "source_body_unavailable"
                         else:
-                            data["live_site_fallback_status"] = (
-                                "source_body_unavailable"
-                                if not any(item.get("source_body_verified") for item in additions)
-                                else "no_relevant_public_source"
-                            )
+                            data["live_site_fallback_status"] = "no_relevant_public_source"
                     print(
                         "The Guide canonical Meta-Net expansion: "
                         f"added={len(additions)}, evidence_admitted={len(verified_additions)}, "
