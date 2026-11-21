@@ -9,7 +9,7 @@ from pathlib import Path
 
 from deterministic_answer_recovery import is_felt_truth_claim_discernment_question
 
-EXPECTED_CORE_BLOB_SHA = "afe84b009e6cd942171dc79e28dff749cd3f3203"
+EXPECTED_CORE_BLOB_SHA = "8d4e03e6a1d458edecff2d167757a3ee48e9ed8c"
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 if not _CORE_PATH.exists():
