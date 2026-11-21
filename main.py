@@ -8107,6 +8107,7 @@ def _guide_finalize_visitor_payload(payload, query):
             return result
         from gold_star_adjudication_trace import (
             mark_final_delivery as _mark_gold_star_final_delivery,
+            mark_guidance_exposure as _mark_gold_star_guidance_exposure,
             validate_trace as _validate_gold_star_final_delivery_trace,
         )
         final_response = _sanitize_basic_inquiry_response(
@@ -8140,6 +8141,24 @@ def _guide_finalize_visitor_payload(payload, query):
             else "deterministic_recovery" if final_response
             else "unresolved"
         )
+        if str(adjudication_trace.get("guidance_exposure") or "not_observed") == "not_observed":
+            adjudication_trace = _mark_gold_star_guidance_exposure(
+                adjudication_trace,
+                included_in_provider_prompt=False,
+            )
+            _emit_guide_outcome(
+                "gold_star_guidance_exposure",
+                request_id=adjudication_trace.get("request_id"),
+                attempt_ordinal=adjudication_trace.get("attempt_ordinal"),
+                trace_version=adjudication_trace["version"],
+                candidate_count=adjudication_trace["candidate_count"],
+                exposure=adjudication_trace["guidance_exposure"],
+                reason=(
+                    "no_candidates"
+                    if not adjudication_trace["candidate_count"]
+                    else "final_delivery_without_provider_prompt"
+                ),
+            )
         trace = _mark_gold_star_final_delivery(
             adjudication_trace,
             provider_candidate_delivered=delivered,
@@ -8155,6 +8174,7 @@ def _guide_finalize_visitor_payload(payload, query):
             candidate_count=trace["candidate_count"],
             final_delivery=trace["final_delivery"],
             final_provenance=trace["final_provenance"],
+            guidance_exposure=trace.get("guidance_exposure", "not_observed"),
             provider_adjudication_status=trace.get("provider_adjudication_status", "not_observed"),
             selected_candidate_ids=trace.get("selected_candidate_ids", []),
             rejection_reason_codes=trace.get("rejection_reason_codes", []),
