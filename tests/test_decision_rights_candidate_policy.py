@@ -138,3 +138,10 @@ def test_provider_adjudication_validates_four_candidate_dispositions_and_spans()
     assert normalized["application_evidence_present"] is True
     assert len(normalized["application_evidence_candidate_ids"]) == 4
 
+
+def test_shadow_observation_handles_policy_candidate_without_similarity_score():
+    benchmark_id, score = lessons.shadow_observation(
+        "How do decision rights affect institutional responsibility?"
+    )
+    assert benchmark_id == "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15"
+    assert score is None
