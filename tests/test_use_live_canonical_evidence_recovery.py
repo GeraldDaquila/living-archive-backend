@@ -1,6 +1,13 @@
 """Query-level tests for canonical live-site recovery after internal evidence gates."""
 
 import main
+import general_guide_composition
+
+
+def _pass_all_evidence_gates(monkeypatch):
+    monkeypatch.setattr(main.use_core, "_frame_neutral_generation_documents", lambda docs, _q, _i: (docs, False))
+    monkeypatch.setattr(main.use_core, "_evidence_sufficiency_gate", lambda docs, _q, _i: (docs, False))
+    monkeypatch.setattr(main.use_core, "_v208_question_evidence_fit_gate", lambda docs, _q, _i: (docs, False))
 
 
 def _document(title, url, text):
@@ -8,6 +15,8 @@ def _document(title, url, text):
 
 
 def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monkeypatch):
+    monkeypatch.setattr(main._base, "_inquiry_profile", lambda _q: {"action": "answer", "risk": False, "grief": False})
+    monkeypatch.setattr(main, "_PINECONE_RETRIEVAL_BYPASS", False)
     query = "How can institutions learn from errors and revise their structures?"
     profile = main._base._inquiry_profile(query)
     assert profile.get("action") not in {"recommendation", "navigation"}
@@ -59,6 +68,8 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
 
 
 def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fallback(monkeypatch):
+    monkeypatch.setattr(main._base, "_inquiry_profile", lambda _q: {"action": "answer", "risk": False, "grief": False})
+    monkeypatch.setattr(main, "_PINECONE_RETRIEVAL_BYPASS", False)
     query = "How can institutions learn from errors and revise their structures?"
     primary = _document(
         "Institutional Learning",
@@ -92,6 +103,8 @@ def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fal
 
 
 def test_metadata_only_crosslink_cannot_repair_failed_evidence_gate(monkeypatch):
+    monkeypatch.setattr(main._base, "_inquiry_profile", lambda _q: {"action": "answer", "risk": False, "grief": False})
+    monkeypatch.setattr(main, "_PINECONE_RETRIEVAL_BYPASS", False)
     query = "How can institutions learn from errors and revise their structures?"
     weak = _document(
         "Institutional Learning",
