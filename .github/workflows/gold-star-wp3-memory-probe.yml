@@ -1,0 +1,52 @@
+name: Gold Star WP3 memory probe (USE2-Mirror)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gold-star-wp3-memory-probe.yml"
+      - "scripts/capture_gold_star_wp3_pairs.py"
+      - "use_core.py"
+
+permissions:
+  contents: read
+
+jobs:
+  single-case-memory-probe:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[wp3-memory-probe]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Install candidate runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Wait for USE2-Mirror source identity and run one retrieval-path case
+        env:
+          PYTHONPATH: .
+          WP3_CAPTURE_BASE_URL: https://living-archive-backend-mirror.onrender.com
+        run: |
+          python scripts/capture_gold_star_wp3_pairs.py \
+            --base-url "$WP3_CAPTURE_BASE_URL" \
+            --identity-wait-seconds 900 \
+            --case-id heldout-strategic-governance-001 \
+            --skip-provider-probe \
+            --min-llm-captures 0 \
+            --require-http-200 \
+            --output artifacts/gold-star-wp3-memory-probe.json
+      - name: Upload single-case memory probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-wp3-memory-probe-${{ github.run_id }}
+          path: artifacts/gold-star-wp3-memory-probe.json
+          if-no-files-found: warn
+          retention-days: 90

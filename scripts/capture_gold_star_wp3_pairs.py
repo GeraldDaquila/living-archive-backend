@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Capture attributable LLM and deterministic Guide outputs against one deployed source commit.
 
-This is a bounded, manually reviewed calibration capture. It queries one explicitly
-allowlisted isolated target (the secondary mirror or Standalone QA) once per held-out
-question and executes the exact deployed deterministic fallback locally from the
-same source commit. It never deploys or changes services or targets the primary.
+This is a bounded, manually reviewed calibration capture. It queries only the
+USE2-Mirror secondary service through GitHub Actions and executes the exact deployed
+deterministic fallback locally from the same source commit. It never targets the
+primary service or any retired Standalone QA workspace.
 """
 from __future__ import annotations
 
@@ -21,8 +21,7 @@ from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MIRROR = "https://living-archive-backend-mirror.onrender.com"
-STANDALONE_QA = "https://living-archive-gold-star-v2-qa.onrender.com"
-APPROVED_TARGETS = {MIRROR, STANDALONE_QA}
+APPROVED_TARGETS = {MIRROR}
 EVALUATION_SET = REPO_ROOT / "docs/qa/guide_learning_evaluation_set.json"
 PROVIDER_PROBE_QUERY = "Why can a well-designed policy still fail during implementation?"
 
@@ -149,7 +148,7 @@ def capture_live_deterministic_payload(body: dict, runtime: dict, transport: dic
         "capture": {
             **_path_capture_metadata(
                 runtime,
-                path="standalone_qa_POST_api_query_deterministic_visitor_output",
+                path="secondary_mirror_POST_api_query_deterministic_visitor_output",
                 transport=transport,
                 provenance=provenance,
             ),
@@ -260,7 +259,7 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
 
 
 def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
-    # Standalone QA may be cold-starting on its free Render instance. Retry only
+    # The secondary mirror may be cold-starting on its Render instance. Retry only
     # transport failures and transient 5xx responses; never retry or bypass a
     # valid identity response that reports a different deployment commit.
     audit = None
@@ -311,7 +310,7 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
 
 
 def wait_for_runtime_identity(base_url: str, expected_commit: str, timeout_seconds: int = 0) -> dict:
-    """Wait for an explicitly expected QA deployment; never capture against a stale SHA."""
+    """Wait for the explicitly expected secondary-mirror deployment; never capture against a stale SHA."""
     if timeout_seconds < 0:
         raise ValueError("timeout_seconds must be zero or greater.")
     deadline = time.monotonic() + timeout_seconds
@@ -326,10 +325,10 @@ def wait_for_runtime_identity(base_url: str, expected_commit: str, timeout_secon
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise RuntimeError(
-                    f"Timed out waiting for Standalone QA commit {expected_commit}: {last_error}"
+                    f"Timed out waiting for USE2-Mirror commit {expected_commit}: {last_error}"
                 ) from last_error
             # A valid but old SHA means Render has not finished the explicitly
-            # triggered QA deployment. Keep waiting only within this bounded
+            # triggered mirror deployment. Keep waiting only within this bounded
             # window; never issue visitor queries while it is stale.
             time.sleep(min(10, remaining))
 
@@ -349,6 +348,19 @@ def _path_capture_metadata(runtime: dict, *, path: str, transport: dict | None =
     }
 
 
+def select_evaluation_cases(cases: list[dict], requested_case_ids: list[str] | None = None) -> list[dict]:
+    """Select unique held-out case IDs while preserving the requested order."""
+    if not requested_case_ids:
+        return list(cases)
+    if len(set(requested_case_ids)) != len(requested_case_ids):
+        raise ValueError("Duplicate --case-id values are not allowed.")
+    by_id = {str(case.get("case_id") or ""): case for case in cases}
+    missing = [case_id for case_id in requested_case_ids if case_id not in by_id]
+    if missing:
+        raise ValueError("Unknown held-out case ID(s): " + ", ".join(missing))
+    return [by_id[case_id] for case_id in requested_case_ids]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default=os.getenv("WP3_CAPTURE_BASE_URL", MIRROR))
@@ -358,7 +370,7 @@ def main() -> int:
         "--identity-wait-seconds",
         type=int,
         default=0,
-        help="Bounded wait for Standalone QA to finish deploying this exact checked-out commit.",
+        help="Bounded wait for USE2-Mirror to finish deploying this exact checked-out commit.",
     )
     parser.add_argument(
         "--min-llm-captures",
@@ -366,6 +378,9 @@ def main() -> int:
         default=0,
         help="Fail after saving the report if fewer attributable LLM outputs are captured.",
     )
+    parser.add_argument("--case-id", action="append", dest="case_ids", help="Capture only this held-out case ID; may be repeated.")
+    parser.add_argument("--skip-provider-probe", action="store_true", help="Skip the separate provider probe for a bounded single-case diagnostic.")
+    parser.add_argument("--require-http-200", action="store_true", help="Fail after saving the report if any selected live case did not return HTTP 200.")
     args = parser.parse_args()
     if args.min_llm_captures < 0:
         parser.error("--min-llm-captures must be zero or greater.")
@@ -375,10 +390,9 @@ def main() -> int:
     base_url = args.base_url.rstrip("/")
     if base_url not in APPROVED_TARGETS:
         parser.error(
-            "WP3 capture is restricted to the allowlisted secondary mirror or Standalone QA; "
-            "primary and arbitrary hosts are never queried."
+            "WP3 capture is restricted to USE2-Mirror; the primary and arbitrary hosts are never queried."
         )
-    target_kind = "standalone_qa" if base_url == STANDALONE_QA else "secondary_mirror"
+    target_kind = "secondary_mirror"
 
     baseline_root = Path.cwd().resolve()
     sys.path.insert(0, str(REPO_ROOT))
@@ -399,8 +413,12 @@ def main() -> int:
 
     suite = json.loads(EVALUATION_SET.read_text(encoding="utf-8"))
     rubric = suite["human_review_rubric"]
+    try:
+        selected_cases = select_evaluation_cases(suite["cases"], args.case_ids)
+    except ValueError as exc:
+        parser.error(str(exc))
     records = []
-    for index, case in enumerate(suite["cases"]):
+    for index, case in enumerate(selected_cases):
         if index and args.delay_seconds > 0:
             time.sleep(args.delay_seconds)
         query = case["query"]
@@ -506,60 +524,79 @@ def main() -> int:
             },
         })
 
-    # The seven held-out cases intentionally cover deterministic task routes.
-    # Exercise one separate ordinary question so provider attribution is tested
-    # rather than inferred from cases that correctly bypass the LLM.
-    provider_probe_transport = _http_json(
-        base_url + "/api/query",
-        payload={"query": PROVIDER_PROBE_QUERY},
-    )
-    provider_probe_body = provider_probe_transport.get("body") or {}
-    provider_probe_llm_verified, provider_probe_provenance = classify_llm_payload(provider_probe_body)
-    provider_probe_llm = None
-    if (
-        provider_probe_llm_verified
-        and provider_probe_transport.get("status") == 200
-        and provider_probe_body.get("ok") is True
-        and isinstance(provider_probe_body.get("response"), str)
-        and provider_probe_body.get("response").strip()
-    ):
-        provider_probe_llm = {
-            "ok": True,
-            "response": provider_probe_body["response"],
-            "recommendation": provider_probe_body.get("recommendation"),
-            "response_provenance": {
-                "class": "llm",
-                "provider": provider_probe_provenance.get("provider"),
-                "model": provider_probe_provenance.get("model"),
-                "verification_basis": provider_probe_provenance["verification_basis"],
-            },
-            "capture": _path_capture_metadata(
-                runtime,
-                path=f"{target_kind}_POST_api_query_provider_probe",
-                transport=provider_probe_transport,
-                provenance=provider_probe_provenance,
-            ),
+    if args.skip_provider_probe:
+        provider_probe = {
+            "query": None,
+            "transport_status": None,
+            "transport_error": None,
+            "request_id": None,
+            "response_provenance": None,
+            "provider_provenance": {"verification_basis": "skipped_by_request"},
+            "attributable_llm": False,
+            "llm": None,
+            "unverified_response": None,
+            "route_source": None,
+            "processing": None,
+            "human_review": None,
+            "skipped": True,
+            "skip_reason": "explicit_single_case_diagnostic",
         }
-    provider_probe = {
-        "query": PROVIDER_PROBE_QUERY,
-        "transport_status": provider_probe_transport.get("status"),
-        "transport_error": provider_probe_transport.get("error"),
-        "request_id": provider_probe_body.get("request_id"),
-        "response_provenance": provider_probe_body.get("response_provenance"),
-        "provider_provenance": provider_probe_provenance,
-        "attributable_llm": provider_probe_llm is not None,
-        "llm": provider_probe_llm,
-        "unverified_response": (
-            provider_probe_body.get("response") if provider_probe_llm is None else None
-        ),
-        "route_source": provider_probe_body.get("route_source") or provider_probe_body.get("origin_route_source"),
-        "processing": provider_probe_body.get("processing"),
-        "human_review": build_human_review_template(rubric) if provider_probe_llm is not None else None,
-    }
+    else:
+        # The held-out suite intentionally includes deterministic task routes.
+        # Exercise one separate ordinary question so provider attribution is tested
+        # rather than inferred from cases that correctly bypass the LLM.
+        provider_probe_transport = _http_json(
+            base_url + "/api/query",
+            payload={"query": PROVIDER_PROBE_QUERY},
+        )
+        provider_probe_body = provider_probe_transport.get("body") or {}
+        provider_probe_llm_verified, provider_probe_provenance = classify_llm_payload(provider_probe_body)
+        provider_probe_llm = None
+        if (
+            provider_probe_llm_verified
+            and provider_probe_transport.get("status") == 200
+            and provider_probe_body.get("ok") is True
+            and isinstance(provider_probe_body.get("response"), str)
+            and provider_probe_body.get("response").strip()
+        ):
+            provider_probe_llm = {
+                "ok": True,
+                "response": provider_probe_body["response"],
+                "recommendation": provider_probe_body.get("recommendation"),
+                "response_provenance": {
+                    "class": "llm",
+                    "provider": provider_probe_provenance.get("provider"),
+                    "model": provider_probe_provenance.get("model"),
+                    "verification_basis": provider_probe_provenance["verification_basis"],
+                },
+                "capture": _path_capture_metadata(
+                    runtime,
+                    path=f"{target_kind}_POST_api_query_provider_probe",
+                    transport=provider_probe_transport,
+                    provenance=provider_probe_provenance,
+                ),
+            }
+        provider_probe = {
+            "query": PROVIDER_PROBE_QUERY,
+            "transport_status": provider_probe_transport.get("status"),
+            "transport_error": provider_probe_transport.get("error"),
+            "request_id": provider_probe_body.get("request_id"),
+            "response_provenance": provider_probe_body.get("response_provenance"),
+            "provider_provenance": provider_probe_provenance,
+            "attributable_llm": provider_probe_llm is not None,
+            "llm": provider_probe_llm,
+            "unverified_response": (
+                provider_probe_body.get("response") if provider_probe_llm is None else None
+            ),
+            "route_source": provider_probe_body.get("route_source") or provider_probe_body.get("origin_route_source"),
+            "processing": provider_probe_body.get("processing"),
+            "human_review": build_human_review_template(rubric) if provider_probe_llm is not None else None,
+            "skipped": False,
+        }
 
     fixture = {
         "schema_version": "1.0",
-        "dataset_id": "gold-star-heldout-seven-paired-fixture-capture",
+        "dataset_id": "gold-star-heldout-paired-fixture-capture",
         "purpose": "Actual held-out LLM and deterministic fallback outputs captured against one verified deployed source commit.",
         "source_capture_policy": "Only attributable runtime LLM outputs and actual deterministic function executions are populated. Missing or unverified LLM paths remain null. No authored or simulated response is accepted as a capture.",
         "runtime_identity": runtime,
@@ -579,11 +616,10 @@ def main() -> int:
     paired_report = evaluate_dataset(fixture)
     report = {
         "report_schema_version": "1.0",
-        "evaluation_mode": (
-            "verified_standalone_qa_llm_plus_same_commit_local_deterministic_capture"
-            if target_kind == "standalone_qa"
-            else "verified_secondary_mirror_llm_plus_same_commit_local_deterministic_capture"
-        ),
+        "evaluation_mode": "verified_secondary_mirror_llm_plus_same_commit_local_deterministic_capture",
+        "capture_scope": "single_case" if len(records) == 1 else "selected_case_set",
+        "selected_case_ids": [row["case_id"] for row in records],
+        "provider_probe_skipped": args.skip_provider_probe,
         "semantic_certification": False,
         "runtime_identity": runtime,
         "source_code_commit": baseline_commit,
@@ -593,6 +629,8 @@ def main() -> int:
             "provider_probe_llm_attributed": provider_probe["attributable_llm"],
             "llm_captured_total": sum(row["llm"] is not None for row in records) + int(provider_probe["attributable_llm"]),
             "deterministic_captured": sum(row["deterministic"] is not None for row in records),
+            "http_200_cases": sum(row["llm_transport"]["status"] == 200 for row in records),
+            "http_failed_cases": sum(row["llm_transport"]["status"] != 200 for row in records),
             "paired_cases": paired_report["paired_cases"],
             "status_parity": paired_report["status_parity"],
             "status_disagreement": paired_report["status_disagreement"],
@@ -607,6 +645,13 @@ def main() -> int:
     print(json.dumps(report, ensure_ascii=False, separators=(",", ":")))
     print("WP3_PAIRED_CAPTURE_JSON_END")
     print(json.dumps(report["paired_summary"], indent=2))
+    if args.require_http_200 and report["paired_summary"]["http_failed_cases"]:
+        print(
+            "One or more selected live cases did not return HTTP 200: "
+            f"{report['paired_summary']['http_failed_cases']} failed.",
+            file=sys.stderr,
+        )
+        return 3
     if report["paired_summary"]["llm_captured_total"] < args.min_llm_captures:
         print(
             "Insufficient attributable LLM captures across held-out cases and provider probe: "

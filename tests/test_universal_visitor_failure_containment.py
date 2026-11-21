@@ -161,3 +161,39 @@ def test_transformation_rebranding_selector_does_not_capture_personal_or_brand_r
     assert main._select_verified_doorway_conceptual_family(
         "How should I rebrand a small business?"
     ) != "transformation_rebranding"
+
+
+
+def test_protected_core_blob_hash_tracks_the_reviewed_use_core_source():
+    import hashlib
+    from pathlib import Path
+
+    import guide_runtime
+
+    core_bytes = (Path(__file__).resolve().parents[1] / "use_core.py").read_bytes()
+    actual_blob_sha = hashlib.sha1(
+        f"blob {len(core_bytes)}\0".encode("utf-8") + core_bytes
+    ).hexdigest()
+    assert guide_runtime.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
+
+
+
+def test_main_and_guide_runtime_protected_core_hashes_match_current_use_core_blob():
+    import hashlib
+    from pathlib import Path
+
+    import guide_runtime
+    import main
+
+    core_bytes = (Path(__file__).resolve().parents[1] / "use_core.py").read_bytes()
+    actual_blob_sha = hashlib.sha1(
+        f"blob {len(core_bytes)}\0".encode("utf-8") + core_bytes
+    ).hexdigest()
+    assert main.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
+    assert guide_runtime.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
+    for qa_path in (
+        "QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py",
+        "QA/V487_94_JOURNEY_CONTRIBUTION_QA.py",
+    ):
+        qa_source = (Path(__file__).resolve().parents[1] / qa_path).read_text(encoding="utf-8")
+        assert f'"use_core.py": "{actual_blob_sha}"' in qa_source

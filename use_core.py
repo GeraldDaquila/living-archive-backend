@@ -672,7 +672,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "ee109e20e321049137eefa7a4a191471c8bd6e00e6959afd59746614bcdea729"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "1f86f28f518cb354e03f1186ee6cc77045b61d35ac647ca51659a7e0b58aa0c8"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -876,11 +876,30 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
+def _parse_onnx_cpu_mem_arena_enabled(value: str | None) -> bool:
+    """Parse the optional ONNX CPU memory-arena setting; default preserves current behavior."""
+    if value is None:
+        return True
+    normalized = value.strip().casefold()
+    if normalized in {"0", "false", "no", "off", "disabled"}:
+        return False
+    if normalized in {"1", "true", "yes", "on", "enabled"}:
+        return True
+    return True
 
-# v292 retains provider/runtime observability from v288. This reads the
-# already-initialized FastEmbed/ONNX Runtime objects without changing model
-# configuration, provider selection, thread settings, or request behavior.
+
+EMBEDDING_ENABLE_CPU_MEM_ARENA = _parse_onnx_cpu_mem_arena_enabled(
+    os.getenv("USE_ONNX_ENABLE_CPU_MEM_ARENA")
+)
+embedding_model = TextEmbedding(
+    model_name="BAAI/bge-small-en-v1.5",
+    threads=1,
+    enable_cpu_mem_arena=EMBEDDING_ENABLE_CPU_MEM_ARENA,
+)
+
+# v292 retains provider/runtime observability from v288. The optional
+# USE_ONNX_ENABLE_CPU_MEM_ARENA setting controls only ONNX Runtime allocator
+# retention; the model, 384-dimensional output, provider, and thread count stay fixed.
 try:
     _embedding_runtime_model = getattr(embedding_model, "model", None)
     _embedding_runtime_session = getattr(_embedding_runtime_model, "model", None)
@@ -915,6 +934,7 @@ try:
         f"session_providers={_embedding_runtime_session_providers}, "
         f"provider_options={_embedding_runtime_provider_options}, "
         f"configured_threads={_embedding_runtime_threads}, "
+        f"cpu_mem_arena_enabled={EMBEDDING_ENABLE_CPU_MEM_ARENA}, "
         f"requested_providers={_embedding_runtime_requested_providers}, "
         f"cuda_mode={_embedding_runtime_cuda}, "
         f"cpu_count={_embedding_runtime_cpu_count}, "
