@@ -267,6 +267,7 @@ OPERATION_TOKEN_FLOORS = {
     "stewardship_pathway": 900,
     "living_archive_navigator": 900,
     "general_guide_composition": 900,
+    "claim_adjudication": 1500,
     "fsd_report_composition": 1100,
 }
 
@@ -289,6 +290,8 @@ OPERATION_REQUIREMENTS = {
     # the visitor directly, but does not depend on any provider-specific
     # reasoning feature. Provider selection remains entirely bank-owned.
     "general_guide_composition": frozenset({"json_object", "long_context", "composition"}),
+    # Claim adjudication is a single structured reasoning call, separate from prose composition.
+    "claim_adjudication": frozenset({"json_object", "long_context", "reasoning"}),
     # FSD reports synthesize two independently retrieved quantum evidence sets.
     # Keep this lane distinct from visitor Guide composition and require reasoning.
     "fsd_report_composition": frozenset({"json_object", "long_context", "composition", "reasoning"}),
@@ -3006,10 +3009,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
     bounded_guide_operation = operation == "general_guide_composition"
+    bounded_claim_operation = operation == "claim_adjudication"
     bounded_fsd_operation = operation == "fsd_report_composition"
     if operation in hrn_operations:
         operation_attempt_cap = _hrn_attempt_cap()
-    elif bounded_guide_operation:
+    elif bounded_guide_operation or bounded_claim_operation:
         operation_attempt_cap = 1
     elif bounded_fsd_operation:
         operation_attempt_cap = 1
@@ -3025,7 +3029,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # provider inside the same request.
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
-    if operation in {"hrn_perception", "hrn_relational", "general_guide_composition", "fsd_report_composition"} and len(pool) > base_max_attempts:
+    if operation in {"hrn_perception", "hrn_relational", "general_guide_composition", "claim_adjudication", "fsd_report_composition"} and len(pool) > base_max_attempts:
         # Specialist and Guide fallbacks are admitted only inside their own bounded
         # fast-failure windows. Never let an exhausted free-tier bank turn one query
         # into a serial walk across every configured model.
@@ -3047,7 +3051,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             else HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES
             if operation == "hrn_relational"
             else 1
-            if operation == "fsd_report_composition"
+            if operation in {"fsd_report_composition", "claim_adjudication"}
             else GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES
         )
         fallback_items = list(pool[base_max_attempts:])
@@ -3168,6 +3172,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_perception"
                 else HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
                 if operation == "hrn_relational"
+                else 4.5
+                if operation == "claim_adjudication"
                 else 24.0
                 if operation == "fsd_report_composition"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
