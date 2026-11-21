@@ -148,7 +148,7 @@ def capture_live_deterministic_payload(body: dict, runtime: dict, transport: dic
         "capture": {
             **_path_capture_metadata(
                 runtime,
-                path="standalone_qa_POST_api_query_deterministic_visitor_output",
+                path="secondary_mirror_POST_api_query_deterministic_visitor_output",
                 transport=transport,
                 provenance=provenance,
             ),
@@ -389,8 +389,7 @@ def main() -> int:
     base_url = args.base_url.rstrip("/")
     if base_url not in APPROVED_TARGETS:
         parser.error(
-            "WP3 capture is restricted to USE2-Mirror; the primary, retired Standalone QA, "
-            "and arbitrary hosts are never queried."
+            "WP3 capture is restricted to USE2-Mirror; the primary and arbitrary hosts are never queried."
         )
     target_kind = "secondary_mirror"
 
@@ -617,6 +616,7 @@ def main() -> int:
     report = {
         "report_schema_version": "1.0",
         "evaluation_mode": "verified_secondary_mirror_llm_plus_same_commit_local_deterministic_capture",
+        "capture_scope": "single_case" if len(records) == 1 else "selected_case_set",
         "selected_case_ids": [row["case_id"] for row in records],
         "provider_probe_skipped": args.skip_provider_probe,
         "semantic_certification": False,
