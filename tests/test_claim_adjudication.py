@@ -116,9 +116,10 @@ def test_assessor_exception_retains_unassessed():
     assert result["claims"][0]["outcome"] == "unassessed"
 
 
-def test_no_retrieved_passage_is_no_relevant_public_source():
+def test_no_retrieved_passage_without_provider_remains_unassessed():
     result = adjudicate_answer_claims("answer", [])
-    assert result["status"] == "no_relevant_public_source"
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "no_public_evidence_and_adjudicator_unavailable"
 
 
 def test_non_evidentiary_outcomes_cannot_smuggle_attributions():
@@ -192,7 +193,8 @@ def test_protected_source_is_never_adjudicated_as_public():
         "answer", protected, extract_claims=_extract,
         assess_claim=_assess("supported", "This protected passage must never be quoted to visitors."),
     )
-    assert result["status"] == "no_relevant_public_source"
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "no_public_evidence_and_adjudicator_unavailable"
     assert result["claims"] == []
 
 
@@ -204,7 +206,8 @@ def test_unmarked_source_is_not_assumed_public():
         "text": "A passage with no visitor-visibility authorization.",
     }]
     result = adjudicate_answer_claims("answer", unmarked)
-    assert result["status"] == "no_relevant_public_source"
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "no_public_evidence_and_adjudicator_unavailable"
 
 
 def test_combined_provider_callback_uses_one_assessment_envelope():
