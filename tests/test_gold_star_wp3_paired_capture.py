@@ -287,7 +287,7 @@ def test_wait_for_runtime_identity_fails_closed_when_mirror_never_reaches_candid
     except RuntimeError as exc:
         assert "Source mismatch" in str(exc) or "Timed out waiting" in str(exc)
     else:
-        raise AssertionError("Capture must not proceed while QA serves an older commit.")
+        raise AssertionError("Capture must not proceed while USE2-Mirror serves an older commit.")
 
 
 
