@@ -1,3 +1,5 @@
+import asyncio
+
 import gold_star_adjudication_trace as trace
 from gold_star_adjudication_trace import (
     mark_composition_result,
@@ -214,9 +216,6 @@ def test_cached_candidate_delivery_preserves_origin_without_claiming_new_adjudic
 
 
 # Request-level correlation and trace-propagation regressions.
-import asyncio
-
-import gold_star_adjudication_trace as trace
 
 
 def test_request_token_and_attempt_ordinal_are_private_trace_metadata():
