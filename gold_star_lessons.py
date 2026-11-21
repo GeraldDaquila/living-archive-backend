@@ -608,11 +608,17 @@ def shadow_observation(
         _TELEMETRY_LOG.info(message)
         return None, None
     benchmark_id = str(selected["benchmark_id"])
-    score = float(selected["score"])
-    match_kind = "exact" if bool(selected.get("exact")) else "cross_question"
+    score_value = selected.get("score")
+    score = float(score_value) if isinstance(score_value, (int, float)) else None
+    match_kind = (
+        "governed_policy"
+        if selected.get("match_basis") == "governed_decision_rights_policy"
+        else ("exact" if bool(selected.get("exact")) else "cross_question")
+    )
+    score_field = f" score={score:.3f}" if score is not None else " score=not_scored"
     message = (
-        f"gold_star_shadow match=matched benchmark_id={benchmark_id} "
-        f"score={score:.3f} kind={match_kind}" + correlation
+        f"gold_star_shadow match=matched benchmark_id={benchmark_id}"
+        + score_field + f" kind={match_kind}" + correlation
     )
     print(message, flush=True)
     _TELEMETRY_LOG.info(message)
