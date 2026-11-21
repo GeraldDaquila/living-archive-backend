@@ -75,7 +75,7 @@ def current_attempt_trace():
 
 
 def _store_current_trace(value):
-    if isinstance(value, Mapping) and "request_id" in value:
+    if isinstance(value, Mapping):
         _CURRENT_ATTEMPT_TRACE.set(dict(value))
     return value
 
