@@ -37,6 +37,59 @@ def post(base, question):
     except (UnicodeDecodeError,json.JSONDecodeError): body=None
     return {"status":status,"error":None,"body":body,"raw_body":raw.decode("utf-8",errors="replace")[:12000] if body is None else None}
 
+def get_json(url, timeout=90):
+    request = Request(url, headers={"Accept": "application/json"}, method="GET")
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            raw, status = response.read(), response.status
+    except HTTPError as exc:
+        raw, status = exc.read(), exc.code
+    except (URLError, TimeoutError, OSError) as exc:
+        return {"status": None, "error": f"{type(exc).__name__}: {exc}", "body": None}
+    try:
+        body = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        body = None
+    return {"status": status, "error": None, "body": body}
+
+
+def verify_runtime_identity(base, expected_commit, timeout_seconds=300):
+    """Wait for the exact evaluated source commit before issuing synthetic visitor requests."""
+    if not expected_commit:
+        raise RuntimeError("Cannot verify target identity without a checked-out Git commit.")
+    deadline = time.monotonic() + max(0, int(timeout_seconds))
+    last = None
+    while True:
+        last = get_json(base.rstrip("/") + "/api/integration-audit", timeout=90)
+        body = last.get("body") if isinstance(last, dict) else None
+        status = last.get("status") if isinstance(last, dict) else None
+        if status == 200 and isinstance(body, dict):
+            deployed_commit = str(body.get("deployment_commit_sha") or "").strip()
+            if deployed_commit == expected_commit:
+                return {
+                    "deployment_commit_sha": deployed_commit,
+                    "version": body.get("version"),
+                    "fingerprint": body.get("fingerprint"),
+                    "source_sha256": body.get("source_sha256"),
+                    "audit_contract": body.get("audit_contract"),
+                    "integration_audit_ok": body.get("ok") is True,
+                    "integration_audit_warnings": {
+                        "available_capabilities_missing_adapters": body.get("available_capabilities_missing_adapters") or [],
+                        "adapters_without_capabilities": body.get("adapters_without_capabilities") or [],
+                    },
+                    "verified_at": datetime.now(timezone.utc).isoformat(),
+                }
+            last_error = f"target commit {deployed_commit or 'missing'} does not match expected {expected_commit}"
+        elif status is None or (isinstance(status, int) and status >= 500):
+            last_error = f"transient integration audit failure: status={status} error={last.get('error')}"
+        else:
+            raise RuntimeError(f"Integration audit rejected: status={status} error={last.get('error')}")
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError(f"Timed out waiting for primary runtime identity: {last_error}")
+        time.sleep(min(10, remaining))
+
+
 def check(name, ok, detail):
     return {"name":name,"passed":bool(ok),"detail":detail}
 
@@ -235,6 +288,7 @@ def main():
     parser.add_argument("--output",default="artifacts/guide-live-evaluation-report.json")
     parser.add_argument("--delay-seconds",type=float,default=.25)
     parser.add_argument("--max-gold-standards",type=int,default=6)
+    parser.add_argument("--identity-wait-seconds",type=int,default=300)
     args=parser.parse_args()
     base=args.base_url.rstrip("/")
     if base not in ALLOWED: parser.error("base URL must be the primary or mirror Render service")
@@ -243,8 +297,10 @@ def main():
     registry,suite=json.loads(rb),json.loads(sb)
     eligible_records=[r for r in registry.get("records",[]) if r.get("subsystem")=="general-purpose-guide" and r.get("status") in {"USER_APPROVED_GOLD_STANDARD","FROZEN_REFERENCE_ONLY"} and r.get("query") and r.get("expected_response")]
     records=select_gold_standard_sample(eligible_records,args.max_gold_standards)
+    expected_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None
+    runtime_identity=verify_runtime_identity(base,expected_commit,args.identity_wait_seconds)
     workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in suite.get("cases",[])]
-    report={"report_schema_version":"1.1.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None,"runtime_identity":None,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(suite.get("cases",[])),"results":[]}
+    report={"report_schema_version":"1.1.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":expected_commit,"runtime_identity":runtime_identity,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(suite.get("cases",[])),"results":[]}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
         question=item["query"]
@@ -254,7 +310,6 @@ def main():
         body=transport.get("body")
         body=body if isinstance(body,dict) else None
         checks=evaluate_gold(item,transport) if split=="gold_standard" else evaluate_held(item,transport)
-        if body and report["runtime_identity"] is None: report["runtime_identity"]={"version":body.get("version"),"fingerprint":body.get("fingerprint"),"source_sha256":body.get("source_sha256")}
         report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
     provider_probe_started_at=datetime.now(timezone.utc).isoformat()
     provider_probe_transport=post(base,PROVIDER_PROBE_QUERY)
