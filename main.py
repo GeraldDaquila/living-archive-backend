@@ -14686,9 +14686,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         _response_provenance = "unresolved"
         _quality_adjusted_llm_eligible = True
 
+    _gold_star_request_context = _gold_star_ledger.current_request_context()
+    _gold_star_request_correlation_id = str(
+        _gold_star_request_context.get("request_id") or ""
+    ).strip()
     print(
         "USE RESPONSE METRIC: "
-        f"request_id={request_id}, provenance={_response_provenance}, "
+        f"request_id={request_id}, "
+        f"request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}, "
+        f"provenance={_response_provenance}, "
         f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
         f"llm_invoked={str(_llm_invoked).lower()}, "
         f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
