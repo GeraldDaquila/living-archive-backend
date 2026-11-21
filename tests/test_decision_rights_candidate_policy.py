@@ -145,3 +145,11 @@ def test_shadow_observation_handles_policy_candidate_without_similarity_score():
     )
     assert benchmark_id == "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15"
     assert score is None
+
+def test_combined_conditional_triggers_fail_closed_instead_of_truncating():
+    query = (
+        "The board delegates a decision to a committee, but informal norms "
+        "override the written rules. Who remains accountable?"
+    )
+    assert lessons.select_lesson_candidates(query, limit=4) == []
+    assert lessons.active_quality_contribution(query) is None
