@@ -55,10 +55,13 @@ def test_delivery_trace_rejects_content_and_identity_fields():
 
 def _function(source, name):
     module = ast.parse(source)
-    return next(
+    matches = [
         node for node in module.body
         if isinstance(node, ast.FunctionDef) and node.name == name
-    )
+    ]
+    assert matches, f"function not found: {name}"
+    # main.py intentionally rebinds the finalizer with a shared outer wrapper.
+    return matches[-1]
 
 
 def test_shared_final_boundary_consumes_private_trace_before_early_returns():
