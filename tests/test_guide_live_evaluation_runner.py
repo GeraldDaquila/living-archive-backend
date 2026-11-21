@@ -1,3 +1,5 @@
+import scripts.guide_live_evaluation as live_evaluation
+
 from scripts.guide_live_evaluation import (
     build_human_review_template,
     classify_llm_payload,
@@ -204,4 +206,52 @@ def test_claim_adjudication_report_is_summary_only():
         "outcome_counts": {"supported": 1, "no_relevant_public_source": 1},
     }
     assert "claims" not in summary
+
+def test_live_evaluation_waits_for_exact_target_commit_before_capture(monkeypatch):
+    monkeypatch.setattr(
+        live_evaluation,
+        "get_json",
+        lambda url, timeout=90: {
+            "status": 200,
+            "error": None,
+            "body": {
+                "deployment_commit_sha": "expected-sha",
+                "version": "v489.315",
+                "fingerprint": "runtime-fingerprint",
+                "source_sha256": "source-hash",
+                "ok": False,
+                "available_capabilities_missing_adapters": ["advisory"],
+            },
+        },
+    )
+    identity = live_evaluation.verify_runtime_identity(
+        "https://living-archive-backend.onrender.com",
+        "expected-sha",
+        timeout_seconds=0,
+    )
+    assert identity["deployment_commit_sha"] == "expected-sha"
+    assert identity["integration_audit_ok"] is False
+    assert identity["integration_audit_warnings"]["available_capabilities_missing_adapters"] == ["advisory"]
+
+
+def test_live_evaluation_refuses_mismatched_target_commit(monkeypatch):
+    monkeypatch.setattr(
+        live_evaluation,
+        "get_json",
+        lambda url, timeout=90: {
+            "status": 200,
+            "error": None,
+            "body": {"deployment_commit_sha": "old-sha"},
+        },
+    )
+    try:
+        live_evaluation.verify_runtime_identity(
+            "https://living-archive-backend.onrender.com",
+            "expected-sha",
+            timeout_seconds=0,
+        )
+    except RuntimeError as exc:
+        assert "does not match expected" in str(exc)
+    else:
+        raise AssertionError("A mismatched deployment must never receive synthetic visitor queries.")
 
