@@ -24,9 +24,6 @@ def build_provider_adjudicator(use_core: Any, deadline_monotonic: float):
             for item in list(passages or [])[:16]
             if isinstance(item, Mapping)
         ]
-        if not bounded_passages:
-            return None
-
         request = {
             "answer": str(answer or "")[:6000],
             "passages": bounded_passages,
