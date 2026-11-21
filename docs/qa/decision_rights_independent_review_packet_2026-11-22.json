@@ -24,7 +24,7 @@
     "missing_reviews": 0,
     "orphan_reviews": 0
   },
-  "blinding": "Candidate labels are stable anonymized labels assigned by sorting benchmark IDs lexicographically. This packet intentionally omits benchmark IDs, steward-selected roles, production selector outputs, semantic scores, and prior reviewer labels. Do not disclose the mapping before both independent first-pass submissions are locked.",
+  "blinding": "Candidate labels are stable pseudonymous labels assigned by sorting benchmark IDs lexicographically. The packet omits benchmark IDs, steward-selected roles, current selector output, semantic scores, and other reviewers' labels. Because approved questions and discipline text are retained for meaningful review, a reviewer familiar with the registry may infer candidate identities; this is label-blinding, not guaranteed identity-blinding. Reviewers must not consult the source registry or attempt identity resolution before locking first-pass annotations.",
   "reviewer_instructions": "For every case and every candidate, record CORE, CONDITIONAL, RELATED_NOT_NEEDED, NOT_RELEVANT, or INSUFFICIENT_CONTEXT. For CONDITIONAL, name the observable trigger and whether it is present. Also record answerability/abstention, minimum adequate discipline set, omitted relevant candidates, cross-domain risks, and concise rationale. Do not treat shared vocabulary or general usefulness as relevance. Preserve independent first-pass submissions before discussion.",
   "dispositions": [
     "CORE",
