@@ -54,6 +54,7 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
     assert result["live_source_evidence_provenance"][0]["wordpress_post_id"] == "21767"
     assert result["live_source_evidence_provenance"][0]["source_endpoint"] == "living-archive/v1/canonical-evidence"
     assert result["evidence_sufficiency_unavailable"] is False
+    assert result["canonical_public_source_recovery_attempted"] is True
 
 
 def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fallback(monkeypatch):
@@ -86,6 +87,7 @@ def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fal
 
     assert "Institutional Learning" in result["canonical_link_context"]
     assert result["context_blocks"] == "Internal canonical evidence is sufficient."
+    assert not result.get("canonical_public_source_recovery_attempted")
 
 
 def test_metadata_only_crosslink_cannot_repair_failed_evidence_gate(monkeypatch):
@@ -116,5 +118,6 @@ def test_metadata_only_crosslink_cannot_repair_failed_evidence_gate(monkeypatch)
     monkeypatch.setattr(main.archive_crosslink, "expand_context", lambda *_args, **_kwargs: [metadata_only])
     result = main._recommendation_first_fetch(query)
     assert result["evidence_sufficiency_unavailable"] is True
+    assert result["canonical_public_source_recovery_attempted"] is True
     assert result["context_blocks"] == ""
     assert "Institutional Correctability" in result["canonical_link_context"]
