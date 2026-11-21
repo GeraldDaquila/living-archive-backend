@@ -1,0 +1,31 @@
+name: Decision-rights candidate benchmark integrity
+
+on:
+  pull_request:
+    paths:
+      - "docs/qa/decision_rights_candidate_set_benchmark.json"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - "tests/test_decision_rights_candidate_set_benchmark.py"
+      - ".github/workflows/decision-rights-candidate-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark-integrity:
+    name: Validate governed candidate benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Validate benchmark governance and source alignment
+        run: python -m pytest -q tests/test_decision_rights_candidate_set_benchmark.py
