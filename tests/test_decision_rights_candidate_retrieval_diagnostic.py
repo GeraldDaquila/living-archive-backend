@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import gold_star_lessons as lessons
+from gold_star_semantic_retrieval import rank_semantic_lessons
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK = json.loads(
@@ -20,6 +21,14 @@ def test_real_bge_candidate_set_baseline():
     for case in BENCHMARK["cases"]:
         selected = lessons.select_lesson_candidates(case["query"], limit=3)
         predicted = [item["benchmark_id"] for item in selected]
+        # Counterfactual semantic ranking for every query, including cases where
+        # the production selector exits early on a lexical match. This measures
+        # whether the lexical short-circuit suppresses potentially useful BGE
+        # candidates; it does not alter selector behavior or apply thresholds.
+        semantic_ranked = rank_semantic_lessons(case["query"], lessons._LESSONS)
+        semantic_top = sorted(
+            semantic_ranked.items(), key=lambda pair: (-pair[1], pair[0])
+        )[:3]
         expected = (
             case["expected_core"]
             + case["expected_conditional"]
@@ -36,6 +45,10 @@ def test_real_bge_candidate_set_baseline():
             "case_id": case["case_id"],
             "expected": expected,
             "selected": predicted,
+            "counterfactual_semantic_top3": [
+                {"benchmark_id": benchmark_id, "cosine": round(score, 4)}
+                for benchmark_id, score in semantic_top
+            ],
             "precision": round(precision, 4),
             "recall": round(recall, 4),
             "false_positives": false_positive,
