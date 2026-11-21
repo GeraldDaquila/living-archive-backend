@@ -342,3 +342,83 @@ def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
         "gold_star_request_terminal",
     } <= emitted_events
 
+def test_request_ledger_tracks_provider_route_terminal_counts():
+    token = trace.begin_request_context("33333333333333333333333333333333")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+        started = trace.begin_provider_route("general_guide_composition")
+        assert started["attempt_ordinal"] == 1
+        assert started["provider_route_ordinal"] == 1
+
+        trace.set_provider_route_candidate_count("general_guide_composition", 3)
+        trace.record_provider_candidate_attempt("general_guide_composition")
+        trace.record_provider_candidate_outcome("general_guide_composition", "failure")
+        trace.record_provider_candidate_attempt("general_guide_composition")
+        trace.record_provider_candidate_outcome("general_guide_composition", "success")
+        summary = trace.finish_provider_route("general_guide_composition", "provider_succeeded")
+
+        assert summary["eligible_candidate_count"] == 3
+        assert summary["attempt_count"] == 2
+        assert summary["success_count"] == 1
+        assert summary["failure_count"] == 1
+        assert summary["terminal_state"] == "provider_succeeded"
+
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 1
+        assert request["provider_attempt_count"] == 2
+        assert request["provider_success_count"] == 1
+        assert request["provider_failure_count"] == 1
+        assert request["provider_terminal_state"] == "provider_succeeded"
+    finally:
+        trace.end_request_context(token)
+
+
+def test_provider_route_wrapper_emits_correlated_exhaustion_terminal(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("44444444444444444444444444444444")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def exhausted_route(*_args, **kwargs):
+            operation = kwargs["operation"]
+            trace.set_provider_route_candidate_count(operation, 2)
+            trace.record_provider_candidate_attempt(operation)
+            trace.record_provider_candidate_outcome(operation, "failure")
+            return None
+
+        wrapped = provider_bank._track_gold_star_provider_route(exhausted_route)
+        assert wrapped(operation="general_guide_composition") is None
+        output = capsys.readouterr().out
+        assert "gold_star_provider_route_terminal" in output
+        assert "request_id=44444444444444444444444444444444" in output
+        assert "attempt_ordinal=1" in output
+        assert "provider_route_ordinal=1" in output
+        assert "outcome=provider_exhausted" in output
+        assert "eligible_candidate_count=2" in output
+        assert "attempt_count=1" in output
+        assert "failure_count=1" in output
+        assert provider_bank.route.__wrapped__ is not None
+        assert "request_id=44444444444444444444444444444444" in (
+            provider_bank._gold_star_provider_route_log_fields("general_guide_composition")
+        )
+    finally:
+        trace.end_request_context(token)
+
+
+def test_composer_records_provider_no_result_before_fallback():
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    compose = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "compose"
+    )
+    function_source = ast.get_source_segment(source, compose)
+    no_result = function_source[function_source.index("if not result:"):]
+    assert "_mark_gold_star_composition_result(" in no_result
+    assert 'provider_result=None' in no_result
+    assert '"gold_star_adjudication_composition"' in no_result
+    assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
+
