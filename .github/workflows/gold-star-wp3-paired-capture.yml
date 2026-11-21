@@ -1,17 +1,24 @@
-name: Gold Star WP3 paired capture (Standalone QA)
+name: Gold Star WP3 paired capture (USE2-Mirror)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gold-star-wp3-paired-capture.yml"
+      - "scripts/capture_gold_star_wp3_pairs.py"
+      - "docs/qa/guide_learning_evaluation_set.json"
 
 permissions:
   contents: read
 
 jobs:
   paired-capture:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[wp3-paired-capture]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Check out the exact deployed QA candidate
+      - name: Check out the exact source commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -22,10 +29,10 @@ jobs:
           cache-dependency-path: requirements.txt
       - name: Install candidate runtime dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
-      - name: Verify deployed SHA and capture seven held-out visitor cases
+      - name: Wait for USE2-Mirror source identity and capture seven held-out visitor cases
         env:
           PYTHONPATH: .
-          WP3_CAPTURE_BASE_URL: https://living-archive-gold-star-v2-qa.onrender.com
+          WP3_CAPTURE_BASE_URL: https://living-archive-backend-mirror.onrender.com
         run: |
           python scripts/capture_gold_star_wp3_pairs.py \
             --base-url "$WP3_CAPTURE_BASE_URL" \
@@ -36,7 +43,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gold-star-wp3-paired-capture
+          name: gold-star-wp3-paired-capture-${{ github.run_id }}
           path: artifacts/gold-star-wp3-paired-capture.json
           if-no-files-found: warn
           retention-days: 90
