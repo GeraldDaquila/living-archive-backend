@@ -17829,6 +17829,8 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
             return
 
         await send(message)
+        if message_type == "http.response.body" and not message.get("more_body", False):
+            _gold_star_response_completed = True
 
     _doorway_search_token = _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(False)
     try:
