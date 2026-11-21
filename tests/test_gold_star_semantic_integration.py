@@ -32,3 +32,82 @@ def test_real_bge_separates_held_out_paraphrase_from_near_domain_distractor():
     assert selected[0]["exact"] is False
 
     assert lessons.select_lesson_candidates(distractor_query) == []
+
+def test_real_bge_decision_rights_paraphrase_and_cross_domain_abstention():
+    """Measure the anchorless decision-rights bridge against a cross-domain negative."""
+    candidates = _candidates()
+    positive_query = "How do decision rights affect institutional responsibility?"
+    negative_query = "How should I assign responsibilities when organizing a home garden?"
+
+    target = next(
+        item for item in candidates
+        if item["id"] == "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13"
+    )
+    positive_scores = rank_semantic_lessons(positive_query, candidates)
+    negative_scores = rank_semantic_lessons(negative_query, candidates)
+
+
+    # Diagnostic ablation: compare reviewed metadata fields without changing
+    # runtime code or thresholds. This runs only in the offline real-model CI.
+    from gold_star_semantic_retrieval import _model, _unit
+
+    model = _model()
+    query_vectors = {
+        query: _unit(next(iter(model.embed([
+            "Represent this sentence for searching relevant passages: " + query
+        ]))))
+        for query in (positive_query, negative_query)
+    }
+    variants = {
+        "base": ("query", "known_theme", "reasoning_family", "variants"),
+        "discipline": ("transferable_discipline",),
+        "qualifying": ("qualifying_context",),
+        "base+discipline": ("query", "known_theme", "reasoning_family", "variants", "transferable_discipline"),
+        "base+qualifying": ("query", "known_theme", "reasoning_family", "variants", "qualifying_context"),
+        "all": ("query", "known_theme", "reasoning_family", "variants", "transferable_discipline", "qualifying_context"),
+    }
+    ablation = {}
+    for label, fields in variants.items():
+        texts = []
+        for item in candidates:
+            values = []
+            for field in fields:
+                value = item.get(field) or ""
+                values.append(" ".join(value) if isinstance(value, list) else str(value))
+            texts.append(" | ".join(values))
+        vectors = [_unit(vector) for vector in model.embed(texts)]
+        scored = {
+            item["id"]: sum(a * b for a, b in zip(query_vectors[positive_query], vector))
+            for item, vector in zip(candidates, vectors)
+        }
+        negative_target = sum(
+            a * b for a, b in zip(
+                query_vectors[negative_query],
+                vectors[next(i for i, item in enumerate(candidates) if item["id"] == target["id"])]
+            )
+        )
+        ordered = sorted(scored.items(), key=lambda row: -row[1])
+        ablation[label] = {
+            "target": scored[target["id"]],
+            "runner_up": ordered[1] if ordered[0][0] == target["id"] else ordered[0],
+            "negative_target": negative_target,
+        }
+
+    positive_selected = lessons.select_lesson_candidates(positive_query)
+    negative_selected = lessons.select_lesson_candidates(negative_query)
+
+    assert positive_scores.get(target["id"], 0.0) >= 0.82, (
+        "Real BGE score for the anchorless decision-rights transfer did not "
+        f"clear the semantic-only floor: {positive_scores.get(target['id'])}; "
+        f"top candidates={sorted(positive_scores.items(), key=lambda row: -row[1])[:5]}; "
+        f"representation_ablation={ablation}"
+    )
+    assert positive_selected and positive_selected[0]["benchmark_id"] == target["id"], (
+        "The real-model decision-rights paraphrase did not recover Gold Star #77: "
+        f"selected={[item['benchmark_id'] for item in positive_selected]}"
+    )
+    assert target["id"] not in [item["benchmark_id"] for item in negative_selected], (
+        "A cross-domain gardening query incorrectly activated the delegated-judgment "
+        f"Gold Star: selected={[item['benchmark_id'] for item in negative_selected]}, "
+        f"target score={negative_scores.get(target['id'])}"
+    )
