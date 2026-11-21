@@ -342,3 +342,193 @@ def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
         "gold_star_request_terminal",
     } <= emitted_events
 
+    terminal_call = next(
+        node for node in ast.walk(module)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_emit_guide_outcome"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value == "gold_star_request_terminal"
+    )
+    terminal_fields = {keyword.arg for keyword in terminal_call.keywords}
+    assert {
+        "provider_route_count",
+        "provider_attempt_count",
+        "provider_success_count",
+        "provider_failure_count",
+        "provider_admission_denied_count",
+        "provider_terminal_state",
+        "request_ledger_version",
+    } <= terminal_fields
+
+def test_request_ledger_tracks_provider_route_terminal_counts():
+    token = trace.begin_request_context("33333333333333333333333333333333")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+        started = trace.begin_provider_route("general_guide_composition")
+        assert started["attempt_ordinal"] == 1
+        assert started["provider_route_ordinal"] == 1
+
+        trace.set_provider_route_candidate_count("general_guide_composition", 3)
+        trace.record_provider_candidate_attempt("general_guide_composition")
+        trace.record_provider_candidate_outcome("general_guide_composition", "failure")
+        trace.record_provider_candidate_attempt("general_guide_composition")
+        trace.record_provider_candidate_outcome("general_guide_composition", "success")
+        summary = trace.finish_provider_route("general_guide_composition", "provider_succeeded")
+
+        assert summary["eligible_candidate_count"] == 3
+        assert summary["attempt_count"] == 2
+        assert summary["success_count"] == 1
+        assert summary["failure_count"] == 1
+        assert summary["terminal_state"] == "provider_succeeded"
+
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 1
+        assert request["provider_attempt_count"] == 2
+        assert request["provider_success_count"] == 1
+        assert request["provider_failure_count"] == 1
+        assert request["provider_terminal_state"] == "provider_succeeded"
+    finally:
+        trace.end_request_context(token)
+
+
+def test_provider_route_wrapper_emits_correlated_exhaustion_terminal(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("44444444444444444444444444444444")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def exhausted_route(*_args, **kwargs):
+            operation = kwargs["operation"]
+            trace.set_provider_route_candidate_count(operation, 2)
+            trace.record_provider_candidate_attempt(operation)
+            trace.record_provider_candidate_outcome(operation, "failure")
+            return None
+
+        wrapped = provider_bank._track_gold_star_provider_route(exhausted_route)
+        assert wrapped(operation="general_guide_composition") is None
+        output = capsys.readouterr().out
+        assert "gold_star_provider_route_terminal" in output
+        assert "request_id=44444444444444444444444444444444" in output
+        assert "request_ledger_version=2" in output
+        assert "attempt_ordinal=1" in output
+        assert "provider_route_ordinal=1" in output
+        assert "outcome=provider_exhausted" in output
+        assert "eligible_candidate_count=2" in output
+        assert "attempt_count=1" in output
+        assert "failure_count=1" in output
+        assert trace.current_provider_route_context()["active"] is False
+        assert provider_bank.route.__wrapped__ is not None
+        assert "request_id=44444444444444444444444444444444" in (
+            provider_bank._gold_star_provider_route_log_fields("general_guide_composition")
+        )
+    finally:
+        trace.end_request_context(token)
+
+
+def test_composer_records_provider_no_result_before_fallback():
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    compose = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "compose"
+    )
+    function_source = ast.get_source_segment(source, compose)
+    no_result = function_source[function_source.index("if not result:"):]
+    assert "_mark_gold_star_composition_result(" in no_result
+    assert 'provider_result=None' in no_result
+    assert '"gold_star_adjudication_composition"' in no_result
+    assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
+
+def test_provider_route_wrapper_classifies_success_and_no_eligible_candidates(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("55555555555555555555555555555555")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def successful_route(*_args, **kwargs):
+            operation = kwargs["operation"]
+            trace.set_provider_route_candidate_count(operation, 2)
+            trace.record_provider_candidate_attempt(operation)
+            trace.record_provider_candidate_outcome(operation, "success")
+            return {"provider": "controlled", "model": "test"}
+
+        result = provider_bank._track_gold_star_provider_route(successful_route)(
+            operation="general_guide_composition"
+        )
+        assert result["provider"] == "controlled"
+        assert "outcome=provider_succeeded" in capsys.readouterr().out
+
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def no_eligible_route(*_args, **kwargs):
+            trace.set_provider_route_candidate_count(kwargs["operation"], 0)
+            return None
+
+        assert provider_bank._track_gold_star_provider_route(no_eligible_route)(
+            operation="general_guide_composition"
+        ) is None
+        output = capsys.readouterr().out
+        assert "outcome=no_eligible_candidate" in output
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 2
+        assert request["provider_attempt_count"] == 1
+        assert request["provider_success_count"] == 1
+        assert request["provider_terminal_state"] == "no_eligible_candidate"
+    finally:
+        trace.end_request_context(token)
+
+
+def test_provider_candidate_attempt_is_counted_only_after_quota_admission():
+    source = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    start = source.index("def _quota_guarded_call(")
+    end = source.index("\n\ndef _route_result", start)
+    function_source = source[start:end]
+    reservation = function_source.index("reservation = reserve_provider_call(")
+    counted = function_source.index('_gold_star_trace.record_provider_candidate_attempt("general_guide_composition")')
+    call = function_source.index("result = _call(")
+    assert reservation < counted < call
+
+
+def test_provider_exhaustion_trace_event_includes_provider_route_state():
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    compose = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "compose"
+    )
+    function_source = ast.get_source_segment(source, compose)
+    no_result = function_source[function_source.index("if not result:"):]
+    assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
+    assert 'provider_route_attempt_count=provider_route.get("attempt_count", 0)' in no_result
+    assert 'provider_route_eligible_candidate_count=provider_route.get("eligible_candidate_count")' in no_result
+
+def test_provider_route_wrapper_does_not_track_non_guide_operations(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("66666666666666666666666666666666")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def non_guide_route(*_args, **_kwargs):
+            return None
+
+        assert provider_bank._track_gold_star_provider_route(non_guide_route)(
+            operation="hrn_relational"
+        ) is None
+        assert capsys.readouterr().out == ""
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 0
+        assert request["provider_attempt_count"] == 0
+        assert request["provider_terminal_state"] == "not_observed"
+    finally:
+        trace.end_request_context(token)
+

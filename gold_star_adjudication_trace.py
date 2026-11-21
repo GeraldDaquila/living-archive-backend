@@ -14,6 +14,7 @@ import re
 from contextvars import ContextVar
 
 VERSION = "1.0"
+REQUEST_LEDGER_VERSION = "2"
 MAX_CANDIDATES = 3
 _SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "human_reviewed_selected", "human_reviewed_rejected"}
 _APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
@@ -33,6 +34,13 @@ def begin_request_context(request_id: str):
         "request_id": value,
         "composition_attempt_count": 0,
         "current_attempt_ordinal": None,
+        "provider_route_count": 0,
+        "provider_attempt_count": 0,
+        "provider_success_count": 0,
+        "provider_failure_count": 0,
+        "provider_admission_denied_count": 0,
+        "provider_terminal_state": "not_observed",
+        "current_provider_route": None,
     })
     trace_token = _CURRENT_ATTEMPT_TRACE.set(None)
     return request_token, trace_token
@@ -51,6 +59,7 @@ def begin_composition_attempt():
     _CURRENT_ATTEMPT_TRACE.set(None)
     if not isinstance(state, dict):
         return None
+    state["current_provider_route"] = None
     state["composition_attempt_count"] = int(state.get("composition_attempt_count") or 0) + 1
     ordinal = state["composition_attempt_count"]
     state["current_attempt_ordinal"] = ordinal
@@ -58,13 +67,30 @@ def begin_composition_attempt():
 
 
 def current_request_context() -> dict:
-    """Return only the fixed, content-free request-ledger fields."""
+    """Return only fixed, content-free request-ledger fields and counters."""
     state = _REQUEST_CONTEXT.get()
     if not isinstance(state, dict):
-        return {"request_id": None, "composition_attempt_count": 0}
+        return {
+            "request_id": None,
+            "request_ledger_version": REQUEST_LEDGER_VERSION,
+            "composition_attempt_count": 0,
+            "provider_route_count": 0,
+            "provider_attempt_count": 0,
+            "provider_success_count": 0,
+            "provider_failure_count": 0,
+            "provider_admission_denied_count": 0,
+            "provider_terminal_state": "not_observed",
+        }
     return {
         "request_id": state.get("request_id"),
+        "request_ledger_version": REQUEST_LEDGER_VERSION,
         "composition_attempt_count": int(state.get("composition_attempt_count") or 0),
+        "provider_route_count": int(state.get("provider_route_count") or 0),
+        "provider_attempt_count": int(state.get("provider_attempt_count") or 0),
+        "provider_success_count": int(state.get("provider_success_count") or 0),
+        "provider_failure_count": int(state.get("provider_failure_count") or 0),
+        "provider_admission_denied_count": int(state.get("provider_admission_denied_count") or 0),
+        "provider_terminal_state": str(state.get("provider_terminal_state") or "not_observed"),
     }
 
 
@@ -72,6 +98,111 @@ def current_attempt_trace():
     """Return the current composition attempt's private trace, if initialized."""
     value = _CURRENT_ATTEMPT_TRACE.get()
     return dict(value) if isinstance(value, Mapping) else None
+
+
+_PROVIDER_ROUTE_TERMINAL_STATES = {
+    "provider_succeeded",
+    "counterpart_success",
+    "provider_exhausted",
+    "no_eligible_candidate",
+    "budget_skipped",
+    "admission_blocked",
+    "provider_not_attempted",
+    "provider_exception",
+}
+
+
+def begin_provider_route(operation: str):
+    """Begin a correlated Guide provider route inside the current composer attempt."""
+    if str(operation or "") != "general_guide_composition":
+        return None
+    state = _REQUEST_CONTEXT.get()
+    attempt = _CURRENT_ATTEMPT_TRACE.get()
+    if not isinstance(state, dict) or not isinstance(attempt, Mapping):
+        return None
+    request_id = state.get("request_id")
+    attempt_ordinal = attempt.get("attempt_ordinal")
+    if not request_id or not isinstance(attempt_ordinal, int):
+        return None
+    route_ordinal = int(state.get("provider_route_count") or 0) + 1
+    route = {
+        "request_id": request_id,
+        "request_ledger_version": REQUEST_LEDGER_VERSION,
+        "attempt_ordinal": attempt_ordinal,
+        "provider_route_ordinal": route_ordinal,
+        "eligible_candidate_count": None,
+        "attempt_count": 0,
+        "success_count": 0,
+        "failure_count": 0,
+        "admission_denied_count": 0,
+        "terminal_state": "in_progress",
+        "active": True,
+    }
+    state["provider_route_count"] = route_ordinal
+    state["current_provider_route"] = route
+    return dict(route)
+
+
+def _current_provider_route(operation: str):
+    if str(operation or "") != "general_guide_composition":
+        return None
+    state = _REQUEST_CONTEXT.get()
+    route = state.get("current_provider_route") if isinstance(state, dict) else None
+    return route if isinstance(route, dict) else None
+
+
+def set_provider_route_candidate_count(operation: str, count: int) -> None:
+    """Record the number of eligible local candidates before provider attempts."""
+    route = _current_provider_route(operation)
+    if route is not None:
+        route["eligible_candidate_count"] = max(0, int(count or 0))
+
+
+def record_provider_candidate_attempt(operation: str) -> None:
+    """Count an actual outbound candidate call, not a skipped/admission-blocked lane."""
+    route = _current_provider_route(operation)
+    state = _REQUEST_CONTEXT.get()
+    if route is None or not isinstance(state, dict):
+        return
+    route["attempt_count"] += 1
+    state["provider_attempt_count"] = int(state.get("provider_attempt_count") or 0) + 1
+
+
+def record_provider_candidate_outcome(operation: str, outcome: str) -> None:
+    """Record one bounded candidate outcome for the current Guide provider route."""
+    route = _current_provider_route(operation)
+    state = _REQUEST_CONTEXT.get()
+    if route is None or not isinstance(state, dict):
+        return
+    value = str(outcome or "")
+    if value == "success":
+        route["success_count"] += 1
+        state["provider_success_count"] = int(state.get("provider_success_count") or 0) + 1
+    elif value == "failure":
+        route["failure_count"] += 1
+        state["provider_failure_count"] = int(state.get("provider_failure_count") or 0) + 1
+    elif value == "admission_denied":
+        route["admission_denied_count"] += 1
+        state["provider_admission_denied_count"] = int(state.get("provider_admission_denied_count") or 0) + 1
+
+
+def finish_provider_route(operation: str, terminal_state: str):
+    """Close one provider route with a fixed terminal classification."""
+    route = _current_provider_route(operation)
+    state = _REQUEST_CONTEXT.get()
+    if route is None or not isinstance(state, dict):
+        return {}
+    value = str(terminal_state or "")
+    route["terminal_state"] = value if value in _PROVIDER_ROUTE_TERMINAL_STATES else "provider_exception"
+    route["active"] = False
+    state["provider_terminal_state"] = route["terminal_state"]
+    return dict(route)
+
+
+def current_provider_route_context() -> dict:
+    """Return the current provider route's content-free correlation and counters."""
+    route = _current_provider_route("general_guide_composition")
+    return dict(route) if isinstance(route, dict) else {}
 
 
 def _store_current_trace(value):

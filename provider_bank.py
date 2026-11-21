@@ -1,6 +1,9 @@
 """Provider-neutral model bank for USE."""
 import base64, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
 from urllib.request import Request, urlopen
+from functools import wraps
+
+import gold_star_adjudication_trace as _gold_star_trace
 from collections import OrderedDict
 import time
 
@@ -2683,6 +2686,11 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
     reservation = reserve_provider_call(provider, model, messages, max_tokens)
+    gold_star_route_active = bool(
+        _gold_star_trace.current_provider_route_context().get("active")
+    )
+    if gold_star_route_active:
+        _gold_star_trace.record_provider_candidate_attempt("general_guide_composition")
     started = time.perf_counter()
     outcome = "error"
     try:
@@ -2709,6 +2717,9 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
             f"elapsed_seconds={elapsed:.3f}, "
             f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
             f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
+            + _gold_star_provider_route_log_fields(
+                "general_guide_composition" if gold_star_route_active else None
+            )
         )
         reservation.release()
 
@@ -2913,6 +2924,76 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
     }
 
 
+def _gold_star_provider_route_log_fields(operation):
+    """Return content-free request correlation for Guide composition provider logs."""
+    if str(operation or "") != "general_guide_composition":
+        return ""
+    context = _gold_star_trace.current_provider_route_context()
+    if not context:
+        return ""
+    return (
+        " request_id=" + str(context.get("request_id") or "")
+        + " attempt_ordinal=" + str(context.get("attempt_ordinal") or "")
+        + " provider_route_ordinal=" + str(context.get("provider_route_ordinal") or "")
+    )
+
+
+def _emit_gold_star_provider_route_terminal(summary):
+    if not isinstance(summary, dict) or not summary.get("request_id"):
+        return
+    print(
+        "gold_star_provider_route_terminal "
+        + "request_id=" + str(summary.get("request_id"))
+        + " request_ledger_version=" + str(summary.get("request_ledger_version") or "unknown")
+        + " attempt_ordinal=" + str(summary.get("attempt_ordinal"))
+        + " provider_route_ordinal=" + str(summary.get("provider_route_ordinal"))
+        + " operation=general_guide_composition"
+        + " outcome=" + str(summary.get("terminal_state") or "provider_exception")
+        + " eligible_candidate_count=" + str(summary.get("eligible_candidate_count"))
+        + " attempt_count=" + str(int(summary.get("attempt_count") or 0))
+        + " success_count=" + str(int(summary.get("success_count") or 0))
+        + " failure_count=" + str(int(summary.get("failure_count") or 0))
+        + " admission_denied_count=" + str(int(summary.get("admission_denied_count") or 0))
+    )
+
+
+def _track_gold_star_provider_route(function):
+    """Wrap Guide provider routes with a request-correlated terminal outcome."""
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        operation = str(kwargs.get("operation") or "generic")
+        if operation != "general_guide_composition":
+            return function(*args, **kwargs)
+        started = _gold_star_trace.begin_provider_route(operation)
+        if not started:
+            return function(*args, **kwargs)
+        try:
+            result = function(*args, **kwargs)
+        except Exception:
+            summary = _gold_star_trace.finish_provider_route(operation, "provider_exception")
+            _emit_gold_star_provider_route_terminal(summary)
+            raise
+        current = _gold_star_trace.current_provider_route_context()
+        if isinstance(result, dict) and result.get("server") == "counterpart":
+            outcome = "counterpart_success"
+        elif result is not None:
+            outcome = "provider_succeeded"
+        elif int(current.get("attempt_count") or 0) > 0:
+            outcome = "provider_exhausted"
+        elif int(current.get("admission_denied_count") or 0) > 0:
+            outcome = "admission_blocked"
+        elif current.get("eligible_candidate_count") == 0:
+            outcome = "no_eligible_candidate"
+        elif current.get("eligible_candidate_count") is None:
+            outcome = "budget_skipped"
+        else:
+            outcome = "provider_not_attempted"
+        summary = _gold_star_trace.finish_provider_route(operation, outcome)
+        _emit_gold_star_provider_route_terminal(summary)
+        return result
+    return wrapped
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
     # Hard-wired 70/30 workload split for Guide composition. The secondary receives
     # its assigned share through the authenticated capability boundary; if that lane
@@ -2956,6 +3037,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
+    _gold_star_trace.set_provider_route_candidate_count(operation, len(pool))
     if not pool:
         # Local capacity may be empty while the independent counterpart still has
         # viable providers. One bounded remote attempt precedes deterministic recovery.
@@ -3260,7 +3342,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_before_provider_call")
                 break
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
-                  ", state=" + str(state.get("state") or "healthy"))
+                  ", state=" + str(state.get("state") or "healthy")
+                  + _gold_star_provider_route_log_fields(operation))
             raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
                 timeout_override=attempt_timeout
@@ -3552,12 +3635,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 candidate_elapsed = time.monotonic() - attempt_started
                 _record_predictive_shadow(state, candidate_elapsed, timed_out=False)
                 shadow = _predictive_shadow_metrics(state, _provider_call_timeout(operation, item))
-                print("USE provider bank candidate outcome: operation=" + operation + ", provider=" + provider + ", model=" + model + ", outcome=success, elapsed_seconds=" + str(round(candidate_elapsed, 3)) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
+                print("USE provider bank candidate outcome: operation=" + operation + ", provider=" + provider + ", model=" + model + ", outcome=success, elapsed_seconds=" + str(round(candidate_elapsed, 3)) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]) + _gold_star_provider_route_log_fields(operation))
+            _gold_star_trace.record_provider_candidate_outcome(operation, "success")
             _success(provider, model, operation)
             _capacity_end_request(success=True)
             capacity_finished = True
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
+            _gold_star_trace.record_provider_candidate_outcome(operation, "admission_denied")
             # Local admission pressure is not evidence that the upstream provider
             # is unhealthy. Release any half-open probe claim and allow independent
             # candidates to run; otherwise a local cap could strand recovery forever.
@@ -3578,6 +3663,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             )
             continue
         except ValueError as exc:
+            _gold_star_trace.record_provider_candidate_outcome(operation, "failure")
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
             contract_reason = str(exc)
@@ -3610,6 +3696,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     + model
                     + ", outcome=contract_rejection, elapsed_seconds="
                     + str(round(candidate_elapsed, 3))
+                    + _gold_star_provider_route_log_fields(operation)
                 )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
@@ -3625,11 +3712,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     break
             continue
         except Exception as exc:
+            _gold_star_trace.record_provider_candidate_outcome(operation, "failure")
             failure_category = _failure(exc, provider, model, operation=operation)
             last_error = _safe_provider_error_summary(exc, category=failure_category)
             if attempt_started is not None:
                 _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=(str(failure_category).lower() == "timeout"))
-            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
+            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error + _gold_star_provider_route_log_fields(operation))
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
                 candidate_elapsed = time.monotonic() - attempt_started
                 print(
@@ -3667,6 +3755,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         if remote:
             return remote
     return _route_result(None)
+
+
+route = _track_gold_star_provider_route(route)
+
 
 _capacity_publish_lock = threading.Lock()
 _capacity_last_published = 0.0
