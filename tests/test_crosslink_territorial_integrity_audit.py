@@ -280,16 +280,20 @@ def test_rate_limits_and_network_errors_are_indeterminate_not_broken():
         link_results=[
             {"wp_id": "20", "url": "https://geralddaquila.com/a", "status": "rate_limited"},
             {"wp_id": "21", "url": "https://geralddaquila.com/b", "status": "network_error"},
+            {"wp_id": "22", "url": "https://geralddaquila.com/c", "status": "http_error", "http_status": 503},
+            {"wp_id": "23", "url": "https://geralddaquila.com/d", "status": "http_error", "http_status": 404},
         ],
         link_check_performed=True,
     )
 
     destination = report["destination_integrity"]
     assert destination["broken_count"] == 0
-    assert destination["indeterminate_count"] == 2
+    assert destination["broken_count"] == 1
+    assert destination["indeterminate_count"] == 3
     assert destination["rate_limited_count"] == 1
     assert destination["network_error_count"] == 1
-    assert report["completeness_gates"]["no_broken_destinations"] is True
+    assert destination["http_error_indeterminate_count"] == 1
+    assert report["completeness_gates"]["no_broken_destinations"] is False
     assert report["completeness_gates"]["destination_results_determinate"] is False
     assert report["overall_status"] == "ATTENTION REQUIRED"
 
