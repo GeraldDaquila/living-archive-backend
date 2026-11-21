@@ -26,7 +26,12 @@ For each query, provide reviewers with:
 
 Conduct a blinded first-pass review: withhold the steward's expected roles,
 current selector output, semantic scores, and other reviewers' labels until
-each independent first pass is submitted.
+each independent first pass is submitted. Candidate labels are pseudonymous,
+but approved question and discipline text must remain visible for meaningful
+review; reviewers familiar with the source registry may infer identities. This
+is label-blinding, not guaranteed identity-blinding. Reviewers must not consult
+the source registry or attempt identity resolution before locking first-pass
+annotations.
 
 ## Required independent annotations
 
