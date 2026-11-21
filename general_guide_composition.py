@@ -4729,6 +4729,15 @@ def compose(
     )
     if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
         raise RuntimeError("Gold Star composition trace failed validation.")
+    _emit_guide_outcome(
+        "gold_star_adjudication_composition",
+        trace_version=gold_star_adjudication_trace["version"],
+        candidate_count=gold_star_adjudication_trace["candidate_count"],
+        composition=gold_star_adjudication_trace.get("composition", "unobserved"),
+        selection=gold_star_adjudication_trace["selection"],
+        application=gold_star_adjudication_trace["application"],
+        outcome=gold_star_adjudication_trace["outcome"],
+    )
     candidate = {
         "response": response,
         "doorway_title": parsed.get("doorway_title", ""),
