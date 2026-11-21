@@ -21,6 +21,11 @@ from gold_star_adjudication_trace import (
     mark_composition_result as _mark_gold_star_composition_result,
     mark_guidance_exposure as _mark_gold_star_guidance_exposure,
     validate_trace as _validate_gold_star_adjudication_trace,
+    mark_provider_adjudication as _mark_gold_star_provider_adjudication,
+)
+from gold_star_provider_adjudication import (
+    build_adjudication_output_contract as _build_gold_star_adjudication_output_contract,
+    normalize_provider_adjudication as _normalize_gold_star_provider_adjudication,
 )
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
@@ -2419,7 +2424,7 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
 
 
 
-def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
+def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_candidates: Any = None):
     titles = {item["title"] for item in documents}
     def _parse_strict(raw: str) -> Dict[str, Any]:
         try:
@@ -2657,6 +2662,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             "response": response,
             "doorway_title": title,
             "response_shape": shape,
+            "adaptive_adjudication": parsed.get("adaptive_adjudication"),
         }
 
 
@@ -2730,6 +2736,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     "doorway_title": title,
                     "response_shape": shape,
                     "quality_lane": "provider_hard_integrity",
+                    "adaptive_adjudication": parsed.get("adaptive_adjudication"),
                 }
             except Exception as hard_exc:
                 try:
@@ -4460,6 +4467,10 @@ def compose(
             "citations, or doorways.\\nRanked candidates (for adjudication, not automatic application):\\n"
             + candidate_evidence + "\\n\\n"
         )
+    if gold_star_quality_instruction and gold_star_quality:
+        gold_star_quality_instruction += "\n\n" + _build_gold_star_adjudication_output_contract(
+            gold_star_quality.get("candidates") or []
+        )
     gold_star_adjudication_trace = _mark_gold_star_guidance_exposure(
         gold_star_adjudication_trace,
         included_in_provider_prompt=bool(gold_star_quality_instruction),
@@ -4566,7 +4577,7 @@ def compose(
             {"role": "user", "content": user_content[:7000]},
         ],
         max_tokens=900,
-        parse=_parse_factory(documents, effective_question),
+        parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
         deadline_monotonic=deadline_monotonic,
     )
     # A provider may technically return a parsed response while still producing
@@ -4765,6 +4776,15 @@ def compose(
     response = parsed.get("response")
     if not response:
         raise ValueError("general composition provider result missing response")
+    provider_adjudication = _normalize_gold_star_provider_adjudication(
+        parsed.get("adaptive_adjudication"),
+        response=str(response),
+        candidates=gold_star_quality.get("candidates") if gold_star_quality else None,
+    )
+    gold_star_adjudication_trace = _mark_gold_star_provider_adjudication(
+        gold_star_adjudication_trace,
+        provider_adjudication,
+    )
     gold_star_adjudication_trace = _mark_gold_star_composition_result(
         gold_star_adjudication_trace,
         provider_result=result,
