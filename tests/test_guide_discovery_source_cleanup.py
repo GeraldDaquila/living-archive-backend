@@ -395,21 +395,16 @@ def test_shared_final_visitor_boundary_replaces_macro_route_leak_and_drops_incid
     assert payload["response"].endswith("[evidence excerpt bounded by USE]")
 
 
-def test_shared_final_visitor_boundary_restores_verified_doorway_for_clean_payload():
+def test_shared_final_visitor_boundary_does_not_invent_doorway_without_verified_evidence():
     payload = {
         "ok": True,
         "response": "A community can practice stewardship by making responsibilities visible.",
     }
     safe = main._guide_finalize_visitor_payload(payload, "What is stewardship?")
 
-    # Clean prose may still be missing navigation. The terminal boundary must
-    # preserve the answer while restoring only a verified canonical doorway.
+    # A clean answer is preserved, but navigation is not invented when the
+    # final boundary has no selected, evidence-backed canonical doorway.
     assert safe is not payload
     assert safe["response"] == payload["response"]
-    doorway = safe["recommendation"]
-    assert doorway is not None
-    assert doorway["title"]
-    assert doorway["url"].startswith("https://")
-    assert safe["canonical_doorway"] == doorway
-    assert safe["doorway_title"] == doorway["title"]
-    assert safe["doorway_url"] == doorway["url"]
+    assert safe.get("recommendation") is None
+    assert safe.get("canonical_doorway") is None
