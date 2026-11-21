@@ -32,7 +32,7 @@ def test_supported_requires_exact_passage_quote():
         extract_claims=_extract,
         assess_claim=_assess("supported", "The archive defines stewardship as responsible care of shared conditions."),
     )
-    assert result["status"] == "pass"
+    assert result["status"] == "assessed"
     assert result["claims"][0]["outcome"] == "supported"
     assert result["claims"][0]["attributions"][0]["source_id"] == "source-1"
 
@@ -135,3 +135,39 @@ def test_claim_count_is_bounded():
     )
     assert result["status"] == "unassessed"
     assert result["reason"] == "malformed_claim_extraction"
+
+
+
+def test_stale_or_unavailable_outcome_is_preserved_without_attribution():
+    result = adjudicate_answer_claims(
+        "answer", DOCS, extract_claims=_extract,
+        assess_claim=_assess("stale_or_unavailable"),
+    )
+    assert result["claims"][0]["outcome"] == "stale_or_unavailable"
+    assert result["status"] == "assessed"
+
+
+def test_no_relevant_public_source_outcome_is_preserved_per_claim():
+    result = adjudicate_answer_claims(
+        "answer", DOCS, extract_claims=_extract,
+        assess_claim=_assess("no_relevant_public_source"),
+    )
+    assert result["claims"][0]["outcome"] == "no_relevant_public_source"
+
+
+def test_mixed_claim_results_keep_individual_outcomes():
+    def extract(_answer):
+        return [{"claim": "claim one"}, {"claim": "claim two"}]
+    def assess(claim, passages):
+        if claim == "claim one":
+            return {
+                "outcome": "supported",
+                "attributions": [{
+                    "passage_id": passages[0]["passage_id"],
+                    "quote": "The archive defines stewardship as responsible care of shared conditions.",
+                }],
+            }
+        return {"outcome": "unassessed", "attributions": []}
+    result = adjudicate_answer_claims("answer", DOCS, extract_claims=extract, assess_claim=assess)
+    assert [item["outcome"] for item in result["claims"]] == ["supported", "unassessed"]
+    assert result["status"] == "unassessed"
