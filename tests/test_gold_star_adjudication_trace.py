@@ -421,6 +421,7 @@ def test_provider_route_wrapper_emits_correlated_exhaustion_terminal(capsys):
         assert "eligible_candidate_count=2" in output
         assert "attempt_count=1" in output
         assert "failure_count=1" in output
+        assert trace.current_provider_route_context()["active"] is False
         assert provider_bank.route.__wrapped__ is not None
         assert "request_id=44444444444444444444444444444444" in (
             provider_bank._gold_star_provider_route_log_fields("general_guide_composition")
@@ -508,4 +509,26 @@ def test_provider_exhaustion_trace_event_includes_provider_route_state():
     assert 'provider_route_terminal_state=provider_route.get("terminal_state", "not_observed")' in no_result
     assert 'provider_route_attempt_count=provider_route.get("attempt_count", 0)' in no_result
     assert 'provider_route_eligible_candidate_count=provider_route.get("eligible_candidate_count")' in no_result
+
+def test_provider_route_wrapper_does_not_track_non_guide_operations(capsys):
+    import provider_bank
+
+    token = trace.begin_request_context("66666666666666666666666666666666")
+    try:
+        trace.begin_composition_attempt()
+        trace.build_adjudication_trace(_contribution())
+
+        def non_guide_route(*_args, **_kwargs):
+            return None
+
+        assert provider_bank._track_gold_star_provider_route(non_guide_route)(
+            operation="hrn_relational"
+        ) is None
+        assert capsys.readouterr().out == ""
+        request = trace.current_request_context()
+        assert request["provider_route_count"] == 0
+        assert request["provider_attempt_count"] == 0
+        assert request["provider_terminal_state"] == "not_observed"
+    finally:
+        trace.end_request_context(token)
 
