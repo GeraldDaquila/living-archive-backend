@@ -223,7 +223,8 @@ class PublicLivingArchiveClient:
                 post_id = hit.get("id")
                 if not str(post_id).isdigit():
                     continue
-                endpoint = f"{REST_ROOT}/{"posts" if subtype == "post" else "pages"}/{int(post_id)}?"
+                route = "posts" if subtype == "post" else "pages"
+                endpoint = f"{REST_ROOT}/{route}/{int(post_id)}?"
                 endpoint += urlencode({
                     "context": "view",
                     "_fields": "id,status,type,link,title,content,modified,modified_gmt",
