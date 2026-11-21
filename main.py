@@ -2162,10 +2162,20 @@ def _recommendation_first_fetch(query_str):
     # visitor latency budget without adding independent evidence.
     # Outside the bypass path, retain the normal bounded meta-crosslink recovery
     # for empty retrieval results and navigation/recommendation intent.
+    evidence_recovery_needed = any(
+        bool(data.get(flag))
+        for flag in (
+            "frame_neutral_evidence_unavailable",
+            "question_structure_evidence_unavailable",
+            "evidence_sufficiency_unavailable",
+            "question_evidence_fit_unavailable",
+        )
+    )
     if (
         not data.get("mirror_registry_active")
         and (
             not docs
+            or evidence_recovery_needed
             or profile.get("action") in {"recommendation", "navigation"}
             or _PINECONE_RETRIEVAL_BYPASS
         )
@@ -2180,7 +2190,8 @@ def _recommendation_first_fetch(query_str):
             print(
                 "The Guide recovery trace: "
                 f"query_tokens={recovery_token_count}; "
-                f"seed_docs={len(docs)}; action={profile.get('action') or 'none'}"
+                f"seed_docs={len(docs)}; action={profile.get('action') or 'none'}; "
+                f"evidence_recovery_needed={evidence_recovery_needed}"
             )
             crosslinks = archive_crosslink.expand_context(
                 str(query_str or ""),
