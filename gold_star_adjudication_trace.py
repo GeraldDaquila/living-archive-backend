@@ -10,6 +10,8 @@ hash is retained in this trace.
 from __future__ import annotations
 
 from typing import Any, Mapping
+import re
+from contextvars import ContextVar
 
 VERSION = "1.0"
 MAX_CANDIDATES = 3
@@ -17,6 +19,65 @@ _SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_select
 _APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
 _OUTCOME_STATES = {"not_evaluated", "review_required", "human_reviewed_improved", "human_reviewed_not_improved"}
 _FORBIDDEN_KEYS = {"query", "question", "answer", "response", "user_id", "session_id", "content_hash"}
+_REQUEST_CONTEXT = ContextVar("gold_star_request_context", default=None)
+_CURRENT_ATTEMPT_TRACE = ContextVar("gold_star_current_attempt_trace", default=None)
+_REQUEST_ID_PATTERN = re.compile(r"^[0-9a-f]{32}$")
+
+
+def begin_request_context(request_id: str):
+    """Start one opaque, request-local ledger context; caller owns reset."""
+    value = str(request_id or "")
+    if not _REQUEST_ID_PATTERN.fullmatch(value):
+        raise ValueError("Gold Star request correlation token must be 32 lowercase hex characters.")
+    request_token = _REQUEST_CONTEXT.set({
+        "request_id": value,
+        "composition_attempt_count": 0,
+        "current_attempt_ordinal": None,
+    })
+    trace_token = _CURRENT_ATTEMPT_TRACE.set(None)
+    return request_token, trace_token
+
+
+def end_request_context(tokens) -> None:
+    """Restore the previous context after the outer request boundary completes."""
+    request_token, trace_token = tokens
+    _CURRENT_ATTEMPT_TRACE.reset(trace_token)
+    _REQUEST_CONTEXT.reset(request_token)
+
+
+def begin_composition_attempt():
+    """Count a composer attempt inside the active visitor request, if present."""
+    state = _REQUEST_CONTEXT.get()
+    _CURRENT_ATTEMPT_TRACE.set(None)
+    if not isinstance(state, dict):
+        return None
+    state["composition_attempt_count"] = int(state.get("composition_attempt_count") or 0) + 1
+    ordinal = state["composition_attempt_count"]
+    state["current_attempt_ordinal"] = ordinal
+    return {"request_id": state["request_id"], "attempt_ordinal": ordinal}
+
+
+def current_request_context() -> dict:
+    """Return only the fixed, content-free request-ledger fields."""
+    state = _REQUEST_CONTEXT.get()
+    if not isinstance(state, dict):
+        return {"request_id": None, "composition_attempt_count": 0}
+    return {
+        "request_id": state.get("request_id"),
+        "composition_attempt_count": int(state.get("composition_attempt_count") or 0),
+    }
+
+
+def current_attempt_trace():
+    """Return the current composition attempt's private trace, if initialized."""
+    value = _CURRENT_ATTEMPT_TRACE.get()
+    return dict(value) if isinstance(value, Mapping) else None
+
+
+def _store_current_trace(value):
+    if isinstance(value, Mapping):
+        _CURRENT_ATTEMPT_TRACE.set(dict(value))
+    return value
 
 
 def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
@@ -44,7 +105,7 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
             "match_kind": "exact" if item.get("exact") is True else "cross_question",
         })
     count = len(safe_candidates)
-    return {
+    result = {
         "version": VERSION,
         "state": "candidates_supplied" if count else "no_candidates",
         "candidate_count": count,
@@ -63,6 +124,12 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         "application": "not_observed",
         "outcome": "not_evaluated",
     }
+    request = _REQUEST_CONTEXT.get()
+    if isinstance(request, dict):
+        result["request_id"] = request["request_id"]
+        result["attempt_ordinal"] = request.get("current_attempt_ordinal")
+    _CURRENT_ATTEMPT_TRACE.set(result)
+    return result
 
 
 def mark_guidance_exposure(trace: Mapping[str, Any], *, included_in_provider_prompt: bool) -> dict[str, Any]:
@@ -74,20 +141,20 @@ def mark_guidance_exposure(trace: Mapping[str, Any], *, included_in_provider_pro
         result["guidance_exposure"] = (
             "included_in_provider_prompt" if included_in_provider_prompt else "not_included"
         )
-    return result
+    return _store_current_trace(result)
 
 
 def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[str, Any]:
     """Attach a validated provider report without promoting it to human evidence."""
     updated = dict(trace)
     if not isinstance(result, Mapping):
-        return updated
+        return _store_current_trace(updated)
     allowed = {
         "status", "selected_candidate_ids", "rejection_reason_codes",
         "reasoning_discipline_ids", "application_evidence_present", "application_evidence_candidate_ids", "application",
     }
     if set(result) != allowed:
-        return updated
+        return _store_current_trace(updated)
     updated["provider_adjudication_status"] = result["status"]
     updated["selected_candidate_ids"] = list(result["selected_candidate_ids"])
     updated["rejection_reason_codes"] = list(result["rejection_reason_codes"])
@@ -95,7 +162,7 @@ def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[st
     updated["application_evidence_present"] = result["application_evidence_present"] is True
     updated["application_evidence_candidate_ids"] = list(result["application_evidence_candidate_ids"])
     updated["application"] = result["application"]
-    return updated
+    return _store_current_trace(updated)
 
 
 def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -> dict[str, Any]:
@@ -119,7 +186,7 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
     if result.get("provider_adjudication_status") == "not_observed":
         result["application"] = "not_observed"
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
@@ -136,7 +203,7 @@ def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
     result["composition"] = "cached_candidate_reused"
     result["contribution_retained"] = "not_evaluated"
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def mark_final_delivery(
@@ -158,7 +225,7 @@ def mark_final_delivery(
         else "not_verified"
     )
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def validate_trace(trace: Any) -> dict[str, Any]:
@@ -177,13 +244,22 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     allowed = required | {
         "guidance_exposure", "provider_adjudication_status", "selected_candidate_ids",
         "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
-        "application_evidence_candidate_ids", "contribution_retained", "composition", "final_delivery", "final_provenance"
+        "application_evidence_candidate_ids", "contribution_retained", "composition", "final_delivery", "final_provenance", "request_id", "attempt_ordinal"
     }
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
         return {"valid": False, "reason": "unexpected_fields", "fields": unexpected}
     if trace.get("version") != VERSION:
         return {"valid": False, "reason": "unsupported_version"}
+    if "request_id" in trace and (
+        not isinstance(trace.get("request_id"), str)
+        or not _REQUEST_ID_PATTERN.fullmatch(trace["request_id"])
+    ):
+        return {"valid": False, "reason": "invalid_request_correlation_token"}
+    if "attempt_ordinal" in trace and (
+        type(trace.get("attempt_ordinal")) is not int or trace["attempt_ordinal"] < 1
+    ):
+        return {"valid": False, "reason": "invalid_composition_attempt_ordinal"}
     count = trace.get("candidate_count")
     ids, scores, kinds = trace.get("candidate_ids"), trace.get("candidate_scores"), trace.get("match_kinds")
     if type(count) is not int or not 0 <= count <= MAX_CANDIDATES:

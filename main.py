@@ -10,6 +10,7 @@ import ipaddress
 import re
 import json
 import os
+import secrets
 import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
@@ -74,6 +75,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import gold_star_adjudication_trace as _gold_star_ledger
 import comparative_traditions_contract
 import archive_crosslink
 from guide_reflexive_critique import build_reflexive_critique_plan as _build_reflexive_critique_plan, build_reflexive_critique_answer as _build_reflexive_critique_answer
@@ -8158,6 +8160,8 @@ def _guide_finalize_visitor_payload(payload, query):
             application_evidence_candidate_ids=trace.get("application_evidence_candidate_ids", []),
             contribution_retained=trace.get("contribution_retained", "not_evaluated"),
             outcome_state=trace.get("outcome", "not_evaluated"),
+            request_id=trace.get("request_id"),
+            attempt_ordinal=trace.get("attempt_ordinal"),
         )
         return result
 
@@ -17729,11 +17733,14 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
         or ""
     ).strip()
 
+    # One opaque correlation token spans the full HTTP request, including retries.
+    _gold_star_request_context_token = _gold_star_ledger.begin_request_context(secrets.token_hex(16))
+    _gold_star_response_completed = False
     captured_start = None
     captured_chunks = []
 
     async def _capture_json_response(message):
-        nonlocal captured_start, captured_chunks
+        nonlocal captured_start, captured_chunks, _gold_star_response_completed
         message_type = message.get("type")
         if message_type == "http.response.start":
             headers = message.get("headers") or []
@@ -17817,11 +17824,14 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     "body": raw_response,
                     "more_body": False,
                 })
+            _gold_star_response_completed = True
             captured_start = None
             captured_chunks = []
             return
 
         await send(message)
+        if message_type == "http.response.body" and not message.get("more_body", False):
+            _gold_star_response_completed = True
 
     _doorway_search_token = _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(False)
     try:
@@ -17829,7 +17839,25 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
             scope, _use_replay_receive(raw_body), _capture_json_response
         )
     finally:
-        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(_doorway_search_token)
+        try:
+            _ledger_state = _gold_star_ledger.current_request_context()
+            _ledger_attempts = int(_ledger_state.get("composition_attempt_count") or 0)
+            _ledger_terminal_state = (
+                "boundary_incomplete" if not _gold_star_response_completed
+                else "composition_attempted" if _ledger_attempts
+                else "no_composition_attempt"
+            )
+            _emit_guide_outcome(
+                "gold_star_request_terminal",
+                request_id=_ledger_state.get("request_id"),
+                composition_attempt_count=_ledger_attempts,
+                terminal_state=_ledger_terminal_state,
+            )
+        except Exception:
+            print("Gold Star request-terminal telemetry failed safely.")
+        finally:
+            _gold_star_ledger.end_request_context(_gold_star_request_context_token)
+            _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(_doorway_search_token)
 
 
 app = streaming_entry(_guide_outer_visitor_response_boundary)

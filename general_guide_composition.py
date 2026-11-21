@@ -11,6 +11,7 @@ import re
 import threading
 import logging
 import time
+from functools import wraps
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
@@ -4209,6 +4210,27 @@ def _public_live_source_security_instruction(context_data: Dict[str, Any]) -> st
     )
 
 
+
+
+def _track_gold_star_composition_attempt(function):
+    """Preserve the inspectable composer contract while adding request-local accounting."""
+    @wraps(function)
+    def _tracked_compose(*args, **kwargs):
+        from gold_star_adjudication_trace import (
+            begin_composition_attempt as _begin_gold_star_attempt,
+            current_attempt_trace as _current_gold_star_attempt_trace,
+        )
+        _begin_gold_star_attempt()
+        result = function(*args, **kwargs)
+        if isinstance(result, dict) and not isinstance(result.get("_gold_star_adjudication_trace"), dict):
+            attempt_trace = _current_gold_star_attempt_trace()
+            if isinstance(attempt_trace, dict):
+                result = dict(result)
+                result["_gold_star_adjudication_trace"] = attempt_trace
+        return result
+    return _tracked_compose
+
+@_track_gold_star_composition_attempt
 def compose(
 
     *,
@@ -4256,6 +4278,8 @@ def compose(
         raise RuntimeError("Gold Star adjudication trace failed its privacy/evidence contract.")
     _emit_guide_outcome(
         "gold_star_adjudication_observed",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
@@ -4279,6 +4303,8 @@ def compose(
             raise RuntimeError("Gold Star quality contribution crossed the answer-authority boundary.")
         _emit_guide_outcome(
             "gold_star_quality_active",
+            request_id=gold_star_adjudication_trace.get("request_id"),
+            attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
             benchmark=gold_star_quality.get("benchmark_id"),
             score=gold_star_quality.get("score"),
             authority=gold_star_quality.get("authority_mode"),
@@ -4487,6 +4513,8 @@ def compose(
         raise RuntimeError("Gold Star guidance-exposure trace failed validation.")
     _emit_guide_outcome(
         "gold_star_guidance_exposure",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         exposure=gold_star_adjudication_trace["guidance_exposure"],
@@ -4573,6 +4601,8 @@ def compose(
                 cached_result["_gold_star_adjudication_trace"] = cached_trace
                 _emit_guide_outcome(
                     "gold_star_adjudication_cache_reuse",
+                    request_id=cached_trace.get("request_id"),
+                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
                     trace_version=cached_trace["version"],
                     candidate_count=cached_trace["candidate_count"],
                     provider_adjudication_status=cached_trace["provider_adjudication_status"],
@@ -4818,6 +4848,8 @@ def compose(
         raise RuntimeError("Gold Star composition trace failed validation.")
     _emit_guide_outcome(
         "gold_star_adjudication_composition",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         composition=gold_star_adjudication_trace.get("composition", "unobserved"),
@@ -4914,6 +4946,8 @@ def compose(
                 cached_result["_gold_star_adjudication_trace"] = cached_trace
                 _emit_guide_outcome(
                     "gold_star_adjudication_cache_race_reuse",
+                    request_id=cached_trace.get("request_id"),
+                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
                     trace_version=cached_trace["version"],
                     candidate_count=cached_trace["candidate_count"],
                     provider_adjudication_status=cached_trace["provider_adjudication_status"],
