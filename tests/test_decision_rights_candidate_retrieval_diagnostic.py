@@ -19,7 +19,7 @@ BENCHMARK = json.loads(
 def test_real_bge_candidate_set_baseline():
     rows = []
     for case in BENCHMARK["cases"]:
-        selected = lessons.select_lesson_candidates(case["query"], limit=3)
+        selected = lessons.select_lesson_candidates(case["query"], limit=4)
         predicted = [item["benchmark_id"] for item in selected]
         # Counterfactual semantic ranking for every query, including cases where
         # the production selector exits early on a lexical match. This measures
