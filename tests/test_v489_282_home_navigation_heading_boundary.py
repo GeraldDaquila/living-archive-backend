@@ -12,7 +12,7 @@ def test_explicit_living_archive_homepage_navigation_is_deterministic():
         "title": "Living Archive",
         "url": "https://geralddaquila.com/",
     }
-    assert result["version"] == "v489.282"
+    assert result["version"] == main.APP_VERSION
 
 
 def test_homepage_rule_does_not_trigger_for_topic_discovery():
