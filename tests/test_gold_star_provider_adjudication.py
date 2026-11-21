@@ -111,7 +111,7 @@ def test_trace_keeps_provider_report_distinct_from_human_review_and_tracks_reten
     )
     assert delivered["selection"] == "provider_reported_selected"
     assert delivered["application"] == "provider_asserted_span_present"
-    assert delivered["contribution_retained"] == "retained"
+    assert delivered["contribution_retained"] == "provider_asserted_span_retained"
     assert delivered["outcome"] == "not_evaluated"
     assert trace.validate_trace(delivered)["valid"]
 
