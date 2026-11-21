@@ -133,7 +133,7 @@ def mark_final_delivery(
     result["final_provenance"] = str(final_provenance or "unresolved").strip().casefold()
     result["contribution_retained"] = (
         "not_applicable" if result.get("provider_adjudication_status") == "provider_reported_rejected_all"
-        else "retained" if provider_candidate_delivered and result.get("application_evidence_present") is True
+        else "provider_asserted_span_retained" if provider_candidate_delivered and result.get("application_evidence_present") is True
         else "not_retained" if not provider_candidate_delivered
         else "not_verified"
     )
@@ -228,7 +228,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     if type(trace.get("application_evidence_present", False)) is not bool:
         return {"valid": False, "reason": "invalid_application_evidence_state"}
     if trace.get("contribution_retained", "not_evaluated") not in {
-        "not_evaluated", "not_applicable", "retained", "not_retained", "not_verified"
+        "not_evaluated", "not_applicable", "provider_asserted_span_retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_contribution_retention_state"}
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result"}:
