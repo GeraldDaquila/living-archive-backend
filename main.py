@@ -7935,15 +7935,83 @@ _guide_finalize_visitor_payload_inner = _guide_finalize_visitor_payload
 
 
 def _guide_finalize_visitor_payload(payload, query):
-    finalized = _guide_finalize_visitor_payload_inner(payload, query)
+    # Consume private composition evidence before any specialist finalizer can
+    # return early. The evidence is reattached only as content-free telemetry.
+    safe_input = dict(payload) if isinstance(payload, dict) else payload
+    adjudication_trace = (
+        safe_input.pop("_gold_star_adjudication_trace", None)
+        if isinstance(safe_input, dict) else None
+    )
+    provider_candidate_matches_payload = bool(
+        safe_input.pop("_gold_star_provider_candidate_matches_payload", False)
+        if isinstance(safe_input, dict) else False
+    )
+    pre_boundary_response = _sanitize_basic_inquiry_response(
+        str(safe_input.get("response") or safe_input.get("answer") or "")
+    ) if isinstance(safe_input, dict) else ""
+    finalized = _guide_finalize_visitor_payload_inner(safe_input, query)
     if not isinstance(finalized, dict):
         return finalized
+
+    def _finish_gold_star_delivery_trace(result):
+        if not isinstance(result, dict):
+            return result
+        result.pop("_gold_star_adjudication_trace", None)
+        result.pop("_gold_star_provider_candidate_matches_payload", None)
+        if not isinstance(adjudication_trace, dict):
+            return result
+        from gold_star_adjudication_trace import (
+            mark_final_delivery as _mark_gold_star_final_delivery,
+            validate_trace as _validate_gold_star_final_delivery_trace,
+        )
+        final_response = _sanitize_basic_inquiry_response(
+            str(result.get("response") or result.get("answer") or "")
+        )
+        delivered = bool(
+            provider_candidate_matches_payload
+            and pre_boundary_response
+            and final_response == pre_boundary_response
+            and isinstance(result.get("response_provenance"), dict)
+            and result["response_provenance"].get("class") == "llm"
+        )
+        original_provenance = (
+            safe_input.get("response_provenance")
+            if isinstance(safe_input, dict) else None
+        )
+        original_class = (
+            str(original_provenance.get("class") or "")
+            if isinstance(original_provenance, dict) else ""
+        )
+        final_provenance = (
+            "llm" if delivered
+            else "deterministic_by_design"
+            if original_class == "deterministic_by_design"
+            else "deterministic_recovery" if final_response
+            else "unresolved"
+        )
+        trace = _mark_gold_star_final_delivery(
+            adjudication_trace,
+            provider_candidate_delivered=delivered,
+            final_provenance=final_provenance,
+        )
+        validation = _validate_gold_star_final_delivery_trace(trace)
+        if not validation.get("valid"):
+            raise RuntimeError("Gold Star final-delivery trace failed validation.")
+        _emit_guide_outcome(
+            "gold_star_adjudication_final_delivery",
+            trace_version=trace["version"],
+            candidate_count=trace["candidate_count"],
+            final_delivery=trace["final_delivery"],
+            final_provenance=trace["final_provenance"],
+        )
+        return result
+
     if str(finalized.get("intent") or "").strip().upper() in {
         "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
     }:
-        return finalized
+        return _finish_gold_star_delivery_trace(finalized)
     if _resolve_exact_guide_gold_standard(query) is not None:
-        return finalized
+        return _finish_gold_star_delivery_trace(finalized)
     from event_pattern_structure_contract import apply_event_pattern_structure_boundary
     from complicated_complex_distinction_contract import (
         apply_complicated_complex_distinction_boundary,
@@ -7980,8 +8048,8 @@ def _guide_finalize_visitor_payload(payload, query):
     # final_visitor_boundary_stewardship_consent_relational_contract is enforced here:
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
-        return _apply_stewardship_consent_relationship_boundary(query, finalized)
-    return finalized
+        finalized = _apply_stewardship_consent_relationship_boundary(query, finalized)
+    return _finish_gold_star_delivery_trace(finalized)
 
 
 _BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
@@ -14522,6 +14590,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
     }
+    if isinstance(composition_result, dict):
+        _adjudication_trace = composition_result.get("_gold_star_adjudication_trace")
+        if isinstance(_adjudication_trace, dict):
+            payload["_gold_star_adjudication_trace"] = dict(_adjudication_trace)
+            payload["_gold_star_provider_candidate_matches_payload"] = bool(
+                _llm_invoked
+                and _final_response_text == _llm_candidate_text
+            )
     from gold_star_response_floor import evaluate_response_floor
     _floor_preview = evaluate_response_floor(
         query, payload, exact_standard=_final_gold_standard is not None
@@ -14568,6 +14644,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         print(
             "The Guide bounded repair ended without an accepted candidate: "
             + str(_repair_outcome.get("reason") or _repair_outcome.get("revalidation_reason") or "unknown")
+        )
+    if isinstance(payload, dict) and isinstance(payload.get("_gold_star_adjudication_trace"), dict):
+        # A bounded repair may replace the provider candidate before the shared
+        # visitor boundary. Recompute this content-free equality bit after repair.
+        payload["_gold_star_provider_candidate_matches_payload"] = bool(
+            _llm_invoked
+            and _sanitize_basic_inquiry_response(str(payload.get("response") or ""))
+            == _llm_candidate_text
         )
     print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query_chars={len(query)}")
     return payload
