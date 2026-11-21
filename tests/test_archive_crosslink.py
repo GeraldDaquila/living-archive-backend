@@ -756,3 +756,36 @@ def test_expand_context_compatibility_list_retains_structured_status(monkeypatch
     assert isinstance(docs, list)
     assert docs.status == "stale_snapshot_no_candidate"
     assert docs.snapshot_age_seconds is not None
+
+
+def test_bridge_provenance_marks_local_body_truncation(monkeypatch):
+    import json
+
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+        def read(self, size=-1):
+            return json.dumps({
+                "id": "21767",
+                "source": "published_wordpress_content",
+                "url": "https://geralddaquila.com/stewardship/",
+                "title": "Stewardship",
+                "text": "Responsible stewardship and care. " * 500,
+                "truncated": False,
+                "modified_gmt": "2026-11-20 09:30:00",
+            }).encode("utf-8")
+
+    monkeypatch.setattr(archive_crosslink, "urlopen", lambda *_args, **_kwargs: Response())
+    asset = {
+        "title": "Stewardship",
+        "url": "https://geralddaquila.com/stewardship/",
+        "wp_id": "21767",
+        "resource_type": "page",
+        "tier": "T1",
+        "access_class": "public",
+    }
+    docs = archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore())
+    assert len(docs) == 1
+    assert len(docs[0]["text"]) <= 12000
+    assert docs[0]["source_truncated"] is True
+    assert docs[0]["evidence_provenance"]["truncated"] is True
