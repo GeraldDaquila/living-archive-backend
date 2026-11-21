@@ -173,6 +173,7 @@ def test_weak_internal_evidence_triggers_existing_live_site_crosslink_and_reopen
     assert result["evidence_sufficiency_unavailable"] is False
     assert result["question_evidence_fit_unavailable"] is False
     assert result["live_site_fallback_status"] == "relevant_source_available_unassessed_for_entailment"
+    assert result["live_site_registry_status"] == "verified_source_bodies_available"
     assert result["live_site_evidence_assessment"] == "question_relevance_only; no entailment or contradiction determination"
     assert result["live_site_source_count"] == 1
     assert result["live_site_source_provenance"][0]["wordpress_post_id"] == "12345"
