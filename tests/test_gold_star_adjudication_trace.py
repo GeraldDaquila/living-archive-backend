@@ -1,4 +1,8 @@
 import gold_star_adjudication_trace as trace
+from gold_star_adjudication_trace import (
+    mark_composition_result,
+    mark_final_delivery,
+)
 
 
 def _contribution():
@@ -94,7 +98,6 @@ def test_trace_distinguishes_human_reviewed_states_from_automated_observation():
     assert result["application"] != "human_reviewed_applied"
     assert result["outcome"] != "human_reviewed_improved"
 
-from gold_star_adjudication_trace import mark_composition_result, mark_final_delivery
 
 
 def test_composition_return_and_final_delivery_are_distinct_evidence_stages():
