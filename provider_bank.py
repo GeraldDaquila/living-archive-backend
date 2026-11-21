@@ -2711,13 +2711,14 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
                 )
         soft_threshold = GENERAL_GUIDE_SOFT_LATENCY_THRESHOLD_SECONDS
         soft_state = "soft_threshold_exceeded" if elapsed >= soft_threshold else "within_soft_threshold"
-        print(
-            "USE provider inference timing: "
-            f"provider={provider}, model={model}, outcome={outcome}, "
-            f"elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
-            f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
-            + _gold_star_provider_route_log_fields(operation)
+        try:
+            print(
+                "USE provider inference timing: "
+                f"provider={provider}, model={model}, outcome={outcome}, "
+                f"elapsed_seconds={elapsed:.3f}, "
+                f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
+                f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
+                + _gold_star_provider_route_log_fields(operation)
             )
         finally:
             reservation.release()
