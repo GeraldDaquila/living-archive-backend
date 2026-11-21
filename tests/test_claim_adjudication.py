@@ -200,3 +200,30 @@ def test_unmarked_source_is_not_assumed_public():
     }]
     result = adjudicate_answer_claims("answer", unmarked)
     assert result["status"] == "no_relevant_public_source"
+
+
+def test_combined_provider_callback_uses_one_assessment_envelope():
+    calls = []
+    def combined(answer, passages):
+        calls.append((answer, len(passages)))
+        return [{
+            "claim": "Stewardship is responsible care.",
+            "outcome": "supported",
+            "reason": "The passage directly defines the concept.",
+            "attributions": [{
+                "passage_id": passages[0]["passage_id"],
+                "quote": "The archive defines stewardship as responsible care of shared conditions.",
+            }],
+        }]
+    result = adjudicate_answer_claims("the answer", DOCS, adjudicate_claims=combined)
+    assert len(calls) == 1
+    assert calls[0][0] == "the answer"
+    assert result["claims"][0]["outcome"] == "supported"
+
+
+def test_combined_provider_exception_fails_closed():
+    def broken(_answer, _passages):
+        raise RuntimeError("provider offline")
+    result = adjudicate_answer_claims("answer", DOCS, adjudicate_claims=broken)
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "claim_adjudication_failed"
