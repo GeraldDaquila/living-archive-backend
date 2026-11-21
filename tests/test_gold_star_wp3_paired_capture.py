@@ -410,3 +410,19 @@ def test_capture_runner_has_no_standalone_qa_target():
     source = (Path(__file__).resolve().parents[1] / "scripts/capture_gold_star_wp3_pairs.py").read_text(encoding="utf-8")
     assert "living-archive-gold-star-v2-qa.onrender.com" not in source
     assert "APPROVED_TARGETS = {MIRROR}" in source
+
+
+
+def test_memory_probe_workflow_is_single_case_mirror_only_and_guarded():
+    from pathlib import Path
+
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/gold-star-wp3-memory-probe.yml"
+    ).read_text(encoding="utf-8")
+    assert "https://living-archive-backend-mirror.onrender.com" in workflow
+    assert "[wp3-memory-probe]" in workflow
+    assert "--case-id heldout-strategic-governance-001" in workflow
+    assert "--skip-provider-probe" in workflow
+    assert "--require-http-200" in workflow
+    assert "living-archive-gold-star-v2-qa.onrender.com" not in workflow
