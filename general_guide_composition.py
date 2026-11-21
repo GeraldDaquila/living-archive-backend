@@ -18,6 +18,7 @@ from gold_star_question_contract import build_question_contract, validate_questi
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from gold_star_adjudication_trace import (
     build_adjudication_trace as _build_gold_star_adjudication_trace,
+    mark_composition_result as _mark_gold_star_composition_result,
     validate_trace as _validate_gold_star_adjudication_trace,
 )
 
