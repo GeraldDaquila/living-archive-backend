@@ -136,6 +136,7 @@ def begin_provider_route(operation: str):
         "failure_count": 0,
         "admission_denied_count": 0,
         "terminal_state": "in_progress",
+        "active": True,
     }
     state["provider_route_count"] = route_ordinal
     state["current_provider_route"] = route
@@ -193,6 +194,7 @@ def finish_provider_route(operation: str, terminal_state: str):
         return {}
     value = str(terminal_state or "")
     route["terminal_state"] = value if value in _PROVIDER_ROUTE_TERMINAL_STATES else "provider_exception"
+    route["active"] = False
     state["provider_terminal_state"] = route["terminal_state"]
     return dict(route)
 
