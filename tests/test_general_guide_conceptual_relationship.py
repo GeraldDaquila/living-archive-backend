@@ -1,3 +1,4 @@
+from pathlib import Path
 """Regression tests for conceptual relationship questions in The Guide."""
 from general_guide_composition import (
     _conceptual_relationship_recovery,
@@ -38,7 +39,7 @@ def test_generic_problem_solving_response_fails_relationship_contract():
 
 
 def test_recovery_explains_the_mechanism_between_concepts():
-    response = _conceptual_relationship_recovery()
+    response = _conceptual_relationship_recovery(RELATIONSHIP_QUESTION)
     assert has_conceptual_relationship_explanation(response)
     assert "because people can judge" in response
     assert "repair turns accountability into action" in response
