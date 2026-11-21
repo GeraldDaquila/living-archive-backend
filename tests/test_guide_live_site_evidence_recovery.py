@@ -142,9 +142,9 @@ def test_weak_internal_evidence_triggers_existing_live_site_crosslink_and_reopen
             "intent": "TOPICAL_INQUIRY",
             "context_blocks": "",
             "canonical_link_context": (
-                "Title: Adjacent Resource\n"
-                "URL: https://geralddaquila.com/adjacent-resource/\n"
-                "Content: A weakly related resource about unrelated matters."
+                "Title: Institutional Learning\n"
+                "URL: https://geralddaquila.com/institutional-learning/\n"
+                "Content: A weakly related short snippet without substantive detail."
             ),
             "evidence_sufficiency_unavailable": True,
             "question_evidence_fit_unavailable": True,
