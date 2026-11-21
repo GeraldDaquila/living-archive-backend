@@ -32,3 +32,36 @@ def test_real_bge_separates_held_out_paraphrase_from_near_domain_distractor():
     assert selected[0]["exact"] is False
 
     assert lessons.select_lesson_candidates(distractor_query) == []
+
+def test_real_bge_decision_rights_paraphrase_and_cross_domain_abstention():
+    """Measure the anchorless decision-rights bridge against a cross-domain negative."""
+    candidates = _candidates()
+    positive_query = "How do decision rights affect institutional responsibility?"
+    negative_query = "How should I assign responsibilities when organizing a home garden?"
+
+    target = next(
+        item for item in candidates
+        if item["id"] == "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13"
+    )
+    positive_scores = rank_semantic_lessons(positive_query, candidates)
+    negative_scores = rank_semantic_lessons(negative_query, candidates)
+
+    print(
+        "REAL_BGE_DECISION_RIGHTS",
+        {
+            "target": target["id"],
+            "positive_target_score": positive_scores.get(target["id"]),
+            "positive_top": sorted(positive_scores.items(), key=lambda row: -row[1])[:5],
+            "negative_target_score": negative_scores.get(target["id"]),
+            "negative_top": sorted(negative_scores.items(), key=lambda row: -row[1])[:5],
+            "positive_selected": [
+                item["benchmark_id"]
+                for item in lessons.select_lesson_candidates(positive_query)
+            ],
+            "negative_selected": [
+                item["benchmark_id"]
+                for item in lessons.select_lesson_candidates(negative_query)
+            ],
+        },
+        flush=True,
+    )
