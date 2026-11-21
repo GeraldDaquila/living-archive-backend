@@ -2263,15 +2263,22 @@ def _recommendation_first_fetch(query_str):
                 f"query_tokens={recovery_token_count}; "
                 f"seed_docs={len(docs)}; action={profile.get('action') or 'none'}"
             )
-            crosslinks = archive_crosslink.expand_context(
+            crosslink_result = archive_crosslink.expand_context_result(
                 str(query_str or ""),
                 docs,
                 getattr(use_core, "index", None),
                 use_core,
             )
+            crosslinks = crosslink_result.get("documents") or []
+            if evidence_recovery_requested and profile.get("action") not in {"recommendation", "navigation"}:
+                data["live_site_fallback_status"] = str(
+                    crosslink_result.get("status") or "source_unavailable"
+                )
+                data["live_site_snapshot_age_seconds"] = crosslink_result.get("snapshot_age_seconds")
             print(
                 "The Guide recovery trace: "
-                f"crosslinks_selected={len(crosslinks or [])}"
+                f"crosslinks_selected={len(crosslinks or [])}; "
+                f"source_status={crosslink_result.get('status') or 'unknown'}"
             )
             if crosslinks:
                 existing_urls = {
