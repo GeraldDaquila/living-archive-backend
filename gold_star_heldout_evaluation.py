@@ -1,9 +1,9 @@
 """Held-out evaluation contract for Gold Star structural learning.
 
-This module does not compose visitor answers. It evaluates selector precision
-against a frozen, explicit evaluation corpus. It intentionally does not read
-the live lesson registry at evaluation time: test fixtures may replace the
-selector pool, but must not silently redefine evaluation truth.
+This module does not compose visitor answers. It compares the current selector
+against fixed expected benchmark IDs held separately from the selector's
+candidate pool. Tests may replace the candidate pool without changing the
+expected outcomes.
 """
 from __future__ import annotations
 
