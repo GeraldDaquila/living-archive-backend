@@ -430,7 +430,8 @@
       "activation": "active_quality_contributor",
       "source_field_gaps": [
         "qualifying_context"
-      ]
+      ],
+      "qualifying_context": ""
     },
     {
       "candidate_label": "C034",
@@ -1194,7 +1195,8 @@
       "activation": "active_quality_contributor",
       "source_field_gaps": [
         "qualifying_context"
-      ]
+      ],
+      "qualifying_context": ""
     },
     {
       "candidate_label": "C103",
