@@ -125,6 +125,7 @@ def test_live_evaluation_workflow_sets_repository_import_path_and_entrypoint_imp
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github" / "workflows" / "guide-live-evaluation.yml").read_text(encoding="utf-8")
     assert "PYTHONPATH: ." in workflow
+    assert "push:\n    branches: [main]" in workflow
 
     env = {**os.environ, "PYTHONPATH": str(root)}
     result = subprocess.run(
