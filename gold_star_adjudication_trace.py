@@ -262,7 +262,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result", "cached_candidate_reused"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
-        "provider_candidate_delivered", "deterministic_or_unresolved_replacement"
+        "provider_candidate_delivered", "cached_candidate_reused", "deterministic_or_unresolved_replacement"
     }:
         return {"valid": False, "reason": "invalid_final_delivery_state"}
     if "final_provenance" in trace and trace["final_provenance"] not in {
