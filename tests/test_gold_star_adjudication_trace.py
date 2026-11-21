@@ -93,3 +93,44 @@ def test_trace_distinguishes_human_reviewed_states_from_automated_observation():
     assert result["selection"] != "human_reviewed_selected"
     assert result["application"] != "human_reviewed_applied"
     assert result["outcome"] != "human_reviewed_improved"
+
+from gold_star_adjudication_trace import mark_composition_result, mark_final_delivery
+
+
+def test_composition_return_and_final_delivery_are_distinct_evidence_stages():
+    initial = trace.build_adjudication_trace(_contribution())
+    composed = mark_composition_result(
+        initial,
+        provider_result={"parsed": {"response": "A generated answer."}},
+    )
+    assert composed["composition"] == "provider_candidate_returned"
+    assert composed["selection"] == "not_observed"
+    assert composed["application"] == "not_observed"
+    assert composed["outcome"] == "not_evaluated"
+
+    final = mark_final_delivery(
+        composed,
+        provider_candidate_delivered=True,
+        final_provenance="llm",
+    )
+    assert final["final_delivery"] == "provider_candidate_delivered"
+    assert final["final_provenance"] == "llm"
+    assert final["application"] == "not_observed"
+    assert final["outcome"] == "not_evaluated"
+
+
+def test_final_deterministic_rewrite_does_not_inherit_llm_delivery_credit():
+    initial = trace.build_adjudication_trace(_contribution())
+    composed = mark_composition_result(
+        initial,
+        provider_result={"parsed": {"response": "Provider answer."}},
+    )
+    final = mark_final_delivery(
+        composed,
+        provider_candidate_delivered=False,
+        final_provenance="deterministic_recovery",
+    )
+    assert final["final_delivery"] == "deterministic_or_unresolved_replacement"
+    assert final["final_provenance"] == "deterministic_recovery"
+    assert final["application"] == "not_observed"
+    assert final["outcome"] == "not_evaluated"
