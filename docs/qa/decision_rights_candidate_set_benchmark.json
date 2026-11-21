@@ -1,0 +1,145 @@
+{
+  "benchmark_id": "decision-rights-institutional-responsibility-candidate-set-v1",
+  "version": "1.0.0",
+  "status": "TECHNICAL_STEWARD_SELECTED_BENCHMARK",
+  "authority_note": "Candidate roles and scenario labels selected by the technical steward under the user's express delegation of full project decision authority on 2026-11-22. This is benchmark governance, not a change to the underlying USER_APPROVED_GOLD_STANDARD records.",
+  "primary_question": "How do decision rights affect institutional responsibility?",
+  "principle": "Evaluate retrieval as a governed candidate set of complementary disciplines with explicit applicability conditions. Do not force a unique winner or infer substantive application from retrieval.",
+  "candidate_roles": [
+    {
+      "benchmark_id": "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+      "role": "core",
+      "rationale": "Makes purposes, responsibilities, consequences, affected people, evidence, reasoning, and accountability visible in governance."
+    },
+    {
+      "benchmark_id": "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+      "role": "core",
+      "rationale": "Compares authority on paper with actual influence over options, information, outcomes, and the ability to challenge decisions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-power-responsibility-proportional-accountability",
+      "role": "core",
+      "rationale": "Relates answerability to actual influence, knowledge, role, and capacity, while preserving limits where control is constrained."
+    },
+    {
+      "benchmark_id": "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18",
+      "role": "conditional",
+      "condition": "Activate when the question or context explicitly concerns the interaction of written rules/formal decision rights with informal norms, incentives, enforcement, workarounds, or lived practice.",
+      "rationale": "Explains how alignment or contradiction between formal rules and informal norms shapes organizational behavior and accountability."
+    },
+    {
+      "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
+      "role": "conditional",
+      "condition": "Activate when authority or judgment is delegated to another person, body, system, or institution, or when the question asks whether delegation obscures ultimate accountability.",
+      "rationale": "Distinguishes legitimate delegation from disappearance of responsibility; preserves reasons, contestability, correction, and ultimate accountability."
+    },
+    {
+      "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
+      "role": "related_conditional",
+      "condition": "Activate only when the visitor explicitly contrasts leadership, demonstrated conduct, or earned trust with positional/formal authority.",
+      "rationale": "A useful neighboring distinction, but not a default decision-rights discipline."
+    }
+  ],
+  "essential_answer_demands": [
+    "Identify who formally holds the right to decide and the scope and limits of that mandate.",
+    "Distinguish formal authority from actual influence over information, options, resources, and outcomes.",
+    "Relate responsibility and answerability to actual authority, influence, knowledge, role, and capacity.",
+    "Make visible who experiences the consequences and how affected people can question, challenge, or seek correction.",
+    "Where authority is delegated, distinguish delegation from transfer or disappearance of ultimate accountability.",
+    "Explain the relationship between written rules and informal practice only when the question or evidence calls for it."
+  ],
+  "cases": [
+    {
+      "case_id": "central-question",
+      "query": "How do decision rights affect institutional responsibility?",
+      "expected_core": [
+        "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+        "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+        "gs-2026-11-20-power-responsibility-proportional-accountability"
+      ],
+      "expected_conditional": [],
+      "expected_related_conditional": [],
+      "abstain": false
+    },
+    {
+      "case_id": "distributed-authority-paraphrase",
+      "query": "Who should answer for an institutional decision when authority and influence are spread across several people?",
+      "expected_core": [
+        "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+        "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+        "gs-2026-11-20-power-responsibility-proportional-accountability"
+      ],
+      "expected_conditional": [],
+      "expected_related_conditional": [],
+      "abstain": false
+    },
+    {
+      "case_id": "delegated-authority",
+      "query": "When a board delegates a consequential decision to a committee, who remains accountable and how can the decision be challenged?",
+      "expected_core": [
+        "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+        "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+        "gs-2026-11-20-power-responsibility-proportional-accountability"
+      ],
+      "expected_conditional": [
+        "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13"
+      ],
+      "expected_related_conditional": [],
+      "abstain": false
+    },
+    {
+      "case_id": "formal-informal-mismatch",
+      "query": "What happens when an institution's written decision rights differ from the informal norms that actually determine who gets heard and what gets decided?",
+      "expected_core": [
+        "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+        "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+        "gs-2026-11-20-power-responsibility-proportional-accountability"
+      ],
+      "expected_conditional": [
+        "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18"
+      ],
+      "expected_related_conditional": [],
+      "abstain": false
+    },
+    {
+      "case_id": "leadership-versus-position",
+      "query": "How is leadership different from positional authority, and why does holding a title not necessarily mean someone leads?",
+      "expected_core": [],
+      "expected_conditional": [],
+      "expected_related_conditional": [
+        "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26"
+      ],
+      "abstain": false
+    },
+    {
+      "case_id": "garden-chores-negative",
+      "query": "How should I assign responsibilities when organizing a home garden?",
+      "expected_core": [],
+      "expected_conditional": [],
+      "expected_related_conditional": [],
+      "abstain": true
+    },
+    {
+      "case_id": "household-chores-negative",
+      "query": "How should roommates divide routine household chores fairly?",
+      "expected_core": [],
+      "expected_conditional": [],
+      "expected_related_conditional": [],
+      "abstain": true
+    },
+    {
+      "case_id": "underspecified-ambiguity",
+      "query": "Who is responsible for this?",
+      "expected_core": [],
+      "expected_conditional": [],
+      "expected_related_conditional": [],
+      "abstain": true
+    }
+  ],
+  "evaluation_gates": {
+    "retrieval": "Measure candidate-set precision and recall by role, conditional activation, false-positive transfer, and abstention. Do not score success by whether one benchmark ID is ranked first.",
+    "application": "Separately assess whether the delivered answer substantively applies the relevant discipline. Retrieval, prompt inclusion, provider self-report, and phrase/span presence are not proof of application.",
+    "answer_integrity": "Do not transfer exemplar-specific answer text, factual claims, examples, citations, or doorways. Exact approved questions retain their separate answer authority.",
+    "release": "No threshold changes, ontology bridges, ranking changes, or runtime behavior changes are authorized by this benchmark alone. Require held-out results and a separately reviewed minimal correction."
+  }
+}
