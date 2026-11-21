@@ -1,0 +1,1500 @@
+{
+  "packet_id": "decision-rights-independent-review-pilot-2026-11-22",
+  "packet_version": "1.0",
+  "purpose": "Blinded first-pass relevance and conditional-activation review of the complete approved runtime-active Gold Star transferable-discipline inventory.",
+  "source_revision": "b880953fea29f4c81640122e4c85a3177b729134",
+  "source_files": {
+    "registry": {
+      "path": "docs/qa/gold_standard_registry.json",
+      "blob_sha": "866d00aca374dfcac3b77869560918a4cf8fe2c8"
+    },
+    "transfer_review": {
+      "path": "docs/qa/gold_star_qualitative_transfer_review.json",
+      "blob_sha": "e7cd8c2325bfcdb1a49a2fa3c428974259c5d58d"
+    },
+    "query_fixture": {
+      "path": "docs/qa/decision_rights_candidate_set_benchmark.json",
+      "blob_sha": "041d1f7501319c9c3d3827c0037a4227a4979d29"
+    }
+  },
+  "inventory_reconciliation": {
+    "approved_records": 131,
+    "runtime_transfer_true": 129,
+    "qualitative_review_entries": 129,
+    "missing_reviews": 0,
+    "orphan_reviews": 0
+  },
+  "blinding": "Candidate labels are stable pseudonymous labels assigned by sorting benchmark IDs lexicographically. The packet omits benchmark IDs, steward-selected roles, current selector output, semantic scores, and other reviewers' labels. Because approved questions and discipline text are retained for meaningful review, a reviewer familiar with the registry may infer candidate identities; this is label-blinding, not guaranteed identity-blinding. Reviewers must not consult the source registry or attempt identity resolution before locking first-pass annotations.",
+  "reviewer_instructions": "For every case and every candidate, record CORE, CONDITIONAL, RELATED_NOT_NEEDED, NOT_RELEVANT, or INSUFFICIENT_CONTEXT. For CONDITIONAL, name the observable trigger and whether it is present. Also record answerability/abstention, minimum adequate discipline set, omitted relevant candidates, cross-domain risks, and concise rationale. Do not treat shared vocabulary or general usefulness as relevance. Preserve independent first-pass submissions before discussion.",
+  "dispositions": [
+    "CORE",
+    "CONDITIONAL",
+    "RELATED_NOT_NEEDED",
+    "NOT_RELEVANT",
+    "INSUFFICIENT_CONTEXT"
+  ],
+  "cases": [
+    {
+      "case_id": "central-question",
+      "query": "How do decision rights affect institutional responsibility?"
+    },
+    {
+      "case_id": "distributed-authority-paraphrase",
+      "query": "Who should answer for an institutional decision when authority and influence are spread across several people?"
+    },
+    {
+      "case_id": "delegated-authority",
+      "query": "When a board delegates a consequential decision to a committee, who remains accountable and how can the decision be challenged?"
+    },
+    {
+      "case_id": "formal-informal-mismatch",
+      "query": "What happens when an institution's written decision rights differ from the informal norms that actually determine who gets heard and what gets decided?"
+    },
+    {
+      "case_id": "leadership-versus-position",
+      "query": "How is leadership different from positional authority, and why does holding a title not necessarily mean someone leads?"
+    },
+    {
+      "case_id": "garden-chores-negative",
+      "query": "How should I assign responsibilities when organizing a home garden?"
+    },
+    {
+      "case_id": "household-chores-negative",
+      "query": "How should roommates divide routine household chores fairly?"
+    },
+    {
+      "case_id": "underspecified-ambiguity",
+      "query": "Who is responsible for this?"
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_label": "C001",
+      "approved_question": "How can governance structures make ethical responsibility actionable?",
+      "known_theme": "governance, ethical responsibility, accountability, decision-making, affected people, AI",
+      "reasoning_family": "actionable_ethical_governance",
+      "transferable_discipline": "Make ethical responsibility actionable by structuring decisions so that purposes, responsibilities, consequences, affected people, evidence, reasoning, and accountability remain visible throughout the act of governing.",
+      "qualifying_context": "Questions about governance, institutional decisions, ethical responsibility, accountability, affected stakeholders, or AI-assisted authority.",
+      "abstention_boundary": "Do not present governance procedure, AI advice, efficiency, or formal compliance as substitutes for accountable human judgment about consequences and responsibilities.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C002",
+      "approved_question": "What is the relationship between agency and circumstance?",
+      "known_theme": "agency, circumstance, structure and action, constraints, choice, responsibility, blame, individual and collective change",
+      "reasoning_family": "agency_within_circumstance_asymmetry",
+      "transferable_discipline": "For substantive questions about agency and conditions, define the relationship directly, show how circumstances shape the field of possible action without fully determining response, use a concrete mechanism when useful, and end with the practical distinction that prevents both unfair blame and the erasure of agency.",
+      "qualifying_context": "Questions about agency, choice, structure, circumstance, constraints, responsibility, and how conditions shape action without fully determining it.",
+      "abstention_boundary": "Do not treat constraints as destiny, agency as unlimited freedom, or this general conceptual explanation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C003",
+      "approved_question": "What does it mean for an AI to be an interpreter rather than an authority?",
+      "known_theme": "AI, interpretation, authority, legitimacy, accountability, human judgment, governance",
+      "reasoning_family": "interpretation_without_authority",
+      "transferable_discipline": "For questions about AI or other systems that inform judgment, distinguish interpretive capability from legitimate authority: clarify what the system can organize or reveal, then preserve inspectability, contestability, accountable decision-making, and responsibility for consequences.",
+      "qualifying_context": "Conceptual questions about AI, automated systems, decision support, interpretation, recommendations, or the boundary between technical assistance and legitimate human or institutional authority.",
+      "abstention_boundary": "Do not equate analytical capability, confidence, ranking, or recommendation with legitimate authority; do not imply AI must be passive; and do not transfer the exemplar-specific wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C004",
+      "approved_question": "How can algorithmic systems scale existing biases or institutional failures?",
+      "known_theme": "algorithmic systems, bias, institutional failure, amplification, feedback loops, causation, oversight",
+      "reasoning_family": "mechanism_first_systemic_amplification",
+      "transferable_discipline": "For questions about a system scaling an existing condition, name the specific mechanism first, distinguish amplification from original causation, then examine the wider relationships, oversight conditions, and intervention points without replacing the named mechanism with a generic systems explanation.",
+      "qualifying_context": "Questions about algorithms, automation, ranking, recommendation, classification, feedback loops, or other systems that may scale, accelerate, distribute, or reinforce an existing social or institutional condition.",
+      "abstention_boundary": "Do not attribute every harmful pattern to algorithms alone, treat amplification as proof of original causation, or substitute abstract systems language for the concrete mechanism named in the question.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C005",
+      "approved_question": "How should The Guide separate direct Archive claims from its own synthesis?",
+      "known_theme": "direct Archive claims, synthesis, orientation, traceability, inference, epistemic integrity, source authority",
+      "reasoning_family": "epistemic_layer_integrity",
+      "transferable_discipline": "Keep source-grounded claims, synthesis, and orientation visibly distinct. Preserve traceability when reporting evidence; name inference when connecting materials; and offer orientation without presenting it as borrowed authority.",
+      "qualifying_context": "Questions about evidence, source authority, synthesis, inference, interpretation, provenance, or how a guide should distinguish reported claims from its own framing.",
+      "abstention_boundary": "Do not present synthesis as the claim of a single source; do not treat orienting language as evidence; do not borrow authority from the Archive for an inference the Guide itself has made; do not transfer the Becoming Fully Human doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C006",
+      "approved_question": "The archive offers two suggestive examples but no direct answer to a visitor's claim. How should the Guide express what is known and what remains open?",
+      "known_theme": "Archive examples, source evidence, direct claims, synthesis, representativeness, counterevidence, unresolved claims, evidence gaps, epistemic limits",
+      "reasoning_family": "archive_examples_evidence_limits",
+      "transferable_discipline": "Separate source-specific evidence from the Guide's synthesis; test whether examples are representative and whether other materials qualify or contradict them; state the exact boundary of what is established, what remains open, and what further evidence would be needed.",
+      "qualifying_context": "Questions asking what a limited set of Archive examples establishes about a broader visitor claim, especially where the examples are suggestive but no direct answer or explicit source statement is available.",
+      "abstention_boundary": "Do not generalize from illustrative examples without evidence of representativeness. Do not present synthesis as a direct Archive claim or treat suggestive examples as proof of a broader proposition. Do not turn missing evidence into a confident conclusion; name what remains unresolved.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C007",
+      "approved_question": "How should The Guide distinguish archive-grounded guidance from general external knowledge?",
+      "known_theme": "Archive provenance, direct claims, synthesis, orientation, knowledge, sensemaking, source integrity",
+      "reasoning_family": "archive_guidance_provenance_and_orientation",
+      "transferable_discipline": "Keep three layers visibly distinct: direct source-grounded claims remain traceable; cross-resource relationships are named as synthesis; orientation frames inquiry without borrowing evidentiary authority. Preserve relationships among materials without flattening different voices into one conclusion, then offer one verified continuation when a canonical conceptual family applies.",
+      "qualifying_context": "Questions about Archive provenance, source integrity, synthesis across materials, interpretive orientation, knowledge, sensemaking, or how the Guide should distinguish what sources say from what it infers or frames.",
+      "abstention_boundary": "Do not present synthesis or orientation as a direct Archive claim; do not flatten distinct Archive voices into a single authoritative conclusion; do not transfer exemplar-specific wording or the Knowledge & Sensemaking doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C008",
+      "approved_question": "A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?",
+      "known_theme": "model evaluation, calibration set, validation set, held-out evaluation, generalization, overfitting, model revision, promotion decision, evaluation integrity, regression analysis",
+      "reasoning_family": "held_out_validation_and_generalization_decision",
+      "transferable_discipline": "For model-revision promotion questions, distinguish data used to fit or tune a revision from independent held-out evaluation. Let relevant validation performance govern generalization and promotion; interpret calibration gains paired with validation regression as a warning requiring investigation, not as evidence of improvement. Check metric and protocol comparability, sample size and uncertainty, leakage and split integrity, distribution differences, reproducibility, and subgroup effects. Do not promote on calibration gains alone; require reproducible held-out improvement without an unacceptable regression.",
+      "qualifying_context": "Questions asking whether a model, Guide, or system revision should be promoted when performance improves on calibration/tuning data but declines on a held-out validation set.",
+      "abstention_boundary": "Apply only when a question compares performance on calibration/tuning data with held-out validation data for a model or system revision. Do not assume the dataset labels or metrics are comparable without checking; do not treat one noisy validation result as conclusive without examining uncertainty and reproducibility; do not confuse this with probability-calibration metrics unless the question establishes that meaning; and do not transfer the answer or technical details to unrelated decision questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C009",
+      "approved_question": "How can economic systems recognize unpaid care and commons maintenance?",
+      "known_theme": "unpaid care, commons maintenance, economic recognition, invisible infrastructure, shared responsibility, externalities",
+      "reasoning_family": "care_and_commons_economic_recognition",
+      "transferable_discipline": "Establish sustaining work as a condition of wider economic activity; distinguish visibility from shared responsibility; identify who benefits and who bears costs; preserve the boundary that recognition does not require commodifying care or shared resources.",
+      "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
+      "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C010",
+      "approved_question": "How does the Archive understand care for the commons?",
+      "known_theme": "commons, stewardship, shared conditions, collective responsibility, accountability, renewal, participation",
+      "reasoning_family": "stewardship_of_shared_conditions",
+      "transferable_discipline": "When asked about care for a shared good, begin by identifying the conditions held in common rather than reducing the answer to ownership or resource management. Keep collective responsibility and differentiated accountability together; make benefits, costs, participation, and answerability visible; then extend the frame from preservation toward renewal of shared conditions and collective capacity.",
+      "qualifying_context": "Questions about common goods, shared conditions, collective stewardship, public responsibility, or care for resources and relationships people depend upon together.",
+      "abstention_boundary": "Do not collapse the commons into a single resource, treat collective care as the disappearance of individual responsibility, or reduce long-term stewardship to short-term preservation alone.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C011",
+      "approved_question": "What are the risks of charisma without constitutional restraint?",
+      "known_theme": "power with checks",
+      "reasoning_family": "power_with_checks",
+      "transferable_discipline": "Pair influence with scrutiny, dissent, independent review, and correctability.",
+      "qualifying_context": "Questions about concentrated influence or safeguards against abuse.",
+      "abstention_boundary": "Do not presume misconduct solely from strong influence.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C012",
+      "approved_question": "What does the Archive mean by civilizational transition?",
+      "known_theme": "civilizational transition and stewardship under uncertainty",
+      "reasoning_family": "transition_under_uncertainty",
+      "transferable_discipline": "Distinguish strain and transition from predictions of collapse or progress; orient action around changing conditions, what is worth carrying forward, and responsibility under uncertainty.",
+      "qualifying_context": "Questions about civilizational, institutional, or social transition under uncertainty.",
+      "abstention_boundary": "Do not turn a transition frame into a claim that every disruption is civilizational or that history has a predetermined destination.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C013",
+      "approved_question": "A community project reports its financial return and the number of volunteer hours but not who benefits or what common resources are maintained. What additional economic dimensions should the Guide surface?",
+      "known_theme": "community projects, economic contribution, benefit distribution, volunteer labor, opportunity costs, common resources, shared assets, maintenance, lifecycle costs, ecological effects, local value retention, durability",
+      "reasoning_family": "community_project_economic_accounting_and_shared_resource_stewardship",
+      "transferable_discipline": "Make economic accounting distributional and lifecycle-aware: identify who benefits and who holds decision power, whose paid and unpaid labor and opportunity costs are counted, who bears externalized costs, what shared assets and ecological conditions require maintenance, and whether local value and capabilities endure.",
+      "qualifying_context": "Questions evaluating the economic contribution or viability of community projects, cooperatives, volunteer initiatives, or shared-resource arrangements where financial returns and labor totals omit distribution, common-resource stewardship, lifecycle costs, or long-term local value.",
+      "abstention_boundary": "Do not infer project-specific outcomes or fairness without evidence. Do not reduce economic contribution to money or volunteer hours, but also do not assume that all shared resources, ecological effects, or externalized costs are present in every project. Transfer the accounting discipline, never this answer text or its Local Resilience Economies doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C014",
+      "approved_question": "How can multiple spiritual traditions be approached with respect and intellectual discipline?",
+      "known_theme": "comparative religion, spiritual traditions, epistemic fairness, internal diversity, intellectual discipline",
+      "reasoning_family": "comparative_traditions_epistemic_fairness_internal_diversity",
+      "transferable_discipline": "Approach traditions on their own terms, preserve internal diversity, distinguish kinds of claims and their appropriate methods, and compare without false equivalence.",
+      "qualifying_context": "Questions about approaching, comparing, understanding, or engaging multiple spiritual, religious, philosophical, or contemplative traditions with respect and intellectual discipline.",
+      "abstention_boundary": "Do not generalize shared doctrines across traditions without evidence, erase internal diversity, conflate historical, theological, empirical, and experiential claims, or mistake comparison for equivalence.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C015",
+      "approved_question": "How can leaders hold competing stakeholder obligations?",
+      "known_theme": "stakeholder tradeoffs",
+      "reasoning_family": "stakeholder_tradeoffs",
+      "transferable_discipline": "Make obligations, rights, burdens, power asymmetries, trade-offs, and review visible.",
+      "qualifying_context": "Questions involving competing stakeholders or obligations.",
+      "abstention_boundary": "Do not imply equal consideration always means equal outcomes.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C016",
+      "approved_question": "What is the relationship between complexity and uncertainty?",
+      "known_theme": "distinction under complexity",
+      "reasoning_family": "distinction_under_complexity",
+      "transferable_discipline": "Distinguish interconnectedness from lack of knowledge and explain how they can interact.",
+      "qualifying_context": "Questions comparing complexity, uncertainty, ambiguity, or related concepts.",
+      "abstention_boundary": "Do not substitute a distinction for practical relevance.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C017",
+      "approved_question": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
+      "known_theme": "epistemic discernment",
+      "reasoning_family": "epistemic_discernment",
+      "transferable_discipline": "Separate verified information, inference, assumptions, and unresolved claims; match action thresholds to stakes and reversibility.",
+      "qualifying_context": "Questions about conflicting information, trust, uncertainty, and acting under incomplete knowledge.",
+      "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C018",
+      "approved_question": "What does the Archive mean by consciousness in relation to civilization?",
+      "known_theme": "consciousness, civilization, governance, human capacities, institutions, collective life, reciprocity, stewardship",
+      "reasoning_family": "consciousness_and_civilization_as_reciprocal_system",
+      "transferable_discipline": "For questions linking inner human capacities to collective systems, begin with the foundational relationship, show how it becomes embodied in institutions or governance, and synthesize the reciprocal influence without reducing either persons or systems to mechanical causes.",
+      "qualifying_context": "Questions linking consciousness, human capacities, collective life, governance, institutions, and civilization.",
+      "abstention_boundary": "Do not treat consciousness as only private experience, claim that institutions mechanically determine persons, or present a general conceptual orientation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C019",
+      "approved_question": "What distinguishes contemplative insight from empirical evidence?",
+      "known_theme": "contemplation, empirical evidence, first-person experience, warrant, measurement, meaning",
+      "reasoning_family": "plural_modes_of_knowing_with_distinct_warrant",
+      "transferable_discipline": "Distinguish complementary modes of knowing by their questions, methods, strengths, and standards of warrant without collapsing them into a false hierarchy; preserve both public scrutiny and lived meaning.",
+      "qualifying_context": "Questions comparing contemplative, experiential, empirical, scientific, or other modes of knowing and their appropriate standards of warrant.",
+      "abstention_boundary": "Do not present contemplative insight as universal empirical proof, reduce all meaningful knowledge to measurement, or imply that distinct standards of warrant make one mode inherently invalid.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C020",
+      "approved_question": "Two archive texts appear to emphasize different values. How should the Guide identify the tension and reason toward a contextual synthesis?",
+      "known_theme": "contextual synthesis across competing values and tensions",
+      "reasoning_family": "contextual_synthesis_across_different_values",
+      "transferable_discipline": "Identify what each value protects, the conditions that give it weight, and what it can overlook in isolation; then use context to reason about their relationship without erasing the tension or forcing a universal hierarchy.",
+      "qualifying_context": "contextual synthesis across competing values and tensions",
+      "abstention_boundary": "Do not claim what unseen texts say, manufacture agreement where the values are genuinely incompatible, or use contextual synthesis to avoid making an evidence-supported judgment when one is required.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C021",
+      "approved_question": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+      "known_theme": "evidence scope and generalization",
+      "reasoning_family": "evidence_scope_and_generalization",
+      "transferable_discipline": "Establish the boundary of what a local source can support, require corroboration and counterevidence before broader synthesis, then calibrate the conclusion to the evidence actually available.",
+      "qualifying_context": "Questions about moving from one source, example, or passage to a broader Archive, corpus, or system-level claim.",
+      "abstention_boundary": "Do not turn ordinary conceptual questions into an evidentiary checklist, and do not infer corpus-wide authority from thematic resemblance alone.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C022",
+      "approved_question": "Several visitors ask different questions that expose the same recurring reasoning weakness. How should USE recognize the shared pattern and formulate a candidate Gold Star lesson?",
+      "known_theme": "cross-question learning, recurring reasoning weakness, reasoning-pattern recognition, candidate Gold Star formulation, evidence-based lesson creation, transfer boundaries, privacy-preserving evaluation, human review",
+      "reasoning_family": "cross_question_pattern_recognition_and_candidate_lesson_formulation",
+      "transferable_discipline": "USE recognizes recurring reasoning weaknesses by comparing the reasoning operation required across distinct visitor questions, not shared topics or vocabulary. The governed learning sequence is: collect only authorized, appropriately consented and de-identified examples; classify observable failures; abstract the common missing reasoning operation; formulate a candidate lesson with a corrective rule, qualifying conditions, and abstention boundary; test held-out target-task, adjacent-task, and unrelated negative-control examples; compare correctness, relevance, completeness, calibration, and regressions; preserve necessary provenance and versioning; require human review before promotion. If authorized cross-visitor evidence is unavailable, describe the method without claiming an actual pattern was detected.",
+      "qualifying_context": "Questions explicitly asking how USE should recognize recurring reasoning weaknesses across different visitors' questions and formulate a governed candidate Gold Star lesson. Requires explicit operational sequence and must not claim unavailable cross-visitor evidence.",
+      "abstention_boundary": "Transfer only the evidence-led method for identifying and validating recurring reasoning weaknesses across distinct questions. Do not infer recurrence from lexical similarity or one example; do not claim access to conversations or telemetry not available; do not retain unnecessary personal conversation data; do not auto-promote a candidate; and do not apply this meta-learning method to ordinary visitor questions that are not about cross-question learning.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C023",
+      "approved_question": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, local action, accumulation, institutions",
+      "reasoning_family": "cross_scale_structure_agency_reciprocal_asymmetric",
+      "transferable_discipline": "For cross-scale questions, trace influence in both directions: wider patterns condition local possibilities, while local actions can reproduce or alter those patterns through accumulation across organizations, networks, and communities. Preserve both structure and agency without treating either as a complete explanation.",
+      "qualifying_context": "Questions connecting local action with institutional, historical, social, or civilizational patterns.",
+      "abstention_boundary": "Do not imply that local action automatically scales into civilizational change, or that wider structures fully determine local judgment. Do not collapse reciprocal influence into equal causal power at every scale.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C024",
+      "approved_question": "How does culture shape what people can notice, value, and imagine?",
+      "known_theme": "culture, interpretation, attention, value, imagination, agency, inherited assumptions, cross-cultural learning",
+      "reasoning_family": "culture_as_interpretive_field_with_agency",
+      "transferable_discipline": "For substantive questions about culture and human meaning, explain how shared interpretive habits shape attention, value, and imagination while preserving individual and collective agency; distinguish background influence from deterministic control and end with a practical opening toward wider perception or possibility.",
+      "qualifying_context": "Questions about culture, interpretation, attention, values, imagination, inherited assumptions, and the relationship between formative environments and agency.",
+      "abstention_boundary": "Do not treat culture as a monolithic force, imply that individuals merely repeat inherited norms, or present this general conceptual explanation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C025",
+      "approved_question": "What are the moral limits of delegating judgment to systems or institutions?",
+      "known_theme": "delegated judgment, institutions, moral responsibility, accountability, and legitimacy",
+      "reasoning_family": "delegation_accountability_and_moral_responsibility",
+      "transferable_discipline": "Distinguish legitimate delegation from disappearance of responsibility; test whether reasons, values, contestability, correction, and ultimate accountability remain visible; scale safeguards to the seriousness of consequences.",
+      "qualifying_context": "delegated judgment, institutions, moral responsibility, accountability, and legitimacy",
+      "abstention_boundary": "Do not treat delegation as inherently illegitimate, reduce the question narrowly to AI, confuse efficiency or formal procedure with legitimacy, or imply that institutional decision-making eliminates human moral responsibility.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C026",
+      "approved_question": "How can developmental language become hierarchical or dismissive?",
+      "known_theme": "developmental language and hierarchy",
+      "reasoning_family": "developmental_language_descriptive_not_hierarchical",
+      "transferable_discipline": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
+      "qualifying_context": "Questions about developmental language, capacities, hierarchy, labels, dismissiveness, human worth, and the appropriate use of developmental frameworks.",
+      "abstention_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C027",
+      "approved_question": "What counts as evidence, interpretation, hypothesis, and normative judgment?",
+      "known_theme": "Distinguishing answer-first composition from independently evidenced canonical doorway selection, including explicit states for verified destination, completed no-match, retrieval or verification failure, unevaluated selection, and authorized omission.",
+      "reasoning_family": "guide_answer_first_and_independently_evidenced_doorway_selection",
+      "transferable_discipline": "Keep substantive answer formation independent from resource retrieval while evaluating doorway selection independently. Record whether a canonical destination was verified, no relevant destination survived completed bounded checks, retrieval or source verification failed, selection was not evaluated, or omission was authorized under the existing contract. Never treat an absent link as evidence of intentional restraint. Preserve existing relevance, access, risk, refusal, and omission boundaries.",
+      "qualifying_context": "Guide questions where a complete answer may be composed without retrieval, but the visitor may still benefit from a verified canonical resource or approved general continuation. Apply the lesson to the selector's evidence discipline, not as a requirement to attach a doorway to every answer.",
+      "abstention_boundary": "Do not infer that the original missing doorway was intentional; its original state remains NOT_EVALUATED. Do not expand omission authority, force a doorway onto meta-policy questions, transfer the exact answer or clinic-access example to unrelated queries, or override existing relevance, access, risk, refusal, and source-verification rules.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C028",
+      "approved_question": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
+      "known_theme": "general-purpose-guide",
+      "reasoning_family": "ethical_tradeoff",
+      "transferable_discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
+      "qualifying_context": "Questions about competing values, conflicting harms, dignity, adaptability, rules, power, and decisions where protecting one important good may place another at risk.",
+      "abstention_boundary": "Do not force false consensus, conceal sacrifice, shift burdens unfairly onto people with least power, or invent an unverified doorway URL.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C029",
+      "approved_question": "What does faithful stewardship require when values conflict?",
+      "known_theme": "tradeoff discernment",
+      "reasoning_family": "tradeoff_discernment",
+      "transferable_discipline": "Name genuine conflicts, weigh obligations and effects, protect less powerful parties, and keep decisions accountable.",
+      "qualifying_context": "Questions involving conflicting values or duties.",
+      "abstention_boundary": "Do not pretend every conflict has a cost-free resolution.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C030",
+      "approved_question": "How do feedback loops shape human institutions?",
+      "known_theme": "feedback loops, institutions, systems, consequences, learning, incentives, authority, responsibility",
+      "reasoning_family": "systems_consequences_with_human_responsibility",
+      "transferable_discipline": "When explaining feedback loops or institutional systems, show how consequences return as conditions for later action, distinguish reinforcing from balancing dynamics, and keep human judgment, authority, incentives, and responsibility visible. Do not let 'the system' become an abstraction that dissolves agency.",
+      "qualifying_context": "Questions about feedback loops, institutions, recurring patterns, systems, organizational learning, or self-reinforcing consequences.",
+      "abstention_boundary": "Do not imply that feedback is inherently corrective or that receiving information automatically produces learning. Do not use systems language to obscure who can act, who is affected, or who remains accountable.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C031",
+      "approved_question": "What are first principles, and what are the Living Archive’s first principles?",
+      "known_theme": "concept then source",
+      "reasoning_family": "concept_then_source",
+      "transferable_discipline": "Define the general concept before presenting the specific source-grounded framework.",
+      "qualifying_context": "Questions combining a general concept with an Archive-specific meaning.",
+      "abstention_boundary": "Do not present source commitments as universal doctrine.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C032",
+      "approved_question": "How can an institution recognize that its formal structure and actual power structure differ?",
+      "known_theme": "formal authority, actual influence, informal power, institutional accountability",
+      "reasoning_family": "formal_authority_actual_influence_informal_power_visibility",
+      "transferable_discipline": "Compare authority on paper with influence in practice by tracing who shapes options, controls information, can alter outcomes, and can safely challenge decisions; treat repeated patterns as evidence of the actual power structure.",
+      "qualifying_context": "Questions about informal power, shadow authority, governance gaps, decision influence, or differences between formal structure and actual practice.",
+      "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C033",
+      "approved_question": "How should the Guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does?",
+      "known_theme": "formal institutions, informal norms, organizational behavior, institutional rules, decision rights, enforcement, incentives, power, legitimacy, trust, accountability, workarounds",
+      "reasoning_family": "formal_informal_institutional_dynamics",
+      "transferable_discipline": "explain organizational behavior by comparing declared formal authority and written rules with lived informal expectations, then trace how their alignment or contradiction shapes decisions, incentives, enforcement, power, legitimacy, trust, workarounds, and accountability using evidence",
+      "abstention_boundary": "Do not assume informal norms are harmful or formal rules effective by default; do not infer organization-specific motives or outcomes without evidence. Transfer the comparison discipline, never the exact answer or Institutional Consciousness doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": [
+        "qualifying_context"
+      ],
+      "qualifying_context": ""
+    },
+    {
+      "candidate_label": "C034",
+      "approved_question": "How does fragmented knowledge impede wise action?",
+      "known_theme": "integration without false consensus",
+      "reasoning_family": "integration_without_false_consensus",
+      "transferable_discipline": "For fragmented-knowledge questions, orient the reader around the partial picture, show how disconnected perspectives can distort consequences, and end with integration that preserves disagreement, uncertainty, and openness to correction.",
+      "qualifying_context": "Questions about fragmented information, coordination, siloed knowledge, whole-picture understanding, and wise action under incomplete perspectives.",
+      "abstention_boundary": "Do not force consensus, claim integration eliminates uncertainty, or transfer exemplar-specific wording or claims into unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C035",
+      "approved_question": "A question has moderate similarity to three Gold Stars, each addressing a different reasoning discipline. How should USE decide whether to select one, combine several, or reject all three?",
+      "known_theme": "Gold Star candidate selection, similarity versus relevance, multi-candidate adjudication, reasoning disciplines, synthesis, abstention, structural transfer, doorway independence",
+      "reasoning_family": "multi_candidate_adjudication_before_structural_transfer",
+      "transferable_discipline": "Treat similarity as candidate retrieval only. Independently test subject fit, incremental contribution, necessity, compatibility, and boundary fit; select one only when uniquely sufficient; combine only necessary compatible disciplines; reject all when relevance is merely lexical or outside scope. Continue answering after rejection and select any doorway independently.",
+      "qualifying_context": "Questions about how USE or another governed answer system should apply, combine, or reject multiple retrieved exemplars, Gold Stars, or structural lessons with different reasoning disciplines.",
+      "abstention_boundary": "Do not infer approval from similarity, rank, or candidate count; do not force synthesis or transfer exemplar content; do not refuse or select an unrelated doorway when all candidates are rejected.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C036",
+      "approved_question": "How should USE distinguish a recurring weakness that deserves a new Gold Star from a weakness better addressed through improved retrieval, source metadata, or deterministic logic?",
+      "known_theme": "Gold Star qualification, recurring weakness, retrieval defect, source metadata, indexing, deterministic logic, engineering correction, reasoning capability, remedy selection, human review, regression testing",
+      "reasoning_family": "gold_star_remedy_selection_before_learning",
+      "transferable_discipline": "Diagnose the earliest failed layer before proposing learning. Correct missing or misranked evidence through retrieval; incorrect or incomplete source identity/provenance through metadata and indexing; and repeatable known-rule failures through deterministic code plus regression tests. Only consider a Gold Star for a residual reasoning weakness that recurs across materially different, independently evaluated questions after those layers are sound. Define the missing reasoning operation, qualifying conditions, and abstention boundary; validate on held-out target, adjacent, and unrelated negative-control cases; compare quality and regressions; require human review.",
+      "qualifying_context": "Explicit meta-governance questions asking how to decide whether a recurring weakness warrants a new Gold Star or instead belongs in retrieval, source metadata/indexing, or deterministic logic. This is an internal USE learning-governance discipline, not a default frame for ordinary visitor questions.",
+      "abstention_boundary": "Do not infer a reasoning gap from a repeated symptom before checking the owning engineering layer; do not create Gold Stars for code, retrieval, metadata, or indexing repairs; do not infer cross-question recurrence from one case or lexical overlap; do not claim unavailable evaluation evidence; and do not force an Archive doorway when no verified direct continuation materially advances the inquiry.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C037",
+      "approved_question": "A new Gold Star appears to improve responses in one domain but degrades responses in another. How should USE determine whether its scope should be narrowed, revised, or rejected?",
+      "known_theme": "Gold Star scope governance, cross-domain regression, domain transfer, scope boundaries, evaluation, benchmark validation, regression severity, generalization, narrow revise reject",
+      "reasoning_family": "gold_star_scope_governance_and_cross_domain_regression",
+      "transferable_discipline": "Evaluate a Gold Star's demonstrated benefit separately from its transfer claim. Test target-domain gains against adjacent-domain and unrelated negative controls; compare quality dimensions and regression severity/repeatability; narrow when benefit is valid only within a clear boundary; revise when the insight is sound but activation or framing overgeneralizes; reject when gains are not reproducible or serious regressions cannot be contained. Preserve provenance and require new evidence before expanding scope.",
+      "qualifying_context": "Questions about evaluating whether an approved or proposed Gold Star should retain its current scope when evidence shows gains in one task domain and degradation in another; applies to Gold Star governance, not ordinary visitor decision questions.",
+      "abstention_boundary": "Do not generalize from target-domain gains alone; do not treat one unreplicated weak response as proof of systemic failure; do not activate this governance framework for unrelated visitor questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C038",
+      "approved_question": "What is governance, beyond administration?",
+      "known_theme": "governance architecture",
+      "reasoning_family": "governance_architecture",
+      "transferable_discipline": "Distinguish underlying authority and decision structures from day-to-day execution.",
+      "qualifying_context": "Questions about governance, administration, institutional design, and authority.",
+      "abstention_boundary": "Do not use this distinction where operational detail is the actual question.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C039",
+      "approved_question": "What kinds of questions should be asked before redesigning a governance system?",
+      "known_theme": "preaction governance inquiry",
+      "reasoning_family": "preaction_governance_inquiry",
+      "transferable_discipline": "Before redesign, clarify purpose, evidence, power effects, safeguards, alternatives, and correction.",
+      "qualifying_context": "Questions about institutional or governance redesign.",
+      "abstention_boundary": "Do not turn this into a generic checklist for unrelated change.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C040",
+      "approved_question": "Why can growth become destructive when detached from ecological and social limits?",
+      "known_theme": "growth, ecological limits, social limits, extraction, externalities, viability, regeneration",
+      "reasoning_family": "growth_within_living_limits",
+      "transferable_discipline": "Explain the mechanism by which expansion outruns ecological and social capacity; show how benefits and costs can become separated; distinguish growth from extractive expansion; return to the conditions required for long-term viability.",
+      "qualifying_context": "Questions about growth, ecological or social limits, carrying capacity, extractive expansion, externalized costs, or long-term viability.",
+      "abstention_boundary": "Do not treat all growth as destructive or equate limits with opposition to development; do not transfer exemplar-specific wording or ARC III doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C041",
+      "approved_question": "What does human development mean in the Archive's framework?",
+      "known_theme": "human development in the Living Archive framework",
+      "reasoning_family": "relational_human_development_with_epistemic_boundary",
+      "transferable_discipline": "Connect individual development with relationships, institutions, and conditions while distinguishing general orientation from formal canonical authority.",
+      "qualifying_context": "Archive-specific conceptual questions about human development, human flourishing, personal capacities, relationships, institutions, and the conditions that enable or constrain participation.",
+      "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists. Do not transfer this bounded Archive orientation as a formal definition where a more specific canonical source governs.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C042",
+      "approved_question": "What is the significance of human development?",
+      "known_theme": "humane orientation",
+      "reasoning_family": "humane_orientation",
+      "transferable_discipline": "Begin with a direct human answer, then widen from individual capacity to shared conditions.",
+      "qualifying_context": "Broad questions about human flourishing, development, relationships, and social conditions.",
+      "abstention_boundary": "Do not impose this frame on narrow factual or technical questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C043",
+      "approved_question": "How does one identify what is being held in trust in a given situation?",
+      "known_theme": "entrustment and obligation",
+      "reasoning_family": "entrustment_and_obligation",
+      "transferable_discipline": "Identify what is entrusted, who is affected, what duties apply, and where authority ends.",
+      "qualifying_context": "Questions about trust, responsibility, custody, or fiduciary-like care.",
+      "abstention_boundary": "Do not assume every relationship creates unlimited responsibility.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C044",
+      "approved_question": "What is institutional memory, and why does it matter?",
+      "known_theme": "continuity with context",
+      "reasoning_family": "continuity_with_context",
+      "transferable_discipline": "Preserve not only records but reasons, conditions, and uncertainty so successors can exercise judgment.",
+      "qualifying_context": "Questions about organizational learning, continuity, and memory.",
+      "abstention_boundary": "Do not assume retaining information alone creates institutional memory.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C045",
+      "approved_question": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
+      "known_theme": "integrated institutional judgment and accountable human authority",
+      "reasoning_family": "integrated_institutional_judgment",
+      "transferable_discipline": "Make the decision visible by integrating purpose, authority, consequences, affected knowledge, real options, and revisability before prescribing action.",
+      "qualifying_context": "Complex institutional decisions spanning operations, governance, human development, ethics, stewardship, or AI-assisted judgment.",
+      "abstention_boundary": "Do not use this frame to make the decision for responsible authorities or reduce a simple practical question to an institutional analysis.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C046",
+      "approved_question": "How does stewardship relate to intergenerational responsibility?",
+      "known_theme": "intergenerational consequences, stewardship, future generations, institutional inheritance, responsible action, accountability across time",
+      "reasoning_family": "intergenerational_consequences",
+      "transferable_discipline": "For long-term stewardship questions, establish the relationship across time directly, show how present institutional choices shape what others inherit, then define a realistic boundary between accountable care and control of the future.",
+      "qualifying_context": "Questions involving stewardship, future generations, institutional inheritance, long-term consequences, and what present choices leave possible for others.",
+      "abstention_boundary": "Do not speculate about distant futures, impose unlimited responsibility, or transfer exemplar-specific wording or claims into unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C047",
+      "approved_question": "What distinguishes leadership from positional authority?",
+      "known_theme": "role vs practice",
+      "reasoning_family": "role_vs_practice",
+      "transferable_discipline": "Distinguish formal authority from demonstrated conduct, judgment, and earned trust.",
+      "qualifying_context": "Questions contrasting roles, titles, authority, and leadership.",
+      "abstention_boundary": "Do not generalize one role distinction to unrelated concepts.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C048",
+      "approved_question": "What is a leverage point, and why can it be misused?",
+      "known_theme": "powerful intervention with safeguards",
+      "reasoning_family": "powerful_intervention_with_safeguards",
+      "transferable_discipline": "Examine leverage together with unintended effects, power, accountability, and correction.",
+      "qualifying_context": "Questions about interventions with disproportionate influence.",
+      "abstention_boundary": "Do not assume every intervention is a leverage point.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C049",
+      "approved_question": "What is the cosmology of the Living Archive?",
+      "known_theme": "scope and worldview",
+      "reasoning_family": "scope_and_worldview",
+      "transferable_discipline": "Explain the framework while distinguishing a source or example from claims about the whole worldview.",
+      "qualifying_context": "Questions about worldview, cosmology, and scope of a body of work.",
+      "abstention_boundary": "Do not generalize a local source into a whole corpus.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C050",
+      "approved_question": "What is the Living Archive, and what is it not?",
+      "known_theme": "identity and epistemic boundary",
+      "reasoning_family": "identity_and_epistemic_boundary",
+      "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
+      "qualifying_context": "Questions about identity, purpose, role, or institutional boundaries.",
+      "abstention_boundary": "Do not turn every definition into a manifesto.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C051",
+      "approved_question": "What problem does the Archive exist to address?",
+      "known_theme": "Living Archive purpose, fragmentation, orientation, judgment, and stewardship",
+      "reasoning_family": "orientation_within_abundance_relational_sensemaking",
+      "transferable_discipline": "When information is abundant but understanding is fragmented, do not answer by adding more information or forcing premature conclusions. Restore orientation by making relationships, conditions, perspectives, and consequential unanswered questions visible so judgment can become more responsible.",
+      "qualifying_context": "Questions about information abundance, fragmentation, orientation, sensemaking, how knowledge relates to judgment, or why relationships and unanswered questions matter when addressing complex problems.",
+      "abstention_boundary": "Do not treat information abundance itself as understanding; do not force a single final explanation where plurality or uncertainty matters; do not transfer the When Knowledge Is Everywhere doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C052",
+      "approved_question": "How can local action connect to systemic ecological transformation?",
+      "known_theme": "local action, systemic ecological transformation, multi-scale systems orientation, scale, structure, feedback, local autonomy, policy alignment",
+      "reasoning_family": "multi_scale_systems_orientation",
+      "transferable_discipline": "Connect local agency to wider systemic conditions without reducing transformation to any single scale. Distinguish scale from the structures that connect scales; show feedback in both directions; preserve local autonomy while explaining coordination, evidence, and institutional alignment.",
+      "qualifying_context": "Questions about local and systemic change, ecological transformation, multi-scale action, grassroots agency, institutional structures, coordination, or how local evidence can connect to broader change.",
+      "abstention_boundary": "Do not imply that local initiatives alone cause systemic transformation, that larger policy structures simply override local agency, or that the Alignment Before Transformation doorway applies to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C053",
+      "approved_question": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
+      "known_theme": "distinction before synthesis",
+      "reasoning_family": "distinction_before_synthesis",
+      "transferable_discipline": "Define related approaches, preserve their differences, give the visitor a concise question-to-method orientation, then explain how the approaches can complement one another.",
+      "qualifying_context": "Comparative questions involving methods, disciplines, or perspectives where the visitor may also need help choosing which lens fits the question.",
+      "abstention_boundary": "Do not collapse distinct methods into a single generic process or force a decision framework onto a comparison that only asks for definitions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C054",
+      "approved_question": "How should these modes of knowing be placed in dialogue without being confused with one another?",
+      "known_theme": "modes of knowing, dialogue, differentiated knowledge, judgment, and responsible action",
+      "reasoning_family": "differentiated_modes_of_knowing_dialogue",
+      "transferable_discipline": "Preserve the differences between forms of knowing; let them inform and challenge one another without forced equivalence; only then move toward accountable judgment while keeping contributions and limits visible.",
+      "qualifying_context": "modes of knowing, dialogue, differentiated knowledge, judgment, and responsible action",
+      "abstention_boundary": "Do not collapse distinct forms of knowing into a single hierarchy, pretend every perspective must agree, treat disagreement as automatically resolvable, or let one mode claim total authority over questions outside its reach.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C055",
+      "approved_question": "A nonprofit’s founder is widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; how can the Guide integrate culture, power, leadership, care, and governance without diagnosing individuals from limited evidence?",
+      "known_theme": "nonprofit organizations, founder reputation, staff fear, turnover, organizational culture, power, leadership, care, governance, psychological safety, retaliation, complaint handling, independent oversight, evidence boundaries",
+      "reasoning_family": "nonprofit_culture_power_care_governance_with_evidence_boundaries",
+      "transferable_discipline": "Treat public reputation and staff experience as position-dependent signals; examine cultural norms, decision power, leadership practices, staff care, and governance safeguards together. Distinguish reported experience from independently corroborated patterns and hypotheses; recommend confidential listening, disaggregated workforce data, complaint/decision-record review, anti-retaliation protections, and independent oversight.",
+      "qualifying_context": "Questions about nonprofits or other mission-driven organizations where public confidence in a founder or leader appears to conflict with staff reports of fear, turnover, retaliation, or unsafe dissent, and the Guide must integrate organizational culture, power, leadership, care, and governance without diagnosing individuals.",
+      "abstention_boundary": "Do not infer individual motives, character, or culpability from limited evidence. Do not treat donor, beneficiary, or community trust as proof that staff are safe, or staff reports alone as proof of an individual's intent. Preserve confidentiality, independence, and correctability.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C056",
+      "approved_question": "How should the Guide respond when a user seeks a final answer to an inherently open question?",
+      "known_theme": "open questions, uncertainty, orientation, judgment, and the limits of closure",
+      "reasoning_family": "open_question_orientation_without_false_closure",
+      "transferable_discipline": "Acknowledge genuine openness before answering; make uncertainty intelligible by distinguishing evidence, interpretation, values, and judgment; orient possibilities without manufacturing certainty; separate necessary judgment from proof that an open inquiry has been settled.",
+      "qualifying_context": "open questions, uncertainty, orientation, judgment, and the limits of closure",
+      "abstention_boundary": "Do not manufacture closure because a visitor requests a final answer, prematurely translate an open inquiry into a decision problem, romanticize vagueness, or treat a necessary decision as proof that the underlying question is settled.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C057",
+      "approved_question": "What is the role of operational discipline in humane leadership?",
+      "known_theme": "humane reliability",
+      "reasoning_family": "humane_reliability",
+      "transferable_discipline": "Translate humane intentions into dependable practice while distinguishing discipline from rigidity or control.",
+      "qualifying_context": "Questions about leadership, reliability, accountability, or humane operations.",
+      "abstention_boundary": "Do not treat process discipline as a substitute for judgment.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C058",
+      "approved_question": "A visitor asks how stewardship differs from management and ownership. What comparison structure would make the distinctions usable?",
+      "known_theme": "ownership, management, stewardship, role distinction, authority, responsibility, time horizon, entrusted assets, long-term care, accountability, affected interests",
+      "reasoning_family": "ownership_management_stewardship_role_distinction",
+      "transferable_discipline": "Compare roles across consistent dimensions—authority, responsibility, time horizon, and affected interests—while distinguishing ownership claims, management execution, and stewardship accountability. Explain overlap without treating the roles as interchangeable.",
+      "qualifying_context": "Questions explicitly comparing ownership, management, and stewardship, or asking how authority, operational responsibility, long-term care, and consequences differ across entrusted assets or relationships.",
+      "abstention_boundary": "Do not infer legal ownership, actual decision rights, management arrangements, or asset-specific obligations without evidence. Do not equate ownership with stewardship or transfer this exact answer or its Stewardship vs Management vs Leadership doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C059",
+      "approved_question": "A user asks for a personal life decision to be made for them. How should the Guide offer orientation while refusing to replace agency?",
+      "known_theme": "personal agency, life decisions, decision orientation, responsibility, consent, correctability, consequences, reversibility",
+      "reasoning_family": "personal_decision_agency_without_substituted_judgment",
+      "transferable_discipline": "Clarify the decision, the person's values and responsibilities, and the constraints shaping available choices; compare alternatives and consequences without substituting the Guide's preference; then strengthen the person's capacity to judge and correct the Guide's framing.",
+      "qualifying_context": "Questions asking how a guide, advisor, or support system can orient someone facing a personal life decision without taking over their agency, values, consent, or final choice.",
+      "abstention_boundary": "Do not make the person's life decision, imply that the Guide knows their circumstances better than they do, or treat all decisions as low-risk and reversible. Preserve the need for trusted human or specialist support when safety, lasting harm, or major obligations are involved. Transfer the discipline, never the exact answer or its doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C060",
+      "approved_question": "What does the Archive’s claim to be a public commons require in how the Guide handles access, attribution, disagreement, and stewardship?",
+      "known_theme": "public knowledge commons, access boundaries, attribution, source provenance, synthesis, disagreement, plurality, knowledge stewardship, correctability",
+      "reasoning_family": "public_knowledge_commons_stewardship_and_provenance",
+      "transferable_discipline": "Make public knowledge usable without erasing its boundaries or provenance: distinguish access classes, credit direct sources, label cross-source synthesis and orientation, preserve disagreement, and remain correctable while leaving judgment with the visitor.",
+      "qualifying_context": "Questions about a public knowledge commons, access to shared materials, attribution, source provenance, synthesis across texts, disagreement among sources, or stewardship of shared knowledge.",
+      "abstention_boundary": "Do not equate public-commons status with unrestricted access or reproduction, expose protected material, erase authorship, present synthesis as a source claim, force consensus, or transfer this exemplar's exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C061",
+      "approved_question": "A government proposes a highly efficient predictive system for public services. What constitutional and human questions must precede adoption?",
+      "known_theme": "public predictive systems, constitutional legitimacy, human participation, and stewardship",
+      "reasoning_family": "public_predictive_systems_constitutional_human_stewardship",
+      "transferable_discipline": "Establish the legitimacy, authority, rights, human recourse, historical inheritance, reversibility, and accountability of consequential public technology before evaluating efficiency.",
+      "qualifying_context": "public predictive systems, constitutional legitimacy, human participation, and stewardship",
+      "abstention_boundary": "Do not assume every predictive tool exercises consequential public power, invent constitutional requirements for a jurisdiction, or reject technology merely because it is automated.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C062",
+      "approved_question": "A retrieved passage is quoted out of context in a user prompt. How should the Guide restore the surrounding context before analyzing it?",
+      "known_theme": "quoted passage, out-of-context quotation, retrieved excerpt, source verification, surrounding paragraphs, original argument, textual fidelity, omitted qualifications, attribution, contextual interpretation, evidence boundary",
+      "reasoning_family": "quoted_passage_context_restoration_before_interpretation",
+      "transferable_discipline": "When a retrieved quotation may be out of context, treat it as a fragment: verify its original source and exact wording; recover the surrounding paragraph, adjacent paragraphs, headings, definitions, qualifications, notes, and relevant argument; compare the excerpt against the original for omissions or alterations; separate explicit source claims from contextual implications and user framing; analyze only after reconstruction; disclose unavailable context and keep dependent conclusions provisional.",
+      "qualifying_context": "A visitor presents a retrieved quotation, excerpt, or passage whose surrounding source context may be missing or distorted, and asks the Guide to interpret or analyze it.",
+      "abstention_boundary": "Transfer only the context-restoration sequence to genuine quoted-passage or excerpt interpretation tasks. Do not assume quotations are inaccurate, invent missing source context, infer author intent beyond evidence, conflate separate sources, or impose this sequence on unrelated factual or conceptual questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C063",
+      "approved_question": "What is the purpose of reciprocity in a community?",
+      "known_theme": "community reciprocity, mutual aid, support over time, unequal contributions, delayed exchange, voluntary participation, non-coercion, social coordination, debt-ledger boundary",
+      "reasoning_family": "community_reciprocity_mutual_support_over_time",
+      "transferable_discipline": "Explain reciprocity in community life as mutual support that can move in both directions over time without requiring equal or immediate repayment. Use an ordinary example to show how contributions and needs vary across circumstances. Preserve the voluntary and non-coercive boundary: reciprocity does not create entitlement to access, obedience, or repayment, and mutual aid must not become a debt ledger.",
+      "qualifying_context": "Visitors asking about the purpose, role, or value of reciprocity in community life, especially mutual aid, shared support, changing needs, and contributions made across time.",
+      "abstention_boundary": "Apply only to questions about the purpose or role of reciprocity in community mutual support, including close paraphrases. Do not transfer this answer or doorway to generic definitions, commercial exchanges, contractual or legal duties, financial reciprocity, or unrelated trust and stewardship questions. Do not infer consent, entitlement, or a debt from prior help; do not use reciprocity to justify coercion or compelled participation.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C064",
+      "approved_question": "What does it mean to recover orientation during a season of uncertainty?",
+      "known_theme": "orientation, uncertainty, provisional agency, ambiguity, responsible action, human meaning, bearings",
+      "reasoning_family": "bounded_orientation_under_uncertainty",
+      "transferable_discipline": "When a familiar human question remains meaningful despite incomplete evidence, distinguish ordinary-language orientation from formal source attribution: give a bounded practical answer, clarify what remains unresolved, and preserve agency without manufacturing certainty.",
+      "qualifying_context": "Questions about uncertainty, ambiguity, transition, regaining bearings, or taking responsible action before the larger situation is resolved.",
+      "abstention_boundary": "Do not present ordinary-language orientation as a formal canonical definition without source support, manufacture certainty, or retreat into a disclaimer when a bounded and clearly non-attributed answer is possible.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C065",
+      "approved_question": "How should The Guide distinguish reflection from therapy?",
+      "known_theme": "reflection, therapy, human development, orientation, professional boundaries, responsible guidance",
+      "reasoning_family": "reflection_orientation_vs_therapy_professional_boundary",
+      "transferable_discipline": "Separate orientation from treatment by stating what reflective inquiry can help with, what requires professional therapeutic care, and where the Guide's responsibility ends.",
+      "qualifying_context": "Questions about the boundary between reflection, self-inquiry, orientation, therapy, professional care, or the Guide's role when psychological needs are involved.",
+      "abstention_boundary": "Do not diagnose, treat, or imply clinical authority; when deeper psychological distress or therapeutic needs are central, preserve the distinction between reflective guidance and qualified care.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C066",
+      "approved_question": "How should the Guide discuss decline without romanticizing it?",
+      "known_theme": "reflective decline, loss, change, and responsibility without nostalgia",
+      "reasoning_family": "reflective_decline_without_romanticization",
+      "transferable_discipline": "Refuse nostalgia and automatic progress as competing shortcuts; make gains and losses visible across more than one dimension, then open a path from recognition toward responsibility without forcing a verdict.",
+      "qualifying_context": "Reflective questions about decline, loss, historical change, social erosion, nostalgia, or how to acknowledge what has disappeared without idealizing the past.",
+      "abstention_boundary": "Do not label ordinary change as decline, romanticize a past that cannot be supported, or substitute a general decline frame for evidence about a particular historical case.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C067",
+      "approved_question": "What does regeneration mean beyond environmental restoration?",
+      "known_theme": "regeneration, restoration, flourishing, stewardship, place, systems, renewal",
+      "reasoning_family": "conditions_for_regenerative_flourishing",
+      "transferable_discipline": "For conceptual questions about regeneration, distinguish repairing past damage from renewing the conditions, relationships, and capacities that allow a living system to continue flourishing; apply the concept across relevant systems, establish limits, and offer one verified continuation when a canonical conceptual family applies.",
+      "qualifying_context": "Questions about regeneration, restoration, renewal, flourishing, stewardship, place, or the conditions that sustain living systems.",
+      "abstention_boundary": "Do not equate regeneration with unlimited growth, guaranteed repair, environmental restoration alone, or a generic positive outcome; do not transfer the exemplar-specific wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C068",
+      "approved_question": "How should regenerative claims be tested for substance rather than branding?",
+      "known_theme": "regenerative claims, substance versus branding, stewardship, consequences, responsibility, decision accountability, distributed costs",
+      "reasoning_family": "substance_before_branding_consequence_aware_stewardship",
+      "transferable_discipline": "Test aspirational claims through the outcomes they seek, the responsibilities they create, the consequences they distribute, the alternatives they exclude, and the authority accountable for the decision. Make reasoning and limits visible without displacing responsibility from legitimate decision-makers.",
+      "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
+      "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C069",
+      "approved_question": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
+      "known_theme": "retrieval outage, deterministic fallback, cached verified references, answer provenance, uncertainty disclosure, graceful degradation, service resilience",
+      "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+      "transferable_discipline": "Detect retrieval failure; validate retained references; if none are usable, invoke an approved deterministic recovery within scope; disclose the actual evidence basis and material limitations; never fabricate citations or force unrelated navigation.",
+      "qualifying_context": "Questions about how a knowledge or answer system should behave when retrieval or a supporting source service fails but some verified references or deterministic recovery mechanisms may remain available.",
+      "abstention_boundary": "Do not claim cached references exist unless they are actually accessible and validated; do not imply fresh retrieval, invent citations or Archive doctrine, bypass safety or access boundaries, or force an unrelated doorway. If no reliable recovery remains, disclose that limitation.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C070",
+      "approved_question": "Two sources use the same term differently. How should the Guide detect and explain the ambiguity before answering?",
+      "known_theme": "semantic ambiguity, shared terminology, source interpretation, contextual meaning, definitions, referents, scope, operational use, conceptual distinctions, source comparison, contradiction versus equivocation, clarification before answering",
+      "reasoning_family": "semantic_disambiguation_before_answering",
+      "transferable_discipline": "When multiple sources use the same term, establish each source's contextual meaning before answering: identify referent, definition or operational use, scope, and criteria; compare uses symmetrically; distinguish genuine contradiction from different scope or different senses; preserve source-specific meanings; and ask for clarification when the intended sense remains unresolved.",
+      "qualifying_context": "Questions in which two or more sources use the same word or label but may assign it different definitions, referents, operational meanings, scopes, or criteria, and the Guide must resolve the ambiguity before answering.",
+      "abstention_boundary": "Do not infer that identical terminology means identical concepts; do not call distinct usages a contradiction until the underlying claims are compared; do not impose semantic comparison on questions that do not contain a genuine ambiguity; ask for clarification when source context and the visitor's question do not identify the intended sense.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C071",
+      "approved_question": "How does stewardship differ from ownership, control, management, or benevolence?",
+      "known_theme": "stewardship, ownership, control, management, benevolence, responsibility, authority, accountability, relational care",
+      "reasoning_family": "conceptual_distinction_before_systemic_analysis",
+      "transferable_discipline": "When a visitor asks how closely related concepts differ, answer the requested distinctions directly before introducing mechanisms, systems, or causal analysis. Define the organizing difference, clarify what each concept does and does not imply, then explain why the distinction matters in practice.",
+      "qualifying_context": "Questions asking how related concepts differ, especially stewardship, ownership, control, management, authority, care, or benevolence.",
+      "abstention_boundary": "Do not substitute a causal or mechanism-first explanation for a conceptual distinction question. Do not collapse related concepts into synonyms or treat efficiency, goodwill, possession, and responsible stewardship as interchangeable.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C072",
+      "approved_question": "What does stewardship mean in the Living Archive?",
+      "known_theme": "stewardship with boundaries",
+      "reasoning_family": "stewardship_with_boundaries",
+      "transferable_discipline": "Connect entrusted care to understanding dependencies and acting with the future in mind, while distinguishing stewardship from control or unlimited self-sacrifice.",
+      "qualifying_context": "Questions about stewardship, responsibility, entrusted roles, consequences, and how care should be practiced within real limits.",
+      "abstention_boundary": "Do not infer obligations beyond the person's authority or limits, and do not equate stewardship with control or unlimited self-sacrifice.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C073",
+      "approved_question": "What does repair look like after a stewardship failure?",
+      "known_theme": "stewardship failure, repair, accountability, trust, consequences, renewal, responsibility",
+      "reasoning_family": "accountable_repair_after_failure",
+      "transferable_discipline": "When asked what repair looks like after a failure, begin with visibility and accountability, distinguish repair from apology or procedural correction, examine conditions without turning explanation into excuse, acknowledge limits to restoration, and identify the changes and follow-through that make renewed trust possible.",
+      "qualifying_context": "Questions about repair, accountability, trust, institutional failure, relational harm, or stewardship failure.",
+      "abstention_boundary": "Do not promise that repair automatically restores trust, reverses harm, or returns conditions to their prior state. Do not use systems analysis to dissolve individual or institutional responsibility.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C074",
+      "approved_question": "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?",
+      "known_theme": "Archive passages, source fidelity, comparative reading, different emphases, contradiction versus complementary focus, symmetric representation, source context, synthesis, unresolved tension",
+      "reasoning_family": "symmetric_source_representation_before_synthesis",
+      "transferable_discipline": "Before interpreting or synthesizing differently emphasized Archive passages, represent each source separately using the same fields in the same order: exact source, central concern in its own terms, scope, qualifications, and intended audience. Then compare emphases, distinguish contradiction from complementary focus, preserve unresolved tension, and synthesize only after both representations are complete.",
+      "qualifying_context": "Questions asking how The Guide should compare multiple Archive passages, especially where they differ in emphasis, appear to disagree, or may support a synthesis without losing source-specific meaning.",
+      "abstention_boundary": "Do not claim what an unseen passage says, translate one source into another's vocabulary, infer contradiction from emphasis alone, force synthesis where the available text cannot resolve the tension, or erase source-specific scope, qualifications, and audience. Transfer the representation discipline, not this answer or doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C075",
+      "approved_question": "What makes a situation a system rather than a collection of separate problems?",
+      "known_theme": "systems relationships",
+      "reasoning_family": "systems_relationships",
+      "transferable_discipline": "Look for relationships, feedback, dependencies, and recurring conditions rather than isolated symptoms.",
+      "qualifying_context": "Questions about whether a situation is systemic or interconnected.",
+      "abstention_boundary": "Do not label every collection of problems a system without evidence of interaction.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C076",
+      "approved_question": "How should The Guide distinguish a systems explanation from a simplistic 'everything is connected' claim?",
+      "known_theme": "systems thinking, explanation, causality, feedback, mechanisms, evidence, boundaries, responsibility, complexity",
+      "reasoning_family": "consequential_systems_explanation",
+      "transferable_discipline": "Do not treat connection as explanation. Identify consequential relationships, mechanisms, timescales, evidence, boundaries, and uncertainty; distinguish causal structure from decorative complexity; then use the analysis to sharpen judgment without obscuring responsibility.",
+      "qualifying_context": "Questions asking how to explain complex systems, distinguish consequential relationships from superficial connection, evaluate causal claims, or use systems thinking without losing judgment.",
+      "abstention_boundary": "Do not imply that every apparent relationship is causal, that all connected factors are equally important, or that systems complexity removes the need to identify who can act and what evidence supports the explanation.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C077",
+      "approved_question": "A user wants a simple explanation for societal breakdown. How should the Guide preserve intelligibility without offering monocausal stories?",
+      "known_theme": "systems intelligibility, societal breakdown, and multi-causal explanation without monocausal reduction",
+      "reasoning_family": "systems_intelligibility_without_monocausal_reduction",
+      "transferable_discipline": "Refuse the false choice between simplicity and single-cause explanation; identify the interacting relationships that make a pattern intelligible, then leave the visitor with a usable way of seeing what is weakening, what reinforces it, and where the pattern may be interrupted.",
+      "qualifying_context": "Questions asking for a clear explanation of complex social, institutional, or systemic conditions while resisting monocausal stories.",
+      "abstention_boundary": "Do not claim a specific cause of societal breakdown without evidence, flatten distinct contexts into one story, or convert an explanatory inquiry into decision coaching.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C078",
+      "approved_question": "When is a systems map useful, and when can it create false confidence?",
+      "known_theme": "systems maps, representation, evidence, uncertainty, assumptions, feedback, inquiry, false confidence",
+      "reasoning_family": "representation_as_testable_hypothesis",
+      "transferable_discipline": "Treat representations of a system as hypotheses that organize inquiry, not as proof. Make assumptions, omissions, evidence, uncertainty, absent perspectives, and changing conditions visible, then return the representation to reality through observation and revision.",
+      "qualifying_context": "Questions about systems maps, models, diagrams, frameworks, or other representations of complex conditions, especially where apparent completeness may create unwarranted confidence.",
+      "abstention_boundary": "Do not treat a diagram's coherence or completeness as evidence of causal truth, and do not use a map to conceal uncertainty or substitute representation for ongoing attention to reality.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C079",
+      "approved_question": "What role should technology play in a stewardship-centered society?",
+      "known_theme": "technology, stewardship, governance, human judgment, accountability, institutional capacity, long-term care",
+      "reasoning_family": "technology_as_means_under_stewardship",
+      "transferable_discipline": "For questions about technology in relation to human purposes, establish that technology is a means rather than the source of direction, distinguish technical capability from human judgment, and return to accountability, relationships, and long-term responsible care.",
+      "qualifying_context": "Broad conceptual questions about technology, automation, or technical systems in relation to stewardship, governance, human purposes, institutional responsibility, or long-term care.",
+      "abstention_boundary": "Do not treat efficiency or technical capability as sufficient grounds for social direction, assign human judgment to technology, or transfer the exemplar-specific claims or canonical doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C080",
+      "approved_question": "How can a user distinguish genuine transformation from temporary emotional relief?",
+      "known_theme": "transformation, emotional relief, durable change, recurring patterns, changed relationships, continuity over time",
+      "reasoning_family": "durable_pattern_change_vs_immediate_state_change",
+      "transferable_discipline": "For questions that distinguish temporary experience from deeper change, define the difference directly, preserve the value of the temporary state, identify observable continuity in how the person understands, acts, relates, or responds, and end with a practical test that does not overclaim certainty.",
+      "qualifying_context": "Questions about transformation, growth, recovery, change, relief, recurring patterns, and whether an experience produces durable differences over time.",
+      "abstention_boundary": "Do not treat emotional intensity as proof of transformation, dismiss temporary relief as superficial, or present this general conceptual orientation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C081",
+      "approved_question": "What is the role of trust in community stewardship?",
+      "known_theme": "community trust, stewardship, shared responsibility, mutual reliance, cooperation, accountability, shared resources, community care",
+      "reasoning_family": "community_trust_stewardship_cooperation",
+      "transferable_discipline": "Explain trust in community stewardship as the confidence that enables people to rely on one another and act with care, while stewardship is the shared responsibility to care for what people depend on. Use a concrete shared undertaking to show how trust supports cooperation and stewardship sustains it over time. Keep the general explanation complete before offering a relevant canonical continuation.",
+      "qualifying_context": "Visitors asking about the role, purpose, or relationship of trust and stewardship in community life, including shared responsibilities, mutual reliance, and sustained cooperation.",
+      "abstention_boundary": "Apply only to questions about the role or relationship of trust and stewardship in community life, including close paraphrases. Do not transfer the exact answer or doorway to generic trust definitions, organizational trust repair, interpersonal trust, reciprocity, or unrelated governance questions. Do not imply trust is blind, guaranteed, or sufficient without observable conduct and accountability. Do not treat the Trust Architecture doorway as evidence for the general explanation or as a substitute for answering.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C082",
+      "approved_question": "A response contains an accurate explanation but offers no relevant Archive doorway. How should USE determine whether a doorway is warranted and select the appropriate next destination?",
+      "known_theme": "USE doorway warrant, destination selection, answer-navigation separation, relevance evaluation, canonical Archive navigation, general continuation fallback",
+      "reasoning_family": "doorway_warrant_and_destination_selection",
+      "transferable_discipline": "Keep answer quality and doorway quality independent. Complete the visitor's actual question first; identify the remaining need; retrieve and inspect verified canonical candidates; evaluate actual subject fit, contribution, audience, depth, and access; choose the narrowest destination that materially advances the inquiry. If no narrower destination is verified, use the approved Compass only as an honestly labeled general continuation. Omit navigation only for a concrete response-specific quality or safety reason or an explicit visitor refusal.",
+      "qualifying_context": "Questions about how USE or another governed knowledge-navigation system should decide whether to offer a resource after answering, evaluate canonical destinations, or distinguish a genuine continuation from a generic or keyword-matched link.",
+      "abstention_boundary": "Transfer only the two-stage answer/doorway decision discipline. Do not attach resources based on shared keywords, use a doorway to rescue an off-target answer, misrepresent the Compass as a topic-specific match, transfer this answer or its Navigator doorway to unrelated questions, or omit navigation merely because selection is uncertain.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C083",
+      "approved_question": "What is the boiling point of water at sea level?",
+      "known_theme": "direct factual answer",
+      "reasoning_family": "direct_factual_answer",
+      "transferable_discipline": "Answer established self-contained facts directly and briefly; do not force Archive framing.",
+      "qualifying_context": "Stable general-knowledge questions.",
+      "abstention_boundary": "Abstain from uncertain, contested, or source-dependent claims.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C084",
+      "approved_question": "What is spiritual bypassing, and why does it matter?",
+      "known_theme": "recognized-concept-without-archive-specific-evidence",
+      "reasoning_family": "recognized-concept-without-archive-specific-evidence",
+      "transferable_discipline": "Distinguish lack of Archive-specific authority from lack of useful orientation; answer recognizable concepts directly while preserving epistemic limits.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not diagnose visitors or turn general orientation into unsupported Archive doctrine.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": [
+        "qualifying_context"
+      ]
+    },
+    {
+      "candidate_label": "C085",
+      "approved_question": "How does governance differ from leadership and management?",
+      "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
+      "reasoning_family": "governance_leadership_management_distinction",
+      "transferable_discipline": "Answer the explicit conceptual distinction first, then deepen it through authority, accountability, operational coordination, institutional conditions, and correction.",
+      "qualifying_context": "governance, leadership, management, authority, accountability, institutional conditions",
+      "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C086",
+      "approved_question": "How can an organization pursue performance without treating people as instruments?",
+      "known_theme": "humane performance, organizational dignity, responsible relationships, standards and accountability",
+      "reasoning_family": "humane_performance_responsible_relationships",
+      "transferable_discipline": "Pursue demanding institutional outcomes while judging the means as part of performance: protect human dignity, judgment, voice, participation, and the conditions for sustained responsible work.",
+      "qualifying_context": "organizational performance, management, productivity, human dignity, instrumental treatment, workloads, accountability, participation, trust, judgment",
+      "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine tensions between organizational performance and the treatment of people; do not imply that humane treatment requires abandoning standards or accountability.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C087",
+      "approved_question": "How do inner development and external systems shape each other?",
+      "known_theme": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
+      "reasoning_family": "inner-development-systems-feedback",
+      "transferable_discipline": "Explain reciprocal causation by connecting personal capacities with incentives, norms, authority, feedback, and institutional change.",
+      "qualifying_context": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
+      "abstention_boundary": "Provides a systems-oriented explanation and does not establish causation in a specific case without supporting evidence.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C088",
+      "approved_question": "How does organizational culture shape ethical behavior?",
+      "known_theme": "organizational culture, ethics, operating norms, incentives, leadership signals, accountability, principled dissent",
+      "reasoning_family": "organizational_culture_ethical_operating_norms",
+      "transferable_discipline": "Make ethical culture concrete by distinguishing stated values from operating norms and tracing how repeated signals, incentives, authority, tolerated behavior, and consequences shape what people experience as normal, safe, rewarded, or difficult.",
+      "qualifying_context": "questions about organizational culture, ethical behavior, leadership signals, incentives, accountability, tolerated conduct, and the gap between formal values and lived norms",
+      "abstention_boundary": "Do not treat culture as a single deterministic cause, excuse individual responsibility, infer misconduct from culture alone, or attach an unrelated doorway merely to fill a navigation slot.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C089",
+      "approved_question": "How do organizations create conditions for learning from failure?",
+      "known_theme": "organizational learning, failure, mistakes, candor, accountability, blame, correction, institutional memory",
+      "reasoning_family": "organizational_learning_failure_candor_accountability",
+      "transferable_discipline": "Create conditions in which candor, responsibility, examination of contributing conditions, and visible correction reinforce one another; do not confuse learning with the absence of accountability or accountability with reflexive blame.",
+      "qualifying_context": "organizational learning, failure, mistakes, error reporting, accountability, blame, psychological safety, correction, institutional improvement",
+      "abstention_boundary": "Do not assume every failure is blameless, excuse deliberate misconduct, or treat psychological safety as immunity from responsibility.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C090",
+      "approved_question": "What roles do practice, community, and feedback play in development?",
+      "known_theme": "multi-element-development-question",
+      "reasoning_family": "multi-element-development-question",
+      "transferable_discipline": "Identify the distinct work of each element, then make their interaction—not their separate definitions—the intellectual spine of the answer.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": [
+        "qualifying_context"
+      ]
+    },
+    {
+      "candidate_label": "C091",
+      "approved_question": "How can sacred language clarify experience, and how can it obscure power relations?",
+      "known_theme": "sacred language, meaning-making, interpretive authority, power relations, accountability, inquiry",
+      "reasoning_family": "sacred_language_and_power",
+      "transferable_discipline": "Preserve the meaning-giving and relational functions of sacred language while examining how interpretive authority, unequal power, institutional interests, and consequences can make that language resistant to scrutiny.",
+      "qualifying_context": "Questions about sacred, religious, cultural, or institutional language that carries meaning or moral authority, especially where interpretation, legitimacy, power, inclusion, or accountability are at issue.",
+      "abstention_boundary": "Do not presume sacred language is inherently oppressive, manipulative, or beyond criticism. Distinguish its actual use and effects in context.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C092",
+      "approved_question": "What does stewardship ask of a leader during decline or crisis?",
+      "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
+      "reasoning_family": "stewardship_leadership_under_pressure",
+      "transferable_discipline": "During decline or crisis, hold responsibility for the whole condition: see clearly, protect the conditions for recovery, make costs visible, preserve trust and truthful information, and combine accountability with adaptability toward renewal.",
+      "qualifying_context": "stewardship, steward, leadership, leader, decline, crisis, breakdown, collapse, emergency, loss, deterioration, trust, recovery, renewal",
+      "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine leadership questions under consequential pressure; do not imply that stewardship guarantees control or eliminates difficult decisions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C093",
+      "approved_question": "What is the relationship between technical capability and legitimate authority?",
+      "known_theme": "technical capability, legitimate authority, expertise, mandate, accountability, legitimacy, power",
+      "reasoning_family": "technical_capability_legitimate_authority_distinction",
+      "transferable_discipline": "Answer the relationship directly by separating what an actor can do from whether it has the right to decide; then connect expertise to mandate, accountability, safeguards, and correction.",
+      "qualifying_context": "technical capability, expertise, authority, legitimacy, mandate, accountability, decision rights, power",
+      "abstention_boundary": "Do not treat technical success, expertise, efficiency, influence, or practical dependence as self-validating sources of legitimate authority; do not retreat into generic uncertainty when the conceptual distinction can be answered directly.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C094",
+      "approved_question": "How does the Archive distinguish tools from the purposes they serve?",
+      "known_theme": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
+      "reasoning_family": "tools_purposes_means_ends_distinction",
+      "transferable_discipline": "Answer the distinction directly: identify tools as means and purposes as ends, then show how institutional processes, measurements, or technologies can drift from serving their purpose and require renewed judgment.",
+      "qualifying_context": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
+      "abstention_boundary": "Do not treat a tool's effectiveness, persistence, or popularity as evidence that it is itself the purpose; do not substitute generic systems language for the visitor's explicit distinction.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C095",
+      "approved_question": "What does accountable retrieval look like?",
+      "known_theme": "accountable retrieval, source grounding, evidence, interpretation, uncertainty, traceability, answerability",
+      "reasoning_family": "accountable-retrieval-evidence-interpretation-uncertainty",
+      "transferable_discipline": "Answer broad conceptual retrieval questions directly, then distinguish source grounding, evidentiary support, interpretation, and uncertainty; do not let a lack of case-specific context displace a useful bounded orientation.",
+      "qualifying_context": "Broad conceptual questions about responsible retrieval, evidence, provenance, interpretation, uncertainty, traceability, and answerability.",
+      "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C096",
+      "approved_question": "How should the Guide prevent confident synthesis from becoming fabricated coherence?",
+      "known_theme": "confident synthesis, fabricated coherence, uncertainty, alternatives, accountability, evidence, consequences, judgment, decision authority",
+      "reasoning_family": "confident-synthesis-uncertainty-alternatives-accountability",
+      "transferable_discipline": "For questions about synthesis, coherence, or confident interpretation, expose uncertainty, plausible alternatives, evidentiary limits, consequences, and accountable decision-makers before treating an explanation as settled; distinguish clarification from the authority to decide.",
+      "qualifying_context": "Conceptual and governance questions where a persuasive synthesis could conceal unresolved alternatives, evidentiary limits, consequences, or authority boundaries.",
+      "abstention_boundary": "Do not confuse persuasive completeness with established coherence; do not manufacture certainty or displace accountable decision-makers.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C097",
+      "approved_question": "What is constitutional reasoning in the Archive's sense?",
+      "known_theme": "constitutional reasoning, Living Archive, recovery, constitutional relationships, interpretation, inference, canonical architecture, Constitutional Register",
+      "reasoning_family": "constitutional_reasoning_recovery_interpretation_inference",
+      "transferable_discipline": "For constitutional or architecture questions, define the governing concept, explain the method for recovering its relationships, distinguish canonical recovery from interpretation and inference, and provide the authoritative doorway only when it genuinely extends the exact inquiry.",
+      "qualifying_context": "Questions about constitutional architecture, governing relationships among concepts, canonical recovery, interpretation, inference, and Archive-level structural reasoning.",
+      "abstention_boundary": "Do not treat inferred relationships as canonical facts, assume titles establish connections, invent constitutional rules absent explicit support, or transfer an exemplar-specific doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C098",
+      "approved_question": "How do ecological systems challenge extractive economic assumptions?",
+      "known_theme": "ecological systems, extractive economics, extraction, maintenance, resilience, ecosystem services, systems change",
+      "reasoning_family": "ecological-interdependence-extraction-maintenance-resilience",
+      "transferable_discipline": "For broad systems questions, begin with the governing relationship, make the central distinction explicit, and carry the reasoning into institutional or economic consequences without reducing the system to a slogan.",
+      "qualifying_context": "Broad conceptual questions connecting ecological interdependence, economic extraction, maintenance, resilience, regeneration, and ecosystem services.",
+      "abstention_boundary": "Do not present the exemplar as a sourced Archive doctrine beyond what the approved response establishes; do not invent canonical source provenance or doorway URLs.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C099",
+      "approved_question": "What does regenerative design require at the organizational level?",
+      "known_theme": "regenerative design, organizational purpose, system health, renewal, resilience, consequences, adaptation, sustainability, governance",
+      "reasoning_family": "regenerative_design_organizational_purpose_system_health",
+      "transferable_discipline": "Begin directly with the governing distinction, connect organizational purpose to system health, translate the principle into practical relationships and long-term effects, and close with an application-oriented inquiry.",
+      "qualifying_context": "Broad conceptual questions about regenerative design, organizational purpose, system health, adaptation, and long-term stewardship.",
+      "abstention_boundary": "Do not impose this frame on narrow factual, technical, or unrelated questions, and do not transfer exemplar-specific claims, wording, examples, or doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C100",
+      "approved_question": "What is the relationship between collapse, adaptation, and regeneration?",
+      "known_theme": "collapse, adaptation, regeneration, resilience, disruption, renewal, systems viability, ecological and social systems",
+      "reasoning_family": "collapse_adaptation_regeneration_distinction",
+      "transferable_discipline": "Distinguish collapse as disruption, adaptation as adjustment, and regeneration as renewal; explain why adaptation may preserve damaged conditions and examine what must be restored for long-term viability, while preserving contingency and scale.",
+      "qualifying_context": "Questions about systemic disruption, collapse, resilience, adaptation, ecological or social renewal, and the conditions required for long-term viability.",
+      "abstention_boundary": "Do not impose a fixed three-stage sequence or equate survival, reorganization, or efficiency with regeneration; distinguish adjustment from restoration of underlying conditions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C101",
+      "approved_question": "How can communities preserve wisdom without treating tradition as infallible?",
+      "known_theme": "community wisdom, tradition, epistemic humility, internal diversity, comparative methods, stewardship, governance, human accountability",
+      "reasoning_family": "integrative_stewardship_epistemic_humility_human_accountability",
+      "transferable_discipline": "Integrate operations, governance, human development, ethics, and stewardship in one decision frame; compare real options and consequences; include the knowledge of affected people; preserve human authority and accountability; approach traditions on their own terms while distinguishing kinds of claims and appropriate methods and avoiding false equivalence.",
+      "qualifying_context": "Questions about community traditions, cultural continuity, inherited wisdom, governance, stewardship, institutional change, or how to evaluate practices without treating tradition as infallible or disposable.",
+      "abstention_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C102",
+      "approved_question": "What is the difference between meaning-making and factual explanation?",
+      "known_theme": "fact-meaning-distinction-question",
+      "reasoning_family": "fact-meaning-distinction-question",
+      "transferable_discipline": "Separate what happened and what evidence supports from questions of significance, then reconnect them without allowing interpretation to impersonate evidence.",
+      "abstention_boundary": "Do not present subjective interpretation as factual proof or imply that evidence alone settles questions of meaning.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": [
+        "qualifying_context"
+      ],
+      "qualifying_context": ""
+    },
+    {
+      "candidate_label": "C103",
+      "approved_question": "What is the danger of techno-utopian thinking?",
+      "known_theme": "techno-utopianism, technological progress, governance, public services, institutional accountability, unequal power, democratic choice",
+      "reasoning_family": "techno_utopianism_technology_as_substitute_for_governance",
+      "transferable_discipline": "Identify the assumption that technological progress automatically resolves human problems; test it against access, institutional incentives, power, accountability, democratic choice, and distribution of costs and harms.",
+      "qualifying_context": "Questions about technological solutionism, digital transformation, public-sector technology, innovation claims, or assumptions that technical progress by itself resolves institutional, political, or social problems.",
+      "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C104",
+      "approved_question": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
+      "known_theme": "integrated institutional judgment for AI-led workforce restructuring",
+      "reasoning_family": "integrated_institutional_judgment",
+      "transferable_discipline": "Assess AI-led workforce change as a redesign of work and responsibility; test task-level feasibility and total operating costs; identify governance ownership and accountable oversight; compare layoffs with realistic alternatives; examine the distribution of productivity gains and burdens; and require a limited, reviewable pilot with measures of service, quality, workload, error, and worker outcomes.",
+      "qualifying_context": "Questions about organizational adoption of AI or automation where staffing, work redesign, operational feasibility, governance, human development, ethics, stewardship, and the distribution of gains or burdens are materially connected.",
+      "abstention_boundary": "Do not presume AI is inherently beneficial, treat staff reduction as an end in itself, make unsupported legal or labor-market claims, or make the decision for the responsible organization. Do not impose this integrated workforce frame on unrelated AI questions or general technology questions without material workforce consequences. Transfer the reasoning discipline only, never this answer text or its doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C105",
+      "approved_question": "How can communities preserve continuity while revising harmful inherited patterns?",
+      "known_theme": "community continuity, inherited patterns, harmful traditions, collective memory, belonging, institutional change, correction, stewardship, intergenerational responsibility",
+      "reasoning_family": "continuity_without_preserving_harmful_inheritance",
+      "transferable_discipline": "Distinguish valuable shared inheritance from harmful inherited practices; involve affected people in examining history, purpose, and consequences; decide what to retain, transform, or end; and make continuity accountable through documentation, review, and correction.",
+      "qualifying_context": "Questions about communities preserving identity, belonging, memory, or intergenerational continuity while changing harmful traditions, customs, institutional arrangements, or inherited patterns.",
+      "abstention_boundary": "Do not romanticize inherited practices because they are longstanding or assume all inheritance should be discarded. Do not prescribe changes to a specific community without context and the participation of those affected.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C106",
+      "approved_question": "A user requests a definitive prediction about a complex future. How should the Guide reframe the request toward scenarios, capacities, and uncertainty?",
+      "known_theme": "complex futures, scenario planning, capacity readiness, uncertainty, adaptive decisions, observable signals, option preservation, decision thresholds",
+      "reasoning_family": "complex_future_scenario_planning",
+      "transferable_discipline": "Replace a demand for a definitive prediction about a complex future with multiple plausible scenarios and their conditions; assess scenario-specific required and available capacities, constraints, dependencies, vulnerabilities, and gaps; then track observable signals and evidence, preserve options, and define adaptive decision thresholds while keeping uncertainty visible.",
+      "qualifying_context": "Questions explicitly asking how to reframe a definitive prediction about a complex, interacting, or nonlinear future toward scenario planning, capacity readiness, or uncertainty-aware preparation.",
+      "abstention_boundary": "Do not impose this scenario-readiness discipline on routine forecasts, ordinary uncertainty, factual questions, or unrelated decisions. Do not present scenarios as predictions, imply that capacity removes uncertainty, guarantee outcomes, or introduce unrelated AI framing.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C107",
+      "approved_question": "How should people act when the future is uncertain but consequential?",
+      "known_theme": "consequential decisions, uncertainty, proportionate action, incomplete evidence, affected stakeholders, correctability, review signals, accountability",
+      "reasoning_family": "consequential_action_under_uncertainty",
+      "transferable_discipline": "Calibrate action to what is known and unknown; compare realistic options by what they make possible, what they may damage, who carries the costs, and what evidence could change the assessment; then choose a proportionate, correctable course with clear review signals and accountable observation.",
+      "qualifying_context": "Questions asking how to act, decide, or respond when the future is uncertain and the consequences are meaningful, especially where responsibilities, affected people, incomplete evidence, and the distribution of costs matter.",
+      "abstention_boundary": "Do not impose this decision discipline on low-stakes, purely descriptive, or self-contained factual questions. Do not equate uncertainty with a reason to wait, claim certainty, or presume a universally correct option. Keep unrelated AI or civilizational framing out unless explicitly requested.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C108",
+      "approved_question": "How can hope remain disciplined rather than naïve?",
+      "known_theme": "hope, uncertainty, realism, possibility, responsibility, correction, meaning, spiritual escapism",
+      "reasoning_family": "disciplined_hope_reality_responsibility_correctability",
+      "transferable_discipline": "Treat hope as openness to possibility rather than a prediction of success; keep expectations answerable to present conditions and contrary evidence; allow setbacks to revise methods, timing, or goals; and test hope by whether it sustains responsible next steps without denying obstacles.",
+      "qualifying_context": "Questions about maintaining hope, meaning, or constructive possibility amid uncertainty, disappointment, constraints, or difficult realities.",
+      "abstention_boundary": "Do not equate hope with optimism, certainty, or guaranteed success. Do not treat realism as proof that change is impossible, and do not impose this frame on unrelated factual or low-stakes questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C109",
+      "approved_question": "What power does the Oversoul have over a person’s choice without undermining free will?",
+      "known_theme": "Oversoul, spiritual agency, free will, influence versus compulsion, metaphysical claims, epistemic humility, personal responsibility",
+      "reasoning_family": "spiritual_influence_without_coercion_epistemic_boundary",
+      "transferable_discipline": "When a spiritual or metaphysical framework is used to explain influence on human choice, distinguish orientation or invitation from coercive determination; preserve the person's role in interpreting experience and choosing; and state clearly which claims are framework-bound interpretations rather than independently verified facts.",
+      "qualifying_context": "Questions that explicitly invoke the Oversoul or a comparable spiritual framework and ask how spiritual influence, guidance, or purpose can coexist with personal choice or free will.",
+      "abstention_boundary": "Do not assert that an Oversoul or other metaphysical entity objectively exists, controls choices, or determines outcomes. Do not treat intuition as proof of metaphysical communication, universalize one spiritual framework across traditions, or impose this reasoning family on ordinary questions about influence or free will without the visitor's spiritual premise. Transfer the distinction and epistemic discipline, never this answer text or its doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C110",
+      "approved_question": "How can one distinguish structural change from ordinary disruption?",
+      "known_theme": "structural change, disruption, systemic transformation, organizational change, institutional arrangements, durable reorganization",
+      "reasoning_family": "structural_change_vs_ordinary_disruption",
+      "transferable_discipline": "Separate the disruptive event from the arrangements it may expose; explain that change is durable only when altered authority, incentives, dependencies, resource flows, or capabilities continue to govern ordinary operations after the disruption passes.",
+      "qualifying_context": "Questions distinguishing structural transformation from disruption, interruption, crisis, reform, or temporary operational change.",
+      "abstention_boundary": "Do not infer structural change from scale, duration, novelty, or intensity alone. Require observable and durable changes in the arrangements that shape system behavior.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C111",
+      "approved_question": "The Guide has been operating successfully for an extended period without human intervention. What evidence should demonstrate that it is genuinely autonomous, adaptive, resilient, and improving rather than merely continuing to produce responses?",
+      "known_theme": "AI autonomy, adaptivity, resilience, system improvement, operational evidence, intervention rate, held-out evaluation, fault injection, baseline comparison, independent review, regression control",
+      "reasoning_family": "bounded_ai_capability_evidence_evaluation",
+      "transferable_discipline": "For claims that an AI system is autonomous, adaptive, resilient, or improving, distinguish the four capabilities and define each within an explicit operating boundary. Require a pre-registered evaluation protocol with representative sampling, denominators and exclusions, capability-specific outcomes, prospective decision rules, uncertainty reporting, repeated tests, independently verified results, and a complete regression record. Do not let one capability's score compensate for another's failure; do not infer capability from uptime or response volume.",
+      "qualifying_context": "Questions asking what evidence would establish genuine autonomy, adaptivity, resilience, or improvement in an AI system, especially when sustained operation or response volume is being offered as proof.",
+      "abstention_boundary": "Do not transfer the answer text. Do not claim the Guide or another system has demonstrated any capability without operational evidence. Do not invent sample sizes, thresholds, benchmark results, or rates. Do not impose this protocol on unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C112",
+      "approved_question": "What is the difference between what my personality wants, what my soul is learning, and what my Oversoul may be inviting me to become?",
+      "known_theme": "personality desire, soul learning, Oversoul invitation, becoming, spiritual development, discernment, personal agency, epistemic humility",
+      "reasoning_family": "personality_soul_oversoul_discernment",
+      "transferable_discipline": "When a visitor distinguishes personality wants, soul learning, and a perceived Oversoul invitation, keep the three lenses distinct before integrating them; treat ordinary desires as information rather than defects; test developmental interpretations against lived evidence over time; preserve agency; and mark metaphysical claims as framework-bound rather than independently verified facts.",
+      "qualifying_context": "Questions that explicitly invoke personality, soul, and Oversoul together and ask how immediate desire, developmental learning, and a wider spiritual invitation differ or relate.",
+      "abstention_boundary": "Do not impose this three-lens framework on unrelated questions, demean ordinary needs as merely egoic, claim that suffering was cosmically assigned, assert that an Oversoul objectively exists or has issued an instruction, or transfer this answer text or doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C113",
+      "approved_question": "What is cosmology, and why does it matter to how people live?",
+      "known_theme": "cosmology, worldview, assumptions about reality, ontology, human life, philosophical interpretation, social consequences, epistemic boundaries",
+      "reasoning_family": "cosmology_worldview_human_life",
+      "transferable_discipline": "Distinguish scientific cosmology from the broader philosophical use of cosmology as worldview. Explain how assumptions about reality shape perception, possibility, values, relationships, and decisions. Mark illustrative philosophical consequences as interpretations rather than scientific findings, and preserve the boundary between the Living Archive's interpretive framework and established science.",
+      "qualifying_context": "Visitors explicitly asking how cosmology, worldview, assumptions about reality, or an understanding of human belonging relates to everyday life, relationships, cooperation, or institutions.",
+      "abstention_boundary": "Do not apply this framework to ordinary astronomy or astrophysics questions unless the visitor also asks about worldview or human meaning. Do not transfer the exact answer or doorway to unrelated questions. Do not claim that separation-based or unity-informed interpretations are scientifically proven or universally settled. Do not turn illustrative social consequences into empirical claims.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C114",
+      "approved_question": "What claims am I accepting because they feel true, beautiful, or empowering—and what would it take to examine them carefully?",
+      "known_theme": "felt truth, emotional resonance, confirmation bias, evidence, disconfirmation, personal meaning, epistemic discernment, correctability",
+      "reasoning_family": "felt_truth_claim_discernment",
+      "transferable_discipline": "Separate the personal significance of an experience from the factual accuracy of the interpretation attached to it. State the claim precisely; distinguish observation from interpretation; assess evidence using methods appropriate to the claim; seek disconfirmation and alternative explanations; examine whether the belief preserves agency and correctability; and calibrate confidence without forcing premature acceptance or rejection.",
+      "qualifying_context": "Visitors examining claims or beliefs because they feel true, beautiful, empowering, resonant, or emotionally compelling, and who want a careful method of discernment.",
+      "abstention_boundary": "Do not assume emotionally compelling claims are false; do not impose cynicism or a spiritual frame; do not dismiss personal experience; do not use repeatability as a universal evidence test; do not transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C115",
+      "approved_question": "What is the difference between complicated and complex?",
+      "known_theme": "complicated systems, complex systems, systems thinking, emergence, adaptation, feedback loops, nonlinear interactions, decomposition, expert analysis, complexity",
+      "reasoning_family": "complicated_vs_complex_conceptual_distinction",
+      "transferable_discipline": "Answer a requested conceptual distinction before navigation. Distinguish complicated systems as analyzable through decomposition, expertise, and relatively stable causal relationships from complex systems whose adaptive interactions, feedback, and nonlinear effects generate emergent outcomes. Explain that complexity is not merely greater difficulty and that real situations may contain both. Match the response strategy: specialist analysis and precise execution for complicated problems; observation, feedback, proportionate experimentation, and adaptation for complex situations.",
+      "qualifying_context": "Visitors explicitly comparing complicated and complex systems, problems, or situations, including close paraphrases that ask how the concepts differ or can be distinguished.",
+      "abstention_boundary": "Do not classify every difficult or multi-part problem as complex; do not imply complex systems are wholly unknowable or that complicated systems are easy. Do not trigger on incidental co-mentions or transfer the exact answer or Structural Frameworks doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C116",
+      "approved_question": "What is the difference between an event, a pattern, and a system structure?",
+      "known_theme": "event versus pattern versus system structure; recurring events; structural conditions; causal mechanisms; systems thinking; multilevel analysis; calibrated causal inference",
+      "reasoning_family": "event_pattern_system_structure_conceptual_distinction",
+      "transferable_discipline": "Answer conceptual distinctions before navigation. Separate an individual occurrence (event), a recurring or developing sequence (pattern), and the underlying relationships, rules, incentives, resources, information flows, and dependencies (system structure). Explain how structures can shape and sustain patterns without treating a pattern as proof of one cause. Match response to level: address the event, examine repeated occurrences, and investigate or change justified structural conditions.",
+      "qualifying_context": "Visitors explicitly asking to distinguish events, recurring patterns, and system structures or close paraphrases.",
+      "abstention_boundary": "Do not infer a single cause from repeated events, over-apply this conceptual distinction to unrelated questions, or use a diagnostic doorway instead of answering.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C117",
+      "approved_question": "When should The Guide say “the Archive does not yet address this directly”?",
+      "known_theme": "Archive coverage, direct versus adjacent relevance, retrieval failure, bounded recovery, evidence calibration, source verification, coverage-gap claims",
+      "reasoning_family": "guide_archive_coverage_gap_evidence_governance",
+      "transferable_discipline": "Before declaring an Archive coverage gap, understand the visitor's question and check the relevant canonical sources plus bounded recovery routes. Distinguish verified direct coverage, relevant but adjacent coverage, no direct or related resource verified after completed checks, and retrieval/indexing/access/source-verification failure. Treat a failed retrieval as evidence about the search process, not proof of corpus absence; scope every claim to the sources actually checked.",
+      "qualifying_context": "Visitors asking whether the Living Archive directly addresses a question, whether a related resource is sufficient, or whether an unsuccessful search justifies a coverage-gap statement.",
+      "abstention_boundary": "Apply only to questions about Archive coverage, resource verification, retrieval outcomes, and when The Guide may state that the Archive does not directly address a question. Do not infer corpus-wide absence from a failed search or limited source check. Do not transfer the exact answer to unrelated questions, and do not force a doorway onto meta-policy explanations.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C118",
+      "approved_question": "How should a leader respond when institutional incentives reward short-term extraction?",
+      "known_theme": "institutional incentives, short-term extraction, leadership, governance redesign, depletion, delayed costs, authority and accountability, long-term capacity, replenishment, dissent, independent review, regenerative governance",
+      "reasoning_family": "institutional_extraction_incentive_governance",
+      "transferable_discipline": "Diagnose incentive structures and the distribution of gains and delayed costs; redesign governance and measures to support long-term capacity and replenishment; align authority with responsibility; protect dissent and independent review; test changes through bounded pilots and observable outcomes; distinguish leader-level authority from governing-body mandate.",
+      "qualifying_context": "Visitors asking how a leader should respond when an institution rewards short-term returns through depletion, externalized costs, or incentives that undermine long-term organizational, social, or ecological capacity.",
+      "abstention_boundary": "Do not apply to ordinary personal productivity or generic leadership questions without institutional extraction incentives. Do not assume unilateral authority, impose universal metrics, treat all production as extraction, or transfer the exact answer or doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C119",
+      "approved_question": "What does “orientation rather than information” mean in practice?",
+      "known_theme": "orientation, information, contextual judgment, discernment, reliability, AI answers, responsibility, ambiguity, wise participation",
+      "reasoning_family": "orientation_vs_information_practical_discernment",
+      "transferable_discipline": "Distinguish information as facts, data, or claims from orientation as contextual understanding of what matters, what is reliable, how relevant parts relate, and what responsibilities or actions follow. Show that orientation uses information rather than rejecting it; ground the distinction in a practical example; preserve human judgment; and connect the explanation to a directly relevant canonical source when one is verified.",
+      "qualifying_context": "Visitors asking what it means to be oriented rather than merely informed, especially when interpreting AI-generated answers, evaluating reliability, deciding what matters, or determining responsible next steps.",
+      "abstention_boundary": "Do not impose this distinction on unrelated factual questions or transfer the exact answer or doorway. Do not imply that information is unimportant, that orientation guarantees certainty, or that fluent AI output is reliable without evidence and human judgment.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C120",
+      "approved_question": "What is the relationship between power and responsibility?",
+      "known_theme": "power, influence, responsibility, accountability, proportionality, formal and informal authority, affected parties, agency, capacity, wider constraints, correction",
+      "reasoning_family": "power_responsibility_proportional_accountability",
+      "transferable_discipline": "Explain power and responsibility as a reciprocal, proportional relationship. Trace formal and informal influence over decisions, information, resources, relationships, and available options; scale answerability to actual influence, knowledge, role, and capacity; consider affected people's agency and preventable harm; preserve the boundary where wider constraints limit control; and show how accountability gives influence legitimate limits and purpose. Offer a practical test that identifies who can shape the condition, who experiences its effects, what action is reasonably available, and how affected people can question or seek correction.",
+      "qualifying_context": "Visitors asking how power and responsibility relate, including questions about formal authority, informal influence, accountability, and fair responsibility for consequences. Apply the proportionality test to actual influence, knowledge, role, and capacity.",
+      "abstention_boundary": "Apply only to substantive questions about the relationship among power, influence, responsibility, and accountability. Do not equate responsibility with unlimited liability, assume formal authority is the only form of power, blame people for outcomes beyond their actual influence or capacity, or transfer this exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C121",
+      "approved_question": "What kinds of boundaries should be drawn around a problem, and what do they exclude?",
+      "known_theme": "problem framing, analytical scope, system boundaries, causal boundaries, scale, time horizon, stakeholder inclusion, authority, evidence limits, out-of-scope factors, externalities, provisional boundaries",
+      "reasoning_family": "problem_boundary_calibration",
+      "transferable_discipline": "Define a problem boundary across the focal phenomenon, the relationships and conditions that shape it, scale and place, time horizon, affected stakeholders and decision authority, and evidence limits. Exclude merely adjacent material, not factors that materially alter explanation, distribution of benefits or burdens, available options, or consequences. Keep external causes, affected groups, dependencies, constraints, and delayed effects visible even when outside immediate scope. State what is outside scope and why, monitor consequential effects, and revise provisional boundaries when evidence or feedback shows that an excluded relationship is shaping the result.",
+      "qualifying_context": "Visitors asking how to frame a problem, define analytical or system boundaries, decide what belongs inside or outside scope, or account for dependencies, externalities, affected parties, time horizons, and evidence limits.",
+      "abstention_boundary": "Apply to problem-framing and systems-boundary questions. Do not imply excluded factors are unimportant, exclude affected parties because they lack decision authority, collapse analytical scope into the wider system, or assume causal relationships without evidence. Do not transfer the exact answer or its doorway to unrelated questions; do not grant exact-answer authority or deterministic fallback eligibility.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C122",
+      "approved_question": "What would constitute a good-faith critique of the Archive’s worldview?",
+      "known_theme": "reflexive critique, institutional worldview, independent corroboration, epistemic categories, falsifiability, counterevidence, revision conditions, institutional power, normative commitments",
+      "reasoning_family": "reflexive_institutional_critique_and_correctability",
+      "transferable_discipline": "For requests to critique an institution's worldview, reconstruct its strongest actual claims before evaluating them; distinguish descriptive, empirical, interpretive, and normative claims; expose assumptions; test empirical claims against independent evidence and counterexamples; assess internal coherence separately from external adequacy and consequences; represent objections and replies fairly; state revision conditions; and calibrate conclusions to evidence actually examined. Do not treat institutional self-description as independent validation.",
+      "qualifying_context": "Visitors explicitly asking how to critique, test, or independently examine the worldview, foundational claims, or assumptions of an institution or knowledge framework. The method requires fair reconstruction and claim-type-sensitive evaluation.",
+      "abstention_boundary": "Apply only when a visitor asks for good-faith critique or independent examination of an institution's worldview, framework, or foundational claims. Do not assume the institution's claims are true or false, invent corpus contents, imply an audit has occurred when it has not, collapse normative commitments into empirical propositions, or transfer this exact answer to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C123",
+      "approved_question": "What is the relationship between stewardship and consent?",
+      "known_theme": "stewardship, consent, entrusted responsibility, authority, legitimacy, participation, affected-party agency, permission boundaries, refusal, withdrawal, shared authority, non-dominating care",
+      "reasoning_family": "stewardship_consent_relational_legitimacy",
+      "transferable_discipline": "Explain stewardship and consent as complementary but distinct: stewardship establishes entrusted responsibility to care; consent establishes whether and within what limits affected people's participation, choices, resources, or interests may legitimately be involved. Distinguish responsibility from authority and consent from consultation or good intention. Where consent is the relevant basis, preserve informed, voluntary, specific agreement and the possibility of refusal, withdrawal, or renegotiation. Distinguish routine responsibilities within an authorized role from decisions requiring permission or shared authority; do not turn this into a universal legal test.",
+      "qualifying_context": "Visitors asking how stewardship and consent relate, including entrusted responsibility, participation, authority, permission boundaries, and affected-party agency.",
+      "abstention_boundary": "Do not apply to unrelated definitions or general legal advice. Do not imply every routine act of care requires explicit permission, treat consultation as consent, assume entrusted responsibility grants authority over affected people, or transfer the exact answer or doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C124",
+      "approved_question": "How should a steward act amid incomplete knowledge?",
+      "known_theme": "stewardship, incomplete knowledge, uncertainty, epistemic calibration, proportional action, reversibility, affected-party knowledge, safeguards, correctability, human accountability",
+      "reasoning_family": "stewardship_under_incomplete_knowledge",
+      "transferable_discipline": "Separate established facts, inference, assumptions, material unknowns, and missing perspectives; calibrate confidence to evidence; assess stakes, urgency, affected people, legitimate authority, capacity, and reversibility; distinguish safe action now from verification, testing, consultation, escalation, or pause; choose proportionate safeguards; define observable monitoring signals, accountable ownership, review triggers, and continuation, adaptation, reversal, or stopping conditions; preserve human decision authority and accountability.",
+      "qualifying_context": "Visitors asking how a steward or custodian should act, decide, or proceed when material information is incomplete, uncertain, or contested and a consequential action is required.",
+      "abstention_boundary": "Apply only to action-oriented stewardship or custodianship questions under material uncertainty. Do not impose this discipline on simple definitions or unrelated uncertainty questions; do not equate uncertainty with paralysis or permission to guess; do not treat reversibility as a substitute for consent, legitimacy, or harm assessment; do not transfer decision authority to AI; and do not suppress or invent a canonical doorway.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C125",
+      "approved_question": "How should The Guide explain a systemic issue to a user seeking a simple answer?",
+      "known_theme": "systemic explanation, accessible communication, systems thinking, interacting conditions, feedback patterns, causal relationships, evidence and inference, plain language, practical leverage",
+      "reasoning_family": "systems_intelligibility_without_monocausal_reduction",
+      "transferable_discipline": "Make a systemic issue understandable without reducing it to a single cause. Start with a direct plain-language explanation; identify only the interacting rules, incentives, resources, relationships, and feedback patterns needed to explain how the issue persists; distinguish known observations from inference; show why it matters and one practical point of leverage; offer further depth only if wanted.",
+      "qualifying_context": "Visitors asking how The Guide should explain a systemic or structural issue simply, accessibly, or in plain language, including close paraphrases.",
+      "abstention_boundary": "Apply to requests asking how to explain a systemic or structural issue simply or in plain language, including close paraphrases. Do not use this answer as a substitute for explaining a specific issue with its own evidence, context, affected parties, and causal uncertainty. Do not reduce systemic conditions to one cause or one person's mistake, list every possible mechanism, present inference as established fact, or prescribe leverage without understanding the situation. Do not transfer this exact wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C126",
+      "approved_question": "What is one concrete act of stewardship I can complete this week that makes an inner insight real?",
+      "known_theme": "stewardship, insight to action, weekly practice, entrusted responsibility, sustainable care, consent, boundaries, rest, correctability",
+      "reasoning_family": "bounded_weekly_stewardship_action_and_insight_application",
+      "transferable_discipline": "Translate insight into one proportionate action within an already entrusted responsibility; distinguish what is yours to hold from what is yours to control; preserve consent, boundaries, sustainability, and rest; then review an observable result and adjust.",
+      "qualifying_context": "Visitors asking for one concrete near-term stewardship action that makes an insight real, especially where the action must remain proportionate to an existing responsibility and sustainable for the people or systems affected.",
+      "abstention_boundary": "Do not invent a personal duty, supernatural caller, external authority, or unlimited obligation. Do not equate stewardship with self-sacrifice, treat the 20-minute exercise as an Archive rule, or transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C127",
+      "approved_question": "Why do organizations repeat failures they publicly acknowledge?",
+      "known_theme": "organizational learning, public acknowledgment, repeated failures, institutional memory, incentives, accountability, authority, organizational change, feedback, corrective action",
+      "reasoning_family": "organizational_acknowledgment_without_institutional_learning",
+      "transferable_discipline": "Explain why public acknowledgment does not itself constitute organizational learning or correction. Distinguish recognition from changed practice, identify reinforcing mechanisms such as unchanged routines, misaligned incentives, responsibility without authority, filtered information, and lessons not embedded in institutional memory. Connect learning to both retaining lessons and having the authority and capacity to change the conditions that reproduce failure. Offer a practical test of ownership, authority, resources, changed incentives/procedures, measurable outcomes, and review. Treat these as possible mechanisms rather than diagnosing a particular organization without evidence.",
+      "qualifying_context": "Visitors asking why organizations repeat failures despite publicly acknowledging them, issuing apologies or reports, or making commitments to change, including close paraphrases.",
+      "abstention_boundary": "Apply to questions about organizations repeating failures despite public acknowledgment, apologies, reports, or stated commitments. Do not assume every organization exhibits all five mechanisms, diagnose a named organization without evidence, or equate public acknowledgment with learning or effective correction. Keep the distinction between learning to describe failure and becoming capable of changing its reproducing conditions. Do not transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C128",
+      "approved_question": "When does “transformation” become mere rebranding?",
+      "known_theme": "organizational transformation, symbolic rebranding, structural change, decision rights, incentives, resource flows, accountability, power, cost distribution, observable outcomes",
+      "reasoning_family": "structural_transformation_vs_symbolic_rebranding",
+      "transferable_discipline": "Distinguish structural transformation from symbolic rebranding by testing whether decision rights, incentives, resource flows, accountability, everyday practices, outcomes, and the distribution of power and costs materially change. Treat durable, observable differences in system operation and lived experience—not new labels, strategies, or promises—as the evidence of transformation. Keep those differences open to scrutiny and correction.",
+      "qualifying_context": "Visitors asking whether a transformation is substantive or merely rebranding, cosmetic change, a new identity, a new strategy, or a change in promises, including close paraphrases.",
+      "abstention_boundary": "Apply to questions assessing whether an organization, institution, or wider system has genuinely transformed or merely changed its language, identity, strategy, or promises. Do not apply automatically to personal transformation, emotional relief, or every use of the word transformation. Do not diagnose a named system without evidence, assume every listed mechanism is present, or transfer the exact answer, its examples, or its doorway to unrelated questions.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    },
+    {
+      "candidate_label": "C129",
+      "approved_question": "What is the difference between circularity and regeneration?",
+      "known_theme": "circularity, regeneration, system renewal, resource circulation, organizational design, long-term system health",
+      "reasoning_family": "circularity_regeneration_distinction",
+      "transferable_discipline": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
+      "qualifying_context": "Broad conceptual questions comparing circularity, regeneration, resource circulation, system renewal, and long-term conditions.",
+      "abstention_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query.",
+      "activation": "active_quality_contributor",
+      "source_field_gaps": []
+    }
+  ],
+  "source_limitations": "Some source records have no qualifying_context text. Those fields remain empty and are explicitly listed in source_field_gaps; reviewers must not infer or manufacture missing source content. This does not invalidate the candidate's presence in the active approved inventory."
+}
