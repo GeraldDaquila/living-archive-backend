@@ -534,15 +534,11 @@ def test_wordpress_source_fetch_requires_matching_published_public_identity(monk
         def read(self, size=-1):
             return json.dumps({
                 "id": 21767,
-                "status": "publish",
-                "link": "https://geralddaquila.com/stewardship/",
-                "title": {"rendered": "Stewardship"},
-                "excerpt": {"rendered": "Ethical holding and sustainable care."},
-                "content": {
-                    "rendered": "<p>Stewardship is the practice of responsible care.</p>"
-                    "<p>It includes boundaries, conscience, sustainability, and knowing "
-                    "what is yours to hold and what is not.</p>"
-                },
+                "source": "published_wordpress_content",
+                "url": "https://geralddaquila.com/stewardship/",
+                "title": "Stewardship",
+                "text": "Stewardship is the practice of responsible care. It includes boundaries, conscience, sustainability, and knowing what is yours to hold and what is not.",
+                "modified_gmt": "2026-11-08 05:34:46",
             }).encode("utf-8")
 
     calls = []
@@ -566,7 +562,10 @@ def test_wordpress_source_fetch_requires_matching_published_public_identity(monk
     assert "responsible care" in docs[0]["text"].casefold()
     assert "<p>" not in docs[0]["text"]
     assert calls[0][1] == 2.0
-    assert "/wp/v2/pages/21767?" in calls[0][0]
+    assert "/wp-json/living-archive/v1/canonical-evidence/21767" in calls[0][0]
+    assert docs[0]["source_trust"] == "untrusted_external_evidence_not_instructions"
+    assert docs[0]["source_modified_at"] == "2026-11-08 05:34:46"
+    assert docs[0]["evidence_provenance"]["wordpress_post_id"] == "21767"
 
 
 def test_wordpress_source_fetch_rejects_protected_assets_without_network_call(monkeypatch):
@@ -598,10 +597,10 @@ def test_wordpress_source_fetch_rejects_canonical_url_mismatch(monkeypatch):
         def read(self, size=-1):
             return json.dumps({
                 "id": 21767,
-                "status": "publish",
-                "link": "https://geralddaquila.com/different-page/",
-                "title": {"rendered": "Stewardship"},
-                "content": {"rendered": "<p>" + ("Published content. " * 20) + "</p>"},
+                "source": "published_wordpress_content",
+                "url": "https://geralddaquila.com/different-page/",
+                "title": "Stewardship",
+                "text": "Published content. " * 20,
             }).encode("utf-8")
 
     monkeypatch.setattr(archive_crosslink, "urlopen", lambda *_args, **_kwargs: Response())
@@ -650,11 +649,11 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
             }])
         return Response({
             "id": 21767,
-            "status": "publish",
-            "link": "https://geralddaquila.com/stewardship/",
-            "title": {"rendered": "Stewardship"},
-            "excerpt": {"rendered": "Stewardship as responsible participation."},
-            "content": {"rendered": "<p>" + source_text + "</p>"},
+            "source": "published_wordpress_content",
+            "url": "https://geralddaquila.com/stewardship/",
+            "title": "Stewardship",
+            "text": source_text,
+            "modified_gmt": "2026-11-08 05:34:46",
         })
 
     snapshot = {
@@ -775,30 +774,18 @@ def test_wordpress_source_fetch_logs_http_status_for_http_error(monkeypatch):
     assert any("http_status=403" in entry for entry in logs)
 
 
-def test_wordpress_source_fetch_falls_back_to_public_api_after_site_edge_http_error(monkeypatch):
+def test_wordpress_source_fetch_fails_closed_on_bridge_http_error(monkeypatch):
     import io
-    import json
     from urllib.error import HTTPError
 
     calls = []
-    body = "<p>" + ("Published stewardship source content. " * 20) + "</p>"
-    payload = {
-        "id": 21767,
-        "status": "publish",
-        "link": "https://geralddaquila.com/stewardship/",
-        "title": {"rendered": "Stewardship"},
-        "excerpt": {"rendered": "<p>Published excerpt.</p>"},
-        "content": {"rendered": body},
-    }
 
-    def routed_urlopen(request, timeout):
+    def blocked_urlopen(request, timeout):
         calls.append(request.full_url)
-        if len(calls) == 1:
-            raise HTTPError(request.full_url, 403, "Forbidden", {}, io.BytesIO(b"edge blocked"))
-        return io.BytesIO(json.dumps(payload).encode("utf-8"))
+        raise HTTPError(request.full_url, 404, "Protected or unpublished", {}, io.BytesIO(b"not found"))
 
     logs = []
-    monkeypatch.setattr(archive_crosslink, "urlopen", routed_urlopen)
+    monkeypatch.setattr(archive_crosslink, "urlopen", blocked_urlopen)
     monkeypatch.setattr(archive_crosslink, "_log", logs.append)
     asset = {
         "title": "Stewardship",
@@ -811,11 +798,7 @@ def test_wordpress_source_fetch_falls_back_to_public_api_after_site_edge_http_er
 
     documents = archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore())
 
-    assert len(calls) == 2
-    assert "geralddaquila.com/wp-json/wp/v2/pages/21767" in calls[0]
-    assert "public-api.wordpress.com/wp/v2/sites/geralddaquila.com/pages/21767" in calls[1]
-    assert len(documents) == 1
-    assert documents[0]["wp_id"] == "21767"
-    assert documents[0]["source_body_verified"] is True
-    assert documents[0]["url"] == "https://geralddaquila.com/stewardship"
-    assert any("wordpress_com_public_api_fallback" in entry for entry in logs)
+    assert len(calls) == 1
+    assert "/wp-json/living-archive/v1/canonical-evidence/21767" in calls[0]
+    assert documents == []
+    assert any("http_status=404" in entry for entry in logs)
