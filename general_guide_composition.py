@@ -16,6 +16,11 @@ from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
+from gold_star_adjudication_trace import (
+    build_adjudication_trace as _build_gold_star_adjudication_trace,
+    mark_composition_result as _mark_gold_star_composition_result,
+    validate_trace as _validate_gold_star_adjudication_trace,
+)
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
@@ -4210,6 +4215,20 @@ def compose(
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
     gold_star_quality = _gold_star_active_quality_contribution(question)
+    # Runtime retrieval is recorded separately from actual selection, application,
+    # and outcome. This active trace never consumes the observation-only shadow lane.
+    gold_star_adjudication_trace = _build_gold_star_adjudication_trace(gold_star_quality)
+    if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
+        raise RuntimeError("Gold Star adjudication trace failed its privacy/evidence contract.")
+    _emit_guide_outcome(
+        "gold_star_adjudication_observed",
+        trace_version=gold_star_adjudication_trace["version"],
+        candidate_count=gold_star_adjudication_trace["candidate_count"],
+        candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
+        selection=gold_star_adjudication_trace["selection"],
+        application=gold_star_adjudication_trace["application"],
+        outcome_state=gold_star_adjudication_trace["outcome"],
+    )
     if gold_star_quality:
         # Cross-question Gold Star participation is structural guidance only.
         # A lesson object is intentionally incapable of carrying approved answer
@@ -4704,6 +4723,21 @@ def compose(
     response = parsed.get("response")
     if not response:
         raise ValueError("general composition provider result missing response")
+    gold_star_adjudication_trace = _mark_gold_star_composition_result(
+        gold_star_adjudication_trace,
+        provider_result=result,
+    )
+    if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
+        raise RuntimeError("Gold Star composition trace failed validation.")
+    _emit_guide_outcome(
+        "gold_star_adjudication_composition",
+        trace_version=gold_star_adjudication_trace["version"],
+        candidate_count=gold_star_adjudication_trace["candidate_count"],
+        composition=gold_star_adjudication_trace.get("composition", "unobserved"),
+        selection=gold_star_adjudication_trace["selection"],
+        application=gold_star_adjudication_trace["application"],
+        outcome_state=gold_star_adjudication_trace["outcome"],
+    )
     candidate = {
         "response": response,
         "doorway_title": parsed.get("doorway_title", ""),
@@ -4711,6 +4745,7 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+
     provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
