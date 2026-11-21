@@ -2745,6 +2745,9 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
         # Three sequential Navigator stages share one bounded WordPress turn.
         # Fail a slow candidate quickly so the bank can reach a healthy alternative.
         return 4.0
+    if operation == "claim_adjudication":
+        # Claim checking is supplemental to the answer; preserve the visitor turn.
+        return 3.5
     if operation == "general_guide_composition":
         capabilities = MODEL_CAPABILITIES.get((provider, model), frozenset())
         baseline = (
