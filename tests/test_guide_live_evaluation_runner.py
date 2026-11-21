@@ -1,4 +1,11 @@
-from scripts.guide_live_evaluation import build_human_review_template, evaluate_gold, evaluate_held
+from scripts.guide_live_evaluation import (
+    build_human_review_template,
+    classify_llm_payload,
+    claim_adjudication_summary,
+    evaluate_gold,
+    evaluate_held,
+    select_gold_standard_sample,
+)
 
 
 def test_exact_approved_answer_is_enforced():
@@ -138,4 +145,63 @@ def test_live_evaluation_workflow_sets_repository_import_path_and_entrypoint_imp
     )
     assert result.returncode == 0, result.stderr
     assert "--base-url" in result.stdout
+
+def test_gold_standard_live_sample_is_stable_bounded_and_spans_registry():
+    records = [
+        {"benchmark_id": f"benchmark-{index:03d}", "query": f"Question {index}"}
+        for index in range(130)
+    ]
+    sample = select_gold_standard_sample(records, 6)
+    assert len(sample) == 6
+    assert sample == select_gold_standard_sample(records, 6)
+    assert sample[0]["benchmark_id"] == "benchmark-000"
+    assert sample[-1]["benchmark_id"] == "benchmark-129"
+    assert len({item["benchmark_id"] for item in sample}) == 6
+
+
+def test_llm_capture_requires_final_answer_provenance_not_provider_attempts():
+    deterministic = {
+        "provider": "gold_standard_registry",
+        "model": "approved-reference",
+        "response_provenance": {
+            "class": "deterministic_by_design",
+            "llm_invoked": False,
+        },
+    }
+    verified, metadata = classify_llm_payload(deterministic)
+    assert verified is False
+    assert metadata["verification_basis"] == "insufficient_or_deterministic_final_output_provenance"
+
+    llm = {
+        "response_provenance": {
+            "class": "llm",
+            "llm_invoked": True,
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+        },
+    }
+    verified, metadata = classify_llm_payload(llm)
+    assert verified is True
+    assert metadata["provider"] == "groq"
+    assert metadata["model"] == "qwen/qwen3.8-27b"
+
+
+def test_claim_adjudication_report_is_summary_only():
+    body = {
+        "claim_adjudication": {
+            "status": "assessed",
+            "reason": "all_claims_assessed",
+            "claim_count": 2,
+            "outcome_counts": {"supported": 1, "no_relevant_public_source": 1},
+            "claims": [{"claim": "private response text", "outcome": "supported"}],
+        }
+    }
+    summary = claim_adjudication_summary(body)
+    assert summary == {
+        "status": "assessed",
+        "reason": "all_claims_assessed",
+        "claim_count": 2,
+        "outcome_counts": {"supported": 1, "no_relevant_public_source": 1},
+    }
+    assert "claims" not in summary
 
