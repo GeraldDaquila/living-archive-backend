@@ -4209,7 +4209,7 @@ def _public_live_source_security_instruction(context_data: Dict[str, Any]) -> st
     )
 
 
-def compose(
+def _compose_impl(
 
     *,
     use_core: Any,
@@ -4256,6 +4256,8 @@ def compose(
         raise RuntimeError("Gold Star adjudication trace failed its privacy/evidence contract.")
     _emit_guide_outcome(
         "gold_star_adjudication_observed",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
@@ -4487,6 +4489,8 @@ def compose(
         raise RuntimeError("Gold Star guidance-exposure trace failed validation.")
     _emit_guide_outcome(
         "gold_star_guidance_exposure",
+        request_id=gold_star_adjudication_trace.get("request_id"),
+        attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
         trace_version=gold_star_adjudication_trace["version"],
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         exposure=gold_star_adjudication_trace["guidance_exposure"],
@@ -4914,6 +4918,8 @@ def compose(
                 cached_result["_gold_star_adjudication_trace"] = cached_trace
                 _emit_guide_outcome(
                     "gold_star_adjudication_cache_race_reuse",
+                    request_id=cached_trace.get("request_id"),
+                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
                     trace_version=cached_trace["version"],
                     candidate_count=cached_trace["candidate_count"],
                     provider_adjudication_status=cached_trace["provider_adjudication_status"],
@@ -4928,6 +4934,37 @@ def compose(
             _COMPOSITION_CACHE.popitem(last=False)
 
     return candidate
+
+
+def compose(
+    *,
+    use_core: Any,
+    query: str,
+    context_data: Dict[str, Any],
+    history_text: str = "",
+    integrity_recovery: bool = False,
+    deadline_monotonic: float | None = None,
+) -> Optional[Dict[str, Any]]:
+    """Count one attempt and attach a content-free trace to every composed result."""
+    from gold_star_adjudication_trace import (
+        begin_composition_attempt as _begin_gold_star_attempt,
+        current_attempt_trace as _current_gold_star_attempt_trace,
+    )
+    _begin_gold_star_attempt()
+    result = _compose_impl(
+        use_core=use_core,
+        query=query,
+        context_data=context_data,
+        history_text=history_text,
+        integrity_recovery=integrity_recovery,
+        deadline_monotonic=deadline_monotonic,
+    )
+    if isinstance(result, dict) and not isinstance(result.get("_gold_star_adjudication_trace"), dict):
+        attempt_trace = _current_gold_star_attempt_trace()
+        if isinstance(attempt_trace, dict):
+            result = dict(result)
+            result["_gold_star_adjudication_trace"] = attempt_trace
+    return result
 
 
 def contract_snapshot() -> Dict[str, Any]:
