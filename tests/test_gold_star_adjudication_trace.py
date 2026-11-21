@@ -359,6 +359,7 @@ def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
         "provider_failure_count",
         "provider_admission_denied_count",
         "provider_terminal_state",
+        "request_ledger_version",
     } <= terminal_fields
 
 def test_request_ledger_tracks_provider_route_terminal_counts():
@@ -413,6 +414,7 @@ def test_provider_route_wrapper_emits_correlated_exhaustion_terminal(capsys):
         output = capsys.readouterr().out
         assert "gold_star_provider_route_terminal" in output
         assert "request_id=44444444444444444444444444444444" in output
+        assert "request_ledger_version=2" in output
         assert "attempt_ordinal=1" in output
         assert "provider_route_ordinal=1" in output
         assert "outcome=provider_exhausted" in output
