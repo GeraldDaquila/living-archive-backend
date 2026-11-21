@@ -40,7 +40,8 @@ def test_trace_rejects_invalid_request_id_or_attempt_ordinal():
 
 def test_composition_wrapper_attaches_trace_to_early_return(monkeypatch):
     def deterministic_early_return(**_kwargs):
-        trace.build_adjudication_trace(None)
+        initial = trace.build_adjudication_trace({"candidates": []})
+        trace.mark_guidance_exposure(initial, included_in_provider_prompt=False)
         return {"response": "Deterministic response.", "provider": "registered"}
     monkeypatch.setattr(composition, "_compose_impl", deterministic_early_return)
     token = trace.begin_request_context("abcdef0123456789abcdef0123456789")
@@ -49,6 +50,7 @@ def test_composition_wrapper_attaches_trace_to_early_return(monkeypatch):
         attached = result["_gold_star_adjudication_trace"]
         assert attached["request_id"] == "abcdef0123456789abcdef0123456789"
         assert attached["attempt_ordinal"] == 1
+        assert attached["guidance_exposure"] == "not_applicable"
         assert trace.validate_trace(attached)["valid"]
     finally:
         trace.end_request_context(token)
