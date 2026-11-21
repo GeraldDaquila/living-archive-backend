@@ -45,7 +45,6 @@ from pinecone import Pinecone
 from groq import Groq
 from fastembed import TextEmbedding
 import onnxruntime as _onnxruntime
-from embedding_runtime_policy import parse_onnx_cpu_mem_arena_enabled
 
 
 # =====================================================================
@@ -877,7 +876,19 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-EMBEDDING_ENABLE_CPU_MEM_ARENA = parse_onnx_cpu_mem_arena_enabled(
+def _parse_onnx_cpu_mem_arena_enabled(value: str | None) -> bool:
+    """Parse the optional ONNX CPU memory-arena setting; default preserves current behavior."""
+    if value is None:
+        return True
+    normalized = value.strip().casefold()
+    if normalized in {"0", "false", "no", "off", "disabled"}:
+        return False
+    if normalized in {"1", "true", "yes", "on", "enabled"}:
+        return True
+    return True
+
+
+EMBEDDING_ENABLE_CPU_MEM_ARENA = _parse_onnx_cpu_mem_arena_enabled(
     os.getenv("USE_ONNX_ENABLE_CPU_MEM_ARENA")
 )
 embedding_model = TextEmbedding(
