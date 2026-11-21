@@ -141,5 +141,12 @@
     "application": "Separately assess whether the delivered answer substantively applies the relevant discipline. Retrieval, prompt inclusion, provider self-report, and phrase/span presence are not proof of application.",
     "answer_integrity": "Do not transfer exemplar-specific answer text, factual claims, examples, citations, or doorways. Exact approved questions retain their separate answer authority.",
     "release": "No threshold changes, ontology bridges, ranking changes, or runtime behavior changes are authorized by this benchmark alone. Require held-out results and a separately reviewed minimal correction."
+  },
+  "label_validation": {
+    "status": "STEWARD_SELECTED_PENDING_INDEPENDENT_REVIEW",
+    "basis": "Technical-steward judgment under delegated project authority; not independent ground truth.",
+    "ground_truth_eligible": false,
+    "required_next_step": "Two independent blinded first-pass reviews across the complete approved runtime-active Gold Star inventory, followed by adjudication of disagreements.",
+    "protocol": "docs/qa/decision_rights_candidate_set_review_protocol.md"
   }
 }
