@@ -153,3 +153,29 @@ def test_blinded_review_packet_covers_complete_active_inventory():
     ]
     assert "expected_core" not in packet["cases"][0]
     assert "semantic" not in packet["blinding"].casefold()
+
+
+def test_independent_review_annotation_template_is_complete_and_blank():
+    import csv
+    template = ROOT / "docs/qa/decision_rights_independent_review_annotations_template_2026-11-22.csv"
+    packet = _load(
+        ROOT / "docs/qa/decision_rights_independent_review_packet_2026-11-22.json"
+    )
+    with template.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    expected_pairs = {
+        (case["case_id"], candidate["candidate_label"])
+        for case in packet["cases"]
+        for candidate in packet["candidates"]
+    }
+    actual_pairs = {(row["case_id"], row["candidate_label"]) for row in rows}
+    assert len(rows) == len(expected_pairs) == 1032
+    assert actual_pairs == expected_pairs
+    assert all(not row["reviewer_id"] for row in rows)
+    assert all(not row["disposition"] for row in rows)
+    assert all(not row["rationale"] for row in rows)
+    assert all(
+        row["disposition"] in {"", "CORE", "CONDITIONAL", "RELATED_NOT_NEEDED",
+                               "NOT_RELEVANT", "INSUFFICIENT_CONTEXT"}
+        for row in rows
+    )
