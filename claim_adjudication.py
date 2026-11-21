@@ -61,6 +61,7 @@ def _passages(documents: Sequence[Any]) -> list[dict[str, str]]:
         url = str(document.get("url") or "").strip()[:1000]
         source_id = str(document.get("id") or "").strip()[:128]
         body = str(document.get("text") or document.get("content") or document.get("excerpt") or "")
+        source_status = str(document.get("source_status") or document.get("availability_status") or document.get("status") or "").strip().casefold()
         if not body.strip():
             continue
         # Paragraph boundaries are retained; no synthetic passage text is created.
@@ -77,6 +78,7 @@ def _passages(documents: Sequence[Any]) -> list[dict[str, str]]:
                 "source_id": _digest(source_id or url + title)[:24],
                 "title": title,
                 "url": url,
+                "source_status": source_status,
                 "text": chunk,
             })
             if len(result) >= _MAX_PASSAGES:
@@ -220,6 +222,14 @@ def adjudicate_answer_claims(
         if outcome in {"stale_or_unavailable", "no_relevant_public_source"} and verified:
             output.append(_unassessed(claim, "unexpected_attribution_for_non_evidentiary_outcome"))
             continue
+        if outcome == "stale_or_unavailable":
+            stale_states = {"stale", "unavailable", "not_found", "removed", "expired", "source_unavailable"}
+            if not any(passage.get("source_status") in stale_states for passage in source_passages):
+                output.append(_unassessed(claim, "stale_or_unavailable_not_verified_by_source_metadata"))
+                continue
+            if not str(assessment.get("reason") or "").strip():
+                output.append(_unassessed(claim, "missing_stale_or_unavailable_reason"))
+                continue
         output_item = {
             "claim": claim,
             "outcome": outcome,
