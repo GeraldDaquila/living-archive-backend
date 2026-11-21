@@ -72,7 +72,7 @@ def _query_mode(query: str) -> Optional[set[str]]:
 
     formal_informal = (
         institutional
-        and bool(re.search(r"\b(?:formal|written|bylaw|rules?)\b", q))
+        and bool(re.search(r"\b(?:formal|written|bylaws?|rules?)\b", q))
         and bool(re.search(r"\binformal\b", q))
         and bool(re.search(r"\b(?:norms?|practice|workarounds?|heard|decided|influence)\b", q))
     )
