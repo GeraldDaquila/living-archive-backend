@@ -106,3 +106,35 @@ def test_generic_queries_preserve_the_existing_selector_path():
     selected = lessons.select_lesson_candidates(query, limit=3)
     assert len(selected) <= 3
     assert all(item.get("match_basis") != "governed_decision_rights_policy" for item in selected)
+
+def test_provider_adjudication_validates_four_candidate_dispositions_and_spans():
+    import gold_star_provider_adjudication as adjudication
+
+    candidates = lessons.active_quality_contribution(
+        "When a board delegates a consequential decision to a committee, who remains accountable and how can the decision be challenged?"
+    )["candidates"]
+    spans = [
+        "Decision mandates define who can decide.",
+        "Actual influence reveals who shapes outcomes.",
+        "Accountability follows influence and capacity.",
+        "Delegation preserves oversight and correction duties.",
+    ]
+    response = " ".join(spans)
+    report = {
+        "candidate_assessments": [
+            {"candidate_id": item["benchmark_id"], "decision": "select", "reason_code": None}
+            for item in candidates
+        ],
+        "application_evidence_spans": [
+            {"candidate_id": item["benchmark_id"], "span": span}
+            for item, span in zip(candidates, spans)
+        ],
+    }
+    normalized = adjudication.normalize_provider_adjudication(
+        report, response=response, candidates=candidates
+    )
+    assert normalized["status"] == "provider_reported_selected"
+    assert len(normalized["selected_candidate_ids"]) == 4
+    assert normalized["application_evidence_present"] is True
+    assert len(normalized["application_evidence_candidate_ids"]) == 4
+
