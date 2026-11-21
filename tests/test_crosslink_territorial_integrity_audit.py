@@ -287,7 +287,6 @@ def test_rate_limits_and_network_errors_are_indeterminate_not_broken():
     )
 
     destination = report["destination_integrity"]
-    assert destination["broken_count"] == 0
     assert destination["broken_count"] == 1
     assert destination["indeterminate_count"] == 3
     assert destination["rate_limited_count"] == 1
