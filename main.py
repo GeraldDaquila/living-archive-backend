@@ -2206,6 +2206,12 @@ def _recommendation_first_fetch(query_str):
                 getattr(use_core, "index", None),
                 use_core,
             )
+            data["canonical_public_source_recovery_status"] = getattr(
+                crosslinks, "status", "legacy_unstructured_result"
+            )
+            data["canonical_public_source_snapshot_age_seconds"] = getattr(
+                crosslinks, "snapshot_age_seconds", None
+            )
             print(
                 "The Guide recovery trace: "
                 f"crosslinks_selected={len(crosslinks or [])}"
