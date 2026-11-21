@@ -138,3 +138,29 @@ def test_score_dimensions_and_ranges_are_closed_contracts():
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "invalid_control_scores"
+
+
+
+def test_pair_requires_provider_and_runtime_identity_on_both_arms():
+    pair = _pair()
+    del pair["treatment"]["provider"]
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "unpaired_provider"
+
+
+def test_treatment_must_pass_every_hard_gate_even_if_control_also_failed():
+    pair = _pair()
+    pair["control"]["hard_gates"]["safety"] = "fail"
+    pair["treatment"]["hard_gates"]["safety"] = "fail"
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["status"] == "reviewed_regression"
+    assert result["treatment_hard_gate_failures"] == ["safety"]
+
+
+def test_malformed_hard_gate_values_fail_closed_without_raising():
+    pair = _pair()
+    pair["treatment"]["hard_gates"]["safety"] = []
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "invalid_treatment_hard_gates"
