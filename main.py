@@ -2171,6 +2171,11 @@ def _recommendation_first_fetch(query_str):
             "question_evidence_fit_unavailable",
         )
     )
+    seed_generation_docs = list(docs)
+    if evidence_recovery_needed:
+        # The internal gate has already withheld synthesis. Do not let a
+        # navigation-only crosslink or an unvalidated candidate repopulate it.
+        data["context_blocks"] = ""
     if (
         not data.get("mirror_registry_active")
         and (
@@ -2226,7 +2231,13 @@ def _recommendation_first_fetch(query_str):
                         item for item in additions
                         if str(item.get("url") or "").rstrip("/").casefold() not in block_urls
                     ]
-                    extra_block_text = _serialize_context_documents(block_additions)
+                    # During evidence recovery, generation context is rebuilt
+                    # only after verified source bodies pass the same gates.
+                    extra_block_text = (
+                        ""
+                        if evidence_recovery_needed
+                        else _serialize_context_documents(block_additions)
+                    )
                     if extra_block_text:
                         data["context_blocks"] = (
                             existing_block_text + "\n\n---\n\n" + extra_block_text
@@ -2249,7 +2260,7 @@ def _recommendation_first_fetch(query_str):
                             and str(item.get("text") or item.get("content") or "").strip()
                         ]
                         if verified_additions:
-                            generation_docs = list(docs) + verified_additions
+                            generation_docs = list(seed_generation_docs) + verified_additions
                             frame_neutral_fn = getattr(
                                 use_core, "_frame_neutral_generation_documents", None
                             )
