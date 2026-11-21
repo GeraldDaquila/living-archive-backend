@@ -62,7 +62,10 @@ def _valid_gates(value: Any) -> bool:
     return (
         isinstance(value, Mapping)
         and set(value) == set(HARD_GATE_DIMENSIONS)
-        and all(value[key] in {"pass", "fail"} for key in HARD_GATE_DIMENSIONS)
+        and all(
+            isinstance(value[key], str) and value[key] in {"pass", "fail"}
+            for key in HARD_GATE_DIMENSIONS
+        )
     )
 
 
@@ -119,24 +122,25 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
 
     # Keep the comparison paired: only the adaptive-guidance condition may differ.
     for key in ("provider", "model", "runtime_commit", "composition_contract_version"):
-        arm_values = {
-            str(record[key]),
-            str(arms["control"].get(key, record[key])),
-            str(arms["treatment"].get(key, record[key])),
-        }
-        if len(arm_values) != 1:
-            return {"valid": False, "status": "invalid", "reason": f"unpaired_{key}"}
+        for arm_name in ("control", "treatment"):
+            arm_value = arms[arm_name].get(key)
+            if not isinstance(arm_value, str) or arm_value != record[key]:
+                return {"valid": False, "status": "invalid", "reason": f"unpaired_{key}"}
 
     baseline = _mean_score(arms["control"]["scores"])
     treatment = _mean_score(arms["treatment"]["scores"])
     delta = round(treatment - baseline, 4)
+    treatment_hard_gate_failures = [
+        dimension for dimension in HARD_GATE_DIMENSIONS
+        if arms["treatment"]["hard_gates"][dimension] == "fail"
+    ]
     regressions = [
         dimension for dimension in HARD_GATE_DIMENSIONS
         if arms["control"]["hard_gates"][dimension] == "pass"
         and arms["treatment"]["hard_gates"][dimension] == "fail"
     ]
     verdict = record["reviewer_verdict"]
-    if regressions or verdict == "regressed":
+    if treatment_hard_gate_failures or verdict == "regressed":
         status = "reviewed_regression"
     elif verdict == "improved" and delta > 0 and not regressions:
         status = "reviewed_improvement"
@@ -153,6 +157,7 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         "case_family": record["case_family"],
         "mean_score_delta": delta,
         "hard_gate_regressions": regressions,
+        "treatment_hard_gate_failures": treatment_hard_gate_failures,
         "reviewer_verdict": verdict,
         "human_reviewed": True,
     }
@@ -181,7 +186,12 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
     families = {item["case_family"] for item in evaluated}
     mean_delta = round(sum(item["mean_score_delta"] for item in evaluated) / count, 4) if count else 0.0
     improved = sum(item["reviewer_verdict"] == "improved" for item in evaluated)
-    regressions = sum(bool(item["hard_gate_regressions"]) or item["status"] == "reviewed_regression" for item in evaluated)
+    regressions = sum(
+        bool(item["treatment_hard_gate_failures"])
+        or bool(item["hard_gate_regressions"])
+        or item["status"] == "reviewed_regression"
+        for item in evaluated
+    )
     reasons = []
     if count < MIN_PAIRED_CASES:
         reasons.append("insufficient_paired_cases")
