@@ -10,6 +10,7 @@ import ipaddress
 import re
 import json
 import os
+import secrets
 import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
@@ -17733,7 +17734,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
     ).strip()
 
     # One opaque correlation token spans the full HTTP request, including retries.
-    _gold_star_request_context_token = _gold_star_ledger.begin_request_context(uuid.uuid4().hex)
+    _gold_star_request_context_token = _gold_star_ledger.begin_request_context(secrets.token_hex(16))
     _gold_star_response_completed = False
     captured_start = None
     captured_chunks = []
