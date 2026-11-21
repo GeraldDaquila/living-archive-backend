@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 
 _LOG = logging.getLogger("use.gold_star.decision_rights_policy")
 _POLICY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "decision_rights_candidate_set_benchmark.json"
+MAX_POLICY_CANDIDATES = 4
 
 @lru_cache(maxsize=1)
 def _benchmark() -> Optional[Dict[str, Any]]:
@@ -145,4 +146,10 @@ def select_policy_candidates(
             "activation_condition": str(definition.get("condition") or ""),
             "role_rationale": str(definition.get("rationale") or ""),
         })
+    if len(selected) > MAX_POLICY_CANDIDATES:
+        _LOG.warning(
+            "decision-rights policy abstains: %s candidates exceed bounded envelope %s",
+            len(selected), MAX_POLICY_CANDIDATES,
+        )
+        return []
     return selected
