@@ -172,6 +172,6 @@ def test_protected_core_blob_hash_tracks_the_reviewed_use_core_source():
 
     core_bytes = (Path(__file__).resolve().parents[1] / "use_core.py").read_bytes()
     actual_blob_sha = hashlib.sha1(
-        f"blob {len(core_bytes)}\\0".encode("utf-8") + core_bytes
+        f"blob {len(core_bytes)}\0".encode("utf-8") + core_bytes
     ).hexdigest()
     assert guide_runtime.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
