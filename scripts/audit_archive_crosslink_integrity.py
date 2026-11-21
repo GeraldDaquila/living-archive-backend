@@ -20,11 +20,13 @@ import html
 import json
 import re
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicodedata
 from collections import defaultdict
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -44,6 +46,10 @@ LINK_TIMEOUT = 6
 LINK_WORKERS = 2
 LINK_DELAY_SECONDS = 0.75
 LINK_429_RETRIES = 3
+LINK_429_BACKOFF_BASE_SECONDS = 5.0
+LINK_429_BACKOFF_MAX_SECONDS = 60.0
+_LINK_PACING_LOCK = threading.Lock()
+_LINK_NEXT_REQUEST_AT = 0.0
 USER_AGENT = "LivingArchiveTerritorialIntegrityAudit/1.0"
 AUDIT_VERSION = "1.0.0"
 
@@ -282,43 +288,108 @@ def metadata_addressability(assets: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _pace_link_request() -> None:
+    """Enforce one global minimum interval between outbound destination requests.
+
+    A shared lock is intentional: the audit uses a worker pool, so a per-worker
+    sleep would allow concurrent workers to double the configured request rate.
+    """
+    global _LINK_NEXT_REQUEST_AT
+    with _LINK_PACING_LOCK:
+        now = time.monotonic()
+        delay = _LINK_NEXT_REQUEST_AT - now
+        if delay > 0:
+            time.sleep(delay)
+        _LINK_NEXT_REQUEST_AT = time.monotonic() + LINK_DELAY_SECONDS
+
+
+def _retry_after_seconds(exc: HTTPError, attempt: int) -> float:
+    """Honor Retry-After when present; otherwise use bounded exponential backoff."""
+    headers = getattr(exc, "headers", None) or getattr(exc, "hdrs", None)
+    raw = headers.get("Retry-After") if headers is not None else None
+    if raw:
+        try:
+            return min(LINK_429_BACKOFF_MAX_SECONDS, max(0.0, float(raw)))
+        except (TypeError, ValueError):
+            try:
+                retry_at = parsedate_to_datetime(str(raw))
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                delay = (retry_at - datetime.now(timezone.utc)).total_seconds()
+                return min(LINK_429_BACKOFF_MAX_SECONDS, max(0.0, delay))
+            except (TypeError, ValueError, OverflowError):
+                pass
+    return min(
+        LINK_429_BACKOFF_MAX_SECONDS,
+        LINK_429_BACKOFF_BASE_SECONDS * (2 ** max(0, attempt)),
+    )
+
+
+def _open_destination(request: Request):
+    """Open one destination request with global pacing and bounded 429 retries."""
+    for attempt in range(LINK_429_RETRIES + 1):
+        _pace_link_request()
+        try:
+            return urlopen(request, timeout=LINK_TIMEOUT)
+        except HTTPError as exc:
+            if exc.code != 429 or attempt >= LINK_429_RETRIES:
+                raise
+            time.sleep(_retry_after_seconds(exc, attempt))
+    raise RuntimeError("Destination request retry loop exited unexpectedly")
+
+
 def check_destination(asset: dict[str, Any]) -> dict[str, Any]:
     url = normalize_url(asset.get("url"))
     base = {"wp_id": str(asset.get("wp_id") or ""), "title": clean_text(asset.get("title")), "url": url}
     if not url:
         return {**base, "status": "invalid_url", "http_status": None, "final_url": None}
-    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,*/*;q=0.8"}, method="HEAD")
+
+    head_request = Request(
+        url,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/html,*/*;q=0.8"},
+        method="HEAD",
+    )
     try:
-        with urlopen(request, timeout=LINK_TIMEOUT) as response:
+        with _open_destination(head_request) as response:
             return {
                 **base,
                 "status": "ok" if 200 <= response.status < 400 else "http_error",
                 "http_status": response.status,
                 "final_url": response.geturl(),
+                "method": "HEAD",
             }
     except HTTPError as exc:
-        # A public site rate-limit is an audit transport condition, not evidence
-        # that the destination is broken. Retry politely before classifying it.
-        if exc.code == 429:
-            for attempt in range(LINK_429_RETRIES):
-                time.sleep(5.0 * (attempt + 1))
-                try:
-                    with urlopen(request, timeout=LINK_TIMEOUT) as response:
-                        return {**base, "status": "ok" if 200 <= response.status < 400 else "http_error", "http_status": response.status, "final_url": response.geturl(), "method": "HEAD-retry"}
-                except HTTPError as retry_exc:
-                    if retry_exc.code != 429:
-                        return {**base, "status": "http_error", "http_status": retry_exc.code, "final_url": retry_exc.geturl()}
-                except (URLError, TimeoutError) as retry_exc:
-                    return {**base, "status": "network_error", "http_status": None, "error": type(retry_exc).__name__, "final_url": None}
-            return {**base, "status": "rate_limited", "http_status": 429, "final_url": exc.geturl()}
-        # Some hosts reject HEAD while allowing GET. Try a bounded GET for common cases.
         if exc.code not in (403, 405, 501):
-            return {**base, "status": "http_error", "http_status": exc.code, "final_url": exc.geturl()}
+            return {
+                **base,
+                "status": "rate_limited" if exc.code == 429 else "http_error",
+                "http_status": exc.code,
+                "final_url": exc.geturl(),
+                "method": "HEAD",
+            }
     except (URLError, TimeoutError) as exc:
-        return {**base, "status": "network_error", "http_status": None, "error": type(exc).__name__, "final_url": None}
-    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,*/*;q=0.8", "Range": "bytes=0-0"}, method="GET")
+        return {
+            **base,
+            "status": "network_error",
+            "http_status": None,
+            "error": type(exc).__name__,
+            "final_url": None,
+            "method": "HEAD",
+        }
+
+    # Some hosts reject HEAD while allowing a bounded one-byte GET. This
+    # fallback uses the same global pacing and 429 retry policy as HEAD.
+    get_request = Request(
+        url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "text/html,*/*;q=0.8",
+            "Range": "bytes=0-0",
+        },
+        method="GET",
+    )
     try:
-        with urlopen(request, timeout=LINK_TIMEOUT) as response:
+        with _open_destination(get_request) as response:
             return {
                 **base,
                 "status": "ok" if 200 <= response.status < 400 else "http_error",
@@ -327,11 +398,22 @@ def check_destination(asset: dict[str, Any]) -> dict[str, Any]:
                 "method": "GET",
             }
     except HTTPError as exc:
-        if exc.code == 429:
-            return {**base, "status": "rate_limited", "http_status": 429, "final_url": exc.geturl(), "method": "GET"}
-        return {**base, "status": "http_error", "http_status": exc.code, "final_url": exc.geturl(), "method": "GET"}
+        return {
+            **base,
+            "status": "rate_limited" if exc.code == 429 else "http_error",
+            "http_status": exc.code,
+            "final_url": exc.geturl(),
+            "method": "GET",
+        }
     except (URLError, TimeoutError) as exc:
-        return {**base, "status": "network_error", "http_status": None, "error": type(exc).__name__, "final_url": None, "method": "GET"}
+        return {
+            **base,
+            "status": "network_error",
+            "http_status": None,
+            "error": type(exc).__name__,
+            "final_url": None,
+            "method": "GET",
+        }
 
 
 def effective_registry(records: list[dict[str, Any]], manifest: dict[str, Any] | None) -> list[dict[str, Any]]:
