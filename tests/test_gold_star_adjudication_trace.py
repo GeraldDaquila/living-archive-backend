@@ -2,6 +2,7 @@ import gold_star_adjudication_trace as trace
 from gold_star_adjudication_trace import (
     mark_composition_result,
     mark_final_delivery,
+    mark_guidance_exposure,
 )
 
 
@@ -137,3 +138,29 @@ def test_final_deterministic_rewrite_does_not_inherit_llm_delivery_credit():
     assert final["final_provenance"] == "deterministic_recovery"
     assert final["application"] == "not_observed"
     assert final["outcome"] == "not_evaluated"
+
+
+def test_guidance_exposure_is_recorded_separately_from_selection_and_application():
+    initial = trace.build_adjudication_trace(_contribution())
+    exposed = mark_guidance_exposure(initial, included_in_provider_prompt=True)
+    assert exposed["guidance_exposure"] == "included_in_provider_prompt"
+    assert exposed["selection"] == "not_observed"
+    assert exposed["application"] == "not_observed"
+    assert exposed["outcome"] == "not_evaluated"
+    assert trace.validate_trace(exposed)["valid"]
+
+
+def test_guidance_not_included_is_not_misreported_as_application():
+    initial = trace.build_adjudication_trace(_contribution())
+    not_exposed = mark_guidance_exposure(initial, included_in_provider_prompt=False)
+    assert not_exposed["guidance_exposure"] == "not_included"
+    assert not_exposed["selection"] == "not_observed"
+    assert not_exposed["application"] == "not_observed"
+    assert trace.validate_trace(not_exposed)["valid"]
+
+
+def test_no_candidate_guidance_exposure_is_not_applicable():
+    initial = trace.build_adjudication_trace(None)
+    result = mark_guidance_exposure(initial, included_in_provider_prompt=False)
+    assert result["guidance_exposure"] == "not_applicable"
+    assert trace.validate_trace(result)["valid"]
