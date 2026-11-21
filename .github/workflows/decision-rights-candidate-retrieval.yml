@@ -4,10 +4,15 @@ on:
   pull_request:
     paths:
       - "gold_star_lessons.py"
+      - "decision_rights_candidate_policy.py"
+      - "gold_star_provider_adjudication.py"
+      - "gold_star_adjudication_trace.py"
+      - "general_guide_composition.py"
       - "gold_star_semantic_retrieval.py"
       - "requirements.txt"
       - "docs/qa/decision_rights_candidate_set_benchmark.json"
       - "tests/test_decision_rights_candidate_retrieval_diagnostic.py"
+      - "tests/test_decision_rights_candidate_policy.py"
       - ".github/workflows/decision-rights-candidate-retrieval.yml"
   workflow_dispatch:
 
