@@ -11408,7 +11408,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Observation-only: returned metadata is discarded and cannot influence composition.
     try:
         if _gold_star_shadow_observation is not None:
-            _gold_star_shadow_observation(str(query or ""))
+            _request_ledger_context = _gold_star_ledger.current_request_context()
+            _gold_star_shadow_observation(
+                str(query or ""),
+                request_id=_request_ledger_context.get("request_id"),
+                request_ledger_version=_request_ledger_context.get("request_ledger_version"),
+            )
     except Exception:
         pass
 
