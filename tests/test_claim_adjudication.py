@@ -226,7 +226,7 @@ def test_combined_provider_callback_uses_one_assessment_envelope():
         }]
     result = adjudicate_answer_claims("Stewardship is responsible care.", DOCS, adjudicate_claims=combined)
     assert len(calls) == 1
-    assert calls[0][0] == "the answer"
+    assert calls[0][0] == "Stewardship is responsible care."
     assert result["claims"][0]["outcome"] == "supported"
 
 
