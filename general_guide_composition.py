@@ -4259,7 +4259,14 @@ def compose(
         candidate_count=gold_star_adjudication_trace["candidate_count"],
         candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
         selection=gold_star_adjudication_trace["selection"],
+        provider_adjudication_status=gold_star_adjudication_trace["provider_adjudication_status"],
+        selected_candidate_ids=gold_star_adjudication_trace["selected_candidate_ids"],
+        rejection_reason_codes=gold_star_adjudication_trace["rejection_reason_codes"],
+        reasoning_discipline_ids=gold_star_adjudication_trace["reasoning_discipline_ids"],
         application=gold_star_adjudication_trace["application"],
+        application_evidence_present=gold_star_adjudication_trace["application_evidence_present"],
+        application_evidence_candidate_ids=gold_star_adjudication_trace["application_evidence_candidate_ids"],
+        contribution_retained=gold_star_adjudication_trace["contribution_retained"],
         outcome_state=gold_star_adjudication_trace["outcome"],
     )
     if gold_star_quality:
