@@ -13,9 +13,9 @@ from typing import Any, Mapping
 import re
 from contextvars import ContextVar
 
-VERSION = "1.0"
+VERSION = "1.1"
 REQUEST_LEDGER_VERSION = "2"
-MAX_CANDIDATES = 3
+MAX_CANDIDATES = 4
 _SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "human_reviewed_selected", "human_reviewed_rejected"}
 _APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
 _OUTCOME_STATES = {"not_evaluated", "review_required", "human_reviewed_improved", "human_reviewed_not_improved"}
@@ -233,7 +233,7 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         safe_candidates.append({
             "benchmark_id": benchmark_id,
             "score": score,
-            "match_kind": "exact" if item.get("exact") is True else "cross_question",
+            "match_kind": "governed_policy" if item.get("match_basis") == "governed_decision_rights_policy" else ("exact" if item.get("exact") is True else "cross_question"),
         })
     count = len(safe_candidates)
     result = {
@@ -401,7 +401,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         return {"valid": False, "reason": "invalid_candidate_ids"}
     if not all(value is None or (type(value) in (int, float) and 0.0 <= value <= 1.0) for value in scores):
         return {"valid": False, "reason": "invalid_candidate_scores"}
-    if not all(value in {"exact", "cross_question"} for value in kinds):
+    if not all(value in {"exact", "cross_question", "governed_policy"} for value in kinds):
         return {"valid": False, "reason": "invalid_match_kinds"}
     if trace.get("selection") not in _SELECTION_STATES:
         return {"valid": False, "reason": "invalid_selection_state"}
