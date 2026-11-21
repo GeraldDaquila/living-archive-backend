@@ -17874,6 +17874,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
             _emit_guide_outcome(
                 "gold_star_request_terminal",
                 request_id=_ledger_state.get("request_id"),
+                request_ledger_version=_ledger_state.get("request_ledger_version"),
                 composition_attempt_count=_ledger_attempts,
                 provider_route_count=int(_ledger_state.get("provider_route_count") or 0),
                 provider_attempt_count=int(_ledger_state.get("provider_attempt_count") or 0),
