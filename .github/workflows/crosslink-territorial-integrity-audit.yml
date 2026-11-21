@@ -3,7 +3,7 @@ name: Crosslink Territorial Integrity Audit
 on:
   push:
     branches:
-      - main
+      - audit/crosslink-integrity-main-20261121
     paths:
       - "scripts/audit_archive_crosslink_integrity.py"
       - "archive_crosslink_snapshot.json"
