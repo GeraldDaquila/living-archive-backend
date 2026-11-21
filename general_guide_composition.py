@@ -22,6 +22,7 @@ from gold_star_adjudication_trace import (
     mark_guidance_exposure as _mark_gold_star_guidance_exposure,
     validate_trace as _validate_gold_star_adjudication_trace,
     mark_provider_adjudication as _mark_gold_star_provider_adjudication,
+    mark_cache_reuse as _mark_gold_star_cache_reuse,
 )
 from gold_star_provider_adjudication import (
     build_adjudication_output_contract as _build_gold_star_adjudication_output_contract,
@@ -4561,7 +4562,24 @@ def compose(
                     path="validated_cache",
                     openness="preserved_cache_not_authority",
                 )
-                return dict(cached_value)
+                # A cached answer is reusable composition, not a fresh provider
+                # adjudication. Rebuild the trace from this request's candidates
+                # so prior selected IDs, rejection codes, and span assertions
+                # cannot be attributed to the current request.
+                cached_result = dict(cached_value)
+                cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
+                if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
+                    raise RuntimeError("Gold Star cache-reuse trace failed validation.")
+                cached_result["_gold_star_adjudication_trace"] = cached_trace
+                _emit_guide_outcome(
+                    "gold_star_adjudication_cache_reuse",
+                    trace_version=cached_trace["version"],
+                    candidate_count=cached_trace["candidate_count"],
+                    provider_adjudication_status=cached_trace["provider_adjudication_status"],
+                    selection=cached_trace["selection"],
+                    composition=cached_trace["composition"],
+                )
+                return cached_result
             del _COMPOSITION_CACHE[cache_key]
 
     result = route_with_model_bank(
