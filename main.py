@@ -2093,9 +2093,15 @@ def _live_site_evidence_admission(query, intent, documents):
     ]
     if not verified:
         return []
-    if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
-        return verified
     try:
+        frame_neutral_docs, frame_neutral_unavailable = use_core._frame_neutral_generation_documents(
+            verified, query, intent
+        )
+        if frame_neutral_unavailable and not frame_neutral_docs:
+            return []
+        verified = frame_neutral_docs
+        if intent not in {"TOPICAL_INQUIRY", "COMPARATIVE_INQUIRY"}:
+            return verified
         sufficient_docs, insufficient = use_core._evidence_sufficiency_gate(
             verified, query, intent
         )
@@ -2234,6 +2240,7 @@ def _recommendation_first_fetch(query_str):
     evidence_gate_unavailable = bool(
         data.get("evidence_sufficiency_unavailable")
         or data.get("question_evidence_fit_unavailable")
+        or data.get("frame_neutral_evidence_unavailable")
     )
     evidence_recovery_requested = not docs or evidence_gate_unavailable
     if (
@@ -2302,6 +2309,7 @@ def _recommendation_first_fetch(query_str):
                         if verified_additions:
                             data["evidence_sufficiency_unavailable"] = False
                             data["question_evidence_fit_unavailable"] = False
+                            data["frame_neutral_evidence_unavailable"] = False
                             data["live_site_fallback_status"] = "supported_by_verified_public_source"
                             data["live_site_source_count"] = len(verified_additions)
                             data["live_site_source_provenance"] = [
