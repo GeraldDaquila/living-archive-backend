@@ -191,3 +191,9 @@ def test_main_and_guide_runtime_protected_core_hashes_match_current_use_core_blo
     ).hexdigest()
     assert main.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
     assert guide_runtime.EXPECTED_CORE_BLOB_SHA == actual_blob_sha
+    for qa_path in (
+        "QA/V487_94_SPECIALIST_PIPE_INTEGRITY_QA.py",
+        "QA/V487_94_JOURNEY_CONTRIBUTION_QA.py",
+    ):
+        qa_source = (Path(__file__).resolve().parents[1] / qa_path).read_text(encoding="utf-8")
+        assert f'"use_core.py": "{actual_blob_sha}"' in qa_source
