@@ -283,3 +283,26 @@ def test_stale_outcome_without_source_metadata_fails_closed():
     )
     assert result["claims"][0]["outcome"] == "unassessed"
     assert result["claims"][0]["reason"] == "stale_or_unavailable_not_verified_by_source_metadata"
+
+
+def test_no_public_passages_still_extracts_claims_as_no_relevant_source():
+    def no_source(_answer, passages):
+        assert passages == []
+        return [{
+            "claim": "A factual claim in the answer.",
+            "answer_quote": "A factual claim in the answer.",
+            "outcome": "no_relevant_public_source",
+            "reason": "No retrieved public passage addresses this claim.",
+            "attributions": [],
+        }]
+    result = adjudicate_answer_claims(
+        "A factual claim in the answer.", [], adjudicate_claims=no_source
+    )
+    assert result["claim_count"] == 1
+    assert result["claims"][0]["outcome"] == "no_relevant_public_source"
+
+
+def test_no_public_passages_without_provider_remains_unassessed():
+    result = adjudicate_answer_claims("An answer.", [])
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "no_public_evidence_and_adjudicator_unavailable"
