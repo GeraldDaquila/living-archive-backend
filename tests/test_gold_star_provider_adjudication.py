@@ -135,3 +135,34 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
     assert final["contribution_retained"] == "not_retained"
     assert final["outcome"] == "not_evaluated"
     assert trace.validate_trace(final)["valid"]
+
+
+
+def test_only_valid_human_reviewed_paired_evaluation_can_confirm_improvement():
+    initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
+    unreviewed = trace.mark_evaluation_outcome(
+        initial,
+        {"valid": True, "status": "reviewed_improvement", "reviewer_verdict": "improved", "human_reviewed": False},
+    )
+    assert unreviewed["outcome"] == "not_evaluated"
+
+    reviewed = trace.mark_evaluation_outcome(
+        initial,
+        {"valid": True, "status": "reviewed_improvement", "reviewer_verdict": "improved", "human_reviewed": True},
+    )
+    assert reviewed["outcome"] == "human_reviewed_improved"
+    assert trace.validate_trace(reviewed)["valid"]
+
+
+def test_invalid_or_inconclusive_evaluation_cannot_claim_improvement():
+    initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
+    invalid = trace.mark_evaluation_outcome(
+        initial,
+        {"valid": False, "status": "reviewed_improvement", "reviewer_verdict": "improved", "human_reviewed": True},
+    )
+    inconclusive = trace.mark_evaluation_outcome(
+        initial,
+        {"valid": True, "status": "review_required", "reviewer_verdict": "inconclusive", "human_reviewed": True},
+    )
+    assert invalid["outcome"] == "not_evaluated"
+    assert inconclusive["outcome"] == "review_required"
