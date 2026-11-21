@@ -517,22 +517,29 @@ def select_lesson_candidates(
         if clear_lead:
             strong_semantic.append(semantic_order[0])
 
+    # Preserve the legacy lexical tie-break (score, shared-signature
+    # count, benchmark id) exactly. Semantic-only candidates carry zero
+    # lexical anchors and therefore cannot displace an established lexical
+    # winner on an equal score.
     merged = {
-        row[3]["id"]: (row[0], row[3])
+        row[3]["id"]: (row[0], row[1], row[3])
         for row in lexical_ranked
     }
     for semantic_score, _benchmark_id, item in strong_semantic:
         current = merged.get(item["id"])
         if current is None or semantic_score > current[0]:
-            merged[item["id"]] = (semantic_score, item)
+            shared_count = len(
+                normalized_query_terms & item.get("signature_terms", set())
+            )
+            merged[item["id"]] = (semantic_score, shared_count, item)
 
     ranked = sorted(
         merged.values(),
-        key=lambda row: (-row[0], row[1]["id"]),
+        key=lambda row: (-row[0], -row[1], row[2]["id"]),
     )
     return [
         _lesson_candidate_payload(item, score)
-        for score, item in ranked[:limit]
+        for score, _shared_count, item in ranked[:limit]
     ]
 
 
