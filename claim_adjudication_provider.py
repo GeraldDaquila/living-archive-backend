@@ -38,6 +38,7 @@ def build_provider_adjudicator(use_core: Any, deadline_monotonic: float):
             ],
             "required_claim_fields": [
                 "claim",
+                "answer_quote",
                 "outcome",
                 "reason",
                 "attributions",
@@ -49,7 +50,7 @@ def build_provider_adjudicator(use_core: Any, deadline_monotonic: float):
                 "role": "system",
                 "content": (
                     "You are a bounded evidence adjudicator. Extract the material factual "
-                    "claims from the supplied answer and assess each only against the "
+                    "claims from the supplied answer, include an exact contiguous answer_quote copied verbatim from it for every extracted claim, and assess each only against the "
                     "supplied retrieved passages. Return one JSON object with a 'claims' "
                     "array. Each claim must use exactly one required outcome. Use "
                     "'supported' only when the passage directly supports the claim; "
