@@ -102,3 +102,46 @@ def test_application_and_retrieval_are_separate_gates():
     assert "delivered answer" in gates["application"]
     assert "not proof of application" in gates["application"]
     assert "No threshold changes" in gates["release"]
+
+
+
+def test_blinded_review_packet_covers_complete_active_inventory():
+    packet_path = ROOT / "docs/qa/decision_rights_independent_review_packet_2026-11-22.json"
+    packet = _load(packet_path)
+    registry = _load(REGISTRY)
+    reviews = _load(REVIEWS)
+    active = sorted(
+        (
+            item for item in registry["records"]
+            if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+            and item.get("runtime_transfer") is True
+        ),
+        key=lambda item: item["benchmark_id"],
+    )
+    review_ids = {item["benchmark_id"] for item in reviews["entries"]}
+    assert len(active) == packet["inventory_reconciliation"]["runtime_transfer_true"]
+    assert len(active) == packet["inventory_reconciliation"]["qualitative_review_entries"]
+    assert all(item["benchmark_id"] in review_ids for item in active)
+    candidates = packet["candidates"]
+    assert len(candidates) == len(active)
+    assert [item["candidate_label"] for item in candidates] == [
+        f"C{index:03d}" for index in range(1, len(active) + 1)
+    ]
+    assert all("benchmark_id" not in item for item in candidates)
+    assert all(
+        item.get("approved_question")
+        and item.get("known_theme")
+        and item.get("reasoning_family")
+        and item.get("transferable_discipline")
+        and item.get("qualifying_context")
+        and item.get("abstention_boundary")
+        and item.get("activation")
+        for item in candidates
+    )
+    benchmark = _load(BENCHMARK)
+    assert packet["cases"] == [
+        {"case_id": item["case_id"], "query": item["query"]}
+        for item in benchmark["cases"]
+    ]
+    assert "expected_core" not in packet["cases"][0]
+    assert "semantic" not in packet["blinding"].casefold()
