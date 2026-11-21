@@ -107,6 +107,44 @@ def mark_final_delivery(
     return result
 
 
+
+def mark_composition_result(
+    trace: Mapping[str, Any],
+    *,
+    provider_result: Any,
+) -> dict[str, Any]:
+    """Record route completion without inferring semantic application."""
+    result = dict(trace)
+    parsed = provider_result.get("parsed") if isinstance(provider_result, Mapping) else None
+    successful = isinstance(parsed, Mapping) and bool(str(parsed.get("response") or "").strip())
+    if not isinstance(parsed, Mapping) and isinstance(provider_result, Mapping):
+        successful = bool(str(provider_result.get("response") or "").strip())
+    result["composition"] = "provider_candidate_returned" if successful else "provider_no_result"
+    result["selection"] = "not_observed"
+    result["application"] = "not_observed"
+    result["outcome"] = "not_evaluated"
+    return result
+
+
+def mark_final_delivery(
+    trace: Mapping[str, Any],
+    *,
+    provider_candidate_delivered: bool,
+    final_provenance: str,
+) -> dict[str, Any]:
+    """Attach final answer provenance without awarding quality credit."""
+    result = dict(trace)
+    result["final_delivery"] = (
+        "provider_candidate_delivered"
+        if provider_candidate_delivered
+        else "deterministic_or_unresolved_replacement"
+    )
+    result["final_provenance"] = str(final_provenance or "unresolved").strip().casefold()
+    result["application"] = "not_observed"
+    result["outcome"] = "not_evaluated"
+    return result
+
+
 def validate_trace(trace: Any) -> dict[str, Any]:
     """Validate the privacy and evidence-stage boundary of an audit trace."""
     if not isinstance(trace, Mapping):
