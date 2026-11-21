@@ -1,5 +1,6 @@
 """Runtime tests for weak-evidence live-site recovery in The Guide."""
-import main\nimport general_guide_composition
+import main
+import general_guide_composition
 
 
 def _source_doc(text=None):
