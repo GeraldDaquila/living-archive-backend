@@ -74,6 +74,12 @@ def current_attempt_trace():
     return dict(value) if isinstance(value, Mapping) else None
 
 
+def _store_current_trace(value):
+    if isinstance(value, Mapping) and "request_id" in value:
+        _CURRENT_ATTEMPT_TRACE.set(dict(value))
+    return value
+
+
 def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
     """Build a trace of retrieved candidates without implying a model verdict."""
     candidates = contribution.get("candidates") if isinstance(contribution, Mapping) else None
@@ -135,20 +141,20 @@ def mark_guidance_exposure(trace: Mapping[str, Any], *, included_in_provider_pro
         result["guidance_exposure"] = (
             "included_in_provider_prompt" if included_in_provider_prompt else "not_included"
         )
-    return result
+    return _store_current_trace(result)
 
 
 def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[str, Any]:
     """Attach a validated provider report without promoting it to human evidence."""
     updated = dict(trace)
     if not isinstance(result, Mapping):
-        return updated
+        return _store_current_trace(updated)
     allowed = {
         "status", "selected_candidate_ids", "rejection_reason_codes",
         "reasoning_discipline_ids", "application_evidence_present", "application_evidence_candidate_ids", "application",
     }
     if set(result) != allowed:
-        return updated
+        return _store_current_trace(updated)
     updated["provider_adjudication_status"] = result["status"]
     updated["selected_candidate_ids"] = list(result["selected_candidate_ids"])
     updated["rejection_reason_codes"] = list(result["rejection_reason_codes"])
@@ -156,7 +162,7 @@ def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[st
     updated["application_evidence_present"] = result["application_evidence_present"] is True
     updated["application_evidence_candidate_ids"] = list(result["application_evidence_candidate_ids"])
     updated["application"] = result["application"]
-    return updated
+    return _store_current_trace(updated)
 
 
 def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -> dict[str, Any]:
@@ -180,7 +186,7 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
     if result.get("provider_adjudication_status") == "not_observed":
         result["application"] = "not_observed"
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
@@ -197,7 +203,7 @@ def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
     result["composition"] = "cached_candidate_reused"
     result["contribution_retained"] = "not_evaluated"
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def mark_final_delivery(
@@ -219,7 +225,7 @@ def mark_final_delivery(
         else "not_verified"
     )
     result["outcome"] = "not_evaluated"
-    return result
+    return _store_current_trace(result)
 
 
 def validate_trace(trace: Any) -> dict[str, Any]:
