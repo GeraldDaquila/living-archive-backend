@@ -90,6 +90,7 @@ def adjudicate_answer_claims(
     *,
     extract_claims: Callable[[str], Any] | None = None,
     assess_claim: Callable[[str, Sequence[Mapping[str, str]]], Any] | None = None,
+    adjudicate_claims: Callable[[str, Sequence[Mapping[str, str]]], Any] | None = None,
 ) -> dict[str, Any]:
     """Extract and adjudicate claims using injected provider-neutral callables.
 
@@ -108,7 +109,8 @@ def adjudicate_answer_claims(
             "claims": [],
             "claim_count": 0,
         }
-    if not callable(extract_claims) or not callable(assess_claim):
+    combined_provider = callable(adjudicate_claims)
+    if not combined_provider and (not callable(extract_claims) or not callable(assess_claim)):
         return {
             "version": VERSION,
             "status": "unassessed",
@@ -118,12 +120,16 @@ def adjudicate_answer_claims(
         }
 
     try:
-        extracted = extract_claims(str(answer or ""))
+        extracted = (
+            adjudicate_claims(str(answer or ""), source_passages)
+            if combined_provider
+            else extract_claims(str(answer or ""))
+        )
     except Exception:
         return {
             "version": VERSION,
             "status": "unassessed",
-            "reason": "claim_extraction_failed",
+            "reason": "claim_adjudication_failed" if combined_provider else "claim_extraction_failed",
             "claims": [],
             "claim_count": 0,
         }
@@ -143,11 +149,14 @@ def adjudicate_answer_claims(
         if not claim or len(claim) > _MAX_CLAIM_CHARS:
             output.append(_unassessed(claim[:_MAX_CLAIM_CHARS], "malformed_claim"))
             continue
-        try:
-            assessment = assess_claim(claim, source_passages)
-        except Exception:
-            output.append(_unassessed(claim, "assessment_provider_failed"))
-            continue
+        if combined_provider:
+            assessment = item
+        else:
+            try:
+                assessment = assess_claim(claim, source_passages)
+            except Exception:
+                output.append(_unassessed(claim, "assessment_provider_failed"))
+                continue
         if not isinstance(assessment, Mapping):
             output.append(_unassessed(claim, "malformed_assessment"))
             continue
