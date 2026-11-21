@@ -380,6 +380,7 @@ def main() -> int:
     )
     parser.add_argument("--case-id", action="append", dest="case_ids", help="Capture only this held-out case ID; may be repeated.")
     parser.add_argument("--skip-provider-probe", action="store_true", help="Skip the separate provider probe for a bounded single-case diagnostic.")
+    parser.add_argument("--require-http-200", action="store_true", help="Fail after saving the report if any selected live case did not return HTTP 200.")
     args = parser.parse_args()
     if args.min_llm_captures < 0:
         parser.error("--min-llm-captures must be zero or greater.")
@@ -628,6 +629,8 @@ def main() -> int:
             "provider_probe_llm_attributed": provider_probe["attributable_llm"],
             "llm_captured_total": sum(row["llm"] is not None for row in records) + int(provider_probe["attributable_llm"]),
             "deterministic_captured": sum(row["deterministic"] is not None for row in records),
+            "http_200_cases": sum(row["llm_transport"]["status"] == 200 for row in records),
+            "http_failed_cases": sum(row["llm_transport"]["status"] != 200 for row in records),
             "paired_cases": paired_report["paired_cases"],
             "status_parity": paired_report["status_parity"],
             "status_disagreement": paired_report["status_disagreement"],
@@ -642,6 +645,13 @@ def main() -> int:
     print(json.dumps(report, ensure_ascii=False, separators=(",", ":")))
     print("WP3_PAIRED_CAPTURE_JSON_END")
     print(json.dumps(report["paired_summary"], indent=2))
+    if args.require_http_200 and report["paired_summary"]["http_failed_cases"]:
+        print(
+            "One or more selected live cases did not return HTTP 200: "
+            f"{report['paired_summary']['http_failed_cases']} failed.",
+            file=sys.stderr,
+        )
+        return 3
     if report["paired_summary"]["llm_captured_total"] < args.min_llm_captures:
         print(
             "Insufficient attributable LLM captures across held-out cases and provider probe: "
