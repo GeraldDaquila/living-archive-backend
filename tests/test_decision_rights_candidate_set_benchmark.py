@@ -152,7 +152,7 @@ def test_blinded_review_packet_covers_complete_active_inventory():
         for item in benchmark["cases"]
     ]
     assert "expected_core" not in packet["cases"][0]
-    assert "semantic" not in packet["blinding"].casefold()
+    assert all("semantic_score" not in item for item in candidates)
 
 
 def test_independent_review_annotation_template_is_complete_and_blank():
