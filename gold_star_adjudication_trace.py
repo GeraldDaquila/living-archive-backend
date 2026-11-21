@@ -144,22 +144,35 @@ def mark_final_delivery(
 
 
 def mark_evaluation_outcome(trace: Mapping[str, Any], evaluation: Any) -> dict[str, Any]:
-    """Record only a valid, explicitly human-reviewed paired evaluation verdict."""
+    """Record only a complete, human-reviewed paired-batch evaluation result."""
     result = dict(trace)
-    if not isinstance(evaluation, Mapping):
+    if not isinstance(evaluation, Mapping) or evaluation.get("valid") is not True:
         return result
-    if evaluation.get("valid") is not True or evaluation.get("human_reviewed") is not True:
+    cases = evaluation.get("cases")
+    paired_count = evaluation.get("paired_case_count")
+    if (
+        not isinstance(cases, list)
+        or type(paired_count) is not int
+        or paired_count < 1
+        or len(cases) != paired_count
+        or not all(isinstance(case, Mapping) and case.get("human_reviewed") is True for case in cases)
+    ):
         return result
     status = evaluation.get("status")
-    verdict = evaluation.get("reviewer_verdict")
-    if status == "reviewed_improvement" and verdict == "improved":
+    if (
+        status == "eligible_for_human_promotion_review"
+        and evaluation.get("human_promotion_approval_required") is True
+        and evaluation.get("registry_mutated") is False
+        and evaluation.get("regression_count") == 0
+        and evaluation.get("case_family_count", 0) >= 2
+        and evaluation.get("mean_score_delta", 0) > 0
+    ):
         result["outcome"] = "human_reviewed_improved"
-    elif status in {"reviewed_no_improvement", "reviewed_regression"} and verdict in {
-        "not_improved", "regressed"
-    }:
-        result["outcome"] = "human_reviewed_not_improved"
-    elif status == "review_required" or verdict == "inconclusive":
-        result["outcome"] = "review_required"
+    elif status == "evidence_insufficient":
+        if evaluation.get("regression_count", 0) > 0 or evaluation.get("mean_score_delta", 0) <= 0:
+            result["outcome"] = "human_reviewed_not_improved"
+        else:
+            result["outcome"] = "review_required"
     return result
 
 
