@@ -1,7 +1,9 @@
 """Held-out evaluation contract for Gold Star structural learning.
 
-This module does not compose visitor answers. It evaluates whether the selector
-is precise enough to earn a later promotion beyond shadow observation.
+This module does not compose visitor answers. It compares the current selector
+against fixed expected benchmark IDs held separately from the selector's
+candidate pool. Tests may replace the candidate pool without changing the
+expected outcomes.
 """
 from __future__ import annotations
 
@@ -27,14 +29,24 @@ HELD_OUT_CASES: List[Dict[str, object]] = [
     },
 ]
 
+
 def evaluate(cases: Iterable[Dict[str, object]] = HELD_OUT_CASES) -> Dict[str, object]:
+    """Evaluate the current selector against fixed expectations.
+
+    Each call invokes the live selector, so test-only selector substitution is
+    possible. Expected IDs remain independent immutable evaluation data.
+    """
     results = []
     passed = True
     for case in cases:
         result = lessons.select_lesson(str(case["query"]))
         actual = result["benchmark_id"] if result else None
         ok = actual == case["expected_id"]
-        results.append({"name": case["name"], "expected_id": case["expected_id"],
-                        "actual_id": actual, "passed": ok})
+        results.append({
+            "name": case["name"],
+            "expected_id": case["expected_id"],
+            "actual_id": actual,
+            "passed": ok,
+        })
         passed = passed and ok
     return {"passed": passed, "results": results}
