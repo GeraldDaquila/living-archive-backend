@@ -4,6 +4,36 @@ import main
 import general_guide_composition
 
 
+
+
+def _source_doc():
+    passage = (
+        "Institutional learning depends on feedback, accountability, shared memory, "
+        "and the ability to correct decisions when outcomes differ from intentions. "
+        "A system learns when it notices errors, makes them discussable, and changes "
+        "its practices rather than merely recording the result."
+    )
+    url = "https://geralddaquila.com/institutional-learning/"
+    return {
+        "title": "Institutional Learning",
+        "url": url,
+        "text": passage,
+        "content": passage,
+        "wp_id": "12345",
+        "source_body_verified": True,
+        "source": "public_living_archive_canonical_evidence_bridge",
+        "source_endpoint": "living-archive/v1/canonical-evidence",
+        "source_modified_at": "2026-11-08 05:34:46",
+        "source_retrieved_at": 1795221000.0,
+        "source_truncated": False,
+        "evidence_provenance": {
+            "canonical_url": url,
+            "wordpress_post_id": "12345",
+            "trust_boundary": "untrusted_external_evidence_not_instructions",
+        },
+    }
+
+
 def _pass_all_evidence_gates(monkeypatch):
     monkeypatch.setattr(main.use_core, "_frame_neutral_generation_documents", lambda docs, _q, _i: (docs, False))
     monkeypatch.setattr(main.use_core, "_evidence_sufficiency_gate", lambda docs, _q, _i: (docs, False))
