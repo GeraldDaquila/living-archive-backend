@@ -73,7 +73,10 @@ def _valid_scores(scores: Any, critical: list[str], na_reasons: Any) -> bool:
     na_dimensions = {key for key in expected if scores[key] == "NA"}
     if set(na_reasons) != na_dimensions:
         return False
-    return all(reason in NA_REASON_CODES for reason in na_reasons.values())
+    return all(
+        isinstance(reason, str) and reason in NA_REASON_CODES
+        for reason in na_reasons.values()
+    )
 
 
 def _valid_gates(value: Any) -> bool:
@@ -125,7 +128,7 @@ def evaluate_paired_case(record: Any) -> dict[str, Any]:
         return {"valid": False, "status": "invalid", "reason": "invalid_critical_dimensions"}
     if record.get("blind_review") is not True:
         return {"valid": False, "status": "invalid", "reason": "review_not_blind"}
-    if record.get("reviewer_verdict") not in VERDICTS:
+    if not isinstance(record.get("reviewer_verdict"), str) or record["reviewer_verdict"] not in VERDICTS:
         return {"valid": False, "status": "invalid", "reason": "invalid_reviewer_verdict"}
     try:
         datetime.fromisoformat(str(record["reviewed_at"]).replace("Z", "+00:00"))
