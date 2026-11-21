@@ -40,7 +40,7 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
 
     def fake_expand(query_arg, seed_docs, index, core):
         calls.append((query_arg, list(seed_docs), index, core))
-        return [dict(recovered, source_body_verified=True, source="public_living_archive_canonical_evidence_bridge")]
+        return [dict(recovered, source_body_verified=True, source="public_living_archive_canonical_evidence_bridge", source_endpoint="living-archive/v1/canonical-evidence", wp_id="21767", source_modified_at="2026-11-20 09:30:00", source_retrieved_at=1795221000.0, source_truncated=False)]
 
     monkeypatch.setattr(main.archive_crosslink, "expand_context", fake_expand)
     result = main._recommendation_first_fetch(query)
@@ -51,7 +51,8 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
     assert "Institutional Correctability" in result["canonical_link_context"]
     assert "recognize error" in result["context_blocks"]
     assert "UNTRUSTED CONTENT" in result["context_blocks"]
-    assert result["live_source_evidence_provenance"][0]["wordpress_post_id"] == ""
+    assert result["live_source_evidence_provenance"][0]["wordpress_post_id"] == "21767"
+    assert result["live_source_evidence_provenance"][0]["source_endpoint"] == "living-archive/v1/canonical-evidence"
     assert result["evidence_sufficiency_unavailable"] is False
 
 
