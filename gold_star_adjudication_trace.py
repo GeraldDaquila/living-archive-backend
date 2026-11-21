@@ -122,21 +122,39 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
     return result
 
 
+def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
+    """Create current-request evidence for a cache hit without inheriting old adjudication."""
+    result = dict(trace)
+    result["provider_adjudication_status"] = "not_observed"
+    result["selected_candidate_ids"] = []
+    result["rejection_reason_codes"] = []
+    result["reasoning_discipline_ids"] = []
+    result["application_evidence_present"] = False
+    result["application_evidence_candidate_ids"] = []
+    result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
+    result["application"] = "not_observed"
+    result["composition"] = "cached_candidate_reused"
+    result["contribution_retained"] = "not_evaluated"
+    result["outcome"] = "not_evaluated"
+    return result
+
+
 def mark_final_delivery(
-    trace: Mapping[str, Any], *, provider_candidate_delivered: bool, final_provenance: str
+    trace: Mapping[str, Any], *, provider_candidate_delivered: bool,
+    final_provenance: str, cached_candidate_reused: bool = False
 ) -> dict[str, Any]:
     """Attach final delivery attribution; delivery is not evidence of quality."""
     result = dict(trace)
     result["final_delivery"] = (
-        "provider_candidate_delivered"
-        if provider_candidate_delivered
+        "cached_candidate_reused" if cached_candidate_reused
+        else "provider_candidate_delivered" if provider_candidate_delivered
         else "deterministic_or_unresolved_replacement"
     )
     result["final_provenance"] = str(final_provenance or "unresolved").strip().casefold()
     result["contribution_retained"] = (
         "not_applicable" if result.get("provider_adjudication_status") == "provider_reported_rejected_all"
         else "provider_asserted_span_retained" if provider_candidate_delivered and result.get("application_evidence_present") is True
-        else "not_retained" if not provider_candidate_delivered
+        else "not_retained" if not provider_candidate_delivered and not cached_candidate_reused
         else "not_verified"
     )
     result["outcome"] = "not_evaluated"
@@ -241,7 +259,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         or trace.get("application_evidence_present") is not True
     ):
         return {"valid": False, "reason": "retention_claim_without_delivered_verified_span"}
-    if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result"}:
+    if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result", "cached_candidate_reused"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
         "provider_candidate_delivered", "deterministic_or_unresolved_replacement"
