@@ -46,7 +46,16 @@ def _passages(documents: Sequence[Any]) -> list[dict[str, str]]:
         if document.get("visitor_visible") is not True:
             continue
         access_class = str(document.get("access_class") or "").strip().casefold()
-        if access_class in {"private", "protected", "steward", "guardian", "t4", "restricted"}:
+        access_tokens = set(re.split(r"[^a-z0-9]+", access_class))
+        protected_flags = (
+            "private", "is_private", "protected", "is_protected",
+            "steward_only", "guardian_only", "requires_authentication",
+            "restricted_access",
+        )
+        if (
+            access_tokens.intersection({"private", "protected", "steward", "guardian", "t4", "restricted"})
+            or any(document.get(flag) is True for flag in protected_flags)
+        ):
             continue
         title = str(document.get("title") or "").strip()[:300]
         url = str(document.get("url") or "").strip()[:1000]
