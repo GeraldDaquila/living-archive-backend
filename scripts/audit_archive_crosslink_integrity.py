@@ -458,10 +458,18 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
     refreshed_at = float(snapshot.get("refreshed_at") or 0)
     age_seconds = max(0.0, time.time() - refreshed_at)
     actual_sha_matches = bool(checksum_expected and checksum_expected == snapshot_sha)
-    # A transport failure or rate limit is not evidence that a destination is
-    # broken. Keep these indeterminate so the audit cannot overstate breakage.
-    broken = [item for item in link_results if item["status"] in {"invalid_url", "http_error"}]
-    indeterminate = [item for item in link_results if item["status"] not in {"ok", "invalid_url", "http_error"}]
+    # Only an invalid canonical URL or confirmed 404/410 is counted as broken.
+    # 401/403, 429, network failures, and 5xx/other HTTP errors are
+    # indeterminate: they prevent a COMPLETE verdict but do not prove a dead URL.
+    broken = [
+        item for item in link_results
+        if item["status"] == "invalid_url"
+        or (item["status"] == "http_error" and item.get("http_status") in {404, 410})
+    ]
+    indeterminate = [
+        item for item in link_results
+        if item["status"] != "ok" and item not in broken
+    ]
     redirects = [item for item in link_results if item.get("status") == "ok" and normalize_url(item.get("final_url")) != item.get("url")]
     canonical_match = not (
         comparison["stale_wp_ids"] or comparison["identity_mismatches"]
@@ -518,6 +526,7 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
             "indeterminate_count": len(indeterminate),
             "rate_limited_count": sum(item["status"] == "rate_limited" for item in indeterminate),
             "network_error_count": sum(item["status"] == "network_error" for item in indeterminate),
+            "http_error_indeterminate_count": sum(item["status"] == "http_error" for item in indeterminate),
             "redirect_count": len(redirects),
             "results": link_results,
         },
@@ -536,7 +545,7 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
             "This is a read-only diagnostic. It never mutates WordPress, the snapshot, Pinecone, or production runtime.",
             "Duplicate titles and URLs are reported as evidence for human review; they are not silently treated as interchangeable identities.",
             "Addressability is a necessary metadata condition, not proof that each asset is semantically reachable for every query.",
-            "A complete status requires a full destination check with no confirmed broken destinations and no indeterminate transport results. Rate limits and network failures are indeterminate, not broken links.",
+            "A complete status requires a full destination check with no confirmed broken destinations and no indeterminate results. Only invalid URLs and HTTP 404/410 are counted as broken; rate limits, network failures, access restrictions, and other HTTP errors are indeterminate.",
             "Use --skip-link-check only for a faster identity-only diagnostic, which will remain ATTENTION REQUIRED.",
         ],
     }
@@ -577,6 +586,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"| Indeterminate destinations | {links['indeterminate_count']} |",
         f"| Rate-limited destinations | {links['rate_limited_count']} |",
         f"| Network-error destinations | {links['network_error_count']} |",
+        f"| Other HTTP-error indeterminate results | {links['http_error_indeterminate_count']} |",
         f"| Redirects | {links['redirect_count']} |",
         "",
         "## Completeness gates",
