@@ -70,3 +70,32 @@ def test_llm_attribution_requires_the_final_answer_to_match_the_provider_candida
     assert '_provider_name = "deterministic_final_boundary"' in source
     assert 'if composition_result and not _llm_invoked:' in source
     assert '_provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()' in source
+
+def test_registered_gold_standard_reference_is_deterministic_not_an_llm():
+    source, function = _basic_inquiry_ast()
+    module = ast.parse(source)
+    helper = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_is_registered_gold_standard_composition_result"
+    )
+    namespace = {}
+    isolated = ast.Module(body=[helper], type_ignores=[])
+    exec(compile(isolated, "<isolated-provenance-helper>", "exec"), namespace)
+    classify = namespace["_is_registered_gold_standard_composition_result"]
+
+    assert classify({
+        "provider": "gold_standard_registry",
+        "model": "approved-reference",
+        "response": "The registered exact answer.",
+    })
+    assert not classify({"provider": "groq", "model": "llama-3"})
+    assert not classify({"provider": "gold_standard_registry", "model": "live-model"})
+    assert not classify(None)
+
+    function_source = ast.get_source_segment(source, function)
+    assert "_registered_gold_standard_composition = (" in function_source
+    assert "and not _registered_gold_standard_composition" in function_source
+    assert "if (\n        composition_result\n        and not _llm_invoked\n        and not _registered_gold_standard_composition" in function_source
+    assert "_registered_gold_standard_composition\n        or (" in function_source
+
