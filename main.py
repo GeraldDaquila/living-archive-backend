@@ -8116,6 +8116,8 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         cached_candidate_reused = (
             adjudication_trace.get("composition") == "cached_candidate_reused"
+            and bool(pre_boundary_response)
+            and final_response == pre_boundary_response
         )
         original_provenance = (
             safe_input.get("response_provenance")
