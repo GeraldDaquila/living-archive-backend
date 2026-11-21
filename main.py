@@ -8141,26 +8141,27 @@ def _guide_finalize_visitor_payload(payload, query):
             else "deterministic_recovery" if final_response
             else "unresolved"
         )
-        if str(adjudication_trace.get("guidance_exposure") or "not_observed") == "not_observed":
-            adjudication_trace = _mark_gold_star_guidance_exposure(
-                adjudication_trace,
+        trace_for_delivery = adjudication_trace
+        if str(trace_for_delivery.get("guidance_exposure") or "not_observed") == "not_observed":
+            trace_for_delivery = _mark_gold_star_guidance_exposure(
+                trace_for_delivery,
                 included_in_provider_prompt=False,
             )
             _emit_guide_outcome(
                 "gold_star_guidance_exposure",
-                request_id=adjudication_trace.get("request_id"),
-                attempt_ordinal=adjudication_trace.get("attempt_ordinal"),
-                trace_version=adjudication_trace["version"],
-                candidate_count=adjudication_trace["candidate_count"],
-                exposure=adjudication_trace["guidance_exposure"],
+                request_id=trace_for_delivery.get("request_id"),
+                attempt_ordinal=trace_for_delivery.get("attempt_ordinal"),
+                trace_version=trace_for_delivery["version"],
+                candidate_count=trace_for_delivery["candidate_count"],
+                exposure=trace_for_delivery["guidance_exposure"],
                 reason=(
                     "no_candidates"
-                    if not adjudication_trace["candidate_count"]
+                    if not trace_for_delivery["candidate_count"]
                     else "final_delivery_without_provider_prompt"
                 ),
             )
         trace = _mark_gold_star_final_delivery(
-            adjudication_trace,
+            trace_for_delivery,
             provider_candidate_delivered=delivered,
             final_provenance=final_provenance,
             cached_candidate_reused=cached_candidate_reused,
