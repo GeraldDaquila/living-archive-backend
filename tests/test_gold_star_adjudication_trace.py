@@ -290,3 +290,19 @@ def test_request_context_isolated_between_concurrent_async_requests():
         ("11111111111111111111111111111111", 1),
         ("22222222222222222222222222222222", 1),
     ]
+
+
+def test_composition_decorator_keeps_latest_trace_without_request_context():
+    import general_guide_composition as composition
+
+    def deterministic_early_return(**_kwargs):
+        initial = trace.build_adjudication_trace(None)
+        trace.mark_guidance_exposure(initial, included_in_provider_prompt=False)
+        return {"response": "Deterministic response."}
+
+    tracked_compose = composition._track_gold_star_composition_attempt(deterministic_early_return)
+    result = tracked_compose()
+    attached = result["_gold_star_adjudication_trace"]
+    assert attached["guidance_exposure"] == "not_applicable"
+    assert "request_id" not in attached
+    assert trace.validate_trace(attached)["valid"]
