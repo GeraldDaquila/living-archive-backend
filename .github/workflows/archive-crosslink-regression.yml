@@ -8,6 +8,7 @@ on:
       - "tests/test_archive_crosslink.py"
       - "tests/test_meta_crosslink_no_runtime_pinecone.py"
       - "tests/test_crosslink_territorial_integrity_audit.py"
+      - "tests/test_use_live_canonical_evidence_recovery.py"
       - "main.py"
 
 permissions:
@@ -23,9 +24,47 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install test runner
-        run: python -m pip install --upgrade pytest
+      - name: Install runtime and test dependencies
+        run: python -m pip install -r requirements.txt pytest
       - name: Compile crosslink and audit tools
-        run: python -m py_compile archive_crosslink.py main.py scripts/audit_archive_crosslink_integrity.py tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py tests/test_crosslink_territorial_integrity_audit.py
+        run: python -m py_compile archive_crosslink.py main.py scripts/audit_archive_crosslink_integrity.py tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py tests/test_crosslink_territorial_integrity_audit.py tests/test_use_live_canonical_evidence_recovery.py
       - name: Run crosslink and integrity-audit tests
-        run: PYTHONPATH=. python -m pytest -q tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py tests/test_crosslink_territorial_integrity_audit.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py tests/test_crosslink_territorial_integrity_audit.py tests/test_use_live_canonical_evidence_recovery.py
+      - name: Verify live Canonical Evidence Bridge through the runtime fetcher
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import archive_crosslink
+
+          class ReadOnlyCore:
+              pass
+
+          asset = {
+              "title": "Glossary",
+              "url": "https://geralddaquila.com/glossary/",
+              "wp_id": "5578",
+              "resource_type": "page",
+              "tier": "T1",
+              "access_class": "public",
+              "summary": "Public canonical glossary.",
+          }
+          documents = archive_crosslink.fetch_wordpress_source_documents(
+              [asset], ReadOnlyCore(), limit=1
+          )
+          assert len(documents) == 1, "live public bridge source was not admitted"
+          document = documents[0]
+          assert document["source_body_verified"] is True
+          assert document["wp_id"] == "5578"
+          assert document["url"] == "https://geralddaquila.com/glossary"
+          assert document["source_endpoint"] == "living-archive/v1/canonical-evidence"
+          assert len(document["text"]) >= 120
+          provenance = document["evidence_provenance"]
+          assert provenance["wordpress_post_id"] == "5578"
+          assert provenance["canonical_url"] == document["url"]
+          assert isinstance(provenance["truncated"], bool)
+          print(
+              "Live bridge runtime integration: PASS; "
+              f"source_id={document['wp_id']}; "
+              f"text_chars={len(document['text'])}; "
+              f"truncated={provenance['truncated']}"
+          )
+          PY

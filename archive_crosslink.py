@@ -1031,9 +1031,10 @@ def fetch_wordpress_source_documents(
     *,
     limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
 ) -> list[dict[str, Any]]:
-    """Fetch bounded, published source bodies for public snapshot assets."""
+    """Fetch bounded public source bodies through the site's Canonical Evidence Bridge."""
     documents: list[dict[str, Any]] = []
-    for asset in (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]:
+    bounded_assets = (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]
+    for asset in bounded_assets:
         if not isinstance(asset, dict):
             continue
         access_class = str(asset.get("access_class") or "public").strip().casefold()
@@ -1041,55 +1042,66 @@ def fetch_wordpress_source_documents(
         resource_type = str(asset.get("resource_type") or "").strip().casefold()
         wp_id = str(asset.get("wp_id") or "").strip()
         expected_url = _normalize_url(asset.get("url"))
-        if access_class not in {"public", "open", "open_access"} or tier == "T4" or resource_type not in {"page", "post"} or not wp_id.isdigit() or not expected_url:
+        if (
+            access_class not in {"public", "open", "open_access"}
+            or tier == "T4"
+            or resource_type not in {"page", "post"}
+            or not wp_id.isdigit()
+            or not expected_url.startswith("https://geralddaquila.com/")
+        ):
             continue
-        wp_endpoint = {"page": "pages", "post": "posts"}[resource_type]
-        request_url = f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
-        request = UrlRequest(request_url, headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"}, method="GET")
+
+        # This dedicated read-only endpoint verifies publication/password
+        # access in WordPress and returns normalized stored content without
+        # executing the_content filters, theme rendering, or shortcodes.
+        request_url = (
+            "https://geralddaquila.com/wp-json/living-archive/v1/"
+            f"canonical-evidence/{quote(wp_id, safe='')}"
+        )
+        request = UrlRequest(
+            request_url,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
         try:
-            try:
-                with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-            except Exception as primary_exc:
-                # WordPress.com can reject requests from some cloud egress IPs
-                # at the site-domain edge. Retry through its public REST API,
-                # then apply the identical publication/ID/canonical checks.
-                if getattr(primary_exc, "code", None) is None:
-                    raise
-                fallback_url = (
-                    "https://public-api.wordpress.com/wp/v2/sites/geralddaquila.com/"
-                    f"{wp_endpoint}/{quote(wp_id, safe='')}?"
-                    "_fields=id,link,title,excerpt,content,status"
-                )
-                fallback_request = UrlRequest(
-                    fallback_url,
-                    headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
-                    method="GET",
-                )
-                with urlopen(fallback_request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-                _log(
-                    "USE archive meta-crosslink WordPress source fetch: "
-                    f"id={wp_id}, transport=wordpress_com_public_api_fallback, "
-                    f"primary_http_status={getattr(primary_exc, 'code', 'unknown')}"
-                )
+            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
             if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
-                raise ValueError("WordPress source response exceeds size bound")
+                raise ValueError("Canonical Evidence Bridge response exceeds size bound")
             payload = json.loads(raw_bytes.decode("utf-8"))
-            if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish" or str(payload.get("id") or "") != wp_id:
+            if not isinstance(payload, dict):
                 continue
-            fetched_url = _normalize_url(payload.get("link"))
+            if str(payload.get("id") or "") != wp_id:
+                continue
+            if str(payload.get("source") or "") != "published_wordpress_content":
+                continue
+            fetched_url = _normalize_url(payload.get("url"))
             if not fetched_url or fetched_url != expected_url:
                 continue
-            title = _wordpress_rendered_text(payload.get("title"))[:300]
-            body = _wordpress_rendered_text(payload.get("content"))
+            title = _text(payload.get("title"), 300)
+            raw_body = str(payload.get("text") or "")
+            body = _text(raw_body, 12000)
             if not title or len(body) < 120:
                 continue
+            modified = _text(payload.get("modified_gmt"), 64)
+            retrieved_at = time.time()
+            source_truncated = bool(payload.get("truncated")) or len(raw_body) > 12000
             metadata = {
-                "title": title, "url": fetched_url, "text": body, "content": body,
-                "excerpt": _wordpress_rendered_text(payload.get("excerpt"))[:1200],
-                "tier": tier or "T1", "access_class": access_class,
-                "lifecycle": asset.get("lifecycle", ""), "resource_type": resource_type,
+                "title": title,
+                "url": fetched_url,
+                "text": body,
+                "content": body,
+                "excerpt": _text(asset.get("summary"), 1200),
+                "tier": tier or "T1",
+                "access_class": access_class,
+                "lifecycle": asset.get("lifecycle", ""),
+                "resource_type": resource_type,
+                "source": "public_living_archive_canonical_evidence_bridge",
+                "source_body_verified": True,
+                "source_endpoint": "living-archive/v1/canonical-evidence",
+                "source_modified_at": modified or None,
+                "source_retrieved_at": retrieved_at,
+                "source_truncated": source_truncated,
             }
             if not _eligible(metadata, core):
                 continue
@@ -1099,27 +1111,36 @@ def fetch_wordpress_source_documents(
                 continue
             if callable(navigable) and not navigable(metadata):
                 continue
+            metadata["evidence_provenance"] = {
+                "source": metadata["source"],
+                "canonical_url": fetched_url,
+                "title": title,
+                "wordpress_post_id": wp_id,
+                "source_modified_at": modified or None,
+                "retrieved_at_unix": retrieved_at,
+                "truncated": metadata["source_truncated"],
+            }
             documents.append({
-                **metadata, "wp_id": wp_id, "summary": metadata["excerpt"],
-                "source_body_verified": True, "crosslink_mode": "wordpress_source_body",
+                **metadata,
+                "wp_id": wp_id,
+                "summary": metadata["excerpt"],
+                "crosslink_mode": "canonical_evidence_bridge",
             })
         except Exception as exc:
             http_status = getattr(exc, "code", None)
             if http_status is not None:
-                headers = getattr(exc, "headers", None)
-                server = headers.get("Server", "") if hasattr(headers, "get") else ""
-                retry_after = headers.get("Retry-After", "") if hasattr(headers, "get") else ""
-                reason = re.sub(r"\\s+", " ", str(getattr(exc, "reason", "") or ""))[:120]
                 _log(
-                    "USE archive meta-crosslink WordPress source fetch: "
-                    f"id={wp_id}, status=http_error, http_status={http_status}, "
-                    f"reason={reason}, server={str(server)[:80]}, "
-                    f"retry_after={str(retry_after)[:40]}"
+                    "USE archive meta-crosslink Canonical Evidence Bridge: "
+                    f"id={wp_id}, status=http_error, http_status={http_status}"
                 )
             else:
-                _log(f"USE archive meta-crosslink WordPress source fetch: id={wp_id}, status=unavailable, error={type(exc).__name__}")
+                _log(
+                    "USE archive meta-crosslink Canonical Evidence Bridge: "
+                    f"id={wp_id}, status=unavailable, error={type(exc).__name__}"
+                )
             continue
     return documents
+
 
 
 def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -1168,23 +1189,34 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
     return documents
 
 
-def expand_context(
+def expand_context_result(
     query: str,
     seed_documents: list[dict[str, Any]],
     index: Any,
     core: Any,
-) -> list[dict[str, Any]]:
-    """Return canonical source bodies or metadata-only territorial links."""
+) -> dict[str, Any]:
+    """Return crosslink documents with an explicit retrieval/freshness outcome."""
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
         _log("USE archive meta-crosslink: snapshot_unavailable=true; pinecone_fallback=disabled; publisher_required=true")
-        return []
+        return {"status": "snapshot_unavailable", "documents": [], "snapshot_age_seconds": None}
     if not snapshot.get("crosslink_ready"):
-        return []
+        return {"status": "snapshot_not_ready", "documents": [], "snapshot_age_seconds": None}
     if snapshot.get("contract") != "archive-crosslink-inventory-v2":
         _log("USE archive meta-crosslink: legacy_snapshot_rejected=true; pinecone_fallback=disabled; publisher_required=true")
-        return []
+        return {"status": "legacy_snapshot_rejected", "documents": [], "snapshot_age_seconds": None}
+
+    refreshed_at = snapshot.get("refreshed_at")
+    try:
+        snapshot_age_seconds = max(0.0, time.time() - float(refreshed_at))
+    except (TypeError, ValueError):
+        snapshot_age_seconds = None
+    snapshot_stale = (
+        snapshot_age_seconds is None
+        or snapshot_age_seconds > _REFRESH_SECONDS
+    )
+
     assets = search_wordpress_canonical_assets(query, snapshot)
     if assets:
         _log(f"USE archive meta-crosslink WordPress search: verified_snapshot_candidates={len(assets)}")
@@ -1192,13 +1224,23 @@ def expand_context(
         assets = select_crosslinks(query, seed_documents, snapshot)
     if not assets:
         _log("USE archive meta-crosslink: no_canonical_candidates=true")
-        return []
+        return {
+            "status": "stale_snapshot_no_candidate" if snapshot_stale else "no_snapshot_candidate",
+            "documents": [],
+            "snapshot_age_seconds": snapshot_age_seconds,
+        }
+
     source_documents = fetch_wordpress_source_documents(assets, core)
     if source_documents:
         _log(f"USE archive meta-crosslink WordPress source recovery: selected={len(assets)}, verified_source_bodies={len(source_documents)}")
-        return source_documents
+        return {
+            "status": "stale_snapshot_with_verified_source" if snapshot_stale else "verified_source_bodies_available",
+            "documents": source_documents,
+            "snapshot_age_seconds": snapshot_age_seconds,
+        }
+
     _log("USE archive meta-crosslink: source_body_unavailable=true; returning_metadata_only_navigation=true")
-    return [
+    metadata_documents = [
         {
             "title": _text(asset.get("title"), 300),
             "url": _normalize_url(asset.get("url")),
@@ -1214,11 +1256,35 @@ def expand_context(
         for asset in assets
         if _text(asset.get("title"), 300) and _normalize_url(asset.get("url"))
     ]
+    return {
+        "status": "source_body_unavailable",
+        "documents": metadata_documents,
+        "snapshot_age_seconds": snapshot_age_seconds,
+    }
+
+class _CrosslinkDocuments(list):
+    """Backward-compatible document list carrying structured retrieval telemetry."""
+    def __init__(self, result: dict[str, Any]):
+        super().__init__(result.get("documents") or [])
+        self.status = str(result.get("status") or "unknown")
+        self.snapshot_age_seconds = result.get("snapshot_age_seconds")
+
+
+def expand_context(
+    query: str,
+    seed_documents: list[dict[str, Any]],
+    index: Any,
+    core: Any,
+) -> list[dict[str, Any]]:
+    """Backward-compatible list wrapper retaining retrieval/freshness telemetry."""
+    result = expand_context_result(query, seed_documents, index, core)
+    return _CrosslinkDocuments(result)
 
 
 __all__ = [
     "build_inventory",
     "expand_context",
+    "expand_context_result",
     "fetch_crosslink_documents",
     "fetch_wordpress_source_documents",
     "search_wordpress_canonical_assets",
