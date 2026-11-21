@@ -850,3 +850,33 @@ def test_expand_context_result_distinguishes_unavailable_source_body(monkeypatch
     assert result["status"] == "source_body_unavailable"
     assert len(result["documents"]) == 1
     assert result["documents"][0]["source_body_verified"] is False
+
+
+def test_expand_context_result_marks_verified_body_from_stale_registry(monkeypatch):
+    asset = {
+        "title": "Institutional Learning",
+        "url": "https://geralddaquila.com/institutional-learning/",
+        "wp_id": "12345",
+        "resource_type": "page",
+        "tier": "T1",
+        "access_class": "public",
+    }
+    source = {
+        **asset,
+        "text": "Institutional learning depends on feedback and correction. " * 8,
+        "content": "Institutional learning depends on feedback and correction. " * 8,
+        "source_body_verified": True,
+        "evidence_provenance": {"canonical_url": asset["url"]},
+    }
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "refreshed_at": 0,
+        "assets": [asset],
+    })
+    monkeypatch.setattr(archive_crosslink, "search_wordpress_canonical_assets", lambda *_args, **_kwargs: [asset])
+    monkeypatch.setattr(archive_crosslink, "fetch_wordpress_source_documents", lambda *_args, **_kwargs: [source])
+    result = archive_crosslink.expand_context_result("institutional learning", [], None, FakeCore())
+    assert result["status"] == "stale_snapshot_with_verified_source"
+    assert result["documents"] == [source]
+    assert result["snapshot_age_seconds"] is not None
