@@ -11391,6 +11391,15 @@ except Exception:
     _gold_star_shadow_observation = None
     _gold_star_active_quality_contribution = None
 
+def _is_registered_gold_standard_composition_result(result):
+    """Identify the frozen exact-answer registry as deterministic, not an LLM."""
+    return bool(
+        isinstance(result, dict)
+        and str(result.get("provider") or "").strip() == "gold_standard_registry"
+        and str(result.get("model") or "").strip() == "approved-reference"
+    )
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only: returned metadata is discarded and cannot influence composition.
     try:
@@ -14624,14 +14633,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Deterministic replacements retain their own registered provenance identity.
     # Standalone QA captures this exact source revision before any release review.
     _final_response_text = _sanitize_basic_inquiry_response(str(response or ""))
+    _registered_gold_standard_composition = (
+        _is_registered_gold_standard_composition_result(composition_result)
+    )
     _llm_invoked = bool(
         composition_result
+        and not _registered_gold_standard_composition
         and _provider_name
         and _model_name
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
     )
-    if composition_result and not _llm_invoked:
+    if (
+        composition_result
+        and not _llm_invoked
+        and not _registered_gold_standard_composition
+    ):
         if deterministic_result:
             _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
             _model_name = str(deterministic_result.get("model") or "").strip()
@@ -14640,13 +14657,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _model_name = ""
 
     _deterministic_by_design = bool(
-        deterministic_result
-        and (
-            reasoning_mode == "deterministic_only"
-            or healthy_community_short_circuit
-            or trust_stewardship_short_circuit
-            or _is_practical_stewardship_question(query)
-            or general_knowledge_recovery is not None
+        _registered_gold_standard_composition
+        or (
+            deterministic_result
+            and (
+                reasoning_mode == "deterministic_only"
+                or healthy_community_short_circuit
+                or trust_stewardship_short_circuit
+                or _is_practical_stewardship_question(query)
+                or general_knowledge_recovery is not None
+            )
         )
     )
     if _llm_invoked and _provider_name:
