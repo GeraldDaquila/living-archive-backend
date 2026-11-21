@@ -28,4 +28,4 @@ jobs:
       - name: Install test runner
         run: python -m pip install --disable-pip-version-check pytest
       - name: Validate benchmark governance and source alignment
-        run: python -m pytest -q tests/test_decision_rights_candidate_set_benchmark.py
+        run: python -m pytest -q tests/test_decision_rights_candidate_set_benchmark.py tests/test_decision_rights_candidate_policy.py
