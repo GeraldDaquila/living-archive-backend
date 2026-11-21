@@ -48,13 +48,14 @@ def normalize_provider_adjudication(
         "rejection_reason_codes": [],
         "reasoning_discipline_ids": [],
         "application_evidence_present": False,
+        "application_evidence_candidate_ids": [],
         "application": "not_observed",
     }
     index = _candidate_index(candidates)
     if not index or not isinstance(value, Mapping):
         return base
 
-    allowed = {"candidate_assessments", "application_evidence_span"}
+    allowed = {"candidate_assessments", "application_evidence_spans"}
     if set(value) != allowed:
         return base
     assessments = value.get("candidate_assessments")
@@ -93,19 +94,37 @@ def normalize_provider_adjudication(
 
     if seen != set(index):
         return base
-    span = value.get("application_evidence_span")
-    span_present = (
-        bool(selected)
-        and isinstance(span, str)
-        and 12 <= len(span.strip()) <= MAX_EVIDENCE_SPAN
-        and span.strip() in str(response or "")
-    )
+    spans = value.get("application_evidence_spans")
+    evidence_ids: list[str] = []
+    if not selected:
+        if spans not in (None, []):
+            return base
+    else:
+        if not isinstance(spans, list) or len(spans) != len(selected):
+            return base
+        for item in spans:
+            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
+                return base
+            candidate_id, span = item.get("candidate_id"), item.get("span")
+            if (
+                candidate_id not in selected
+                or candidate_id in evidence_ids
+                or not isinstance(span, str)
+                or not 12 <= len(span.strip()) <= MAX_EVIDENCE_SPAN
+                or span.strip() not in str(response or "")
+            ):
+                return base
+            evidence_ids.append(candidate_id)
+        if set(evidence_ids) != set(selected):
+            return base
+    span_present = bool(selected) and set(evidence_ids) == set(selected)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
         "selected_candidate_ids": selected,
         "rejection_reason_codes": rejected,
         "reasoning_discipline_ids": sorted(disciplines),
         "application_evidence_present": span_present,
+        "application_evidence_candidate_ids": evidence_ids,
         "application": "provider_asserted_span_present" if span_present else "not_observed",
     }
 
