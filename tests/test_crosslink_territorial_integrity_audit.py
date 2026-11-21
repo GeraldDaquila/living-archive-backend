@@ -4,6 +4,7 @@ import json
 import pytest
 
 from scripts.audit_archive_crosslink_integrity import (
+    build_report,
     compare_registry,
     load_snapshot,
     metadata_addressability,
@@ -238,4 +239,57 @@ def test_destination_429_retries_are_bounded_and_report_rate_limited(monkeypatch
     assert result["http_status"] == 429
     assert len(calls) == audit.LINK_429_RETRIES + 1
     assert sleeps == [5.0, 10.0, 20.0]
+
+def test_destination_retry_after_above_wait_budget_is_not_retried_early(monkeypatch):
+    from scripts import audit_archive_crosslink_integrity as audit
+
+    calls = []
+    sleeps = []
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.get_method())
+        raise _http_error(request.full_url, 429, {"Retry-After": "120"})
+
+    monkeypatch.setattr(audit, "_pace_link_request", lambda: None)
+    monkeypatch.setattr(audit, "urlopen", fake_urlopen)
+    monkeypatch.setattr(audit.time, "sleep", lambda seconds: sleeps.append(seconds))
+
+    result = audit.check_destination(_asset(13, "A", "https://geralddaquila.com/a"))
+
+    assert result["status"] == "rate_limited"
+    assert calls == ["HEAD"]
+    assert sleeps == []
+
+
+def test_rate_limits_and_network_errors_are_indeterminate_not_broken():
+    snapshot = {
+        "assets": [],
+        "asset_count": 0,
+        "refreshed_at": 0,
+    }
+    empty_registry = {
+        "posts": {"records": [], "pages": [], "total_header": "0", "total_pages_header": "0"},
+        "pages": {"records": [], "pages": [], "total_header": "0", "total_pages_header": "0"},
+    }
+    report = build_report(
+        snapshot=snapshot,
+        snapshot_sha="abc",
+        snapshot_bytes=0,
+        checksum_expected="abc",
+        registry_data=empty_registry,
+        link_results=[
+            {"wp_id": "20", "url": "https://geralddaquila.com/a", "status": "rate_limited"},
+            {"wp_id": "21", "url": "https://geralddaquila.com/b", "status": "network_error"},
+        ],
+        link_check_performed=True,
+    )
+
+    destination = report["destination_integrity"]
+    assert destination["broken_count"] == 0
+    assert destination["indeterminate_count"] == 2
+    assert destination["rate_limited_count"] == 1
+    assert destination["network_error_count"] == 1
+    assert report["completeness_gates"]["no_broken_destinations"] is True
+    assert report["completeness_gates"]["destination_results_determinate"] is False
+    assert report["overall_status"] == "ATTENTION REQUIRED"
 
