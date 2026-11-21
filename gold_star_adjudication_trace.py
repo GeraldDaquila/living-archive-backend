@@ -52,6 +52,12 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         "candidate_scores": [item["score"] for item in safe_candidates],
         "match_kinds": [item["match_kind"] for item in safe_candidates],
         "guidance_exposure": "pending" if count else "not_applicable",
+        "provider_adjudication_status": "not_observed",
+        "selected_candidate_ids": [],
+        "rejection_reason_codes": [],
+        "reasoning_discipline_ids": [],
+        "application_evidence_present": False,
+        "contribution_retained": "not_evaluated",
         "selection": "not_observed" if count else "not_applicable",
         "application": "not_observed",
         "outcome": "not_evaluated",
@@ -70,6 +76,26 @@ def mark_guidance_exposure(trace: Mapping[str, Any], *, included_in_provider_pro
     return result
 
 
+def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[str, Any]:
+    """Attach a validated provider report without promoting it to human evidence."""
+    updated = dict(trace)
+    if not isinstance(result, Mapping):
+        return updated
+    allowed = {
+        "status", "selected_candidate_ids", "rejection_reason_codes",
+        "reasoning_discipline_ids", "application_evidence_present", "application",
+    }
+    if set(result) != allowed:
+        return updated
+    updated["provider_adjudication_status"] = result["status"]
+    updated["selected_candidate_ids"] = list(result["selected_candidate_ids"])
+    updated["rejection_reason_codes"] = list(result["rejection_reason_codes"])
+    updated["reasoning_discipline_ids"] = list(result["reasoning_discipline_ids"])
+    updated["application_evidence_present"] = result["application_evidence_present"] is True
+    updated["application"] = result["application"]
+    return updated
+
+
 def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -> dict[str, Any]:
     """Record whether the provider returned a candidate answer, not whether it applied a lesson."""
     result = dict(trace)
@@ -83,7 +109,8 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
     )
     result["composition"] = "provider_candidate_returned" if returned else "provider_no_result"
     result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
-    result["application"] = "not_observed"
+    if result.get("provider_adjudication_status") == "not_observed":
+        result["application"] = "not_observed"
     result["outcome"] = "not_evaluated"
     return result
 
@@ -99,7 +126,12 @@ def mark_final_delivery(
         else "deterministic_or_unresolved_replacement"
     )
     result["final_provenance"] = str(final_provenance or "unresolved").strip().casefold()
-    result["application"] = "not_observed"
+    result["contribution_retained"] = (
+        "not_applicable" if result.get("provider_adjudication_status") == "provider_reported_rejected_all"
+        else "retained" if provider_candidate_delivered and result.get("application_evidence_present") is True
+        else "not_retained" if not provider_candidate_delivered
+        else "not_verified"
+    )
     result["outcome"] = "not_evaluated"
     return result
 
@@ -117,7 +149,11 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     missing = sorted(required - set(trace))
     if missing:
         return {"valid": False, "reason": "missing_fields", "missing": missing}
-    allowed = required | {"guidance_exposure", "composition", "final_delivery", "final_provenance"}
+    allowed = required | {
+        "guidance_exposure", "provider_adjudication_status", "selected_candidate_ids",
+        "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
+        "contribution_retained", "composition", "final_delivery", "final_provenance"
+    }
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
         return {"valid": False, "reason": "unexpected_fields", "fields": unexpected}
@@ -145,6 +181,31 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "pending", "not_applicable", "included_in_provider_prompt", "not_included"
     }:
         return {"valid": False, "reason": "invalid_guidance_exposure_state"}
+    if trace.get("provider_adjudication_status", "not_observed") not in {
+        "not_observed", "provider_reported_selected", "provider_reported_rejected_all"
+    }:
+        return {"valid": False, "reason": "invalid_provider_adjudication_status"}
+    selected_ids = trace.get("selected_candidate_ids", [])
+    rejections = trace.get("rejection_reason_codes", [])
+    disciplines = trace.get("reasoning_discipline_ids", [])
+    if not isinstance(selected_ids, list) or len(selected_ids) > count or any(x not in ids for x in selected_ids):
+        return {"valid": False, "reason": "invalid_selected_candidate_ids"}
+    if not isinstance(rejections, list) or len(rejections) > count or not all(
+        isinstance(x, Mapping) and set(x) == {"candidate_id", "reason_code"}
+        and x["candidate_id"] in ids and isinstance(x["reason_code"], str)
+        for x in rejections
+    ):
+        return {"valid": False, "reason": "invalid_rejection_reason_codes"}
+    if not isinstance(disciplines, list) or len(disciplines) > count or not all(
+        isinstance(x, str) and x for x in disciplines
+    ):
+        return {"valid": False, "reason": "invalid_reasoning_discipline_ids"}
+    if type(trace.get("application_evidence_present", False)) is not bool:
+        return {"valid": False, "reason": "invalid_application_evidence_state"}
+    if trace.get("contribution_retained", "not_evaluated") not in {
+        "not_evaluated", "not_applicable", "retained", "not_retained", "not_verified"
+    }:
+        return {"valid": False, "reason": "invalid_contribution_retention_state"}
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
