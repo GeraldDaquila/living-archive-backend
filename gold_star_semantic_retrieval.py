@@ -36,6 +36,12 @@ def _lesson_vectors():
             str(item.get("known_theme") or ""),
             str(item.get("reasoning_family") or ""),
             " ".join(item.get("variants") or []),
+            # Reviewer-approved transfer metadata supplies the actual
+            # cross-question reasoning discipline and qualifying context.
+            # It is embedded only for semantic ranking; lexical subject
+            # identity and the high semantic admission threshold remain intact.
+            str(item.get("transferable_discipline") or ""),
+            str(item.get("qualifying_context") or ""),
         ))
         for item in lessons
     ]
