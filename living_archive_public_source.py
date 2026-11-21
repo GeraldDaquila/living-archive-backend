@@ -9,16 +9,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from html.parser import HTMLParser
 import json
 import logging
 import re
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,50 +42,6 @@ _PRIVATE_PATH_RE = re.compile(
     re.I,
 )
 _QUERY_TOKEN_RE = re.compile(r"[a-z0-9]{3,}", re.I)
-
-
-class _VisibleText(HTMLParser):
-    """Extract visible text while dropping non-content and site chrome."""
-
-    _DROP = {"script", "style", "nav", "header", "footer", "form", "noscript"}
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self._drop_depth = 0
-        self.parts: List[str] = []
-
-    def handle_starttag(self, tag: str, attrs: list) -> None:
-        if tag.lower() in self._DROP:
-            self._drop_depth += 1
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag.lower() in self._DROP and self._drop_depth:
-            self._drop_depth -= 1
-        elif tag.lower() in {"p", "div", "li", "h1", "h2", "h3", "h4", "br", "hr"}:
-            self.parts.append("\n")
-
-    def handle_data(self, data: str) -> None:
-        if not self._drop_depth and data.strip():
-            self.parts.append(data.strip())
-
-
-def _clean_text(value: Any) -> str:
-    raw = str(value or "")
-    # Reject documents containing known access-control shortcodes rather than
-    # risk exposing enclosed member-only text from stored block content.
-    if _PRIVATE_SHORTCODE_RE.search(raw):
-        return ""
-    raw = _BLOCK_COMMENT_RE.sub(" ", raw)
-    raw = _SHORTCODE_RE.sub(" ", raw)
-    parser = _VisibleText()
-    try:
-        parser.feed(raw)
-        parser.close()
-    except Exception:
-        return ""
-    text = re.sub(r"[\t\r ]+", " ", " ".join(parser.parts))
-    text = re.sub(r"\n\s*\n+", "\n", text).strip()
-    return text[:MAX_PASSAGE_CHARS]
 
 
 def _safe_public_url(value: Any) -> bool:
@@ -181,11 +136,19 @@ class PublicLivingArchiveClient:
 
     @staticmethod
     def _default_http_get(url: str, timeout: float) -> Any:
+        class _SameHostRedirects(HTTPRedirectHandler):
+            def redirect_request(self, request, response, code, message, headers, new_url):
+                target = urlparse(new_url)
+                if target.scheme != "https" or target.hostname != "geralddaquila.com":
+                    raise HTTPError(new_url, code, "cross-host redirect rejected", headers, response)
+                return super().redirect_request(request, response, code, message, headers, new_url)
+
         request = Request(
             url,
             headers={"Accept": "application/json", "User-Agent": "USE-Public-Archive-Fallback/1.0"},
         )
-        with urlopen(request, timeout=timeout) as response:
+        opener = build_opener(_SameHostRedirects())
+        with opener.open(request, timeout=timeout) as response:
             if response.status != 200:
                 raise URLError(f"unexpected HTTP status {response.status}")
             payload = response.read(MAX_RESPONSE_BYTES + 1)
