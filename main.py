@@ -2271,9 +2271,10 @@ def _recommendation_first_fetch(query_str):
             )
             crosslinks = crosslink_result.get("documents") or []
             if evidence_recovery_requested and profile.get("action") not in {"recommendation", "navigation"}:
-                data["live_site_fallback_status"] = str(
+                data["live_site_registry_status"] = str(
                     crosslink_result.get("status") or "source_unavailable"
                 )
+                data["live_site_fallback_status"] = data["live_site_registry_status"]
                 data["live_site_snapshot_age_seconds"] = crosslink_result.get("snapshot_age_seconds")
             print(
                 "The Guide recovery trace: "
