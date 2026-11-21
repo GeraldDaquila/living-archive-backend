@@ -18,6 +18,7 @@ def build_provider_adjudicator(use_core: Any, deadline_monotonic: float):
         bounded_passages = [
             {
                 "passage_id": str(item.get("passage_id") or ""),
+                "source_status": str(item.get("source_status") or ""),
                 "text": str(item.get("text") or "")[:1600],
             }
             for item in list(passages or [])[:16]
