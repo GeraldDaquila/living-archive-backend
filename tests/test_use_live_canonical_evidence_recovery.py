@@ -8,13 +8,14 @@ def _document(title, url, text):
 
 
 def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monkeypatch):
-    query = "What makes institutions capable of learning from mistakes?"
+    query = "How can institutions learn from errors and revise their structures?"
     profile = main._base._inquiry_profile(query)
     assert profile.get("action") not in {"recommendation", "navigation"}
     weak = _document(
         "Institutional Learning",
         "https://geralddaquila.com/institutional-learning/",
-        "Institutions and learning.",
+        ("Institutions are complex systems with many interacting parts. Their operation "
+         "can be difficult to describe in a short explanation."),
     )
     recovered = _document(
         "Institutional Correctability",
@@ -58,7 +59,7 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
 
 
 def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fallback(monkeypatch):
-    query = "What makes institutions capable of learning from mistakes?"
+    query = "How can institutions learn from errors and revise their structures?"
     primary = _document(
         "Institutional Learning",
         "https://geralddaquila.com/institutional-learning/",
@@ -91,7 +92,7 @@ def test_sufficient_internal_evidence_keeps_primary_retrieval_and_skips_live_fal
 
 
 def test_metadata_only_crosslink_cannot_repair_failed_evidence_gate(monkeypatch):
-    query = "What makes institutions capable of learning from mistakes?"
+    query = "How can institutions learn from errors and revise their structures?"
     weak = _document(
         "Institutional Learning",
         "https://geralddaquila.com/institutional-learning/",
