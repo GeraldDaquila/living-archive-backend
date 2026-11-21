@@ -100,3 +100,11 @@ def test_registered_gold_standard_reference_is_deterministic_not_an_llm():
     assert "if (\n        composition_result\n        and not _llm_invoked\n        and not _registered_gold_standard_composition" in function_source
     assert "_registered_gold_standard_composition\n        or (" in function_source
 
+def test_response_metric_carries_opaque_request_ledger_correlation_without_replacing_legacy_id():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert "_gold_star_ledger.current_request_context()" in function_source
+    assert "_gold_star_request_context.get(\"request_id\")" in function_source
+    assert 'request_id={request_id}' in function_source
+    assert "request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}" in function_source
+
