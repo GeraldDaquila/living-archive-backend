@@ -414,9 +414,9 @@ def _load_lessons() -> List[Dict[str, Any]]:
 
 _LESSONS = _load_lessons()
 
-def _lesson_candidate_payload(x: Dict[str, Any], score: float, *, exact: bool = False) -> Dict[str, Any]:
+def _lesson_candidate_payload(x: Dict[str, Any], score: Optional[float], *, exact: bool = False) -> Dict[str, Any]:
     return {
-        "benchmark_id": x["id"], "score": round(float(score), 3), "exact": exact,
+        "benchmark_id": x["id"], "score": round(float(score), 3) if score is not None else None, "exact": exact,
         "runtime_transfer": bool(x.get("runtime_transfer")),
         "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
         "query": x["query"], "known_theme": x["known_theme"],
@@ -458,6 +458,32 @@ def select_lesson_candidates(
         return [_lesson_candidate_payload(exact[0], 1.0, exact=True)]
 
     candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
+
+    # A governed subject-family policy may nominate a complementary candidate
+    # set with explicit CORE/CONDITIONAL roles. It is evaluated before broad
+    # lexical/semantic ranking, but exact-query authority above remains exclusive.
+    try:
+        from decision_rights_candidate_policy import select_policy_candidates
+        policy_selection = select_policy_candidates(query, candidates)
+    except Exception as exc:
+        _TELEMETRY_LOG.warning(
+            "decision-rights candidate policy unavailable; preserving ordinary selector: %s",
+            type(exc).__name__,
+        )
+        policy_selection = None
+    if policy_selection is not None:
+        policy_payload = []
+        for entry in policy_selection[:limit]:
+            item = _lesson_candidate_payload(entry["lesson"], None, exact=False)
+            item.update({
+                "match_basis": "governed_decision_rights_policy",
+                "role": entry["role"],
+                "activation_condition": entry["activation_condition"],
+                "role_rationale": entry["role_rationale"],
+            })
+            policy_payload.append(item)
+        return policy_payload
+
     query_terms = _tokens(query)
     if len(query_terms) < 2:
         return []
@@ -582,11 +608,17 @@ def shadow_observation(
         _TELEMETRY_LOG.info(message)
         return None, None
     benchmark_id = str(selected["benchmark_id"])
-    score = float(selected["score"])
-    match_kind = "exact" if bool(selected.get("exact")) else "cross_question"
+    score_value = selected.get("score")
+    score = float(score_value) if isinstance(score_value, (int, float)) else None
+    match_kind = (
+        "governed_policy"
+        if selected.get("match_basis") == "governed_decision_rights_policy"
+        else ("exact" if bool(selected.get("exact")) else "cross_question")
+    )
+    score_field = f" score={score:.3f}" if score is not None else " score=not_scored"
     message = (
-        f"gold_star_shadow match=matched benchmark_id={benchmark_id} "
-        f"score={score:.3f} kind={match_kind}" + correlation
+        f"gold_star_shadow match=matched benchmark_id={benchmark_id}"
+        + score_field + f" kind={match_kind}" + correlation
     )
     print(message, flush=True)
     _TELEMETRY_LOG.info(message)
@@ -594,20 +626,26 @@ def shadow_observation(
 
 
 def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
-    """Return up to three ranked structural candidates for explicit adjudication."""
-    candidates = select_lesson_candidates(query, limit=3)
+    """Return a bounded candidate set for explicit provider adjudication."""
+    candidates = select_lesson_candidates(query, limit=4)
     if not candidates:
         return None
+    # Ordinary retrieval retains its three-candidate compatibility budget.
+    # Four are admitted only when the governed decision-rights policy requires
+    # a conditional discipline in addition to the three core disciplines.
+    if not any(item.get("match_basis") == "governed_decision_rights_policy" for item in candidates):
+        candidates = candidates[:3]
     primary = candidates[0]
     discipline = str(primary.get("transferable_discipline") or "").strip()
     if not discipline:
         return None
+    primary_score = primary.get("score")
     contribution = {
         "benchmark_id": primary["benchmark_id"],
         "reasoning_family": primary.get("reasoning_family", ""),
         "discipline": discipline,
         "abstention_boundary": primary.get("abstention_boundary", ""),
-        "score": float(primary.get("score") or 0.0),
+        "score": float(primary_score) if isinstance(primary_score, (int, float)) else None,
         "exact": bool(primary.get("exact")),
         "authority_mode": "structural_guidance_only",
         "candidates": [
@@ -615,6 +653,10 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
                 "benchmark_id": item["benchmark_id"],
                 "score": item["score"],
                 "exact": item["exact"],
+                "match_basis": item.get("match_basis", "ranked_retrieval"),
+                "role": item.get("role", ""),
+                "activation_condition": item.get("activation_condition", ""),
+                "role_rationale": item.get("role_rationale", ""),
                 "query": item["query"],
                 "known_theme": item["known_theme"],
                 "reasoning_family": item["reasoning_family"],
@@ -624,9 +666,10 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
             for item in candidates
         ],
     }
+    score_label = f"{primary_score:.3f}" if isinstance(primary_score, (int, float)) else "governed_policy"
     print(
         f"gold_star_quality candidates={len(candidates)} "
-        f"top={primary['benchmark_id']} score={primary['score']:.3f}",
+        f"top={primary['benchmark_id']} score={score_label}",
         flush=True,
     )
     return contribution

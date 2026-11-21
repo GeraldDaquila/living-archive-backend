@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-MAX_CANDIDATES = 3
+MAX_CANDIDATES = 4
 MAX_EVIDENCE_SPAN = 240
 REASON_CODES = frozenset({
     "subject_mismatch",

@@ -7,6 +7,12 @@ on:
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
       - "tests/test_decision_rights_candidate_set_benchmark.py"
+      - "tests/test_decision_rights_candidate_policy.py"
+      - "decision_rights_candidate_policy.py"
+      - "gold_star_lessons.py"
+      - "gold_star_provider_adjudication.py"
+      - "gold_star_adjudication_trace.py"
+      - "general_guide_composition.py"
       - ".github/workflows/decision-rights-candidate-benchmark.yml"
   workflow_dispatch:
 
@@ -28,4 +34,4 @@ jobs:
       - name: Install test runner
         run: python -m pip install --disable-pip-version-check pytest
       - name: Validate benchmark governance and source alignment
-        run: python -m pytest -q tests/test_decision_rights_candidate_set_benchmark.py
+        run: python -m pytest -q tests/test_decision_rights_candidate_set_benchmark.py tests/test_decision_rights_candidate_policy.py

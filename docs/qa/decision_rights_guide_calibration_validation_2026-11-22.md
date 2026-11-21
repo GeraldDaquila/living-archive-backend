@@ -7,10 +7,21 @@ initialization benchmark. The Guide page is the interface: submit each frozen
 question through the normal question field. No private endpoint, synthetic
 production request, or direct database mutation is required.
 
-The runtime on `main` already contains governed Gold Star candidate retrieval,
-provider adjudication, and final-delivery telemetry. This calibration packet
-adds the canonical case set and review baseline; it does not itself change
-selector thresholds, embeddings, prompts, or production behavior.
+The canonical benchmark and review baseline are committed to `main`. The
+companion runtime policy is implemented in the governed decision-rights
+candidate-selection change; it must be merged and the primary Render service
+must finish deploying that commit before the Guide page uses the new policy.
+Do not infer runtime activation from the benchmark files alone.
+
+Once active, explicit institutional decision-rights questions receive the three
+CORE candidates. The delegated-judgment candidate is added only when delegation
+is in scope; formal/informal institutional dynamics is added only when written
+or formal rules and informal norms/practice are both present. Leadership versus
+positional authority remains a separate related-only path. Ordinary chores and
+underspecified questions do not activate this policy. Policy candidates carry a
+governed role/condition, not a fabricated semantic-similarity score. If combined
+conditions exceed the four-candidate envelope, the policy abstains rather than
+silently truncating a required candidate.
 
 ## Submission order
 

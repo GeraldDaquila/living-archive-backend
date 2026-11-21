@@ -19,7 +19,7 @@ BENCHMARK = json.loads(
 def test_real_bge_candidate_set_baseline():
     rows = []
     for case in BENCHMARK["cases"]:
-        selected = lessons.select_lesson_candidates(case["query"], limit=3)
+        selected = lessons.select_lesson_candidates(case["query"], limit=4)
         predicted = [item["benchmark_id"] for item in selected]
         # Counterfactual semantic ranking for every query, including cases where
         # the production selector exits early on a lexical match. This measures
@@ -61,5 +61,5 @@ def test_real_bge_candidate_set_baseline():
     # This is a measurement run, not a quality gate. Its successful completion
     # means the real-model baseline was measured, not that retrieval is adequate.
     assert len(rows) == len(BENCHMARK["cases"])
-    assert all(len(row["selected"]) <= 3 for row in rows)
+    assert all(len(row["selected"]) <= 4 for row in rows)
     assert all(len(row["selected"]) == len(set(row["selected"])) for row in rows)
