@@ -8,7 +8,6 @@ on:
       - ".github/workflows/gold-star-wp3-memory-probe.yml"
       - "scripts/capture_gold_star_wp3_pairs.py"
       - "use_core.py"
-      - "embedding_runtime_policy.py"
 
 permissions:
   contents: read
