@@ -14681,6 +14681,51 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _evidence_documents.extend(
                 item for item in _evidence_candidates if isinstance(item, dict)
             )
+    # Claim adjudication receives only ordinary visitor retrieval context.
+    # The protected authority collections added above remain available to the
+    # existing evidence/provenance path but are deliberately excluded here.
+    _visitor_public_evidence_documents = []
+    try:
+        _visitor_public_candidates = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        _visitor_public_candidates = []
+    if isinstance(_visitor_public_candidates, list):
+        for _visitor_document in _visitor_public_candidates:
+            if not isinstance(_visitor_document, dict):
+                continue
+            _visitor_safe_document = dict(_visitor_document)
+            _visitor_safe_document["visitor_visible"] = True
+            _visitor_public_evidence_documents.append(_visitor_safe_document)
+
+    _claim_adjudication = {
+        "version": "1.0",
+        "status": "unassessed",
+        "reason": "claim_adjudication_not_completed",
+        "claims": [],
+        "claim_count": 0,
+    }
+    try:
+        from claim_adjudication import adjudicate_answer_claims
+        from claim_adjudication_provider import build_provider_adjudicator
+        _claim_adjudication = adjudicate_answer_claims(
+            response,
+            _visitor_public_evidence_documents,
+            adjudicate_claims=build_provider_adjudicator(use_core, request_deadline),
+        )
+    except Exception as _claim_adjudication_error:
+        # Do not log visitor content or provider payloads. The ordinary answer
+        # remains intact and the optional assessment fails closed.
+        _claim_adjudication = {
+            "version": "1.0",
+            "status": "unassessed",
+            "reason": "claim_adjudication_integration_failed",
+            "error_type": type(_claim_adjudication_error).__name__,
+            "claims": [],
+            "claim_count": 0,
+        }
+
     _approved_reference_id = str(
         composition_context.get("archive_reference_recovery")
         or context_data.get("archive_reference_recovery")
@@ -14720,6 +14765,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         "answer_basis": answer_basis,
         "evidence": _evidence_references,
         "evidence_validation": _evidence_assessment,
+        "claim_adjudication": _claim_adjudication,
         "response_provenance": {
             "class": _response_provenance,
             "provider": _provider_name or None,
