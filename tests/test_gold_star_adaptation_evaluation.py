@@ -19,6 +19,9 @@ def _arm(enabled, score, *, hard_gates=None):
         "model": "model-a",
         "runtime_commit": "abc123",
         "composition_contract_version": "v1.54",
+        "base_prompt_fingerprint": "base-prompt-sha",
+        "generation_config_fingerprint": "generation-config-sha",
+        "gold_star_registry_sha256": "registry-sha",
     }
 
 
@@ -250,3 +253,12 @@ def test_zero_in_a_case_critical_dimension_blocks_promotion_eligibility():
     result = evaluation.evaluate_paired_case(pair)
     assert result["status"] == "reviewed_regression"
     assert result["treatment_critical_failures"] == ["answer_directness"]
+
+
+
+def test_prompt_generation_and_registry_fingerprints_must_match_across_pair():
+    pair = _pair()
+    pair["treatment"]["base_prompt_fingerprint"] = "different-base-prompt"
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "unpaired_base_prompt_fingerprint"
