@@ -143,41 +143,6 @@ def mark_final_delivery(
     return result
 
 
-def mark_evaluation_outcome(trace: Mapping[str, Any], evaluation: Any) -> dict[str, Any]:
-    """Record only a complete, human-reviewed paired-batch evaluation result."""
-    result = dict(trace)
-    if not isinstance(evaluation, Mapping) or evaluation.get("valid") is not True:
-        return result
-    cases = evaluation.get("cases")
-    paired_count = evaluation.get("paired_case_count")
-    if (
-        not isinstance(cases, list)
-        or type(paired_count) is not int
-        or paired_count < 3
-        or len(cases) != paired_count
-        or not all(isinstance(case, Mapping) and case.get("human_reviewed") is True for case in cases)
-    ):
-        return result
-    status = evaluation.get("status")
-    if (
-        status == "eligible_for_human_promotion_review"
-        and evaluation.get("human_promotion_approval_required") is True
-        and evaluation.get("registry_mutated") is False
-        and evaluation.get("regression_count") == 0
-        and evaluation.get("case_family_count", 0) >= 2
-        and type(evaluation.get("human_reviewed_improvement_count")) is int
-        and evaluation.get("human_reviewed_improvement_count") * 3 >= paired_count * 2
-        and evaluation.get("mean_score_delta", 0) > 0
-    ):
-        result["outcome"] = "human_reviewed_improved"
-    elif status == "evidence_insufficient":
-        if evaluation.get("regression_count", 0) > 0 or evaluation.get("mean_score_delta", 0) <= 0:
-            result["outcome"] = "human_reviewed_not_improved"
-        else:
-            result["outcome"] = "review_required"
-    return result
-
-
 def validate_trace(trace: Any) -> dict[str, Any]:
     """Validate allowed fields, metadata lengths, and epistemic stage labels."""
     if not isinstance(trace, Mapping):
