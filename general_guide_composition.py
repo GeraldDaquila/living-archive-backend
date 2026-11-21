@@ -24,6 +24,7 @@ from gold_star_adjudication_trace import (
     validate_trace as _validate_gold_star_adjudication_trace,
     mark_provider_adjudication as _mark_gold_star_provider_adjudication,
     mark_cache_reuse as _mark_gold_star_cache_reuse,
+    current_provider_route_context as _current_gold_star_provider_route_context,
 )
 from gold_star_provider_adjudication import (
     build_adjudication_output_contract as _build_gold_star_adjudication_output_contract,
@@ -4665,6 +4666,28 @@ def compose(
             openness="provider_contributed",
         )
     if not result:
+        gold_star_adjudication_trace = _mark_gold_star_composition_result(
+            gold_star_adjudication_trace,
+            provider_result=None,
+        )
+        provider_route = _current_gold_star_provider_route_context()
+        _emit_guide_outcome(
+            "gold_star_adjudication_composition",
+            request_id=gold_star_adjudication_trace.get("request_id"),
+            attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
+            trace_version=gold_star_adjudication_trace["version"],
+            candidate_count=gold_star_adjudication_trace["candidate_count"],
+            composition=gold_star_adjudication_trace.get("composition", "provider_no_result"),
+            provider_adjudication_status=gold_star_adjudication_trace["provider_adjudication_status"],
+            selection=gold_star_adjudication_trace["selection"],
+            application=gold_star_adjudication_trace["application"],
+            outcome_state=gold_star_adjudication_trace["outcome"],
+            provider_route_terminal_state=provider_route.get("terminal_state", "not_observed"),
+            provider_route_attempt_count=provider_route.get("attempt_count", 0),
+            provider_route_success_count=provider_route.get("success_count", 0),
+            provider_route_failure_count=provider_route.get("failure_count", 0),
+            provider_route_eligible_candidate_count=provider_route.get("eligible_candidate_count"),
+        )
         _emit_guide_outcome(
             "interpretive_path_observed",
             path="fallback_recovery",
@@ -4846,6 +4869,7 @@ def compose(
     )
     if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
         raise RuntimeError("Gold Star composition trace failed validation.")
+    provider_route = _current_gold_star_provider_route_context()
     _emit_guide_outcome(
         "gold_star_adjudication_composition",
         request_id=gold_star_adjudication_trace.get("request_id"),
@@ -4856,6 +4880,13 @@ def compose(
         selection=gold_star_adjudication_trace["selection"],
         application=gold_star_adjudication_trace["application"],
         outcome_state=gold_star_adjudication_trace["outcome"],
+        provider=result.get("provider"),
+        model=result.get("model"),
+        provider_route_terminal_state=provider_route.get("terminal_state", "not_observed"),
+        provider_route_attempt_count=provider_route.get("attempt_count", 0),
+        provider_route_success_count=provider_route.get("success_count", 0),
+        provider_route_failure_count=provider_route.get("failure_count", 0),
+        provider_route_eligible_candidate_count=provider_route.get("eligible_candidate_count"),
     )
     candidate = {
         "response": response,
