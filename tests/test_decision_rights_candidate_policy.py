@@ -69,6 +69,31 @@ def test_ordinary_chores_and_underspecified_queries_do_not_activate_policy():
         assert select_policy_candidates(query, lessons._LESSONS) is None
 
 
+def test_active_quality_contribution_carries_fourth_conditional_candidate():
+    query = "When a board delegates a consequential decision to a committee, who remains accountable and how can the decision be challenged?"
+    result = lessons.active_quality_contribution(query)
+    assert result is not None
+    assert len(result["candidates"]) == 4
+    assert result["candidates"][-1]["role"] == "conditional"
+    assert result["candidates"][-1]["activation_condition"]
+
+
+def test_four_candidate_trace_and_provider_contract_are_bounded_and_complete():
+    import gold_star_adjudication_trace as trace
+    import gold_star_provider_adjudication as adjudication
+
+    candidates = lessons.active_quality_contribution(
+        "When a board delegates a consequential decision to a committee, who remains accountable and how can the decision be challenged?"
+    )["candidates"]
+    traced = trace.build_adjudication_trace({"candidates": candidates})
+    assert traced["candidate_count"] == 4
+    assert trace.validate_trace(traced)["valid"]
+    contract = adjudication.build_adjudication_output_contract(candidates)
+    for candidate in candidates:
+        assert candidate["benchmark_id"] in contract
+    assert len(adjudication._candidate_index(candidates)) == 4
+
+
 def test_policy_fails_closed_if_a_required_core_candidate_is_missing(monkeypatch):
     policy = [item for item in lessons._LESSONS if item["id"] !=
               "general-guide-formal-actual-power-structure-gold-standard-2026-11-16"]
