@@ -63,7 +63,7 @@ def _query_mode(query: str) -> Optional[set[str]]:
         q,
     ))
     power_or_rights = bool(re.search(
-        r"\b(?:decision rights?|decision-making authority|formal authority|actual power|influence|who gets heard|who decides)\b",
+        r"\b(?:decision rights?|decision-making authority|formal authority|actual power|actual say|influence|who gets heard|who decides)\b",
         q,
     ))
     decision_context = bool(re.search(r"\bdecision\w*\b", q))
