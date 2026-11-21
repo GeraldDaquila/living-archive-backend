@@ -2215,9 +2215,22 @@ def _recommendation_first_fetch(query_str):
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in docs
                 }
+                existing_verified_urls = {
+                    str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    for item in docs
+                    if isinstance(item, dict) and item.get("source_body_verified") is True
+                }
                 additions = [
                     item for item in crosslinks
-                    if str(item.get("url") or "").rstrip("/").casefold() not in existing_urls
+                    if isinstance(item, dict)
+                    and str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    and (
+                        str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold() not in existing_urls
+                        or (
+                            item.get("source_body_verified") is True
+                            and str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold() not in existing_verified_urls
+                        )
+                    )
                 ]
                 if additions:
                     docs = docs + additions
