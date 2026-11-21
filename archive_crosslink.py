@@ -1187,23 +1187,34 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
     return documents
 
 
-def expand_context(
+def expand_context_result(
     query: str,
     seed_documents: list[dict[str, Any]],
     index: Any,
     core: Any,
-) -> list[dict[str, Any]]:
-    """Return canonical source bodies or metadata-only territorial links."""
+) -> dict[str, Any]:
+    """Return crosslink documents with an explicit retrieval/freshness outcome."""
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
         _log("USE archive meta-crosslink: snapshot_unavailable=true; pinecone_fallback=disabled; publisher_required=true")
-        return []
+        return {"status": "snapshot_unavailable", "documents": [], "snapshot_age_seconds": None}
     if not snapshot.get("crosslink_ready"):
-        return []
+        return {"status": "snapshot_not_ready", "documents": [], "snapshot_age_seconds": None}
     if snapshot.get("contract") != "archive-crosslink-inventory-v2":
         _log("USE archive meta-crosslink: legacy_snapshot_rejected=true; pinecone_fallback=disabled; publisher_required=true")
-        return []
+        return {"status": "legacy_snapshot_rejected", "documents": [], "snapshot_age_seconds": None}
+
+    refreshed_at = snapshot.get("refreshed_at")
+    try:
+        snapshot_age_seconds = max(0.0, time.time() - float(refreshed_at))
+    except (TypeError, ValueError):
+        snapshot_age_seconds = None
+    snapshot_stale = (
+        snapshot_age_seconds is None
+        or snapshot_age_seconds > _REFRESH_SECONDS
+    )
+
     assets = search_wordpress_canonical_assets(query, snapshot)
     if assets:
         _log(f"USE archive meta-crosslink WordPress search: verified_snapshot_candidates={len(assets)}")
@@ -1211,13 +1222,23 @@ def expand_context(
         assets = select_crosslinks(query, seed_documents, snapshot)
     if not assets:
         _log("USE archive meta-crosslink: no_canonical_candidates=true")
-        return []
+        return {
+            "status": "stale_snapshot_no_candidate" if snapshot_stale else "no_snapshot_candidate",
+            "documents": [],
+            "snapshot_age_seconds": snapshot_age_seconds,
+        }
+
     source_documents = fetch_wordpress_source_documents(assets, core)
     if source_documents:
         _log(f"USE archive meta-crosslink WordPress source recovery: selected={len(assets)}, verified_source_bodies={len(source_documents)}")
-        return source_documents
+        return {
+            "status": "stale_snapshot_with_verified_source" if snapshot_stale else "verified_source_bodies_available",
+            "documents": source_documents,
+            "snapshot_age_seconds": snapshot_age_seconds,
+        }
+
     _log("USE archive meta-crosslink: source_body_unavailable=true; returning_metadata_only_navigation=true")
-    return [
+    metadata_documents = [
         {
             "title": _text(asset.get("title"), 300),
             "url": _normalize_url(asset.get("url")),
@@ -1233,11 +1254,35 @@ def expand_context(
         for asset in assets
         if _text(asset.get("title"), 300) and _normalize_url(asset.get("url"))
     ]
+    return {
+        "status": "source_body_unavailable",
+        "documents": metadata_documents,
+        "snapshot_age_seconds": snapshot_age_seconds,
+    }
+
+class _CrosslinkDocuments(list):
+    """Backward-compatible document list carrying structured retrieval telemetry."""
+    def __init__(self, result: dict[str, Any]):
+        super().__init__(result.get("documents") or [])
+        self.status = str(result.get("status") or "unknown")
+        self.snapshot_age_seconds = result.get("snapshot_age_seconds")
+
+
+def expand_context(
+    query: str,
+    seed_documents: list[dict[str, Any]],
+    index: Any,
+    core: Any,
+) -> list[dict[str, Any]]:
+    """Backward-compatible list wrapper retaining retrieval/freshness telemetry."""
+    result = expand_context_result(query, seed_documents, index, core)
+    return _CrosslinkDocuments(result)
 
 
 __all__ = [
     "build_inventory",
     "expand_context",
+    "expand_context_result",
     "fetch_crosslink_documents",
     "fetch_wordpress_source_documents",
     "search_wordpress_canonical_assets",
