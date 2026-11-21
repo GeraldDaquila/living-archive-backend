@@ -50,6 +50,8 @@ def test_weak_internal_evidence_triggers_bounded_public_canonical_recovery(monke
     assert len(calls[0][1]) == 1
     assert "Institutional Correctability" in result["canonical_link_context"]
     assert "recognize error" in result["context_blocks"]
+    assert "UNTRUSTED CONTENT" in result["context_blocks"]
+    assert result["live_source_evidence_provenance"][0]["wordpress_post_id"] == ""
     assert result["evidence_sufficiency_unavailable"] is False
 
 
