@@ -129,6 +129,7 @@ def test_actual_final_visitor_boundary_repairs_the_exact_query():
     ][-1]
     namespace = {
         "re": re,
+        "_sanitize_basic_inquiry_response": lambda value: value.strip(),
         "_guide_finalize_visitor_payload_inner": lambda payload, _query: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
