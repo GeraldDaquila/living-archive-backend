@@ -49,3 +49,40 @@ A retirement is complete only when the exact test node ID is recorded here with 
 - The first post-bootstrap GitHub Actions run is the authoritative per-test inventory for the current mainline. It must be evaluated independently from the earlier aggregate snapshot above.
 - The JUnit XML and generated Markdown inventory are retained as the `historical-test-failure-inventory` workflow artifact for 30 days. The exact workflow run, commit, counts, and artifact reference should be recorded here after completion.
 - This diagnostic does not automatically retire tests. All findings begin as UNRESOLVED until reviewed against current contracts.
+
+## First reproducible inventory and adjudication
+
+| Field | Value |
+|---|---|
+| Workflow | [Historical test failure inventory](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/44857281404) |
+| Run ID | `44857281404` |
+| Tested main commit | `ee2772e7154ae8a4b9557772e45283c8374dc41a` |
+| Artifact | `historical-test-failure-inventory` (artifact ID `14688122820`) |
+| Result | 2,358 test cases; 112 failures; 0 errors; 3 skipped |
+
+### Confirmed superseded version-snapshot failures — 24
+
+These tests asserted that the live `main.py` still contained exact implementation details, function names, deployment fingerprints, and protected-core hashes from USE v379–v386. The production runtime is now v489.315; these assertions cannot remain active against a later architecture. The original source files are preserved, uncollected, under `docs/testing/historical-test-snapshots/` with the `.py.archive` suffix.
+
+| Original test file | Failed assertions retired |
+|---|---:|
+| `test_v374_visitor_experience_architecture.py` | 7 |
+| `test_v381_transition_evidence_bridge.py` | 3 |
+| `test_v382_transition_selection_continuation.py` | 3 |
+| `test_v383_direct_transition_bridge.py` | 2 |
+| `test_v384_visitor_authority.py` | 2 |
+| `test_v385_open_transition_doorway_fit.py` | 2 |
+| `test_v386_sensitive_guide_recovery.py` | 5 |
+| **Total** | **24** |
+
+Disposition: **SUPERSEDED**. Their source-snapshot assumptions are retired, not the underlying safety or visitor-experience requirements. Current contract coverage is maintained through the v489 relational-routing/return-evidence tests (`test_v489_85`, `test_v489_86`, `test_v489_89`), HRN movement/perception tests, and Gold Star v2 visitor-boundary/runtime-authority tests. The original files remain available for historical inspection.
+
+### One version assertion repaired in place
+
+`tests/test_v489_282_home_navigation_heading_boundary.py::test_explicit_living_archive_homepage_navigation_is_deterministic` expected the response version to remain hard-coded at `v489.282`. The test now compares against `main.APP_VERSION`, preserving the navigation contract while allowing sequential releases. Disposition: **REPAIR** (not retired).
+
+### Remaining failures
+
+The other **87 of the original 112** are not declared obsolete. They remain active pending the post-change full-suite result and individual review. In particular, failures involving current Gold Star authority/transfer, visitor doorway selection, subject grounding, provider budgets, safety boundaries, and HRN routing are treated as possible live contract regressions—not archived by age or label.
+
+The next inventory run on this PR validates the retirement and repair changes. Its result supersedes the aggregate baseline above for current active-suite counts.
