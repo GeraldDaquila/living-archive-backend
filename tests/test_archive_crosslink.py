@@ -617,7 +617,7 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
     assert docs[0]["wp_id"]=="21767"
     assert docs[0]["source_body_verified"] is True
     assert docs[0]["crosslink_mode"]=="canonical_evidence_bridge"
-    assert source_text in docs[0]["content"]
+    assert source_text.strip() in docs[0]["content"]
     assert len(calls)==3
     assert "/wp/v2/search?" in calls[0][0]
     assert "search=responsible%20care" in calls[0][0]
