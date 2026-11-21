@@ -18,3 +18,14 @@ def test_onnx_cpu_mem_arena_can_be_enabled_explicitly():
 
 def test_invalid_onnx_cpu_mem_arena_value_preserves_safe_default():
     assert parse_onnx_cpu_mem_arena_enabled("maybe") is True
+
+
+
+def test_use_core_wires_memory_arena_policy_without_changing_embedding_model():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "use_core.py").read_text(encoding="utf-8")
+    assert 'model_name="BAAI/bge-small-en-v1.5"' in source
+    assert "enable_cpu_mem_arena=EMBEDDING_ENABLE_CPU_MEM_ARENA" in source
+    assert 'os.getenv("USE_ONNX_ENABLE_CPU_MEM_ARENA")' in source
+    assert "cpu_mem_arena_enabled=" in source
