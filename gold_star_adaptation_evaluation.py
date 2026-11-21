@@ -217,13 +217,14 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
     movement, and zero hard-gate regressions before returning an eligible state.
     """
     if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
-        return {"valid": False, "status": "invalid", "reason": "records_not_sequence"}
+        return {"valid": False, "status": "invalid", "outcome_state": "not_evaluated", "reason": "records_not_sequence"}
     evaluated = [evaluate_paired_case(record) for record in records]
     invalid = [item for item in evaluated if not item.get("valid")]
     if invalid:
         return {
             "valid": False,
             "status": "invalid",
+            "outcome_state": "not_evaluated",
             "reason": "one_or_more_invalid_pairs",
             "invalid_count": len(invalid),
             "cases": evaluated,
@@ -235,6 +236,7 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
         return {
             "valid": False,
             "status": "invalid",
+            "outcome_state": "not_evaluated",
             "reason": "duplicate_case_or_evaluation_id",
             "cases": evaluated,
         }
@@ -260,9 +262,15 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
     if regressions:
         reasons.append("hard_gate_or_reviewed_regression")
 
+    outcome_state = (
+        "human_reviewed_improved" if not reasons
+        else "human_reviewed_not_improved" if regressions or mean_delta <= 0
+        else "review_required"
+    )
     return {
         "valid": True,
         "status": "eligible_for_human_promotion_review" if not reasons else "evidence_insufficient",
+        "outcome_state": outcome_state,
         "policy_version": VERSION,
         "paired_case_count": count,
         "case_family_count": len(families),

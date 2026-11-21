@@ -8143,6 +8143,15 @@ def _guide_finalize_visitor_payload(payload, query):
             candidate_count=trace["candidate_count"],
             final_delivery=trace["final_delivery"],
             final_provenance=trace["final_provenance"],
+            provider_adjudication_status=trace.get("provider_adjudication_status", "not_observed"),
+            selected_candidate_ids=trace.get("selected_candidate_ids", []),
+            rejection_reason_codes=trace.get("rejection_reason_codes", []),
+            reasoning_discipline_ids=trace.get("reasoning_discipline_ids", []),
+            application=trace.get("application", "not_observed"),
+            application_evidence_present=trace.get("application_evidence_present", False),
+            application_evidence_candidate_ids=trace.get("application_evidence_candidate_ids", []),
+            contribution_retained=trace.get("contribution_retained", "not_evaluated"),
+            outcome_state=trace.get("outcome", "not_evaluated"),
         )
         return result
 
