@@ -147,6 +147,8 @@ def test_live_evaluation_workflow_sets_repository_import_path_and_entrypoint_imp
     )
     assert result.returncode == 0, result.stderr
     assert "--base-url" in result.stdout
+    assert "--max-gold-standards" in result.stdout
+    assert "--identity-wait-seconds" in result.stdout
 
 def test_gold_standard_live_sample_is_stable_bounded_and_spans_registry():
     records = [
