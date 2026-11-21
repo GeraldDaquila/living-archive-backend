@@ -9,6 +9,7 @@ def test_provider_adapter_uses_one_bounded_provider_bank_call(monkeypatch):
     captured = {}
     expected_claim = {
         "claim": "A factual claim.",
+        "answer_quote": "A factual claim.",
         "outcome": "supported",
         "reason": "Directly stated.",
         "attributions": [{"passage_id": "passage-1", "quote": "Exact source sentence."}],
