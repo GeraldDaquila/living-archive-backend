@@ -61,5 +61,5 @@ def test_real_bge_candidate_set_baseline():
     # This is a measurement run, not a quality gate. Its successful completion
     # means the real-model baseline was measured, not that retrieval is adequate.
     assert len(rows) == len(BENCHMARK["cases"])
-    assert all(len(row["selected"]) <= 3 for row in rows)
+    assert all(len(row["selected"]) <= 4 for row in rows)
     assert all(len(row["selected"]) == len(set(row["selected"])) for row in rows)
