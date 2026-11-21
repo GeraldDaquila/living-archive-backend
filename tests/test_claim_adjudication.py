@@ -208,6 +208,7 @@ def test_combined_provider_callback_uses_one_assessment_envelope():
         calls.append((answer, len(passages)))
         return [{
             "claim": "Stewardship is responsible care.",
+            "answer_quote": "Stewardship is responsible care.",
             "outcome": "supported",
             "reason": "The passage directly defines the concept.",
             "attributions": [{
@@ -248,3 +249,19 @@ def test_steward_access_alias_and_private_flags_are_rejected():
         document.update(flags)
         result = adjudicate_answer_claims("answer", [document])
         assert result["status"] == "no_relevant_public_source"
+
+
+def test_combined_provider_cannot_invent_answer_claims():
+    def combined(_answer, passages):
+        return [{
+            "claim": "A claim absent from the answer.",
+            "answer_quote": "This span does not exist in the answer.",
+            "outcome": "supported",
+            "attributions": [{
+                "passage_id": passages[0]["passage_id"],
+                "quote": "The archive defines stewardship as responsible care of shared conditions.",
+            }],
+        }]
+    result = adjudicate_answer_claims("Only a different sentence.", DOCS, adjudicate_claims=combined)
+    assert result["claims"][0]["outcome"] == "unassessed"
+    assert result["claims"][0]["reason"] == "unverifiable_answer_claim"
