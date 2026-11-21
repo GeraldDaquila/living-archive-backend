@@ -4506,6 +4506,20 @@ def compose(
                 return dict(cached_value)
             del _COMPOSITION_CACHE[cache_key]
 
+    gold_star_adjudication_trace = _build_gold_star_adjudication_trace(gold_star_quality)
+    trace_validation = _validate_gold_star_adjudication_trace(gold_star_adjudication_trace)
+    if not trace_validation.get("valid"):
+        raise RuntimeError("Gold Star adjudication trace failed validation.")
+    _emit_guide_outcome(
+        "gold_star_adjudication_observed",
+        trace_version=gold_star_adjudication_trace["version"],
+        candidate_count=gold_star_adjudication_trace["candidate_count"],
+        candidate_ids=",".join(gold_star_adjudication_trace["candidate_ids"]),
+        selection=gold_star_adjudication_trace["selection"],
+        application=gold_star_adjudication_trace["application"],
+        outcome=gold_star_adjudication_trace["outcome"],
+    )
+
     result = route_with_model_bank(
         use_core=use_core,
         operation=OPERATION,
@@ -4722,6 +4736,12 @@ def compose(
     response = parsed.get("response")
     if not response:
         raise ValueError("general composition provider result missing response")
+    gold_star_adjudication_trace = _mark_gold_star_composition_result(
+        gold_star_adjudication_trace,
+        provider_result=result,
+    )
+    if not _validate_gold_star_adjudication_trace(gold_star_adjudication_trace).get("valid"):
+        raise RuntimeError("Gold Star composition trace failed validation.")
     candidate = {
         "response": response,
         "doorway_title": parsed.get("doorway_title", ""),
@@ -4729,7 +4749,8 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
-    provider_key = candidate["provider"] + ":" + candidate["model"]
+
+    candidate["gold_star_adjudication_trace"] = gold_star_adjudication_trace    provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
     _emit_guide_outcome(outcome, provider=candidate["provider"], model=candidate["model"])
