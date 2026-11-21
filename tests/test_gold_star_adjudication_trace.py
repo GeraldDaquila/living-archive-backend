@@ -532,3 +532,25 @@ def test_provider_route_wrapper_does_not_track_non_guide_operations(capsys):
     finally:
         trace.end_request_context(token)
 
+
+
+
+def test_supplemental_claim_adjudication_provider_logs_share_request_identity_without_becoming_gold_star_composition():
+    import provider_bank
+
+    token = trace.begin_request_context("77777777777777777777777777777777")
+    try:
+        fields = provider_bank._gold_star_provider_route_log_fields("claim_adjudication")
+        assert "request_id=77777777777777777777777777777777" in fields
+        assert "request_ledger_version=2" in fields
+        assert "operation=claim_adjudication" in fields
+        assert "attempt_ordinal=" not in fields
+        assert trace.current_request_context()["provider_route_count"] == 0
+    finally:
+        trace.end_request_context(token)
+
+
+def test_provider_log_correlation_is_absent_outside_a_visitor_request():
+    import provider_bank
+
+    assert provider_bank._gold_star_provider_route_log_fields("claim_adjudication") == ""
