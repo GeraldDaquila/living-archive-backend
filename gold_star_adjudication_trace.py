@@ -51,10 +51,23 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         "candidate_ids": [item["benchmark_id"] for item in safe_candidates],
         "candidate_scores": [item["score"] for item in safe_candidates],
         "match_kinds": [item["match_kind"] for item in safe_candidates],
+        "guidance_exposure": "pending" if count else "not_applicable",
         "selection": "not_observed" if count else "not_applicable",
         "application": "not_observed",
         "outcome": "not_evaluated",
     }
+
+
+def mark_guidance_exposure(trace: Mapping[str, Any], *, included_in_provider_prompt: bool) -> dict[str, Any]:
+    """Record prompt exposure only; exposure is not evidence of model selection or use."""
+    result = dict(trace)
+    if not result.get("candidate_count"):
+        result["guidance_exposure"] = "not_applicable"
+    else:
+        result["guidance_exposure"] = (
+            "included_in_provider_prompt" if included_in_provider_prompt else "not_included"
+        )
+    return result
 
 
 def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -> dict[str, Any]:
@@ -104,7 +117,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     missing = sorted(required - set(trace))
     if missing:
         return {"valid": False, "reason": "missing_fields", "missing": missing}
-    allowed = required | {"composition", "final_delivery", "final_provenance"}
+    allowed = required | {"guidance_exposure", "composition", "final_delivery", "final_provenance"}
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
         return {"valid": False, "reason": "unexpected_fields", "fields": unexpected}
@@ -128,6 +141,10 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         return {"valid": False, "reason": "invalid_application_state"}
     if trace.get("outcome") not in _OUTCOME_STATES:
         return {"valid": False, "reason": "invalid_outcome_state"}
+    if "guidance_exposure" in trace and trace["guidance_exposure"] not in {
+        "pending", "not_applicable", "included_in_provider_prompt", "not_included"
+    }:
+        return {"valid": False, "reason": "invalid_guidance_exposure_state"}
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
