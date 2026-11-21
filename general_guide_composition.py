@@ -4750,7 +4750,8 @@ def compose(
         "model": str(result.get("model") or ""),
     }
 
-    candidate["gold_star_adjudication_trace"] = gold_star_adjudication_trace    provider_key = candidate["provider"] + ":" + candidate["model"]
+    candidate["gold_star_adjudication_trace"] = gold_star_adjudication_trace
+    provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
     _emit_guide_outcome(outcome, provider=candidate["provider"], model=candidate["model"])
