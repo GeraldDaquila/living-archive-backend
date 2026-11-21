@@ -2237,6 +2237,59 @@ def _recommendation_first_fetch(query_str):
                         f"added={len(additions)}, seed={len(existing_urls)}; "
                         f"pinecone_bypassed={_PINECONE_RETRIEVAL_BYPASS}"
                     )
+                    # A failed internal evidence gate is recoverable only
+                    # with an actual published source body. Metadata-only
+                    # crosslinks may preserve navigation, but never repair
+                    # factual evidence sufficiency.
+                    if evidence_recovery_needed:
+                        verified_additions = [
+                            item for item in additions
+                            if isinstance(item, dict)
+                            and item.get("source_body_verified")
+                            and str(item.get("text") or item.get("content") or "").strip()
+                        ]
+                        if verified_additions:
+                            generation_docs = list(docs) + verified_additions
+                            frame_neutral_fn = getattr(
+                                use_core, "_frame_neutral_generation_documents", None
+                            )
+                            frame_neutral_unavailable = False
+                            if callable(frame_neutral_fn):
+                                generation_docs, frame_neutral_unavailable = frame_neutral_fn(
+                                    generation_docs,
+                                    str(query_str or ""),
+                                    str(data.get("intent") or ""),
+                                )
+                            sufficiency_fn = getattr(
+                                use_core, "_evidence_sufficiency_gate", None
+                            )
+                            sufficiency_unavailable = False
+                            if callable(sufficiency_fn) and not frame_neutral_unavailable:
+                                generation_docs, sufficiency_unavailable = sufficiency_fn(
+                                    generation_docs,
+                                    str(query_str or ""),
+                                    str(data.get("intent") or ""),
+                                )
+                            if generation_docs and not frame_neutral_unavailable and not sufficiency_unavailable:
+                                data["context_blocks"] = _serialize_context_documents(generation_docs)
+                                if "frame_neutral_evidence_unavailable" in data:
+                                    data["frame_neutral_evidence_unavailable"] = False
+                                if "evidence_sufficiency_unavailable" in data:
+                                    data["evidence_sufficiency_unavailable"] = False
+                                print(
+                                    "The Guide live canonical evidence recovery: "
+                                    f"verified_bodies={len(verified_additions)}, "
+                                    f"generation_docs={len(generation_docs)}, "
+                                    "evidence_gate=passed"
+                                )
+                            else:
+                                print(
+                                    "The Guide live canonical evidence recovery: "
+                                    f"verified_bodies={len(verified_additions)}, "
+                                    f"evidence_gate=unavailable, "
+                                    f"frame_neutral_unavailable={frame_neutral_unavailable}, "
+                                    f"sufficiency_unavailable={sufficiency_unavailable}"
+                                )
         except Exception as exc:
             print(f"The Guide full-corpus meta-crosslink failed safely: {type(exc).__name__}")
 
