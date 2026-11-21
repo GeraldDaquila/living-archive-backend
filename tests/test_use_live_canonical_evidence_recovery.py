@@ -113,5 +113,5 @@ def test_metadata_only_crosslink_cannot_repair_failed_evidence_gate(monkeypatch)
     monkeypatch.setattr(main.archive_crosslink, "expand_context", lambda *_args, **_kwargs: [metadata_only])
     result = main._recommendation_first_fetch(query)
     assert result["evidence_sufficiency_unavailable"] is True
-    assert result["context_blocks"] == "Existing weak evidence only."
+    assert result["context_blocks"] == ""
     assert "Institutional Correctability" in result["canonical_link_context"]
