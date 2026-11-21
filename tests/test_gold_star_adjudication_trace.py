@@ -1,4 +1,6 @@
 import asyncio
+import ast
+from pathlib import Path
 
 import gold_star_adjudication_trace as trace
 from gold_star_adjudication_trace import (
@@ -306,3 +308,37 @@ def test_composition_decorator_keeps_latest_trace_without_request_context():
     assert attached["guidance_exposure"] == "not_applicable"
     assert "request_id" not in attached
     assert trace.validate_trace(attached)["valid"]
+
+def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+
+    aliases = [
+        node for node in module.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(target, ast.Name) and target.id == "_emit_guide_outcome" for target in node.targets)
+        and isinstance(node.value, ast.Attribute)
+        and node.value.attr == "_emit_guide_outcome"
+        and isinstance(node.value.value, ast.Name)
+        and node.value.value.id == "general_guide_composition"
+    ]
+    assert len(aliases) == 1, (
+        "The outer request and final-delivery boundaries must bind the shared "
+        "privacy-minimized Guide outcome emitter."
+    )
+
+    emitted_events = {
+        node.args[0].value
+        for node in ast.walk(module)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_emit_guide_outcome"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and isinstance(node.args[0].value, str)
+    }
+    assert {
+        "gold_star_adjudication_final_delivery",
+        "gold_star_request_terminal",
+    } <= emitted_events
+
