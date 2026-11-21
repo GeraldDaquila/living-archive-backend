@@ -7953,7 +7953,7 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(finalized, dict):
         return finalized
 
-    def _finish_gold_star_delivery_trace(result):
+    def _finish_gold_star_delivery_trace(result, *, allow_provider_delivery=True):
         if not isinstance(result, dict):
             return result
         result.pop("_gold_star_adjudication_trace", None)
@@ -7968,7 +7968,8 @@ def _guide_finalize_visitor_payload(payload, query):
             str(result.get("response") or result.get("answer") or "")
         )
         delivered = bool(
-            provider_candidate_matches_payload
+            allow_provider_delivery
+            and provider_candidate_matches_payload
             and pre_boundary_response
             and final_response == pre_boundary_response
             and isinstance(result.get("response_provenance"), dict)
@@ -8009,9 +8010,9 @@ def _guide_finalize_visitor_payload(payload, query):
     if str(finalized.get("intent") or "").strip().upper() in {
         "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
     }:
-        return _finish_gold_star_delivery_trace(finalized)
+        return _finish_gold_star_delivery_trace(finalized, allow_provider_delivery=False)
     if _resolve_exact_guide_gold_standard(query) is not None:
-        return _finish_gold_star_delivery_trace(finalized)
+        return _finish_gold_star_delivery_trace(finalized, allow_provider_delivery=False)
     from event_pattern_structure_contract import apply_event_pattern_structure_boundary
     from complicated_complex_distinction_contract import (
         apply_complicated_complex_distinction_boundary,
