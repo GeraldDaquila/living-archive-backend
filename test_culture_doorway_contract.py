@@ -5,6 +5,8 @@ import re
 import unittest
 from pathlib import Path
 
+import main
+
 SOURCE = Path(__file__).with_name("main.py").read_text(encoding="utf-8")
 TREE = ast.parse(SOURCE)
 FUNCTION = next(
@@ -17,7 +19,7 @@ COMPILED = compile(ast.Module(body=[FUNCTION], type_ignores=[]), "main.py", "exe
 
 class CultureDoorwayContractTests(unittest.TestCase):
     def setUp(self):
-        namespace = {"re": re}
+        namespace = {"re": re, "_normalize_query": main._normalize_query}
         exec(COMPILED, namespace)
         self.recover = namespace["_established_general_knowledge_recovery"]
 
