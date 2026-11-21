@@ -62,6 +62,7 @@ def normalize_public_evidence(
     payload: Dict[str, Any],
     *,
     retrieved_at: Optional[str] = None,
+    expected_post_id: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """Validate the site's dedicated public canonical-evidence endpoint."""
     if not isinstance(payload, dict):
@@ -70,6 +71,8 @@ def normalize_public_evidence(
         return None
     post_id = payload.get("id")
     if not str(post_id or "").isdigit() or int(post_id) <= 0:
+        return None
+    if expected_post_id is not None and int(post_id) != int(expected_post_id):
         return None
     title = re.sub(r"<[^>]+>", " ", str(payload.get("title") or "")).strip()
     url = payload.get("url")
@@ -203,7 +206,10 @@ class PublicLivingArchiveClient:
                     if exc.code in {403, 404}:
                         continue
                     raise
-                document = normalize_public_evidence(evidence)
+                document = normalize_public_evidence(
+                    evidence,
+                    expected_post_id=int(post_id),
+                )
                 if document:
                     docs.append(document)
             # Deterministic lexical ranking over normalized visible content.
