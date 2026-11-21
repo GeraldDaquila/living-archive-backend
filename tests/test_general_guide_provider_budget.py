@@ -325,3 +325,70 @@ def test_general_guide_extended_provider_window_preserves_one_integrity_repair()
         REQUEST_BUDGET_SECONDS - provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
         >= REPAIR_RESERVE_SECONDS
     )
+
+
+
+def test_quota_guarded_call_forwards_operation_to_request_correlation(monkeypatch):
+    released = []
+    observed = []
+
+    class Reservation:
+        def settle_output(self, result):
+            return None
+
+        def release(self):
+            released.append(True)
+
+    monkeypatch.setattr(provider_bank, "reserve_provider_call", lambda *args, **kwargs: Reservation())
+    monkeypatch.setattr(provider_bank, "_call", lambda *args, **kwargs: "{}")
+    monkeypatch.setattr(
+        provider_bank,
+        "_gold_star_provider_route_log_fields",
+        lambda operation: observed.append(operation) or "",
+    )
+
+    result = provider_bank._quota_guarded_call(
+        use_core=None,
+        item=_item("gemini", "gemini-3.8-flash"),
+        messages=[{"role": "user", "content": "Return JSON."}],
+        max_tokens=100,
+        schema=None,
+        timeout_override=1.0,
+        operation="claim_adjudication",
+    )
+
+    assert result == "{}"
+    assert observed == ["claim_adjudication"]
+    assert released == [True]
+
+
+def test_quota_reservation_is_released_even_if_correlation_logging_raises(monkeypatch):
+    released = []
+
+    class Reservation:
+        def settle_output(self, result):
+            return None
+
+        def release(self):
+            released.append(True)
+
+    monkeypatch.setattr(provider_bank, "reserve_provider_call", lambda *args, **kwargs: Reservation())
+    monkeypatch.setattr(provider_bank, "_call", lambda *args, **kwargs: "{}")
+
+    def broken_log_fields(_operation):
+        raise RuntimeError("telemetry formatting failed")
+
+    monkeypatch.setattr(provider_bank, "_gold_star_provider_route_log_fields", broken_log_fields)
+
+    with pytest.raises(RuntimeError, match="telemetry formatting failed"):
+        provider_bank._quota_guarded_call(
+            use_core=None,
+            item=_item("gemini", "gemini-3.8-flash"),
+            messages=[{"role": "user", "content": "Return JSON."}],
+            max_tokens=100,
+            schema=None,
+            timeout_override=1.0,
+            operation="claim_adjudication",
+        )
+
+    assert released == [True]

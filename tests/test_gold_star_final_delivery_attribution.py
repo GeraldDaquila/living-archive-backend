@@ -95,3 +95,19 @@ def test_basic_inquiry_propagates_trace_and_recomputes_after_bounded_repair():
     assert 'payload["_gold_star_adjudication_trace"] = dict(_adjudication_trace)' in source
     assert 'payload["_gold_star_provider_candidate_matches_payload"] = bool(' in source
     assert "A bounded repair may replace the provider candidate before the shared" in source
+
+
+
+def test_final_delivery_logs_guidance_exposure_as_a_separate_stage():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    wrapper = _function(source, "_guide_finalize_visitor_payload")
+    segment = ast.get_source_segment(source, wrapper)
+    assert "_mark_gold_star_guidance_exposure(" in segment
+    assert '"gold_star_guidance_exposure"' in segment
+    assert 'guidance_exposure=trace.get("guidance_exposure", "not_observed")' in segment
+
+
+def test_gold_star_quality_event_reports_candidate_availability_not_activation():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"gold_star_quality_candidate_available"' in source
+    assert '"gold_star_quality_active"' not in source

@@ -4303,12 +4303,15 @@ def compose(
         if gold_star_quality.get("authority_mode") != "structural_guidance_only":
             raise RuntimeError("Gold Star quality contribution crossed the answer-authority boundary.")
         _emit_guide_outcome(
-            "gold_star_quality_active",
+            "gold_star_quality_candidate_available",
             request_id=gold_star_adjudication_trace.get("request_id"),
             attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
             benchmark=gold_star_quality.get("benchmark_id"),
             score=gold_star_quality.get("score"),
             authority=gold_star_quality.get("authority_mode"),
+            selection=gold_star_adjudication_trace.get("selection", "not_observed"),
+            application=gold_star_adjudication_trace.get("application", "not_observed"),
+            exposure=gold_star_adjudication_trace.get("guidance_exposure", "not_observed"),
         )
 
     # Exact approved/frozen benchmark questions use their registered reference

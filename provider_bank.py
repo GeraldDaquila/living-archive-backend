@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
+import base64, contextvars, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
 from urllib.request import Request, urlopen
 from functools import wraps
 
@@ -2681,8 +2681,12 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         return _workers(token, account, model, messages, max_tokens, schema, timeout=timeout_override or 12)
     raise ProviderCallError("unknown provider", provider, model, category="unavailable")
 
-def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+_PROVIDER_OPERATION_CONTEXT = contextvars.ContextVar("use_provider_operation_context", default=None)
+
+
+def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None, operation=None):
     """Apply bounded quota admission and record safe latency diagnostics."""
+    operation = operation or _PROVIDER_OPERATION_CONTEXT.get()
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
     reservation = reserve_provider_call(provider, model, messages, max_tokens)
@@ -2711,17 +2715,17 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
                 )
         soft_threshold = GENERAL_GUIDE_SOFT_LATENCY_THRESHOLD_SECONDS
         soft_state = "soft_threshold_exceeded" if elapsed >= soft_threshold else "within_soft_threshold"
-        print(
-            "USE provider inference timing: "
-            f"provider={provider}, model={model}, outcome={outcome}, "
-            f"elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
-            f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
-            + _gold_star_provider_route_log_fields(
-                "general_guide_composition" if gold_star_route_active else None
+        try:
+            print(
+                "USE provider inference timing: "
+                f"provider={provider}, model={model}, outcome={outcome}, "
+                f"elapsed_seconds={elapsed:.3f}, "
+                f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
+                f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
+                + _gold_star_provider_route_log_fields(operation)
             )
-        )
-        reservation.release()
+        finally:
+            reservation.release()
 
 
 def _route_result(result):
@@ -2925,17 +2929,27 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
 
 
 def _gold_star_provider_route_log_fields(operation):
-    """Return content-free request correlation for Guide composition provider logs."""
-    if str(operation or "") != "general_guide_composition":
+    """Return request correlation for adaptive and supplemental Guide provider logs."""
+    operation = str(operation or "")
+    if operation not in {"general_guide_composition", "claim_adjudication"}:
         return ""
-    context = _gold_star_trace.current_provider_route_context()
-    if not context:
+    request = _gold_star_trace.current_request_context()
+    request_id = str(request.get("request_id") or "").strip()
+    if not request_id:
         return ""
-    return (
-        " request_id=" + str(context.get("request_id") or "")
-        + " attempt_ordinal=" + str(context.get("attempt_ordinal") or "")
-        + " provider_route_ordinal=" + str(context.get("provider_route_ordinal") or "")
+    fields = (
+        " request_id=" + request_id
+        + " request_ledger_version=" + str(request.get("request_ledger_version") or "unknown")
+        + " operation=" + operation
     )
+    if operation == "general_guide_composition":
+        route = _gold_star_trace.current_provider_route_context()
+        if route:
+            fields += (
+                " attempt_ordinal=" + str(route.get("attempt_ordinal") or "")
+                + " provider_route_ordinal=" + str(route.get("provider_route_ordinal") or "")
+            )
+    return fields
 
 
 def _emit_gold_star_provider_route_terminal(summary):
@@ -3344,10 +3358,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy")
                   + _gold_star_provider_route_log_fields(operation))
-            raw_output = _quota_guarded_call(
-                use_core, item, effective_messages, effective_max_tokens, effective_schema,
-                timeout_override=attempt_timeout
-            )
+            _operation_token = _PROVIDER_OPERATION_CONTEXT.set(operation)
+            try:
+                raw_output = _quota_guarded_call(
+                    use_core, item, effective_messages, effective_max_tokens, effective_schema,
+                    timeout_override=attempt_timeout,
+                )
+            finally:
+                _PROVIDER_OPERATION_CONTEXT.reset(_operation_token)
             try:
                 parsed = parse(raw_output)
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:

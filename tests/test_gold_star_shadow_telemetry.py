@@ -56,3 +56,30 @@ def test_structural_signature_still_abstains_on_unrelated_topic(monkeypatch):
     }]
     monkeypatch.setattr(lessons, "_LESSONS", lessons)
     assert lessons.select_lesson("What is the boiling point of water at sea level?") is None
+
+def test_shadow_match_includes_opaque_request_correlation(monkeypatch, capsys):
+    monkeypatch.setattr(lessons, "select_lesson", lambda q: {
+        "benchmark_id": "approved-lesson-2", "score": 0.81, "exact": False
+    })
+    benchmark_id, score = lessons.shadow_observation(
+        "private visitor wording",
+        request_id="0123456789abcdef0123456789abcdef",
+        request_ledger_version="2",
+    )
+    out = capsys.readouterr().out
+    assert benchmark_id == "approved-lesson-2"
+    assert score == 0.81
+    assert "request_id=0123456789abcdef0123456789abcdef" in out
+    assert "request_ledger_version=2" in out
+    assert "private visitor wording" not in out
+
+
+def test_shadow_observation_rejects_malformed_request_correlation(monkeypatch, capsys):
+    monkeypatch.setattr(lessons, "select_lesson", lambda q: None)
+    lessons.shadow_observation(
+        "private visitor wording",
+        request_id="not-a-request-token",
+        request_ledger_version="2",
+    )
+    out = capsys.readouterr().out
+    assert out.strip() == "gold_star_shadow match=abstain"

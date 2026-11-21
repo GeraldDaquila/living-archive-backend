@@ -554,16 +554,30 @@ def select_lesson(
     )
     return candidates[0] if candidates else None
 
-def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
+def shadow_observation(
+    query: str,
+    *,
+    request_id: Optional[str] = None,
+    request_ledger_version: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[float]]:
     """Return minimal non-content metadata and emit a structured shadow event.
 
     Query text and Gold Star answer content are deliberately excluded from
-    telemetry. This function remains observation-only and cannot affect
-    visitor-facing composition.
+    telemetry. Opaque request correlation permits joining retrieval to later
+    exposure, provider, and delivery stages without retaining visitor content.
+    This function remains observation-only and cannot affect composition.
     """
+    correlation = ""
+    safe_request_id = str(request_id or "").strip()
+    if re.fullmatch(r"[0-9a-f]{32}", safe_request_id):
+        correlation = " request_id=" + safe_request_id
+        version = str(request_ledger_version or "").strip()
+        if version:
+            correlation += " request_ledger_version=" + version
+
     selected = select_lesson(query)
     if not selected:
-        message = "gold_star_shadow match=abstain"
+        message = "gold_star_shadow match=abstain" + correlation
         print(message, flush=True)
         _TELEMETRY_LOG.info(message)
         return None, None
@@ -572,7 +586,7 @@ def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
     match_kind = "exact" if bool(selected.get("exact")) else "cross_question"
     message = (
         f"gold_star_shadow match=matched benchmark_id={benchmark_id} "
-        f"score={score:.3f} kind={match_kind}"
+        f"score={score:.3f} kind={match_kind}" + correlation
     )
     print(message, flush=True)
     _TELEMETRY_LOG.info(message)
