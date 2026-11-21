@@ -1,6 +1,5 @@
 """Gold Star adaptation must be trusted system guidance, not visitor text."""
 
-from pathlib import Path
 import general_guide_composition as composition
 
 
@@ -63,12 +62,8 @@ def test_ranked_gold_star_lesson_is_in_system_message_not_user_message(monkeypat
 
 
 def test_gold_star_trace_is_not_added_to_the_visitor_facing_return_object():
+    # Trace metadata is deliberately not attached to the cached/returned
+    # composition candidate. It remains a local, content-free observation.
     source = __import__("inspect").getsource(composition.compose)
-    # The trace is stored on the internal composition candidate only; the visitor
-    # return contract in main.py remains an explicit field allowlist.
-    assert 'candidate["gold_star_adjudication_trace"] = gold_star_adjudication_trace' in source
-    main_source = Path("main.py").read_text(encoding="utf-8")
-    start = main_source.index("    payload = {", main_source.index("def _basic_inquiry_response("))
-    end = main_source.index("\n    }", start)
-    visitor_payload = main_source[start:end]
-    assert "gold_star_adjudication_trace" not in visitor_payload
+    assert 'candidate["gold_star_adjudication_trace"]' not in source
+    assert "_mark_gold_star_composition_result" in source
