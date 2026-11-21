@@ -173,3 +173,20 @@ def test_control_and_treatment_must_reference_distinct_output_artifacts():
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "paired_outputs_not_distinct"
+
+
+
+def test_wp3_capture_workflow_uses_mirror_and_guarded_github_actions_not_standalone_qa():
+    from pathlib import Path
+
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/gold-star-wp3-paired-capture.yml"
+    ).read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in workflow
+    assert "branches: [main]" in workflow
+    assert "[wp3-paired-capture]" in workflow
+    assert "https://living-archive-backend-mirror.onrender.com" in workflow
+    assert "living-archive-gold-star-v2-qa.onrender.com" not in workflow
+    assert "identity-wait-seconds 900" in workflow
+    assert "--min-llm-captures 1" in workflow
