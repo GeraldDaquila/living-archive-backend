@@ -4303,6 +4303,8 @@ def compose(
             raise RuntimeError("Gold Star quality contribution crossed the answer-authority boundary.")
         _emit_guide_outcome(
             "gold_star_quality_active",
+            request_id=gold_star_adjudication_trace.get("request_id"),
+            attempt_ordinal=gold_star_adjudication_trace.get("attempt_ordinal"),
             benchmark=gold_star_quality.get("benchmark_id"),
             score=gold_star_quality.get("score"),
             authority=gold_star_quality.get("authority_mode"),
