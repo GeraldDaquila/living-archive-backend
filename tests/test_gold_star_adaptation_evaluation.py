@@ -6,7 +6,7 @@ import gold_star_adaptation_evaluation as evaluation
 def _arm(enabled, score, *, hard_gates=None):
     return {
         "adaptation_enabled": enabled,
-        "output_artifact_ref": "ci-artifact://paired-case/output",
+        "output_artifact_ref": "ci-artifact://paired-case/" + ("treatment" if enabled else "control"),
         "scores": {
             "question_fit": score,
             "substantive_resolution": score,
@@ -164,3 +164,12 @@ def test_malformed_hard_gate_values_fail_closed_without_raising():
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "invalid_treatment_hard_gates"
+
+
+
+def test_control_and_treatment_must_reference_distinct_output_artifacts():
+    pair = _pair()
+    pair["treatment"]["output_artifact_ref"] = pair["control"]["output_artifact_ref"]
+    result = evaluation.evaluate_paired_case(pair)
+    assert result["valid"] is False
+    assert result["reason"] == "paired_outputs_not_distinct"
