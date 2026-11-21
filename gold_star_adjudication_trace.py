@@ -153,7 +153,7 @@ def mark_evaluation_outcome(trace: Mapping[str, Any], evaluation: Any) -> dict[s
     if (
         not isinstance(cases, list)
         or type(paired_count) is not int
-        or paired_count < 1
+        or paired_count < 3
         or len(cases) != paired_count
         or not all(isinstance(case, Mapping) and case.get("human_reviewed") is True for case in cases)
     ):
@@ -165,6 +165,8 @@ def mark_evaluation_outcome(trace: Mapping[str, Any], evaluation: Any) -> dict[s
         and evaluation.get("registry_mutated") is False
         and evaluation.get("regression_count") == 0
         and evaluation.get("case_family_count", 0) >= 2
+        and type(evaluation.get("human_reviewed_improvement_count")) is int
+        and evaluation.get("human_reviewed_improvement_count") * 3 >= paired_count * 2
         and evaluation.get("mean_score_delta", 0) > 0
     ):
         result["outcome"] = "human_reviewed_improved"
