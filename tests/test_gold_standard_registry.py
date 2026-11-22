@@ -2415,4 +2415,6 @@ def test_community_freedom_shared_responsibility_gold_star_is_registered_exactly
     assert record["exact_answer_authority"] is False
     assert record["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    assert resolve_exact_gold_standard(record["query"]) is None
     assert "elevate to gold star registry" in record["approval_evidence"]
