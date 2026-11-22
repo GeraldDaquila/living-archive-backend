@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - "gold_star_lessons.py"
+      - "community_tradeoff_candidate_policy.py"
       - "gold_star_semantic_retrieval.py"
       - "requirements.txt"
       - "tests/test_gold_star_semantic_integration.py"
       - "tests/test_gold_star_precomputed_index.py"
       - "tests/test_gold_star_selector_equivalence.py"
       - "tests/test_gold_star_semantic_retrieval.py"
+      - "tests/test_community_tradeoff_candidate_policy.py"
       - "tests/benchmark_gold_star_selector.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
@@ -46,7 +48,7 @@ jobs:
       - name: Compile Gold Star selector
         run: python -m py_compile gold_star_lessons.py
       - name: Run selector equivalence and scale regressions
-        run: python -m pytest -q tests/test_gold_star_precomputed_index.py tests/test_gold_star_selector_equivalence.py tests/test_gold_star_semantic_retrieval.py
+        run: python -m pytest -q tests/test_gold_star_precomputed_index.py tests/test_gold_star_selector_equivalence.py tests/test_gold_star_semantic_retrieval.py tests/test_community_tradeoff_candidate_policy.py
       - name: Benchmark legacy and indexed selector latency
         run: python tests/benchmark_gold_star_selector.py
 
