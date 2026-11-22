@@ -3,6 +3,7 @@
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
+from collections import Counter
 from contextvars import ContextVar
 import hashlib
 from html import unescape
