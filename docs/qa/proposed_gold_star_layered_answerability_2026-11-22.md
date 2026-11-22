@@ -1,6 +1,6 @@
 # Proposed Gold Star — Layered Answerability and Calibrated Abstention
 
-**Status:** PROPOSED — NOT APPROVED FOR THE GOLD STAR REGISTRY  
+**Status:** USER-APPROVED GOLD STAR — REGISTERED 2026-11-22  
 **Origin:** Human-reviewed Near-miss, “What does it mean to lead from reality rather than ideology?” (2026-11-22)  
 **Related calibration:** decision-rights question-demand Near-miss (2026-11-22)
 
@@ -39,7 +39,7 @@ When only the institutional meaning is unknown, answer the general meaning and q
 
 **Question:** What does it mean to lead from reality rather than ideology?
 
-**Approved-for-review exemplar (not yet a registry answer):**
+**Frozen live-response exemplar (user-approved):**
 
 To lead from reality rather than ideology is to let actual conditions, evidence, constraints, and people's lived experience shape how you understand a situation and what you do. Ideology becomes the driver when a fixed set of beliefs or a preferred outcome decides in advance which facts count, which evidence is noticed, and which conclusions are allowed.
 
@@ -69,8 +69,8 @@ The first implementation is intentionally narrow to the observed question family
 6. The final visitor answer—not just retrieval or prompt exposure—demonstrates the discipline.
 7. Human review confirms the exemplar is transferable and does not encode its specific wording or subject matter as a universal answer template.
 
-## Implementation boundary
+## Registry disposition
 
-This proposal adds a shared architectural contract, a bounded query-level plan, an answer-first recovery for the observed question family, and regression tests. It does **not** add an approved Gold Star registry entry, alter existing Gold Star approvals, change retrieval ranking/embeddings/thresholds, or authorize production deployment.
+The user explicitly elevated this live response to the canonical Gold Star registry on 2026-11-22. The answer is frozen as a visitor-facing behavioral exemplar; its transferable discipline is active in the qualitative-transfer review. Exact-answer authority and deterministic fallback eligibility are not granted. The absence of a doorway is intentionally recorded for this question because no directly relevant canonical source was established and the answer explicitly distinguishes general explanation from formal Living Archive doctrine. This is not a global rule against doorways. Held-out validation remains a separate system-level acceptance activity.
 
 The original visitor response remains a Near-miss. The exemplar above is a candidate for independent review after held-out validation, not a retroactive award.
