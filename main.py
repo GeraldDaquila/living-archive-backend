@@ -1736,71 +1736,60 @@ def _conceptual_bridge_supported(query, doc):
     return matched_dimensions >= 2
 
 
-def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
+def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
+    """Return a stable rejection reason without changing doorway eligibility policy."""
     if not isinstance(doc, dict):
-        return False
-    # A geographically scoped institutional resource must not become the default
-    # doorway for a general personal/conceptual inquiry merely through incidental
-    # retrieval overlap. Geographic scope is an explicit relevance commitment:
-    # the visitor must invoke that territory or an institutional/public-system frame.
+        return False, "invalid_document"
     q = _normalize_query(query)
     title_probe = str(doc.get("title") or "")
     body_probe = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
-    geo_scope = bool(re.search(r"\b(?:philippine|philippines)\b", title_probe, re.I))
+    geo_scope = bool(re.search(r"\\b(?:philippine|philippines)\\b", title_probe, re.I))
     if geo_scope:
-        query_geo = bool(re.search(r"\b(?:philippine|philippines)\b", q, re.I))
-        public_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", q, re.I))
-        candidate_public = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", body_probe, re.I))
+        query_geo = bool(re.search(r"\\b(?:philippine|philippines)\\b", q, re.I))
+        public_frame = bool(re.search(r"\\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\\b", q, re.I))
+        candidate_public = bool(re.search(r"\\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\\b", body_probe, re.I))
         if not query_geo and not (public_frame and candidate_public):
-            return False
+            return False, "geographic_scope_mismatch"
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https://\S+$", url, re.I):
-        return False
-    # A bounded conceptual bridge is evaluated before literal topic-fit gates.
-    # Otherwise a candidate recovered precisely because the Archive uses
-    # different surface language can be rejected before its bridge evidence is
-    # allowed to establish conceptual relevance.
+    if not title or not re.match(r"^https://\\S+$", url, re.I):
+        return False, "invalid_title_or_canonical_url"
     bridge_supported = _conceptual_bridge_supported(query, doc)
     if not _topic_specific_candidate_fit(query, doc) and not bridge_supported:
-        return False
-    # Entity overlap cannot substitute for evidence of a requested attribute.
-    # The attribute and any explicit condition must appear in this source body.
-    # A bounded conceptual bridge may provide equivalent evidence when the
-    # Archive uses different surface language for the same conceptual territory.
+        return False, "topic_fit_missing"
     if not _direct_attribute_supported(query, doc) and not bridge_supported:
-        return False
+        return False, "direct_attribute_or_bridge_missing"
     if not _uncertainty_resource_direct_fit(query, doc):
-        return False
+        return False, "uncertainty_context_mismatch"
     role = _role_evidence(doc)
     q = _normalize_query(query)
     if role["risk"] and not profile.get("risk"):
-        return False
-    if role["abuse"] and not re.search(r"\b(?:abuse|abusive|coercive\s+control|gaslighting)\b", q):
-        return False
+        return False, "risk_scope_mismatch"
+    if role["abuse"] and not re.search(r"\\b(?:abuse|abusive|coercive\\s+control|gaslighting)\\b", q):
+        return False, "abuse_scope_mismatch"
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
-        return False
+        return False, "specialized_worldview_scope_mismatch"
     metrics = _subject_metrics(query, doc)
-    # A title overlap alone is not enough to make a canonical doorway relevant.
-    # Require corroboration in the resource's own body, so generic/title-level
-    # coincidences cannot outrank material that actually addresses the question.
     if metrics[0] > 0 and metrics[2] == 0 and metrics[3] == 0 and metrics[1] == 0:
-        return False
+        return False, "title_overlap_without_body_corroboration"
     if min_relevance is not None and _relevance_level(metrics) < min_relevance:
-        # A canonical doorway can be semantically central even when the visitor
-        # uses different surface language. Preserve this semantic case only when
-        # the document establishes a coherent conceptual family in its own body;
-        # literal keyword coincidence remains insufficient.
         frame = _query_frame(query)
         contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
         semantic_transition_support = bool(
-            re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", _normalize_query(query), re.I)
-            and re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", body_probe, re.I)
+            re.search(r"\\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\\s+patterns?|sustain(?:ing|ed)?)\\b", _normalize_query(query), re.I)
+            and re.search(r"\\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\\s+patterns?|sustain(?:ing|ed)?)\\b", body_probe, re.I)
             and metrics[3] >= 1
         )
         if not contextual_family_support and not semantic_transition_support and not bridge_supported:
-            return False
-    return True
+            return False, "below_minimum_relevance"
+    return True, "eligible"
+
+
+def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
+    """Boolean compatibility wrapper; selection policy remains unchanged."""
+    return _evaluate_outward_doc_eligibility(
+        query, doc, profile, min_relevance=min_relevance
+    )[0]
 
 
 # v489.91 regression guard: lived uncertainty must not inherit a keyword-overlapping institutional resource.
@@ -1819,18 +1808,36 @@ def _build_doorway_candidates_for_use(docs):
     from shared_intelligence_primitives import normalize_doorway_candidates as _normalize_shared_doorways
     return _normalize_shared_doorways(docs or [])
 
-def _canonical_primary_from_docs(docs, query, profile):
+def _canonical_primary_from_docs(docs, query, profile, *, diagnostics=None):
     eligible = []
+    rejection_counts = Counter()
+    candidate_fingerprints = []
     for index, doc in enumerate(docs or []):
-        if not _eligible_outward_doc(query, doc, profile, min_relevance=2):
+        accepted, reason = _evaluate_outward_doc_eligibility(
+            query, doc, profile, min_relevance=2
+        )
+        if not accepted:
+            rejection_counts[reason] += 1
+            if isinstance(doc, dict):
+                canonical_url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+                if canonical_url and len(candidate_fingerprints) < 8:
+                    candidate_fingerprints.append(
+                        hashlib.sha256(canonical_url.casefold().encode("utf-8")).hexdigest()[:12]
+                    )
             continue
         metrics = _subject_metrics(query, doc)
         context = _contextual_fit(query, doc)
-        # Rank by body corroboration first, then title fit. The document's
-        # substantive relevance must outrank incidental title overlap.
         score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
         eligible.append((score, doc))
     eligible.sort(key=lambda item: item[0], reverse=True)
+    if diagnostics is not None and isinstance(diagnostics, dict):
+        diagnostics.clear()
+        diagnostics.update({
+            "candidate_count": len(docs or []),
+            "eligible_count": len(eligible),
+            "rejection_counts": dict(sorted(rejection_counts.items())),
+            "rejected_url_fingerprints": candidate_fingerprints,
+        })
     return eligible[0][1] if eligible else None
 
 
