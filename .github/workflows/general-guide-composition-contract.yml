@@ -14,6 +14,7 @@ on:
       - "guide_direct_attribute_evidence.py"
       - "tests/test_direct_attribute_evidence_boundary.py"
       - "general_guide_composition.py"
+      - "tests/test_guide_outcome_telemetry_correlation.py"
       - "guide_answerability.py"
       - "tests/test_guide_layered_answerability.py"
       - "guide_power_responsibility.py"
@@ -92,6 +93,7 @@ on:
       - "tests/test_guide_incomplete_knowledge.py"
       - "guide_runtime.py"
       - "general_guide_composition.py"
+      - "tests/test_guide_outcome_telemetry_correlation.py"
       - "guide_answerability.py"
       - "tests/test_guide_layered_answerability.py"
       - "guide_power_responsibility.py"
@@ -143,7 +145,7 @@ jobs:
       - name: Run multi-candidate Gold Star adjudication contract
         run: python -m pytest -q tests/test_gold_star_multi_candidate_adjudication.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_lessons.py
       - name: Run composition regression tests
-        run: python -m pytest -q tests/test_general_guide_answer_first_hard_boundary.py tests/test_deterministic_stewardship_comparison_answer_first.py tests/test_archive_passage_contrast_contract.py tests/test_comparative_traditions_contract.py tests/test_general_guide_comparative_traditions_composition.py tests/test_general_guide_perception_contract.py tests/test_general_guide_autonomy_evidence_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py tests/test_direct_attribute_evidence_boundary.py tests/test_visitor_meta_commentary_boundary.py tests/test_shared_definition_exhaustion_recovery.py tests/test_provider_exhaustion_regex_contract.py tests/test_spiritual_community_accountability_contract.py tests/test_regeneration_invitation_discernment_gold_star.py tests/test_guide_orientation_information_contract.py tests/test_guide_meta_coverage_policy.py tests/test_guide_epistemic_category_distinction.py tests/test_gold_star_question_contract.py tests/test_gold_star_semantic_contract.py tests/test_gold_star_route_capabilities.py tests/test_guide_terminal_doorway_omission.py
+        run: python -m pytest -q tests/test_general_guide_answer_first_hard_boundary.py tests/test_deterministic_stewardship_comparison_answer_first.py tests/test_archive_passage_contrast_contract.py tests/test_comparative_traditions_contract.py tests/test_general_guide_comparative_traditions_composition.py tests/test_general_guide_perception_contract.py tests/test_general_guide_autonomy_evidence_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py tests/test_direct_attribute_evidence_boundary.py tests/test_visitor_meta_commentary_boundary.py tests/test_shared_definition_exhaustion_recovery.py tests/test_provider_exhaustion_regex_contract.py tests/test_spiritual_community_accountability_contract.py tests/test_regeneration_invitation_discernment_gold_star.py tests/test_guide_orientation_information_contract.py tests/test_guide_meta_coverage_policy.py tests/test_guide_epistemic_category_distinction.py tests/test_gold_star_question_contract.py tests/test_gold_star_semantic_contract.py tests/test_gold_star_route_capabilities.py tests/test_guide_terminal_doorway_omission.py tests/test_guide_outcome_telemetry_correlation.py
       - name: Run layered answerability and calibrated abstention tests
         run: python -m pytest -q tests/test_guide_layered_answerability.py
       - name: Run stewardship under incomplete knowledge final-boundary tests
