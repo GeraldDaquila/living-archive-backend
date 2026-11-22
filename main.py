@@ -1738,7 +1738,10 @@ def _conceptual_bridge_supported(query, doc):
 
 
 def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
-    """Return a stable rejection reason without changing doorway eligibility policy."""
+    """Return a stable rejection reason without changing doorway eligibility policy.
+
+    A title overlap alone is not enough to make a canonical doorway relevant.
+    """
     if not isinstance(doc, dict):
         return False, "invalid_document"
     q = _normalize_query(query)
