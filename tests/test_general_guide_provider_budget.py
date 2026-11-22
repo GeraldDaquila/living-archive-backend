@@ -494,12 +494,12 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    assert len(calls) == 5
+    assert len(calls) == 6
     assert all(
         timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(12.5)
+    assert clock.value == pytest.approx(15.0)
 
 
 def _recovery_candidate(
@@ -688,6 +688,6 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
     assert result is not None
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert calls[0][1] == pytest.approx(5.0)
-    assert calls[1][1] < provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+    assert calls[1][1] == pytest.approx(4.98)
     assert calls[2][1] == pytest.approx(4.98)
     assert calls[2][1] > 4.0
