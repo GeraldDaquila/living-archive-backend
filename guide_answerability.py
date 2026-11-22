@@ -12,15 +12,15 @@ from typing import Any
 VERSION = "1.0"
 
 _REALITY_IDEOLOGY = re.compile(
-    r"\\b(?:lead|leading|leadership)\\b.{0,100}\\b(?:from|grounded in|guided by)\\b.{0,40}\\breality\\b"
-    r".{0,70}\\b(?:rather than|instead of|over|vs\\.?|versus|not)\\b.{0,50}\\bideolog\\w*\\b"
-    r"|\\b(?:reality[- ]led|reality[- ]based)\\b.{0,70}\\b(?:ideolog\\w*|doctrine)\\b"
-    r"|\\b(?:ideolog\\w*|doctrine)\\b.{0,70}\\b(?:reality[- ]led|reality[- ]based)\\b",
+    r"\b(?:lead|leading|leadership)\b.{0,100}\b(?:from|grounded in|guided by)\b.{0,40}\breality\b"
+    r".{0,70}\b(?:rather than|instead of|over|vs\.?|versus|not)\b.{0,50}\bideolog\w*\b"
+    r"|\b(?:reality[- ]led|reality[- ]based)\b.{0,70}\b(?:ideolog\w*|doctrine)\b"
+    r"|\b(?:ideolog\w*|doctrine)\b.{0,70}\b(?:reality[- ]led|reality[- ]based)\b",
     re.I,
 )
 _MEANING_REQUEST = re.compile(
-    r"\\b(?:what does|what do|what is|how is|how do|how does|explain|meaning of|"
-    r"what would it mean|what is meant by)\\b",
+    r"\b(?:what does|what do|what is|how is|how do|how does|explain|meaning of|"
+    r"what would it mean|what is meant by)\b",
     re.I,
 )
 
@@ -32,7 +32,7 @@ Answer the general conceptual question directly; do not require a formal Living 
 
 def is_reality_vs_ideology_leadership_question(query: str) -> bool:
     """Recognize the bounded conceptual contrast and common paraphrases."""
-    q = re.sub(r"\\s+", " ", str(query or "")).strip()
+    q = re.sub(r"\s+", " ", str(query or "")).strip()
     return bool(q and _REALITY_IDEOLOGY.search(q) and _MEANING_REQUEST.search(q))
 
 def build_answerability_plan(query: str) -> dict[str, Any] | None:
@@ -73,11 +73,11 @@ def reality_vs_ideology_recovery() -> str:
 
 def has_reality_vs_ideology_explanation(response: str) -> bool:
     """Require the central contrast, value boundary, and evidence-responsive action."""
-    text = re.sub(r"\\s+", " ", str(response or "")).casefold()
+    text = re.sub(r"\s+", " ", str(response or "")).casefold()
     return bool(
-        re.search(r"\\breality\\b.{0,220}\\b(?:evidence|actual conditions|observable conditions)\\b", text)
-        and re.search(r"\\bideolog\\w*\\b.{0,240}\\b(?:belief|doctrine|preferred outcome|predetermined)\\b", text)
-        and re.search(r"\\b(?:values|principles)\\b.{0,180}\\b(?:reality|evidence|conditions|guide)\\b", text)
-        and re.search(r"\\b(?:change|revise|adapt|correct)\\w*\\b.{0,180}\\b(?:evidence|facts|conditions)\\b|\\b(?:evidence|facts|conditions)\\b.{0,180}\\b(?:change|revise|adapt|correct)\\w*\\b", text)
-        and re.search(r"\\b(?:for example|imagine|suppose|in practice)\\b", text)
+        re.search(r"\breality\b.{0,220}\b(?:evidence|actual conditions|observable conditions)\b", text)
+        and re.search(r"\bideolog\w*\b.{0,240}\b(?:belief|doctrine|preferred outcome|predetermined)\b", text)
+        and re.search(r"\b(?:values|principles)\b.{0,180}\b(?:reality|evidence|conditions|guide)\b", text)
+        and re.search(r"\b(?:change|revise|adapt|correct)\w*\b.{0,180}\b(?:evidence|facts|conditions)\b|\b(?:evidence|facts|conditions)\b.{0,180}\b(?:change|revise|adapt|correct)\w*\b", text)
+        and re.search(r"\b(?:for example|imagine|suppose|in practice)\b", text)
     )
