@@ -670,7 +670,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "8532c938733a3595c97712fbc841813da77735c7fe3a04252045f3eeec9928a2"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "7b15b5dd356174f05d5b47929ab1817115f09f97241b1c4fd16599993b3f0239"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -884,10 +884,31 @@ embedding_model = None
 _EMBEDDING_MODEL_LOCK = threading.Lock()
 
 
+def _parse_onnx_cpu_mem_arena_enabled(value: str | None) -> bool:
+    """Parse the optional ONNX CPU arena policy; default preserves current behavior."""
+    if value is None:
+        return True
+    normalized = str(value).strip().casefold()
+    if normalized in {"0", "false", "no", "off", "disabled"}:
+        return False
+    if normalized in {"1", "true", "yes", "on", "enabled"}:
+        return True
+    return True
+
+
+EMBEDDING_ENABLE_CPU_MEM_ARENA = _parse_onnx_cpu_mem_arena_enabled(
+    os.getenv("USE_ONNX_ENABLE_CPU_MEM_ARENA")
+)
+
+
 def _create_embedding_model():
     from fastembed import TextEmbedding
 
-    return TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
+    return TextEmbedding(
+        model_name="BAAI/bge-small-en-v1.5",
+        threads=1,
+        enable_cpu_mem_arena=EMBEDDING_ENABLE_CPU_MEM_ARENA,
+    )
 
 
 def _log_embedding_runtime_diagnostic(model):
@@ -927,6 +948,7 @@ def _log_embedding_runtime_diagnostic(model):
             f"session_providers={_embedding_runtime_session_providers}, "
             f"provider_options={_embedding_runtime_provider_options}, "
             f"configured_threads={_embedding_runtime_threads}, "
+            f"cpu_mem_arena_enabled={EMBEDDING_ENABLE_CPU_MEM_ARENA}, "
             f"requested_providers={_embedding_runtime_requested_providers}, "
             f"cuda_mode={_embedding_runtime_cuda}, "
             f"cpu_count={_embedding_runtime_cpu_count}, "
@@ -954,7 +976,8 @@ def _get_embedding_model():
 
 print(
     "USE embedding model lifecycle: status=lazy, "
-    "model='BAAI/bge-small-en-v1.5', configured_threads=1"
+    "model='BAAI/bge-small-en-v1.5', configured_threads=1, "
+    f"cpu_mem_arena_enabled={EMBEDDING_ENABLE_CPU_MEM_ARENA}"
 )
 
 ROOT_NODE_ID = "canonical_root_living_archive"
