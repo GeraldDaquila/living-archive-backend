@@ -30,7 +30,8 @@ def test_semantic_similarity_without_subject_anchor_is_rejected(monkeypatch):
     assert result == []
 
 def test_semantic_retrieval_reuses_the_shared_use_core_model(monkeypatch):
-    import use_core
+    import sys
+    import types
 
     class FakeModel:
         def __init__(self):
@@ -41,7 +42,9 @@ def test_semantic_retrieval_reuses_the_shared_use_core_model(monkeypatch):
             return iter([[1.0] + [0.0] * 383 for _ in texts])
 
     shared = FakeModel()
-    monkeypatch.setattr(use_core, "_get_embedding_model", lambda: shared)
+    fake_use_core = types.ModuleType("use_core")
+    fake_use_core._get_embedding_model = lambda: shared
+    monkeypatch.setitem(sys.modules, "use_core", fake_use_core)
     semantic._model.cache_clear()
     semantic._lesson_vectors.cache_clear()
     try:
