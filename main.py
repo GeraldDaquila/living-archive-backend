@@ -1744,16 +1744,16 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
     q = _normalize_query(query)
     title_probe = str(doc.get("title") or "")
     body_probe = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
-    geo_scope = bool(re.search(r"\\b(?:philippine|philippines)\\b", title_probe, re.I))
+    geo_scope = bool(re.search(r"\b(?:philippine|philippines)\b", title_probe, re.I))
     if geo_scope:
-        query_geo = bool(re.search(r"\\b(?:philippine|philippines)\\b", q, re.I))
-        public_frame = bool(re.search(r"\\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\\b", q, re.I))
-        candidate_public = bool(re.search(r"\\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\\b", body_probe, re.I))
+        query_geo = bool(re.search(r"\b(?:philippine|philippines)\b", q, re.I))
+        public_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", q, re.I))
+        candidate_public = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", body_probe, re.I))
         if not query_geo and not (public_frame and candidate_public):
             return False, "geographic_scope_mismatch"
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-    if not title or not re.match(r"^https://\\S+$", url, re.I):
+    if not title or not re.match(r"^https://\S+$", url, re.I):
         return False, "invalid_title_or_canonical_url"
     bridge_supported = _conceptual_bridge_supported(query, doc)
     if not _topic_specific_candidate_fit(query, doc) and not bridge_supported:
@@ -1766,7 +1766,7 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
     q = _normalize_query(query)
     if role["risk"] and not profile.get("risk"):
         return False, "risk_scope_mismatch"
-    if role["abuse"] and not re.search(r"\\b(?:abuse|abusive|coercive\\s+control|gaslighting)\\b", q):
+    if role["abuse"] and not re.search(r"\b(?:abuse|abusive|coercive\s+control|gaslighting)\b", q):
         return False, "abuse_scope_mismatch"
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
         return False, "specialized_worldview_scope_mismatch"
@@ -1777,8 +1777,8 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
         frame = _query_frame(query)
         contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
         semantic_transition_support = bool(
-            re.search(r"\\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\\s+patterns?|sustain(?:ing|ed)?)\\b", _normalize_query(query), re.I)
-            and re.search(r"\\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\\s+patterns?|sustain(?:ing|ed)?)\\b", body_probe, re.I)
+            re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", _normalize_query(query), re.I)
+            and re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", body_probe, re.I)
             and metrics[3] >= 1
         )
         if not contextual_family_support and not semantic_transition_support and not bridge_supported:
