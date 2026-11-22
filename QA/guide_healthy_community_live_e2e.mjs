@@ -369,16 +369,72 @@ try {
   if (/^[^\S\r\n]*[✨🌱🔹🔸✅⚠️]/mu.test(supportedResponse.payload.response)) {
     throw new Error("The conceptual fallback began a response line with decorative emoji.");
   }
-  if (await root.locator("#archive-response-text a.la-answer-doorway__link").count() !== 1) {
+  if (await root.locator("a.la-answer-doorway__link").count() !== 1) {
     throw new Error("The conceptual response must render exactly one canonical recommendation link.");
   }
-  const conceptualLink = await root.locator("#archive-response-text a.la-answer-doorway__link").first().evaluate(el=>({href:el.href,text:(el.innerText||el.textContent||"").trim()}));
+  const conceptualLink = await root.locator("a.la-answer-doorway__link").first().evaluate(el=>({href:el.href,text:(el.innerText||el.textContent||"").trim()}));
   if (conceptualLink.href !== supportedResponse.payload.recommendation.url) {
     throw new Error("The conceptual recommendation URL does not match the API-selected canonical destination.");
   }
   if (conceptualText.toLowerCase().includes("glossary")) {
     throw new Error("The conceptual question was visibly redirected to the Glossary.");
   }
+
+  // Gate 1 calibration: an ordinary, previously unseen cross-question that
+  // should not be accepted as an exact benchmark or deterministic recovery.
+  const calibrationQuery = "When a community faces a difficult trade-off between individual freedom and shared responsibility, how should it make a decision that is both fair and workable?";
+  await input.fill(calibrationQuery);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  const calibrationDeadline = Date.now() + 60_000;
+  while (
+    !apiResponses.some(item => item.payload && item.payload.query === calibrationQuery) &&
+    Date.now() < calibrationDeadline
+  ) {
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  await Promise.all(apiBodyReads);
+  const calibrationResponses = apiResponses.filter(item =>
+    item.payload && item.payload.query === calibrationQuery
+  );
+  if (!apiRequests.some(request => request.body.query === calibrationQuery)) {
+    throw new Error("No real WordPress /api/query request carried the Gate 1 calibration question.");
+  }
+  const calibrationResponse = calibrationResponses.find(item =>
+    item.status === 200 &&
+    item.payload?.intent === "TOPICAL_INQUIRY" &&
+    typeof item.payload?.response === "string" &&
+    item.payload.response.trim().length >= 150 &&
+    /freedom/i.test(item.payload.response) &&
+    /responsibility/i.test(item.payload.response) &&
+    /fair/i.test(item.payload.response)
+  );
+  if (!calibrationResponse) {
+    throw new Error("Gate 1 calibration did not return a substantive, relevant answer. Responses: " +
+      JSON.stringify(calibrationResponses.map(item => ({
+        status: item.status,
+        intent: item.payload?.intent,
+        answer_basis: item.payload?.answer_basis,
+        response: item.payload?.response,
+        recommendation: item.payload?.recommendation
+      }))));
+  }
+  const calibrationUI = (await answer.innerText()).replace(/\\s+/g, " ").trim();
+  const calibrationAPI = calibrationResponse.payload.response.replace(/\\s+/g, " ").trim();
+  if (!calibrationUI.toLowerCase().includes("freedom") ||
+      !calibrationUI.toLowerCase().includes("responsibility") ||
+      !calibrationUI.toLowerCase().includes("fair")) {
+    throw new Error("The active Woody instance did not render the Gate 1 calibration answer: " + calibrationUI);
+  }
+  if (!calibrationUI.toLowerCase().includes(calibrationAPI.slice(0, Math.min(48, calibrationAPI.length)).toLowerCase())) {
+    throw new Error("The visible Gate 1 answer did not reflect the API response.");
+  }
+  console.log(JSON.stringify({
+    stage: "gate_1_calibration_response_rendered",
+    calibrationQuery,
+    calibrationText: calibrationUI,
+    answerBasis: calibrationResponse.payload.answer_basis,
+    recommendation: calibrationResponse.payload.recommendation || null
+  }));
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
     apiOrigin: USE_API_ORIGIN,
