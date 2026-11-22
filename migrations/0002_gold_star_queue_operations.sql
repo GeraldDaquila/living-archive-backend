@@ -2,6 +2,66 @@
 -- Claims are transactional and concurrency-safe. Visitor delivery does not call these functions.
 BEGIN;
 
+CREATE OR REPLACE FUNCTION enqueue_gold_star_adjudication_job(
+    p_job_id UUID,
+    p_request_id CHAR(32),
+    p_attempt_ordinal SMALLINT,
+    p_candidate_set_fingerprint CHAR(64),
+    p_candidate_ids TEXT[],
+    p_delivered_answer_provenance TEXT,
+    p_composition_state TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+AS $
+DECLARE
+    stored_job_id UUID;
+    stored_fingerprint CHAR(64);
+    stored_candidate_ids TEXT[];
+BEGIN
+    IF p_job_id IS NULL THEN
+        RAISE EXCEPTION 'job_id_required';
+    END IF;
+
+    INSERT INTO gold_star_adjudication_jobs (
+        job_id, request_id, attempt_ordinal, candidate_set_fingerprint,
+        candidate_ids, delivered_answer_provenance, composition_state,
+        adjudication_state
+    ) VALUES (
+        p_job_id, p_request_id, p_attempt_ordinal, p_candidate_set_fingerprint,
+        p_candidate_ids, p_delivered_answer_provenance, p_composition_state,
+        'queued'
+    )
+    ON CONFLICT (request_id, attempt_ordinal, adjudication_kind) DO NOTHING
+    RETURNING job_id INTO stored_job_id;
+
+    IF FOUND THEN
+        INSERT INTO gold_star_adjudication_events (
+            event_id, job_id, previous_state, new_state,
+            reason_code, occurred_at
+        ) VALUES (
+            gen_random_uuid(), stored_job_id, NULL, 'queued',
+            'job_enqueued', now()
+        );
+        RETURN stored_job_id;
+    END IF;
+
+    SELECT job_id, candidate_set_fingerprint, candidate_ids
+    INTO stored_job_id, stored_fingerprint, stored_candidate_ids
+    FROM gold_star_adjudication_jobs
+    WHERE request_id = p_request_id
+      AND attempt_ordinal = p_attempt_ordinal
+      AND adjudication_kind = 'gold_star_candidate';
+
+    IF stored_fingerprint IS DISTINCT FROM p_candidate_set_fingerprint
+       OR stored_candidate_ids IS DISTINCT FROM p_candidate_ids THEN
+        RAISE EXCEPTION 'idempotency_key_payload_conflict';
+    END IF;
+
+    RETURN stored_job_id;
+END;
+$;
+
 CREATE OR REPLACE FUNCTION claim_gold_star_adjudication_jobs(
     p_worker_id UUID,
     p_limit INTEGER DEFAULT 1,
