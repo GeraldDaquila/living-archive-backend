@@ -695,3 +695,43 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
     assert calls[2][1] == pytest.approx(4.96)
     assert calls[2][1] > 4.0
     assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+
+
+
+def test_general_guide_skips_final_candidate_below_supported_minimum_timeout(monkeypatch, capsys):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def two_timeouts_then_exhaustion(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value += float(timeout_override) + 0.02
+        raise RuntimeError("simulated provider timeout")
+
+    monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_exhaustion)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai"]
+    assert [timeout for _, timeout in calls] == pytest.approx([5.0, 5.0])
+    # The two failed attempts consume 10.04 seconds of the 15-second window.
+    # The final normal candidate would receive only 4.96 seconds, below its
+    # supported five-second minimum, so it must not be called.
+    assert clock.value == pytest.approx(10.04)
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(15.0)
+    output = capsys.readouterr().out
+    assert "action=skip_candidate_below_minimum_timeout" in output
+    assert "candidate_timeout_seconds=4.96" in output
+    assert "minimum_timeout_seconds=5.00" in output
+    assert "reason=insufficient_remaining_time" in output
