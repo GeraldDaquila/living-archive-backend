@@ -611,3 +611,46 @@ def test_general_guide_quality_history_breaks_equal_transport_ties(monkeypatch):
     )
 
     assert selected[0]["provider"] == "groq"
+
+
+def test_provider_tpm_preflight_skips_only_impossible_input_sizes(monkeypatch):
+    from provider_quota_control import provider_input_exceeds_tpm_budget
+
+    monkeypatch.setenv("USE_QUOTA_GROQ_TPM", "8000")
+    too_large = [{"role": "user", "content": "x" * 32000}]
+    fits = [{"role": "user", "content": "x" * 28000}]
+
+    blocked = provider_input_exceeds_tpm_budget("groq", too_large)
+    assert blocked == {"budget_limit": 8000, "input_estimate": 8001}
+    assert provider_input_exceeds_tpm_budget("groq", fits) is None
+    assert provider_input_exceeds_tpm_budget("workers_ai", too_large) is None
+
+
+def test_general_guide_tpm_preflight_skips_all_models_of_impossible_provider(monkeypatch):
+    _isolate(monkeypatch)
+    candidates = [
+        _item("groq", "openai/gpt-oss-20b"),
+        _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+        _item("groq", "openai/gpt-oss-120b"),
+        _item("mistral", "mistral-small-latest"),
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: [dict(x) for x in candidates])
+    monkeypatch.setenv("USE_QUOTA_GROQ_TPM", "8000")
+    calls = []
+
+    def succeed(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append(item["provider"])
+        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", succeed)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "x" * 32000}],
+        max_tokens=100,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert calls == ["workers_ai"]
+    assert result["provider"] == "workers_ai"
