@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS gold_star_adjudication_jobs (
             'retry_exhausted', 'human_review_required'
         )),
     attempt_count SMALLINT NOT NULL DEFAULT 0 CHECK (attempt_count BETWEEN 0 AND 3),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     available_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     claimed_at TIMESTAMPTZ,
     lease_expires_at TIMESTAMPTZ,
@@ -69,7 +70,7 @@ CREATE TABLE IF NOT EXISTS gold_star_adjudication_jobs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_gold_star_jobs_ready
-    ON gold_star_adjudication_jobs (available_at, job_id)
+    ON gold_star_adjudication_jobs (available_at, created_at, job_id)
     WHERE adjudication_state = 'queued';
 
 CREATE INDEX IF NOT EXISTS idx_gold_star_jobs_expired_lease
