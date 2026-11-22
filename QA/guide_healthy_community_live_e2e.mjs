@@ -137,7 +137,50 @@ try {
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
 
   const link = root.locator("#archive-response-text a.la-answer-doorway__link");
-  await link.waitFor({ state: "visible", timeout: 60_000 });
+  try {
+    await link.waitFor({ state: "visible", timeout: 60_000 });
+  } catch (error) {
+    await Promise.all(apiBodyReads);
+    const diagnostics = {
+      visibleAnswerText: await answer.innerText().catch(() => ""),
+      answerHtml: await answer.evaluate(node => node.innerHTML.slice(0, 4000)).catch(() => ""),
+      answerState: await answer.evaluate(node => ({
+        display: getComputedStyle(node).display,
+        visibility: getComputedStyle(node).visibility,
+        opacity: getComputedStyle(node).opacity,
+        rects: node.getClientRects().length,
+        className: node.className
+      })).catch(() => null),
+      answerLinks: await answer.locator("a").evaluateAll(nodes => nodes.map(node => ({
+        text: (node.innerText || "").trim(),
+        href: node.href,
+        className: node.className,
+        visible: Boolean(node.getClientRects().length)
+      }))).catch(() => []),
+      rootText: await root.innerText().catch(() => ""),
+      apiRequests,
+      apiResponses: apiResponses.map(item => ({
+        status: item.status,
+        payloadQuery: item.payload?.query,
+        response: typeof item.payload?.response === "string" ? item.payload.response.slice(0, 1800) : null,
+        recommendation: item.payload?.recommendation || null,
+        answerBasis: item.payload?.answer_basis || null,
+        bodyReadError: item.bodyReadError
+      })),
+      apiFailures,
+      apiFinished,
+      pageErrors,
+      consoleErrors,
+      controllerSyntaxDiagnostics,
+      inlineScriptSyntaxDiagnostics,
+      externalScriptSyntaxDiagnostics,
+      waitError: error.message
+    };
+    throw new Error(
+      "The live backend response did not produce a visible visitor doorway link. " +
+      JSON.stringify(diagnostics)
+    );
+  }
   const rendered = await link.evaluate(node => ({
     title: node.innerText.trim(),
     href: node.href,
