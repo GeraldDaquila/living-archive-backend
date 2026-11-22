@@ -283,3 +283,127 @@ def test_enqueue_rejects_reuse_of_idempotency_key_with_different_payload(databas
             candidate_ids=["different-lesson"],
             fingerprint="c" * 64,
         )
+
+
+
+def _mark_job_claimed(connection, job_id, worker_id):
+    connection.execute(
+        """
+        UPDATE gold_star_adjudication_jobs
+        SET adjudication_state = 'claimed', attempt_count = 1,
+            claimed_at = now(), lease_expires_at = now() + interval '1 minute',
+            worker_id = %s
+        WHERE job_id = %s
+        """,
+        (worker_id, job_id),
+    )
+
+
+def test_completion_atomically_records_result_and_clears_lease(database):
+    job_id = _insert_job(database)
+    worker_id = uuid.uuid4()
+    _mark_job_claimed(database, job_id, worker_id)
+    result_id = uuid.uuid4()
+    completed = database.execute(
+        """
+        SELECT complete_gold_star_adjudication_job(
+            %s::uuid, %s::uuid, %s::uuid, 'v1'::text,
+            'adjudicated_selected'::text,
+            %s::text[], '{}'::text[], '{}'::text[], '{}'::jsonb,
+            '{}'::text[], '{}'::text[], ARRAY['evidence-1']::text[],
+            FALSE, 'test-provider'::text, 'test-model'::text
+        )
+        """,
+        (job_id, worker_id, result_id, ["lesson-a"]),
+    ).fetchone()[0]
+    assert completed is True
+    job = database.execute(
+        "SELECT adjudication_state, completed_at, claimed_at, "
+        "lease_expires_at, worker_id FROM gold_star_adjudication_jobs "
+        "WHERE job_id = %s",
+        (job_id,),
+    ).fetchone()
+    assert job[0] == "adjudicated_selected"
+    assert job[1] is not None
+    assert job[2:] == (None, None, None)
+    result = database.execute(
+        "SELECT selected_candidate_ids, evidence_refs, adjudicator_provider "
+        "FROM gold_star_adjudication_results WHERE result_id = %s",
+        (result_id,),
+    ).fetchone()
+    assert result == (["lesson-a"], ["evidence-1"], "test-provider")
+    event = database.execute(
+        "SELECT previous_state, new_state, reason_code "
+        "FROM gold_star_adjudication_events WHERE job_id = %s "
+        "ORDER BY occurred_at DESC LIMIT 1",
+        (job_id,),
+    ).fetchone()
+    assert event == ("claimed", "adjudicated_selected", "adjudicated_selected")
+
+
+def test_completion_rejects_candidate_outside_claimed_job(database):
+    job_id = _insert_job(database)
+    worker_id = uuid.uuid4()
+    _mark_job_claimed(database, job_id, worker_id)
+    with pytest.raises(errors.RaiseException, match="adjudication_candidate_not_in_job"):
+        database.execute(
+            """
+            SELECT complete_gold_star_adjudication_job(
+                %s::uuid, %s::uuid, %s::uuid, 'v1'::text,
+                'adjudicated_selected'::text,
+                ARRAY['not-a-candidate']::text[], '{}'::text[], '{}'::text[],
+                '{}'::jsonb, '{}'::text[], '{}'::text[], '{}'::text[],
+                FALSE, 'test-provider'::text, 'test-model'::text
+            )
+            """,
+            (job_id, worker_id, uuid.uuid4()),
+        )
+    state = database.execute(
+        "SELECT adjudication_state FROM gold_star_adjudication_jobs WHERE job_id = %s",
+        (job_id,),
+    ).fetchone()[0]
+    assert state == "claimed"
+
+
+def test_completion_rejects_non_owner_and_duplicate_completion(database):
+    job_id = _insert_job(database)
+    worker_id = uuid.uuid4()
+    _mark_job_claimed(database, job_id, worker_id)
+    with pytest.raises(errors.RaiseException, match="job_lease_not_owned"):
+        database.execute(
+            """
+            SELECT complete_gold_star_adjudication_job(
+                %s::uuid, %s::uuid, %s::uuid, 'v1'::text,
+                'adjudicated_rejected'::text,
+                '{}'::text[], ARRAY['lesson-a']::text[], '{}'::text[],
+                '{}'::jsonb, '{}'::text[], '{}'::text[], '{}'::text[],
+                FALSE, 'test-provider'::text, 'test-model'::text
+            )
+            """,
+            (job_id, uuid.uuid4(), uuid.uuid4()),
+        )
+    database.execute(
+        """
+        SELECT complete_gold_star_adjudication_job(
+            %s::uuid, %s::uuid, %s::uuid, 'v1'::text,
+            'adjudicated_rejected'::text,
+            '{}'::text[], ARRAY['lesson-a']::text[], '{}'::text[],
+            '{}'::jsonb, '{}'::text[], '{}'::text[], '{}'::text[],
+            FALSE, 'test-provider'::text, 'test-model'::text
+        )
+        """,
+        (job_id, worker_id, uuid.uuid4()),
+    )
+    with pytest.raises(errors.RaiseException, match="job_lease_not_owned"):
+        database.execute(
+            """
+            SELECT complete_gold_star_adjudication_job(
+                %s::uuid, %s::uuid, %s::uuid, 'v2'::text,
+                'adjudicated_rejected'::text,
+                '{}'::text[], ARRAY['lesson-a']::text[], '{}'::text[],
+                '{}'::jsonb, '{}'::text[], '{}'::text[], '{}'::text[],
+                FALSE, 'test-provider'::text, 'test-model'::text
+            )
+            """,
+            (job_id, worker_id, uuid.uuid4()),
+        )
