@@ -81,6 +81,22 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("limited trial", answer)
         self.assertNotIn("Hindsight blame assumes", answer)
 
+    def test_individual_freedom_and_shared_responsibility_get_direct_recovery(self):
+        question = (
+            "When a community faces a difficult trade-off between individual freedom and shared "
+            "responsibility, how should it make a decision that is both fair and workable?"
+        )
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("individual freedom and shared responsibility", paragraphs[0])
+        self.assertIn("less restrictive alternatives", paragraphs[1])
+        self.assertIn("proportionate", paragraphs[1])
+        self.assertIn("question or appeal", paragraphs[2])
+        self.assertIn("meaningful agency", paragraphs[2])
+        self.assertNotIn("I couldn’t produce a reliable answer", answer)
+        self.assertNotIn("Leadership Foundations", answer)
+
     def test_ethical_tradeoff_precedes_generic_how_to_recovery(self):
         question = (
             "What if each person sincerely believes they are protecting something important, "
