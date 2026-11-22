@@ -500,3 +500,114 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
         for _, timeout in calls
     )
     assert clock.value == pytest.approx(12.5)
+
+
+def _recovery_candidate(
+    provider,
+    model,
+    *,
+    quality_failures=0,
+    transport_failures=0,
+    consecutive_failures=0,
+    last_success=0,
+    low_latency=False,
+):
+    item = _item(provider, model)
+    item.update({
+        "health_state": "half_open",
+        "quality_failures": quality_failures,
+        "transport_failures": transport_failures,
+        "consecutive_failures": consecutive_failures,
+        "last_success": last_success,
+        "ewma_latency_seconds": 0.0,
+        "latency_attempts": 0,
+        "recent_timeouts": 0,
+    })
+    if low_latency:
+        item["capabilities"] = list(item["capabilities"]) + ["low_latency"]
+    return item
+
+
+def _select_guide_recovery_candidates(monkeypatch, items):
+    monkeypatch.setattr(
+        provider_bank, "candidates",
+        lambda *args, **kwargs: [dict(item) for item in items],
+    )
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: [])
+    monkeypatch.setattr(
+        provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 4.0
+    )
+    monkeypatch.setattr(
+        provider_bank, "_STATE",
+        {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}},
+    )
+    return provider_bank.select(
+        object(), operation="general_guide_composition", schema=None
+    )
+
+
+def test_general_guide_half_open_recovery_prefers_proven_transport_lanes(monkeypatch):
+    selected = _select_guide_recovery_candidates(
+        monkeypatch,
+        [
+            _recovery_candidate(
+                "mistral", "mistral-small-latest",
+                quality_failures=0, transport_failures=528,
+                consecutive_failures=9, low_latency=True,
+            ),
+            _recovery_candidate(
+                "workers_ai", "@cf/zai-org/glm-4.7-flash",
+                quality_failures=0, transport_failures=621,
+                consecutive_failures=11, low_latency=True,
+            ),
+            _recovery_candidate(
+                "workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+                quality_failures=18, transport_failures=153,
+                consecutive_failures=16, last_success=200,
+            ),
+            _recovery_candidate(
+                "openrouter", "google/gemma-4-31b-it:free",
+                quality_failures=0, transport_failures=168,
+                consecutive_failures=9,
+            ),
+            _recovery_candidate(
+                "openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free",
+                quality_failures=0, transport_failures=209,
+                consecutive_failures=9, last_success=250,
+            ),
+            _recovery_candidate(
+                "groq", "openai/gpt-oss-20b",
+                quality_failures=3, transport_failures=7,
+                consecutive_failures=6, last_success=300,
+                low_latency=True,
+            ),
+        ],
+    )
+
+    assert [
+        (item["provider"], item["model"]) for item in selected[:3]
+    ] == [
+        ("groq", "openai/gpt-oss-20b"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+        ("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"),
+    ]
+
+
+def test_general_guide_quality_history_breaks_equal_transport_ties(monkeypatch):
+    selected = _select_guide_recovery_candidates(
+        monkeypatch,
+        [
+            _recovery_candidate(
+                "workers_ai", "@cf/google/gemma-4-26b-a4b-it",
+                quality_failures=4, transport_failures=10,
+                consecutive_failures=2, last_success=100,
+            ),
+            _recovery_candidate(
+                "groq", "openai/gpt-oss-20b",
+                quality_failures=1, transport_failures=10,
+                consecutive_failures=2, last_success=100,
+            ),
+        ],
+    )
+
+    assert selected[0]["provider"] == "groq"
