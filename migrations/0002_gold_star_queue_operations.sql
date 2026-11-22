@@ -120,6 +120,117 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION complete_gold_star_adjudication_job(
+    p_job_id UUID,
+    p_worker_id UUID,
+    p_result_id UUID,
+    p_result_version TEXT,
+    p_disposition TEXT,
+    p_selected_candidate_ids TEXT[] DEFAULT '{}',
+    p_rejected_candidate_ids TEXT[] DEFAULT '{}',
+    p_abstained_candidate_ids TEXT[] DEFAULT '{}',
+    p_reason_codes JSONB DEFAULT '{}'::jsonb,
+    p_applicability_conditions TEXT[] DEFAULT '{}',
+    p_abstention_boundaries TEXT[] DEFAULT '{}',
+    p_evidence_refs TEXT[] DEFAULT '{}',
+    p_insufficient_evidence BOOLEAN DEFAULT FALSE,
+    p_adjudicator_provider TEXT DEFAULT 'unknown',
+    p_adjudicator_model TEXT DEFAULT 'unknown'
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $complete$
+DECLARE
+    current_job gold_star_adjudication_jobs%ROWTYPE;
+BEGIN
+    SELECT *
+    INTO current_job
+    FROM gold_star_adjudication_jobs
+    WHERE job_id = p_job_id
+    FOR UPDATE;
+
+    IF NOT FOUND
+       OR current_job.adjudication_state <> 'claimed'
+       OR current_job.worker_id IS DISTINCT FROM p_worker_id THEN
+        RAISE EXCEPTION 'job_lease_not_owned';
+    END IF;
+
+    IF p_disposition NOT IN (
+        'adjudicated_selected', 'adjudicated_rejected',
+        'abstained_insufficient_evidence', 'human_review_required'
+    ) THEN
+        RAISE EXCEPTION 'invalid_adjudication_disposition';
+    END IF;
+
+    IF COALESCE(p_selected_candidate_ids, '{}') && COALESCE(p_rejected_candidate_ids, '{}')
+       OR COALESCE(p_selected_candidate_ids, '{}') && COALESCE(p_abstained_candidate_ids, '{}')
+       OR COALESCE(p_rejected_candidate_ids, '{}') && COALESCE(p_abstained_candidate_ids, '{}') THEN
+        RAISE EXCEPTION 'candidate_dispositions_overlap';
+    END IF;
+
+    IF NOT COALESCE(p_selected_candidate_ids, '{}') <@ current_job.candidate_ids
+       OR NOT COALESCE(p_rejected_candidate_ids, '{}') <@ current_job.candidate_ids
+       OR NOT COALESCE(p_abstained_candidate_ids, '{}') <@ current_job.candidate_ids THEN
+        RAISE EXCEPTION 'adjudication_candidate_not_in_job';
+    END IF;
+
+    IF p_disposition = 'adjudicated_selected'
+       AND cardinality(COALESCE(p_selected_candidate_ids, '{}')) = 0 THEN
+        RAISE EXCEPTION 'selected_disposition_requires_candidate';
+    END IF;
+    IF p_disposition = 'adjudicated_rejected'
+       AND cardinality(COALESCE(p_rejected_candidate_ids, '{}')) = 0 THEN
+        RAISE EXCEPTION 'rejected_disposition_requires_candidate';
+    END IF;
+    IF p_disposition = 'abstained_insufficient_evidence'
+       AND (
+           NOT p_insufficient_evidence
+           OR cardinality(COALESCE(p_abstained_candidate_ids, '{}')) = 0
+       ) THEN
+        RAISE EXCEPTION 'abstention_requires_insufficient_evidence';
+    END IF;
+
+    INSERT INTO gold_star_adjudication_results (
+        result_id, job_id, result_version, selected_candidate_ids,
+        rejected_candidate_ids, abstained_candidate_ids, reason_codes,
+        applicability_conditions, abstention_boundaries, evidence_refs,
+        insufficient_evidence, adjudicator_provider, adjudicator_model,
+        adjudicated_at
+    ) VALUES (
+        p_result_id, p_job_id, p_result_version,
+        COALESCE(p_selected_candidate_ids, '{}'),
+        COALESCE(p_rejected_candidate_ids, '{}'),
+        COALESCE(p_abstained_candidate_ids, '{}'),
+        COALESCE(p_reason_codes, '{}'::jsonb),
+        COALESCE(p_applicability_conditions, '{}'),
+        COALESCE(p_abstention_boundaries, '{}'),
+        COALESCE(p_evidence_refs, '{}'),
+        COALESCE(p_insufficient_evidence, FALSE),
+        p_adjudicator_provider, p_adjudicator_model, now()
+    );
+
+    UPDATE gold_star_adjudication_jobs
+    SET adjudication_state = p_disposition,
+        claimed_at = NULL,
+        lease_expires_at = NULL,
+        worker_id = NULL,
+        completed_at = now(),
+        updated_at = now(),
+        last_error_class = NULL
+    WHERE job_id = p_job_id;
+
+    INSERT INTO gold_star_adjudication_events (
+        event_id, job_id, previous_state, new_state,
+        reason_code, worker_token, occurred_at
+    ) VALUES (
+        gen_random_uuid(), p_job_id, 'claimed', p_disposition,
+        p_disposition, p_worker_id, now()
+    );
+
+    RETURN TRUE;
+END;
+$complete$;
+
 CREATE OR REPLACE FUNCTION recover_expired_gold_star_adjudication_leases()
 RETURNS INTEGER
 LANGUAGE plpgsql
