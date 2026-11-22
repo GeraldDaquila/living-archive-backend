@@ -2791,7 +2791,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                         )
                     except NameError:
                         pass
-                raise strict_exc
+                # Preserve the precise hard-lane rejection so Provider Bank can
+                # classify parse/shape defects without treating them as unknown
+                # substantive quality failures.
+                raise hard_exc from strict_exc
 
     return _parse
 
