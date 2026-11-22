@@ -1578,14 +1578,16 @@ def select(use_core, operation="generic", schema=None):
                 attempts = int(item.get("latency_attempts", 0) or 0)
                 telemetry_ready = attempts >= 3
                 prediction_penalty = ((shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)) if telemetry_ready else 0.0
+                last_success = float(item.get("last_success", 0) or 0)
                 return (
                     0 if item.get("health_state") == "healthy" else 1,
+                    0 if last_success > 0 else 1,
+                    int(item.get("transport_failures", 0) or 0),
+                    int(item.get("consecutive_failures", 0) or 0),
+                    -last_success,
                     int(item.get("quality_failures", 0) or 0),
                     prediction_penalty,
                     0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                    int(item.get("consecutive_failures", 0) or 0),
-                    int(item.get("transport_failures", 0) or 0),
-                    -float(item.get("last_success", 0) or 0),
                 )
             models.sort(key=_predictive_rank)
         else:
@@ -1649,23 +1651,37 @@ def select(use_core, operation="generic", schema=None):
         lanes.sort(key=_hrn_lane_priority)
 
     if operation == "general_guide_composition":
-        # Within the Guide's fixed five-second composition window, current
-        # transport health must outrank rotating provider order. Keep operator
-        # order as a tie-breaker between equally healthy lanes.
+        # Rank the bounded Guide recovery window by demonstrated transport
+        # viability. When every lane is half-open, a provider with a prior
+        # successful inference and materially fewer transport failures should
+        # outrank a never-successful lane with hundreds of failures, even if the
+        # latter has fewer historical visitor-contract rejections. Quality remains
+        # a separate tie-breaker; it must not masquerade as transport health.
         configured_priority = {name: index for index, name in enumerate(providers)}
 
         def _guide_lane_priority(lane):
             best = lane[0] if lane else {}
             health_state = str(best.get("health_state") or "unknown")
             health_rank = 0 if health_state == "healthy" else 1
+            last_success = float(best.get("last_success", 0) or 0)
+            shadow = _predictive_shadow_metrics(
+                best, _provider_call_timeout(operation, best) if best else 4.0
+            )
+            attempts = int(best.get("latency_attempts", 0) or 0)
+            prediction_penalty = (
+                (shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)
+                if attempts >= 3 else 0.0
+            )
             return (
                 health_rank,
+                0 if last_success > 0 else 1,
+                int(best.get("transport_failures", 0) or 0),
+                int(best.get("consecutive_failures", 0) or 0),
+                -last_success,
+                prediction_penalty,
                 int(best.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (best.get("capabilities") or []) else 1,
-                int(best.get("consecutive_failures", 0) or 0),
-                int(best.get("transport_failures", 0) or 0),
                 configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
-                -float(best.get("last_success", 0) or 0),
             )
 
         lanes.sort(key=_guide_lane_priority)
