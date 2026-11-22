@@ -421,3 +421,101 @@ def test_enqueue_rejects_provenance_change_on_idempotent_retry(database):
             provenance="deterministic_recovery",
             composition_state="deterministic_or_unresolved_replacement",
         )
+
+
+
+def _reserve_capacity(connection, reservation_id, operation_class, tokens, maximum):
+    return connection.execute(
+        """
+        SELECT reserve_provider_capacity(
+            %s::uuid, %s::text, %s::integer, %s::integer, 120::integer
+        )
+        """,
+        (reservation_id, operation_class, tokens, maximum),
+    ).fetchone()[0]
+
+
+def test_capacity_reservation_is_idempotent_and_finalizable(database):
+    reservation_id = uuid.uuid4()
+    assert _reserve_capacity(database, reservation_id, "visitor_response", 30, 100)
+    assert _reserve_capacity(database, reservation_id, "visitor_response", 30, 100)
+    count = database.execute(
+        "SELECT count(*) FROM provider_capacity_reservations WHERE reservation_id = %s",
+        (reservation_id,),
+    ).fetchone()[0]
+    assert count == 1
+    assert database.execute(
+        "SELECT finalize_provider_capacity_reservation(%s, 'consumed')",
+        (reservation_id,),
+    ).fetchone()[0] is True
+    assert database.execute(
+        "SELECT finalize_provider_capacity_reservation(%s, 'consumed')",
+        (reservation_id,),
+    ).fetchone()[0] is True
+
+
+def test_capacity_is_shared_between_visitor_and_adjudication_work(database):
+    visitor_reservation = uuid.uuid4()
+    adjudication_reservation = uuid.uuid4()
+    assert _reserve_capacity(database, visitor_reservation, "visitor_response", 60, 100)
+    assert not _reserve_capacity(
+        database, adjudication_reservation, "gold_star_adjudication", 50, 100
+    )
+    assert database.execute(
+        "SELECT finalize_provider_capacity_reservation(%s, 'released')",
+        (visitor_reservation,),
+    ).fetchone()[0] is True
+    assert _reserve_capacity(
+        database, adjudication_reservation, "gold_star_adjudication", 50, 100
+    )
+    database.execute(
+        "SELECT finalize_provider_capacity_reservation(%s, 'released')",
+        (adjudication_reservation,),
+    )
+
+
+def test_concurrent_capacity_reservations_cannot_exceed_shared_limit(database):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    barrier = Barrier(2)
+    reservations = [
+        (uuid.uuid4(), "visitor_response"),
+        (uuid.uuid4(), "gold_star_adjudication"),
+    ]
+
+    def reserve(item):
+        reservation_id, operation_class = item
+        with psycopg.connect(DATABASE_URL) as connection:
+            barrier.wait(timeout=10)
+            return connection.execute(
+                """
+                SELECT reserve_provider_capacity(
+                    %s::uuid, %s::text, 60::integer, 100::integer, 120::integer
+                )
+                """,
+                (reservation_id, operation_class),
+            ).fetchone()[0]
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(pool.map(reserve, reservations))
+    assert outcomes.count(True) == 1
+    assert outcomes.count(False) == 1
+
+    for reservation_id, _ in reservations:
+        database.execute(
+            "SELECT finalize_provider_capacity_reservation(%s, 'released') "
+            "WHERE EXISTS (SELECT 1 FROM provider_capacity_reservations WHERE reservation_id = %s)",
+            (reservation_id, reservation_id),
+        )
+
+
+def test_capacity_reservation_rejects_conflicting_id_reuse(database):
+    reservation_id = uuid.uuid4()
+    assert _reserve_capacity(database, reservation_id, "visitor_response", 20, 100)
+    with pytest.raises(errors.RaiseException, match="reservation_id_payload_conflict"):
+        _reserve_capacity(database, reservation_id, "visitor_response", 21, 100)
+    database.execute(
+        "SELECT finalize_provider_capacity_reservation(%s, 'released')",
+        (reservation_id,),
+    )
