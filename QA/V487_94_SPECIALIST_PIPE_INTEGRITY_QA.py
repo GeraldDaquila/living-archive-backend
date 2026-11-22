@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # systems_ph activation is an explicit registry evolution.
 
 PROTECTED = {
-    "use_core.py": "d897d36e8f0c99aadca704e0594ae5603dd26c73",
+    "use_core.py": "3ff6444c8b85de22febd1374aa4a50bb77c4b8af",
     "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
@@ -44,7 +44,9 @@ def main():
     assert "from hub_contracts import" in main_source
     assert "HUB_CONTRACT_DIAGNOSTICS" in main_source
     assert main_source.count("route_spoke(") >= 2
-    assert "EXPECTED_CORE_BLOB_SHA = " in main_source
+    assert 'EXPECTED_CORE_BLOB_SHA = "3ff6444c8b85de22febd1374aa4a50bb77c4b8af"' in main_source
+    guide_runtime_source = (ROOT / "guide_runtime.py").read_text(encoding="utf-8")
+    assert 'EXPECTED_CORE_BLOB_SHA = "3ff6444c8b85de22febd1374aa4a50bb77c4b8af"' in guide_runtime_source
 
     hub_source = (ROOT / "hub_contracts.py").read_text(encoding="utf-8")
     assert "def route_spoke(" in hub_source
