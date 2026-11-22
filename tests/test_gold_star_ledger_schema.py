@@ -239,3 +239,46 @@ def test_third_expired_lease_becomes_terminal_retry_exhausted(database):
     assert row[0] == "retry_exhausted"
     assert row[1] is not None
     assert row[2] is None
+
+
+
+def _enqueue_job(connection, *, request_id=None, candidate_ids=None, fingerprint=None):
+    return connection.execute(
+        """
+        SELECT enqueue_gold_star_adjudication_job(
+            %s, %s, 1, %s, %s,
+            'provider_composition', 'provider_candidate_delivered'
+        )
+        """,
+        (
+            uuid.uuid4(),
+            request_id or uuid.uuid4().hex,
+            fingerprint or "b" * 64,
+            candidate_ids or ["lesson-x", "lesson-y"],
+        ),
+    ).fetchone()[0]
+
+
+def test_enqueue_is_idempotent_and_records_one_event(database):
+    request_id = uuid.uuid4().hex
+    first = _enqueue_job(database, request_id=request_id)
+    second = _enqueue_job(database, request_id=request_id)
+    assert first == second
+    count = database.execute(
+        "SELECT count(*) FROM gold_star_adjudication_events "
+        "WHERE job_id = %s AND reason_code = 'job_enqueued'",
+        (first,),
+    ).fetchone()[0]
+    assert count == 1
+
+
+def test_enqueue_rejects_reuse_of_idempotency_key_with_different_payload(database):
+    request_id = uuid.uuid4().hex
+    _enqueue_job(database, request_id=request_id)
+    with pytest.raises(errors.RaiseException, match="idempotency_key_payload_conflict"):
+        _enqueue_job(
+            database,
+            request_id=request_id,
+            candidate_ids=["different-lesson"],
+            fingerprint="c" * 64,
+        )
