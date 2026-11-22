@@ -689,9 +689,5 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert calls[0][1] == pytest.approx(5.0)
     assert calls[1][1] < provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
-    assert calls[2][1] == pytest.approx(
-        provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS - clock.value
-        + calls[2][1] - 0.02,
-        abs=0.1,
-    )
+    assert calls[2][1] == pytest.approx(4.98)
     assert calls[2][1] > 4.0
