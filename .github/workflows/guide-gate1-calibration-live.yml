@@ -1,0 +1,41 @@
+name: Guide Gate 1 Isolated Live Calibration
+
+# This workflow submits one real visitor question to production.
+# It is intentionally manual-only: never run on pull requests or pushes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-gate1-live-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate1-live-calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve current production main commit
+        run: |
+          git fetch --no-tags origin main
+          expected_commit="$(git rev-parse FETCH_HEAD)"
+          echo "EXPECTED_USE_COMMIT_SHA=$expected_commit" >> "$GITHUB_ENV"
+          echo "Production main commit under test: $expected_commit"
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Submit exactly one Gate 1 question through the live Guide
+        run: node QA/guide_gate1_calibration_live_e2e.mjs
