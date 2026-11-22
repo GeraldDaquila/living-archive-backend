@@ -1,0 +1,30 @@
+name: Gold Star ledger connectivity probe contract
+
+on:
+  pull_request:
+    paths:
+      - "gold_star_ledger_connectivity.py"
+      - "tests/test_gold_star_ledger_connectivity.py"
+      - ".github/workflows/gold-star-ledger-connectivity.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "gold_star_ledger_connectivity.py"
+      - "tests/test_gold_star_ledger_connectivity.py"
+      - ".github/workflows/gold-star-ledger-connectivity.yml"
+
+jobs:
+  connectivity-probe-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install probe dependency and test runner
+        run: python -m pip install "psycopg[binary]>=3.2,<4" pytest
+      - name: Compile probe
+        run: python -m py_compile gold_star_ledger_connectivity.py
+      - name: Run privacy and fail-closed contract tests
+        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_ledger_connectivity.py
