@@ -37,7 +37,7 @@ def test_problem_boundary_recovery_handles_close_paraphrases_but_not_unrelated_q
     assert compose_task_specific_recovery("What boundaries should I set in a personal relationship?") is None
 
 
-def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learning():
+def test_problem_boundary_candidate_is_approved_and_active_learning():
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     record = next(
         item for item in registry["records"]
@@ -55,7 +55,7 @@ def test_problem_boundary_candidate_is_pending_user_review_and_not_active_learni
     assert record["known_theme"]
     assert registry["integrity_audit"]["registry_record_count"] == len(registry["records"])
     assert registry["audit"]["registry_record_count"] == len(registry["records"])
-    assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 1
+    assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 0
     assert len(record["expected_response"].split("\n\n")) == 3
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
