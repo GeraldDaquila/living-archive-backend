@@ -1,5 +1,7 @@
 import { chromium } from "playwright";
 
+// Re-run against each updated main baseline to verify the live Gate 1 path after runtime fixes.
+
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_live=gate1-isolated";
 const PRIMARY_API_ORIGIN = "https://living-archive-backend.onrender.com";
 const MIRROR_API_ORIGIN = "https://living-archive-backend-mirror.onrender.com";
