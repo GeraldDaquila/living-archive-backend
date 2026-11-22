@@ -57,3 +57,23 @@ def test_missing_required_core_candidate_fails_closed(monkeypatch):
         "and shared responsibility, how should it make a decision that is both fair and workable?",
         lessons_without_core,
     ) == []
+
+
+
+def test_active_contribution_carries_selected_disciplines_and_boundaries():
+    query = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both fair and workable?"
+    )
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    candidates = contribution["candidates"]
+    assert [item["benchmark_id"] for item in candidates] == [
+        "general-guide-ethical-tradeoff-2026-10",
+        "gs-2026-11-20-stewardship-consent-relational-legitimacy",
+    ]
+    assert all(item["discipline"].strip() for item in candidates)
+    assert all(item["abstention_boundary"].strip() for item in candidates)
+    assert all(item["role"] in {"core", "conditional"} for item in candidates)
