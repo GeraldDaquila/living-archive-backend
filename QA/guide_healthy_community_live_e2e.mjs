@@ -418,8 +418,13 @@ try {
         recommendation: item.payload?.recommendation
       }))));
   }
-  const calibrationUI = (await answer.innerText()).replace(/\\s+/g, " ").trim();
-  const calibrationAPI = calibrationResponse.payload.response.replace(/\\s+/g, " ").trim();
+  await page.waitForFunction(() => {
+    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+    const text = (root?.querySelector("#archive-response-text")?.innerText || "").toLowerCase();
+    return /freedom/.test(text) && /responsibility/.test(text) && /fair/.test(text);
+  }, null, { timeout: 60_000 });
+  const calibrationUI = (await answer.innerText()).replace(/\s+/g, " ").trim();
+  const calibrationAPI = calibrationResponse.payload.response.replace(/\s+/g, " ").trim();
   if (!calibrationUI.toLowerCase().includes("freedom") ||
       !calibrationUI.toLowerCase().includes("responsibility") ||
       !calibrationUI.toLowerCase().includes("fair")) {
