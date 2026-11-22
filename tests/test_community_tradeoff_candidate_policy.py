@@ -45,12 +45,15 @@ def test_ordinary_household_or_chores_questions_do_not_activate_policy():
         )
 
 
-def test_missing_required_core_candidate_fails_closed(monkeypatch):
+def test_missing_required_core_candidates_fail_closed(monkeypatch):
     import community_tradeoff_candidate_policy as policy
 
+    required_core_ids = {
+        "general-guide-ethical-tradeoff-2026-10",
+        "gs-2026-11-22-community-freedom-shared-responsibility-decision",
+    }
     lessons_without_core = [
-        item for item in lessons._LESSONS
-        if item["id"] != "general-guide-ethical-tradeoff-2026-10"
+        item for item in lessons._LESSONS if item["id"] not in required_core_ids
     ]
     assert policy.select_community_tradeoff_candidates(
         "When a community faces a difficult trade-off between individual freedom "
@@ -75,3 +78,32 @@ def test_active_contribution_carries_selected_disciplines_and_boundaries():
     ]
     assert all(item["discipline"].strip() for item in candidates)
     assert all(item["abstention_boundary"].strip() for item in candidates)
+
+
+def test_new_community_freedom_gold_star_transfers_to_a_close_paraphrase():
+    query = (
+        "How should a community balance personal liberty with collective obligations "
+        "when setting a fair rule?"
+    )
+    selected = _selected(query)
+    ids = [item["benchmark_id"] for item in selected]
+    target = "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    assert target in ids
+    candidate = next(item for item in selected if item["benchmark_id"] == target)
+    assert candidate["exact"] is False
+    assert candidate["match_basis"] == "governed_community_tradeoff_policy"
+    assert candidate["transferable_discipline"]
+    assert candidate["abstention_boundary"]
+
+
+def test_paraphrase_contribution_includes_new_gold_star_as_structural_guidance_only():
+    query = (
+        "How should a community balance personal liberty with collective obligations "
+        "when setting a fair rule?"
+    )
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    assert contribution["exact"] is False
+    assert contribution["abstention_boundary"]
