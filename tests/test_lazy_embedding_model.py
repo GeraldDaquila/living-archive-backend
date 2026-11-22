@@ -18,6 +18,14 @@ class _FakeEmbeddingModel:
         return iter([_FakeVector()])
 
 
+def test_module_import_does_not_load_fastembed_or_onnxruntime():
+    import sys
+
+    assert use_core.embedding_model is None
+    assert "fastembed" not in sys.modules
+    assert "onnxruntime" not in sys.modules
+
+
 def test_embedding_model_is_initialized_only_when_embedding_is_requested(monkeypatch):
     created = []
     monkeypatch.setattr(use_core, "embedding_model", None)
