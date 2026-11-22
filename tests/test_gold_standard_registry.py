@@ -2396,3 +2396,23 @@ def test_user_approved_organizational_acknowledgment_learning_gold_star_is_regis
     assert record["expected_doorway"]["title"] == "When Experience Can Change Us: The Two Capacities of a Living System"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+def test_community_freedom_shared_responsibility_gold_star_is_registered_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "When a community faces a difficult trade-off between individual freedom and shared responsibility, how should it make a decision that is both fair and workable?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "less restrictive alternatives" in record["expected_response"]
+    assert "meaningful agency" in record["expected_response"]
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
+    assert record["runtime_transfer"] is True
+    assert record["exact_answer_authority"] is False
+    assert record["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert "elevate to gold star registry" in record["approval_evidence"]
