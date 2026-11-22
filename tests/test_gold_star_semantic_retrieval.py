@@ -29,3 +29,43 @@ def test_semantic_similarity_without_subject_anchor_is_rejected(monkeypatch):
     result = lessons.select_lesson_candidates("How do tides affect coastal ecosystems?")
     assert result == []
 
+def test_semantic_retrieval_reuses_the_shared_use_core_model(monkeypatch):
+    import sys
+    import types
+
+    class FakeModel:
+        def __init__(self):
+            self.calls = []
+
+        def embed(self, texts, batch_size=256):
+            self.calls.append((list(texts), batch_size))
+            return iter([[1.0] + [0.0] * 383 for _ in texts])
+
+    shared = FakeModel()
+    fake_use_core = types.ModuleType("use_core")
+    fake_use_core._get_embedding_model = lambda: shared
+    monkeypatch.setitem(sys.modules, "use_core", fake_use_core)
+    semantic._model.cache_clear()
+    semantic._lesson_vectors.cache_clear()
+    try:
+        assert semantic._model() is shared
+        lessons_for_test = [{
+            "id": "test-lesson",
+            "query": "A reviewed test question",
+            "known_theme": "A test theme",
+            "reasoning_family": "A test reasoning family",
+            "variants": [],
+        }]
+        monkeypatch.setattr(semantic, "_LESSON_SOURCE", lambda: lessons_for_test)
+        vectors = semantic._lesson_vectors()
+        assert list(vectors) == ["test-lesson"]
+        assert len(vectors["test-lesson"]) == 384
+        assert shared.calls[0][1] == 32
+
+        scores = semantic.rank_semantic_lessons("a test query", lessons_for_test)
+        assert scores == {"test-lesson": 1.0}
+        assert shared.calls[1][1] == 1
+    finally:
+        semantic._lesson_vectors.cache_clear()
+        semantic._model.cache_clear()
+

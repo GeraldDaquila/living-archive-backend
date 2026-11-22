@@ -14,8 +14,12 @@ _MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
 @lru_cache(maxsize=1)
 def _model():
-    from fastembed import TextEmbedding
-    return TextEmbedding(model_name=_MODEL_NAME)
+    # Reuse the process-wide USE embedding model. Creating a second FastEmbed /
+    # ONNX session here makes the first unseen Gold Star query pay for two model
+    # instances in a 512 MiB service. The shared loader is lazy and keeps the
+    # canonical model/thread configuration in one place.
+    from use_core import _get_embedding_model
+    return _get_embedding_model()
 
 
 def _unit(vector):
@@ -39,7 +43,7 @@ def _lesson_vectors():
         ))
         for item in lessons
     ]
-    vectors = list(model.embed(texts))
+    vectors = list(model.embed(texts, batch_size=32))
     return {
         str(item["id"]): _unit(vector)
         for item, vector in zip(lessons, vectors)
@@ -58,7 +62,7 @@ def rank_semantic_lessons(query: str, candidates: List[Dict[str, Any]]) -> Dict[
         return {}
     model = _model()
     query_text = "Represent this sentence for searching relevant passages: " + str(query)
-    query_vector = _unit(next(iter(model.embed([query_text]))))
+    query_vector = _unit(next(iter(model.embed([query_text], batch_size=1))))
     vectors = _lesson_vectors()
     return {
         str(item["id"]): sum(
