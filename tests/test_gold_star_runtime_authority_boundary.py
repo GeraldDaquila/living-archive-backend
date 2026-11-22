@@ -86,15 +86,16 @@ def test_composer_keeps_active_quality_and_exact_answer_authority_as_separate_bo
     assert "registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)" in source
 
 
-def test_basic_inquiry_deterministic_recovery_uses_guidance_only_as_an_answerability_signal():
+def test_basic_inquiry_deterministic_recovery_does_not_claim_gold_star_application():
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_round1_deterministic_response(")
     end = source.index("\ndef _guide_html_to_source_text(", start)
     function_source = source[start:end]
-    assert "_gold_star_active_quality_contribution(query)" in function_source
-    assert "_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)" in function_source
-    # The deterministic prose is pre-authored; cross-question discipline must
-    # not be appended as answer text or mistaken for a generated reasoning step.
+    assert "_gold_star_active_quality_contribution(query)" not in function_source
+    assert "_direct_answer_baseline = bool(_matched_orientation)" in function_source
+    assert "retrieval alone must never change the answer's framing" in function_source
+    # The deterministic prose is pre-authored and has no composition mechanism
+    # for applying cross-question discipline. It must not append lesson text.
     lessons = Path("gold_star_lessons.py").read_text(encoding="utf-8")
     assert "def apply_deterministic_fallback_guidance(query: str, response: str) -> str:" in lessons
     assert 'return str(response or "").strip()' in lessons
