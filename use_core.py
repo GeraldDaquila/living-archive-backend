@@ -43,8 +43,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pinecone import Pinecone
 from groq import Groq
-from fastembed import TextEmbedding
-import onnxruntime as _onnxruntime
 
 
 # =====================================================================
@@ -672,7 +670,7 @@ DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "ee109e20e321049137eefa7a4a191471c8bd6e00e6959afd59746614bcdea729"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "8532c938733a3595c97712fbc841813da77735c7fe3a04252045f3eeec9928a2"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -876,56 +874,88 @@ pc = Pinecone(api_key=PINECONE_API_KEY) if PINECONE_API_KEY else None
 index = pc.Index(PINECONE_INDEX_NAME) if pc else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
+# The local ONNX embedding model is not needed by every request. In particular,
+# the Guide may temporarily use the canonical territorial mirror while Pinecone
+# retrieval is bypassed. Loading FastEmbed during module import wastes memory on
+# those requests and amplifies rolling-deploy overlap on the 512 MiB service.
+# Keep the existing model, thread configuration, and embedding bytes identical;
+# instantiate it once, only when a code path actually requests an embedding.
+embedding_model = None
+_EMBEDDING_MODEL_LOCK = threading.Lock()
 
-# v292 retains provider/runtime observability from v288. This reads the
-# already-initialized FastEmbed/ONNX Runtime objects without changing model
-# configuration, provider selection, thread settings, or request behavior.
-try:
-    _embedding_runtime_model = getattr(embedding_model, "model", None)
-    _embedding_runtime_session = getattr(_embedding_runtime_model, "model", None)
-    _embedding_runtime_available_providers = _onnxruntime.get_available_providers()
-    _embedding_runtime_session_providers = (
-        _embedding_runtime_session.get_providers()
-        if _embedding_runtime_session is not None
-        and hasattr(_embedding_runtime_session, "get_providers")
-        else []
-    )
-    _embedding_runtime_provider_options = (
-        _embedding_runtime_session.get_provider_options()
-        if _embedding_runtime_session is not None
-        and hasattr(_embedding_runtime_session, "get_provider_options")
-        else {}
-    )
-    _embedding_runtime_threads = getattr(_embedding_runtime_model, "threads", None)
-    _embedding_runtime_requested_providers = getattr(
-        _embedding_runtime_model, "providers", None
-    )
-    _embedding_runtime_cuda = getattr(_embedding_runtime_model, "cuda", None)
-    _embedding_runtime_cpu_count = os.cpu_count()
+
+def _create_embedding_model():
+    from fastembed import TextEmbedding
+
+    return TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
+
+
+def _log_embedding_runtime_diagnostic(model):
     try:
-        _embedding_runtime_affinity_count = len(os.sched_getaffinity(0))
-    except (AttributeError, OSError):
-        _embedding_runtime_affinity_count = None
-    print(
-        "USE v292 embedding-runtime diagnostic: "
-        f"fastembed_model='BAAI/bge-small-en-v1.5', "
-        f"onnxruntime={getattr(_onnxruntime, '__version__', 'unknown')}, "
-        f"available_providers={_embedding_runtime_available_providers}, "
-        f"session_providers={_embedding_runtime_session_providers}, "
-        f"provider_options={_embedding_runtime_provider_options}, "
-        f"configured_threads={_embedding_runtime_threads}, "
-        f"requested_providers={_embedding_runtime_requested_providers}, "
-        f"cuda_mode={_embedding_runtime_cuda}, "
-        f"cpu_count={_embedding_runtime_cpu_count}, "
-        f"affinity_count={_embedding_runtime_affinity_count}"
-    )
-except Exception as _embedding_runtime_diag_exc:
-    print(
-        "USE v292 embedding-runtime diagnostic: "
-        f"status=error, error={type(_embedding_runtime_diag_exc).__name__}: "
-        f"{_embedding_runtime_diag_exc}"
-    )
+        import onnxruntime as _onnxruntime
+
+        _embedding_runtime_model = getattr(model, "model", None)
+        _embedding_runtime_session = getattr(_embedding_runtime_model, "model", None)
+        _embedding_runtime_available_providers = _onnxruntime.get_available_providers()
+        _embedding_runtime_session_providers = (
+            _embedding_runtime_session.get_providers()
+            if _embedding_runtime_session is not None
+            and hasattr(_embedding_runtime_session, "get_providers")
+            else []
+        )
+        _embedding_runtime_provider_options = (
+            _embedding_runtime_session.get_provider_options()
+            if _embedding_runtime_session is not None
+            and hasattr(_embedding_runtime_session, "get_provider_options")
+            else {}
+        )
+        _embedding_runtime_threads = getattr(_embedding_runtime_model, "threads", None)
+        _embedding_runtime_requested_providers = getattr(
+            _embedding_runtime_model, "providers", None
+        )
+        _embedding_runtime_cuda = getattr(_embedding_runtime_model, "cuda", None)
+        _embedding_runtime_cpu_count = os.cpu_count()
+        try:
+            _embedding_runtime_affinity_count = len(os.sched_getaffinity(0))
+        except (AttributeError, OSError):
+            _embedding_runtime_affinity_count = None
+        print(
+            "USE v292 embedding-runtime diagnostic: "
+            f"fastembed_model='BAAI/bge-small-en-v1.5', "
+            f"onnxruntime={getattr(_onnxruntime, '__version__', 'unknown')}, "
+            f"available_providers={_embedding_runtime_available_providers}, "
+            f"session_providers={_embedding_runtime_session_providers}, "
+            f"provider_options={_embedding_runtime_provider_options}, "
+            f"configured_threads={_embedding_runtime_threads}, "
+            f"requested_providers={_embedding_runtime_requested_providers}, "
+            f"cuda_mode={_embedding_runtime_cuda}, "
+            f"cpu_count={_embedding_runtime_cpu_count}, "
+            f"affinity_count={_embedding_runtime_affinity_count}"
+        )
+    except Exception as exc:
+        print(
+            "USE v292 embedding-runtime diagnostic: "
+            f"status=error, error={type(exc).__name__}: {exc}"
+        )
+
+
+def _get_embedding_model():
+    global embedding_model
+    if embedding_model is not None:
+        return embedding_model
+    with _EMBEDDING_MODEL_LOCK:
+        if embedding_model is None:
+            print("USE embedding model lifecycle: initialization=deferred_until_first_embedding")
+            model = _create_embedding_model()
+            embedding_model = model
+            _log_embedding_runtime_diagnostic(model)
+    return embedding_model
+
+
+print(
+    "USE embedding model lifecycle: status=lazy, "
+    "model='BAAI/bge-small-en-v1.5', configured_threads=1"
+)
 
 ROOT_NODE_ID = "canonical_root_living_archive"
 
@@ -1185,7 +1215,7 @@ def generate_embedding(text: str, diagnostic_label: Optional[str] = None) -> Lis
     try:
         provider_started = time.perf_counter() if diagnostic_label else None
         generator_started = time.perf_counter() if diagnostic_label else None
-        embedding_generator = embedding_model.embed([text])
+        embedding_generator = _get_embedding_model().embed([text])
         generator_creation_elapsed = (
             time.perf_counter() - generator_started
             if generator_started is not None
