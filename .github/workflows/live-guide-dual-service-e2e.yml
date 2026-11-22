@@ -36,6 +36,7 @@ jobs:
           import re
           import time
           import urllib.request
+          from datetime import date, datetime, timezone
           from pathlib import Path
 
           source = Path("main.py").read_text(encoding="utf-8")
@@ -47,8 +48,15 @@ jobs:
 
           services = {
               "primary": "https://living-archive-backend.onrender.com",
-              "mirror": "https://living-archive-backend-mirror.onrender.com",
           }
+          mirror_available_after = date(2026, 12, 1)
+          if datetime.now(timezone.utc).date() >= mirror_available_after:
+              services["mirror"] = "https://living-archive-backend-mirror.onrender.com"
+          else:
+              print(
+                  "mirror: intentionally skipped until planned December 1, 2026 reset; "
+                  "primary remains the sole production runtime under acceptance"
+              )
           observations = {}
 
           # This release smoke test intentionally uses only the inexpensive
@@ -105,14 +113,20 @@ jobs:
                   )
 
           primary = observations["primary"]
-          mirror = observations["mirror"]
-          if primary["source_sha256"] != mirror["source_sha256"]:
-              raise SystemExit(
-                  "Primary/mirror source mismatch: "
-                  f"{primary['source_sha256']} != {mirror['source_sha256']}"
+          if "mirror" in observations:
+              mirror = observations["mirror"]
+              if primary["source_sha256"] != mirror["source_sha256"]:
+                  raise SystemExit(
+                      "Primary/mirror source mismatch: "
+                      f"{primary['source_sha256']} != {mirror['source_sha256']}"
+                  )
+              print(
+                  "Dual-service runtime identity PASS: "
+                  f"commit={expected_commit}; source_sha256={primary['source_sha256']}"
               )
-          print(
-              "Dual-service runtime identity PASS: "
-              f"commit={expected_commit}; source_sha256={primary['source_sha256']}"
-          )
+          else:
+              print(
+                  "Primary-only runtime identity PASS; mirror verification deferred "
+                  f"until {mirror_available_after.isoformat()}"
+              )
           PY
