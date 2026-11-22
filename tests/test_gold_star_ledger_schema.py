@@ -242,13 +242,12 @@ def test_third_expired_lease_becomes_terminal_retry_exhausted(database):
 
 
 
-def _enqueue_job(connection, *, request_id=None, candidate_ids=None, fingerprint=None):
+def _enqueue_job(connection, *, request_id=None, candidate_ids=None, fingerprint=None, provenance='provider_composition', composition_state='provider_candidate_delivered'):
     return connection.execute(
         """
         SELECT enqueue_gold_star_adjudication_job(
             %s::uuid, %s::char(32), 1::smallint,
-            %s::char(64), %s::text[],
-            'provider_composition'::text, 'provider_candidate_delivered'::text
+            %s::char(64), %s::text[], %s::text, %s::text
         )
         """,
         (
@@ -256,6 +255,8 @@ def _enqueue_job(connection, *, request_id=None, candidate_ids=None, fingerprint
             request_id or uuid.uuid4().hex,
             fingerprint or "b" * 64,
             candidate_ids or ["lesson-x", "lesson-y"],
+            provenance,
+            composition_state,
         ),
     ).fetchone()[0]
 
@@ -406,4 +407,17 @@ def test_completion_rejects_non_owner_and_duplicate_completion(database):
             )
             """,
             (job_id, worker_id, uuid.uuid4()),
+        )
+
+
+
+def test_enqueue_rejects_provenance_change_on_idempotent_retry(database):
+    request_id = uuid.uuid4().hex
+    _enqueue_job(database, request_id=request_id)
+    with pytest.raises(errors.RaiseException, match="idempotency_key_payload_conflict"):
+        _enqueue_job(
+            database,
+            request_id=request_id,
+            provenance="deterministic_recovery",
+            composition_state="deterministic_or_unresolved_replacement",
         )
