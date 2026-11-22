@@ -1770,6 +1770,37 @@ def _guide_meta_coverage_policy_recovery():
     )
 
 
+def _is_institutional_legitimacy_question(question):
+    """Recognize a bounded general-concept question about institutional legitimacy."""
+    q = re.sub(r"\s+", " ", str(question or "")).strip()
+    if not q:
+        return False
+    asks_legitimacy = bool(
+        re.search(r"\bwhat makes\b.{0,45}\binstitution(?:s|al)?\b.{0,35}\blegitim\w*\b", q, re.I)
+        or re.search(r"\bwhat gives\b.{0,35}\binstitution(?:s)?\b.{0,30}\blegitim\w*\b", q, re.I)
+        or re.search(r"\bwhen (?:is|are)\b.{0,35}\binstitution(?:s)?\b.{0,30}\blegitim\w*\b", q, re.I)
+        or re.search(r"\binstitutional legitimacy\b", q, re.I)
+    )
+    source_only = bool(re.search(
+        r"\b(?:according to|as defined by|official|formally defined|in the Living Archive(?:'s)? (?:own )?(?:terms|framework|teaching))\b",
+        q, re.I,
+    ))
+    high_stakes = bool(re.search(
+        r"\b(?:legal opinion|constitutional law advice|court case|specific lawsuit)\b",
+        q, re.I,
+    ))
+    return asks_legitimacy and not source_only and not high_stakes
+
+
+def _institutional_legitimacy_recovery():
+    """Explain general legitimacy without presenting it as Archive doctrine."""
+    return (
+        "An institution is legitimate when its authority is justifiable to the people affected by it—not merely because it exists, has power, or follows its own procedures. Legitimacy has several connected foundations: a credible public purpose; authority established through a recognized and appropriate process; decisions made with competence, consistency, and fairness; and meaningful ways for affected people to be heard, question decisions, and seek correction. The weight of each foundation depends on the institution's role and the people subject to its decisions.\n\n"
+        "Lawful authorization matters, but legality alone does not settle every question of legitimacy. Nor is popularity enough: a widely supported institution can still abuse power or disregard rights. A stronger test is whether the institution can explain who authorized it to act, what limits govern its authority, whose interests and rights it must consider, how it gives reasons for consequential decisions, and what happens when it makes a mistake. Its conduct over time matters as much as its founding claim.\n\n"
+        "In practice, look for evidence rather than declarations: whether rules are applied fairly; whether decision-makers are answerable; whether dissent and scrutiny are safe; whether burdens and benefits are distributed defensibly; and whether the institution can acknowledge failure and change course. Legitimacy is therefore not a permanent certificate. It is sustained—or weakened—through the continuing relationship between authority, purpose, performance, participation, and accountability. This is a general conceptual explanation, not a statement of the Living Archive's formal doctrine."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -1777,6 +1808,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    if _is_institutional_legitimacy_question(q):
+        return _institutional_legitimacy_recovery()
 
     # This conceptual contrast is an ordinary explanatory task, not an unfamiliar
     # Archive term requiring a formal-definition abstention.
