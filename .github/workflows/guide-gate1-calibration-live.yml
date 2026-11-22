@@ -14,6 +14,7 @@ on:
       - 'use_core.py'
       - 'provider_bank.py'
       - 'archive_crosslink.py'
+      - 'gold_star_semantic_retrieval.py'
   workflow_dispatch:
 
 permissions:
