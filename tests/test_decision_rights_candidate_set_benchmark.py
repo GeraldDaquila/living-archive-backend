@@ -139,6 +139,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
         key=lambda item: item["benchmark_id"],
     )
     review_ids = {item["benchmark_id"] for item in reviews["entries"]}
+    assert packet["inventory_reconciliation"]["approved_records"] == 131
     assert packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
     assert len(active) == 130
     assert packet["inventory_reconciliation"]["qualitative_review_entries"] == 129
@@ -147,7 +148,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
     candidates = packet["candidates"]
     assert len(candidates) == packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
     assert [item["candidate_label"] for item in candidates] == [
-        f"C{index:03d}" for index in range(1, len(active) + 1)
+        f"C{index:03d}" for index in range(1, len(candidates) + 1)
     ]
     assert all("benchmark_id" not in item for item in candidates)
     required_source_fields = (
