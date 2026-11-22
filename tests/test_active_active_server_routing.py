@@ -35,3 +35,89 @@ def test_active_active_remote_result_is_revalidated(monkeypatch):
     result=bank._active_active_delegate([{"role":"user","content":"q"}], 200, lambda raw: __import__("json").loads(raw), "general_guide_composition", None, None)
     assert result["parsed"]["answer"] == "ok"
     assert result["provider"] == "counterpart:test"
+
+
+def test_active_active_skips_counterpart_running_a_different_commit(monkeypatch):
+    import json
+
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "secret")
+    monkeypatch.setenv("USE_SERVER_ROLE", "primary")
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "primary-commit")
+    monkeypatch.setenv(
+        "USE_COUNTERPART_PROVIDER_URL",
+        "https://mirror.example/api/active-active-guide-capability",
+    )
+    calls = []
+
+    class Response:
+        def read(self):
+            return json.dumps({
+                "contract": "provider-health-readiness-v1",
+                "deployment_commit_sha": "stale-mirror-commit",
+            }).encode("utf-8")
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+
+    def fake_urlopen(request, timeout):
+        calls.append((request, timeout))
+        return Response()
+
+    monkeypatch.setattr(bank, "urlopen", fake_urlopen)
+    result = bank._active_active_delegate(
+        [{"role": "user", "content": "q"}],
+        200,
+        lambda raw: json.loads(raw),
+        "general_guide_composition",
+        None,
+        None,
+    )
+
+    assert result is None
+    assert len(calls) == 1
+    assert calls[0][0].get_method() == "GET"
+    assert calls[0][0].full_url == "https://mirror.example/api/provider-health-readiness"
+    assert calls[0][1] == bank.ACTIVE_ACTIVE_READINESS_TIMEOUT_SECONDS
+
+
+def test_active_active_delegates_only_after_counterpart_commit_matches(monkeypatch):
+    import json
+
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "secret")
+    monkeypatch.setenv("USE_SERVER_ROLE", "primary")
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "primary-commit")
+    monkeypatch.setenv(
+        "USE_COUNTERPART_PROVIDER_URL",
+        "https://mirror.example/api/active-active-guide-capability",
+    )
+    calls = []
+
+    class Response:
+        def __init__(self, body):
+            self.body = body
+        def read(self): return self.body
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+
+    def fake_urlopen(request, timeout):
+        calls.append(request)
+        if request.get_method() == "GET":
+            return Response(json.dumps({
+                "contract": "provider-health-readiness-v1",
+                "deployment_commit_sha": "primary-commit",
+            }).encode("utf-8"))
+        return Response(
+            b'{"ok":true,"result":{"answer":"ok"},"provider":"test","model":"m"}'
+        )
+
+    monkeypatch.setattr(bank, "urlopen", fake_urlopen)
+    result = bank._active_active_delegate(
+        [{"role": "user", "content": "q"}],
+        200,
+        lambda raw: json.loads(raw),
+        "general_guide_composition",
+        None,
+        None,
+    )
+
+    assert result["parsed"]["answer"] == "ok"
+    assert [request.get_method() for request in calls] == ["GET", "POST"]
