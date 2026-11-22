@@ -8303,10 +8303,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What does it mean to lead from reality rather than ideology?",
       "expected_response": "To lead from reality rather than ideology is to let actual conditions, evidence, constraints, and people's lived experience shape how you understand a situation and what you do. Ideology becomes the driver when a fixed set of beliefs or a preferred outcome decides in advance which facts count, which evidence is noticed, and which conclusions are allowed.\n\nThis does not mean leading without values or principles. Values can guide what matters; reality tests whether our understanding and chosen means fit the world as it is. A reality-led leader states assumptions, listens to people affected, looks for evidence that could challenge the current view, and changes course when the facts warrant it. Ideological rigidity instead protects the doctrine by dismissing or explaining away contrary evidence.\n\nFor example, if a policy intended to improve public services is not helping the people it was designed for, reality-led leadership examines the results, listens to those affected, and revises the policy. Ideological rigidity insists the policy must be working and discounts the evidence. This is a general conceptual explanation, not a claim about a formal Living Archive definition.",
-      "expected_doorway": {
-        "title": null,
-        "url": null
-      },
+      "expected_doorway": null,
       "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "doorway_omission_exception_reason": "The visitor's question is fully answered at the general conceptual level. No specific canonical Living Archive source was established as the authority for this formulation, and the answer explicitly disclaims a formal Archive definition. A forced doorway would blur the distinction between general explanation and institutional attribution. Offer a doorway only when the visitor asks for institutional doctrine or a directly relevant canonical source is verified.",
       "rating_out_of_10": 9.2,
@@ -8355,8 +8352,7 @@
       "approval_evidence": "User explicitly instructed “elevate to gold star registry” after reviewing the live Guide screenshot and assessment.",
       "user_approved_at": "2026-11-22",
       "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
-      "legacy_approval_grandfathered": false,
-      "forbids_doorway": true
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-layered-answerability-calibrated-abstention. It contributes the bounded reasoning discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, display serial, or doorway is granted. Held-out validation remains a separate system-level acceptance activity.",
