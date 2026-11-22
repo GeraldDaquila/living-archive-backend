@@ -11428,7 +11428,6 @@ def _basic_inquiry_has_internal_implementation_language(response):
 # never transferred across questions.
 try:
     from gold_star_lessons import (
-        shadow_observation as _gold_star_shadow_observation,
         active_quality_contribution as _gold_star_active_quality_contribution,
     )
 except Exception:
@@ -11445,17 +11444,9 @@ def _is_registered_gold_standard_composition_result(result):
 
 
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
-    # Observation-only: returned metadata is discarded and cannot influence composition.
-    try:
-        if _gold_star_shadow_observation is not None:
-            _request_ledger_context = _gold_star_ledger.current_request_context()
-            _gold_star_shadow_observation(
-                str(query or ""),
-                request_id=_request_ledger_context.get("request_id"),
-                request_ledger_version=_request_ledger_context.get("request_ledger_version"),
-            )
-    except Exception:
-        pass
+    # Observation-only semantic retrieval is intentionally excluded from the
+    # visitor request path. Active Gold Star contribution remains in the composer,
+    # where it is deadline-bounded and can influence the answer under adjudication.
 
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
