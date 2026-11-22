@@ -31,6 +31,9 @@ def test_query_classifier_does_not_capture_unrelated_or_source_specific_question
         "What is reality in philosophy?",
         "How do I lead a team meeting?",
         "Is this organization's policy consistent with its published doctrine?",
+        "According to the Living Archive, what does it mean to lead from reality rather than ideology?",
+        "Using only the Archive's published text, what does it mean to lead from reality rather than ideology?",
+        "What does it mean to lead from reality rather than ideology in clinical care?",
         "What does it mean to lead from reality?",
     ):
         assert not is_reality_vs_ideology_leadership_question(query)
