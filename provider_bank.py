@@ -3559,6 +3559,24 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 and attempt_timeout is not None
             ):
                 attempt_timeout = min(attempt_timeout, candidate_timeout)
+            if operation == "general_guide_composition" and attempt_index > base_max_attempts:
+                minimum_attempt_timeout = (
+                    GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+                    if str(item.get("health_state") or "") == "half_open"
+                    else GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+                )
+                if attempt_timeout is None or attempt_timeout < minimum_attempt_timeout:
+                    state["probe_in_flight"] = False
+                    available_timeout = max(0.0, float(attempt_timeout or 0.0))
+                    print(
+                        "USE provider bank fast-failure fallback: "
+                        f"operation={operation}, action=skip_candidate_below_minimum_timeout, "
+                        f"provider={provider}, model={model}, "
+                        f"candidate_timeout_seconds={available_timeout:.2f}, "
+                        f"minimum_timeout_seconds={minimum_attempt_timeout:.2f}, "
+                        "reason=deadline_recheck_insufficient_remaining_time"
+                    )
+                    continue
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
             ):
