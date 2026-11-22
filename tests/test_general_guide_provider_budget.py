@@ -494,12 +494,13 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    assert len(calls) == 6
+    # The 18-second arbitration window admits all seven bounded 2.5s probes.
+    assert len(calls) == 7
     assert all(
         timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(15.0)
+    assert clock.value == pytest.approx(17.5)
 
 
 def _recovery_candidate(
