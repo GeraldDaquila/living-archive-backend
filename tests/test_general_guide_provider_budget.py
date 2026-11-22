@@ -694,3 +694,53 @@ def test_general_guide_skips_final_partial_window_below_supported_minimum(monkey
     assert "candidate_timeout_seconds=4.96" in output
     assert "minimum_timeout_seconds=5.00" in output
     assert "reason=insufficient_remaining_time" in output
+
+
+
+def test_general_guide_rechecks_minimum_timeout_at_transport_boundary(monkeypatch, capsys):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    bounded_calls = {"count": 0}
+
+    def shrink_at_transport_boundary(timeout, deadline_monotonic, now=None):
+        bounded_calls["count"] += 1
+        if bounded_calls["count"] >= 4:
+            return min(float(timeout), 4.99)
+        return float(timeout)
+
+    monkeypatch.setattr(
+        provider_bank,
+        "_bounded_request_provider_timeout",
+        shrink_at_transport_boundary,
+    )
+    calls = []
+
+    def first_candidate_fails(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value += 0.1
+        raise RuntimeError("simulated provider failure")
+
+    monkeypatch.setattr(provider_bank, "_call", first_candidate_fails)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+        deadline_monotonic=100.0,
+    )
+
+    assert result is None
+    # The first attempt is allowed; the fallback is skipped after its final
+    # deadline recheck shrinks the transport timeout to 4.99 seconds.
+    assert [provider for provider, _ in calls] == ["gemini"]
+    assert calls[0][1] == pytest.approx(5.0)
+    output = capsys.readouterr().out
+    assert "reason=deadline_recheck_insufficient_remaining_time" in output
+    assert "candidate_timeout_seconds=4.99" in output
+    assert "minimum_timeout_seconds=5.00" in output
