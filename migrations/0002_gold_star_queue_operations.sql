@@ -155,7 +155,7 @@ BEGIN
         RAISE EXCEPTION 'job_lease_not_owned';
     END IF;
 
-    IF p_disposition NOT IN (
+    IF p_disposition IS NULL OR p_disposition NOT IN (
         'adjudicated_selected', 'adjudicated_rejected',
         'abstained_insufficient_evidence', 'human_review_required'
     ) THEN
