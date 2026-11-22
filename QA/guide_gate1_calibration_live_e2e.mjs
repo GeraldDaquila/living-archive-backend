@@ -177,7 +177,7 @@ try {
   }
 
   const payload = primaryResponse.payload;
-  const responseText = String(payload.response || "").replace(/\\s+/g, " ").trim();
+  const responseText = String(payload.response || "").replace(/\s+/g, " ").trim();
   if (
     payload.intent !== "TOPICAL_INQUIRY" ||
     responseText.length < 150 ||
@@ -205,7 +205,7 @@ try {
       text.includes("fair");
   }, ROOT, { timeout: 45_000 });
 
-  const visibleAnswer = (await answer.innerText()).replace(/\\s+/g, " ").trim();
+  const visibleAnswer = (await answer.innerText()).replace(/\s+/g, " ").trim();
   if (
     !visibleAnswer.toLowerCase().includes("freedom") ||
     !visibleAnswer.toLowerCase().includes("responsibility") ||
