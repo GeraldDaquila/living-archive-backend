@@ -93,7 +93,7 @@ def test_basic_inquiry_deterministic_recovery_does_not_claim_gold_star_applicati
     function_source = source[start:end]
     assert "_gold_star_active_quality_contribution(query)" not in function_source
     assert "_direct_answer_baseline = bool(_matched_orientation)" in function_source
-    assert "retrieval alone must never change the answer's framing" in function_source
+    assert "must therefore never change the answer's framing" in function_source
     # The deterministic prose is pre-authored and has no composition mechanism
     # for applying cross-question discipline. It must not append lesson text.
     lessons = Path("gold_star_lessons.py").read_text(encoding="utf-8")
