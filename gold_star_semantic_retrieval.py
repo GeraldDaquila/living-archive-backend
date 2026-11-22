@@ -9,6 +9,8 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Dict, List, Any
 import logging
+import os
+from pathlib import Path
 import threading
 
 _MODEL_NAME = "BAAI/bge-small-en-v1.5"
@@ -16,6 +18,31 @@ _LOG = logging.getLogger(__name__)
 _WARMUP_LOCK = threading.Lock()
 _WARMUP_REQUESTED = False
 _WARMUP_THREAD: threading.Thread | None = None
+
+
+def _warmup_enabled() -> bool:
+    """Require an explicit operator opt-in for memory-intensive model loading."""
+    return os.getenv("GOLD_STAR_SEMANTIC_WARMUP_ENABLED", "").strip().casefold() in {
+        "1", "true", "yes", "on", "enabled"
+    }
+
+
+def _memory_snapshot() -> str:
+    """Return container memory counters without adding a runtime dependency."""
+    values = []
+    for label, path in (
+        ("current_bytes", "/sys/fs/cgroup/memory.current"),
+        ("limit_bytes", "/sys/fs/cgroup/memory.max"),
+        ("legacy_current_bytes", "/sys/fs/cgroup/memory/memory.usage_in_bytes"),
+        ("legacy_limit_bytes", "/sys/fs/cgroup/memory/memory.limit_in_bytes"),
+    ):
+        try:
+            raw = Path(path).read_text(encoding="ascii").strip()
+            if raw and raw != "max":
+                values.append(f"{label}={int(raw)}")
+        except (OSError, ValueError):
+            continue
+    return " ".join(values) if values else "unavailable"
 
 
 @lru_cache(maxsize=1)
@@ -70,6 +97,12 @@ def semantic_index_ready() -> bool:
 def request_semantic_index_warmup() -> bool:
     """Mark a cold semantic index for warming after the current visitor route."""
     global _WARMUP_REQUESTED
+    if not _warmup_enabled():
+        _LOG.warning(
+            "Gold Star semantic warmup disabled by safety gate; "
+            "set GOLD_STAR_SEMANTIC_WARMUP_ENABLED=1 only after memory-safe validation"
+        )
+        return False
     if semantic_index_ready():
         return False
     with _WARMUP_LOCK:
@@ -82,8 +115,15 @@ def request_semantic_index_warmup() -> bool:
 def _warm_semantic_index() -> None:
     global _WARMUP_THREAD
     try:
+        _LOG.info(
+            "Gold Star semantic warmup initialization starting memory=%s",
+            _memory_snapshot(),
+        )
         _lesson_vectors()
-        _LOG.info("Gold Star semantic index background warmup completed")
+        _LOG.info(
+            "Gold Star semantic index background warmup completed memory=%s",
+            _memory_snapshot(),
+        )
     except Exception as exc:
         _LOG.warning(
             "Gold Star semantic index background warmup failed: %s",
@@ -98,6 +138,10 @@ def start_requested_semantic_warmup() -> bool:
     """Start a previously requested warmup without blocking the visitor response."""
     global _WARMUP_REQUESTED, _WARMUP_THREAD
     with _WARMUP_LOCK:
+        if not _warmup_enabled():
+            _WARMUP_REQUESTED = False
+            _LOG.warning("Gold Star semantic warmup start blocked by safety gate")
+            return False
         if not _WARMUP_REQUESTED or semantic_index_ready():
             _WARMUP_REQUESTED = False
             return False
