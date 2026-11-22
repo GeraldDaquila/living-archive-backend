@@ -11428,6 +11428,7 @@ def _basic_inquiry_has_internal_implementation_language(response):
 # never transferred across questions.
 try:
     from gold_star_lessons import (
+        shadow_observation as _gold_star_shadow_observation,
         active_quality_contribution as _gold_star_active_quality_contribution,
     )
 except Exception:
