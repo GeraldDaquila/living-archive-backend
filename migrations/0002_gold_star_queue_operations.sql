@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION enqueue_gold_star_adjudication_job(
 )
 RETURNS UUID
 LANGUAGE plpgsql
-AS $
+AS $enqueue$
 DECLARE
     stored_job_id UUID;
     stored_fingerprint CHAR(64);
@@ -60,7 +60,7 @@ BEGIN
 
     RETURN stored_job_id;
 END;
-$;
+$enqueue$;
 
 CREATE OR REPLACE FUNCTION claim_gold_star_adjudication_jobs(
     p_worker_id UUID,
