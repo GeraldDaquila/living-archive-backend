@@ -237,6 +237,126 @@ BEGIN
 END;
 $complete$;
 
+CREATE OR REPLACE FUNCTION reserve_provider_capacity(
+    p_reservation_id UUID,
+    p_operation_class TEXT,
+    p_estimated_tokens INTEGER,
+    p_max_active_tokens INTEGER,
+    p_ttl_seconds INTEGER
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $reserve$
+DECLARE
+    existing provider_capacity_reservations%ROWTYPE;
+    active_tokens BIGINT;
+BEGIN
+    IF p_reservation_id IS NULL THEN
+        RAISE EXCEPTION 'reservation_id_required';
+    END IF;
+    IF p_operation_class IS NULL OR p_operation_class NOT IN (
+        'visitor_response', 'gold_star_adjudication'
+    ) THEN
+        RAISE EXCEPTION 'invalid_capacity_operation_class';
+    END IF;
+    IF p_estimated_tokens IS NULL OR p_estimated_tokens < 1 OR p_estimated_tokens > 10000 THEN
+        RAISE EXCEPTION 'estimated_tokens_out_of_range';
+    END IF;
+    IF p_max_active_tokens IS NULL OR p_max_active_tokens < 1 OR p_max_active_tokens > 100000 THEN
+        RAISE EXCEPTION 'capacity_limit_out_of_range';
+    END IF;
+    IF p_ttl_seconds IS NULL OR p_ttl_seconds < 10 OR p_ttl_seconds > 900 THEN
+        RAISE EXCEPTION 'reservation_ttl_out_of_range';
+    END IF;
+
+    -- One transaction-scoped lock protects the shared pool across both operation classes.
+    PERFORM pg_advisory_xact_lock(71420931001);
+
+    SELECT *
+    INTO existing
+    FROM provider_capacity_reservations
+    WHERE reservation_id = p_reservation_id
+    FOR UPDATE;
+
+    IF FOUND THEN
+        IF existing.operation_class IS DISTINCT FROM p_operation_class
+           OR existing.estimated_tokens IS DISTINCT FROM p_estimated_tokens THEN
+            RAISE EXCEPTION 'reservation_id_payload_conflict';
+        END IF;
+        RETURN existing.reservation_state = 'reserved'
+           AND existing.expires_at > now();
+    END IF;
+
+    UPDATE provider_capacity_reservations
+    SET reservation_state = 'expired', updated_at = now()
+    WHERE reservation_state = 'reserved'
+      AND expires_at <= now();
+
+    SELECT COALESCE(sum(estimated_tokens), 0)
+    INTO active_tokens
+    FROM provider_capacity_reservations
+    WHERE reservation_state = 'reserved'
+      AND expires_at > now();
+
+    IF active_tokens + p_estimated_tokens > p_max_active_tokens THEN
+        RETURN FALSE;
+    END IF;
+
+    INSERT INTO provider_capacity_reservations (
+        reservation_id, operation_class, estimated_tokens,
+        reservation_state, expires_at, created_at, updated_at
+    ) VALUES (
+        p_reservation_id, p_operation_class, p_estimated_tokens,
+        'reserved', now() + make_interval(secs => p_ttl_seconds), now(), now()
+    );
+
+    RETURN TRUE;
+END;
+$reserve$;
+
+CREATE OR REPLACE FUNCTION finalize_provider_capacity_reservation(
+    p_reservation_id UUID,
+    p_final_state TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $finalize$
+DECLARE
+    current_state TEXT;
+BEGIN
+    IF p_reservation_id IS NULL THEN
+        RAISE EXCEPTION 'reservation_id_required';
+    END IF;
+    IF p_final_state IS NULL OR p_final_state NOT IN ('consumed', 'released') THEN
+        RAISE EXCEPTION 'invalid_capacity_final_state';
+    END IF;
+
+    PERFORM pg_advisory_xact_lock(71420931001);
+
+    SELECT reservation_state
+    INTO current_state
+    FROM provider_capacity_reservations
+    WHERE reservation_id = p_reservation_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RETURN FALSE;
+    END IF;
+    IF current_state = p_final_state THEN
+        RETURN TRUE;
+    END IF;
+    IF current_state <> 'reserved' THEN
+        RETURN FALSE;
+    END IF;
+
+    UPDATE provider_capacity_reservations
+    SET reservation_state = p_final_state, updated_at = now()
+    WHERE reservation_id = p_reservation_id;
+
+    RETURN TRUE;
+END;
+$finalize$;
+
 CREATE OR REPLACE FUNCTION recover_expired_gold_star_adjudication_leases()
 RETURNS INTEGER
 LANGUAGE plpgsql
