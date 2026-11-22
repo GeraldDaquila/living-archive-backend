@@ -81,7 +81,7 @@ def main():
     assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 15.0" in provider
     assert "GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS" not in provider
     assert 'if operation == "hrn_perception":' in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 6" in provider
     assert "GENERAL_GUIDE_SOFT_LATENCY_THRESHOLD_SECONDS = 4.0" in provider
     assert "GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS = 5.0" in provider
     assert "GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS = 8.0" in provider

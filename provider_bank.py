@@ -97,9 +97,11 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # primary plus three bounded fallback candidates while preserving that repair
 # reserve and avoiding an unbounded serial walk across the whole model catalogue.
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 15.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
-# Keep the primary and fallback transport ceilings distinct: a quick primary
-# timeout can still admit three more candidates within the 15-second window.
+# One primary plus up to six short, independent recovery probes. The shared
+# 15-second window and per-candidate timeout reservation remain authoritative.
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 6
+# Keep the primary and fallback transport ceilings distinct: quick failures
+# can admit additional candidates within the 15-second window.
 # General Guide adaptive timeout experiment:
 # 4 seconds is a soft observation threshold, not an automatic cancellation point.
 # Each provider/model receives an evidence-informed hard ceiling, bounded at 8s.
@@ -3332,12 +3334,26 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # Adaptive Guide timeouts are budget-aware: reserve enough of the
             # arbitration window for at least one independent candidate.
             if operation == "general_guide_composition":
-                candidates_left = max(1, len(attempt_pool) - attempt_index)
+                candidates_left = max(0, len(attempt_pool) - attempt_index)
                 remaining_window = max(0.0, fast_failure_window - elapsed)
+                next_candidate = (
+                    attempt_pool[attempt_index]
+                    if candidates_left else None
+                )
+                next_candidate_timeout = (
+                    _provider_call_timeout(operation, next_candidate)
+                    if next_candidate is not None else 0.0
+                )
+                if next_candidate is not None and deadline_monotonic is not None:
+                    next_candidate_timeout = _bounded_request_provider_timeout(
+                        next_candidate_timeout,
+                        deadline_monotonic,
+                        now=time.monotonic(),
+                    ) or 0.0
                 reserved_fallback_seconds = min(
-                    GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
+                    max(0.0, float(next_candidate_timeout or 0.0)),
                     remaining_window,
-                ) if candidates_left else 0.0
+                )
                 candidate_timeout = min(
                     candidate_timeout,
                     max(0.0, remaining_window - reserved_fallback_seconds),
