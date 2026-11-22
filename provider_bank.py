@@ -726,7 +726,7 @@ def _contract_rejection_class(contract_reason):
         "json_or_parse" if re.search(r"invalid JSON|non-object", str(contract_reason or ""), re.I)
         else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", str(contract_reason or ""), re.I)
         else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", str(contract_reason or ""), re.I)
-        else "response_shape" if re.search(r"short|long|paragraph|sentence|question", str(contract_reason or ""), re.I)
+        else "response_shape" if re.search(r"empty|short|long|paragraph|sentence|question", str(contract_reason or ""), re.I)
         else "other_contract"
     )
 
