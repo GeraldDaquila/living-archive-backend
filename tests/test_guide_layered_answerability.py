@@ -34,6 +34,7 @@ def test_query_classifier_does_not_capture_unrelated_or_source_specific_question
         "According to the Living Archive, what does it mean to lead from reality rather than ideology?",
         "Using only the Archive's published text, what does it mean to lead from reality rather than ideology?",
         "What does it mean to lead from reality rather than ideology in clinical care?",
+        "What does it mean to lead from reality rather than ideology in legal decision-making?",
         "What does it mean to lead from reality?",
     ):
         assert not is_reality_vs_ideology_leadership_question(query)
