@@ -2689,7 +2689,23 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
     operation = operation or _PROVIDER_OPERATION_CONTEXT.get()
     provider = str(item.get("provider") or "")
     model = str(item.get("model") or "")
-    reservation = reserve_provider_call(provider, model, messages, max_tokens)
+    try:
+        reservation = reserve_provider_call(provider, model, messages, max_tokens)
+    except QuotaAdmissionDenied as exc:
+        # Admission failures happen before transport. Record the structured,
+        # non-secret reason so route-level denial counts are diagnosable.
+        # Never log request content, credentials, or upstream error bodies.
+        print(
+            "USE provider quota admission denied: "
+            f"operation={operation or 'unknown'}, provider={provider}, model={model}, "
+            f"reason={str(getattr(exc, 'reason', 'unknown') or 'unknown')}, "
+            f"budget_kind={str(getattr(exc, 'budget_kind', None) or 'none')}, "
+            f"budget_limit={getattr(exc, 'budget_limit', None)}, "
+            f"request_cost={getattr(exc, 'request_cost', None)}, "
+            f"retry_after_seconds={float(getattr(exc, 'retry_after', 0.0) or 0.0):.2f}"
+            + _gold_star_provider_route_log_fields(operation)
+        )
+        raise
     gold_star_route_active = bool(
         _gold_star_trace.current_provider_route_context().get("active")
     )
