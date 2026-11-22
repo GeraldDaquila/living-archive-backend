@@ -14,10 +14,9 @@ def test_community_freedom_responsibility_tradeoff_selects_governed_guidance():
     ids = [item["benchmark_id"] for item in selected]
     assert ids == [
         "general-guide-ethical-tradeoff-2026-10",
-        "gs-2026-11-20-power-responsibility-proportional-accountability",
         "gs-2026-11-20-stewardship-consent-relational-legitimacy",
     ]
-    assert [item["role"] for item in selected] == ["core", "conditional", "conditional"]
+    assert [item["role"] for item in selected] == ["core", "conditional"]
     assert all(item["match_basis"] == "governed_community_tradeoff_policy" for item in selected)
     assert all(item["score"] is None for item in selected)
 
