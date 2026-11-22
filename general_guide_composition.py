@@ -4691,29 +4691,45 @@ def compose(
                 return cached_result
             del _COMPOSITION_CACHE[cache_key]
 
-    result = route_with_model_bank(
-        use_core=use_core,
-        operation=OPERATION,
-        messages=[
-            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
-                "\n\n" + incomplete_knowledge_plan["architectural_contract"]
-                if incomplete_knowledge_plan else ""
-            ) + (
-                "\n\n" + integrity_recovery_instruction.strip()
-                if integrity_recovery_instruction else ""
-            ) + (
-                "\n\n" + gold_star_quality_instruction.strip()
-                if gold_star_quality_instruction else ""
-            ) + (
-                "\n\n" + public_live_source_instruction
-                if public_live_source_instruction else ""
-            )},
-            {"role": "user", "content": user_content[:7000]},
-        ],
-        max_tokens=900,
-        parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
-        deadline_monotonic=deadline_monotonic,
-    )
+    try:
+        result = route_with_model_bank(
+            use_core=use_core,
+            operation=OPERATION,
+            messages=[
+                {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
+                    "\n\n" + incomplete_knowledge_plan["architectural_contract"]
+                    if incomplete_knowledge_plan else ""
+                ) + (
+                    "\n\n" + integrity_recovery_instruction.strip()
+                    if integrity_recovery_instruction else ""
+                ) + (
+                    "\n\n" + gold_star_quality_instruction.strip()
+                    if gold_star_quality_instruction else ""
+                ) + (
+                    "\n\n" + public_live_source_instruction
+                    if public_live_source_instruction else ""
+                )},
+                {"role": "user", "content": user_content[:7000]},
+            ],
+            max_tokens=900,
+            parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
+            deadline_monotonic=deadline_monotonic,
+        )
+    finally:
+        # A cold semantic index is requested during Gold Star selection but must
+        # not initialize BGE/ONNX inside the visitor's request budget. Start the
+        # one-time warmup only after provider routing has returned.
+        try:
+            from gold_star_semantic_retrieval import start_requested_semantic_warmup
+            if start_requested_semantic_warmup():
+                _TELEMETRY_LOG.info(
+                    "Gold Star semantic index warmup scheduled after provider route"
+                )
+        except Exception as exc:
+            _TELEMETRY_LOG.warning(
+                "Gold Star semantic index warmup could not be scheduled: %s",
+                type(exc).__name__,
+            )
     # A provider may technically return a parsed response while still producing
     # the generic verification refusal. For explicitly bounded conceptual
     # questions, that is not a successful synthesis and must enter the recovery
