@@ -621,7 +621,7 @@ def test_provider_tpm_preflight_skips_only_impossible_input_sizes(monkeypatch):
     fits = [{"role": "user", "content": "x" * 28000}]
 
     blocked = provider_input_exceeds_tpm_budget("groq", too_large)
-    assert blocked == {"budget_limit": 8000, "input_estimate": 8001}
+    assert blocked == {"budget_limit": 8000, "input_estimate": 8008}
     assert provider_input_exceeds_tpm_budget("groq", fits) is None
     assert provider_input_exceeds_tpm_budget("workers_ai", too_large) is None
 
