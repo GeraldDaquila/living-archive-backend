@@ -11444,6 +11444,50 @@ def _is_registered_gold_standard_composition_result(result):
     )
 
 
+def _adjudicate_final_visitor_claims(
+    response,
+    public_evidence_documents,
+    *,
+    llm_invoked,
+    use_core,
+    request_deadline,
+):
+    """Run optional provider claim adjudication only for a final LLM answer.
+
+    Deterministic and provider-exhaustion recoveries are already bounded by the
+    local evidence/provenance path. Calling the provider bank again for those
+    answers only repeats a just-exhausted dependency and consumes visitor time.
+    """
+    result = {
+        "version": "1.0",
+        "status": "unassessed",
+        "reason": "not_run_for_non_llm_final_response",
+        "claims": [],
+        "claim_count": 0,
+    }
+    if not llm_invoked:
+        return result
+    try:
+        from claim_adjudication import adjudicate_answer_claims
+        from claim_adjudication_provider import build_provider_adjudicator
+        return adjudicate_answer_claims(
+            response,
+            public_evidence_documents,
+            adjudicate_claims=build_provider_adjudicator(use_core, request_deadline),
+        )
+    except Exception as error:
+        # Do not log visitor content or provider payloads. The ordinary answer
+        # remains intact and the optional assessment fails closed.
+        return {
+            "version": "1.0",
+            "status": "unassessed",
+            "reason": "claim_adjudication_integration_failed",
+            "error_type": type(error).__name__,
+            "claims": [],
+            "claim_count": 0,
+        }
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only semantic retrieval is intentionally excluded from the
     # visitor request path. Active Gold Star contribution remains in the composer,
@@ -14786,32 +14830,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _visitor_safe_document["visitor_visible"] = True
             _visitor_public_evidence_documents.append(_visitor_safe_document)
 
-    _claim_adjudication = {
-        "version": "1.0",
-        "status": "unassessed",
-        "reason": "claim_adjudication_not_completed",
-        "claims": [],
-        "claim_count": 0,
-    }
-    try:
-        from claim_adjudication import adjudicate_answer_claims
-        from claim_adjudication_provider import build_provider_adjudicator
-        _claim_adjudication = adjudicate_answer_claims(
-            response,
-            _visitor_public_evidence_documents,
-            adjudicate_claims=build_provider_adjudicator(use_core, request_deadline),
-        )
-    except Exception as _claim_adjudication_error:
-        # Do not log visitor content or provider payloads. The ordinary answer
-        # remains intact and the optional assessment fails closed.
-        _claim_adjudication = {
-            "version": "1.0",
-            "status": "unassessed",
-            "reason": "claim_adjudication_integration_failed",
-            "error_type": type(_claim_adjudication_error).__name__,
-            "claims": [],
-            "claim_count": 0,
-        }
+    _claim_adjudication = _adjudicate_final_visitor_claims(
+        response,
+        _visitor_public_evidence_documents,
+        llm_invoked=_llm_invoked,
+        use_core=use_core,
+        request_deadline=request_deadline,
+    )
 
     _approved_reference_id = str(
         composition_context.get("archive_reference_recovery")
