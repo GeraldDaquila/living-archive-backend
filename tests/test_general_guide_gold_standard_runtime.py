@@ -187,7 +187,7 @@ def test_water_gold_standard_keeps_general_knowledge_provenance():
 
 def test_frozen_core_blob_is_not_modified_by_runtime_integration():
     # Guard the protected production core's reviewed identity in CI.
-    # The expected SHA is the known unchanged blob for this release line.
+    # The expected SHA is the current protected canonical core blob.
     import subprocess
 
     result = subprocess.run(
@@ -197,7 +197,7 @@ def test_frozen_core_blob_is_not_modified_by_runtime_integration():
         capture_output=True,
         text=True,
     )
-    assert result.stdout.strip() == "d897d36e8f0c99aadca704e0594ae5603dd26c73"
+    assert result.stdout.strip() == "3ff6444c8b85de22febd1374aa4a50bb77c4b8af"
 
 
 

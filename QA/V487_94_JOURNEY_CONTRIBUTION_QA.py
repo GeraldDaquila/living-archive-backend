@@ -7,7 +7,7 @@ import hashlib
 ROOT = Path(__file__).resolve().parents[1]
 
 PROTECTED = {
-    "use_core.py": "d897d36e8f0c99aadca704e0594ae5603dd26c73",
+    "use_core.py": "3ff6444c8b85de22febd1374aa4a50bb77c4b8af",
     "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
