@@ -494,12 +494,12 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    assert len(calls) == 5
+    assert len(calls) == 6
     assert all(
         timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(12.5)
+    assert clock.value == pytest.approx(15.0)
 
 
 def _recovery_candidate(
@@ -654,3 +654,44 @@ def test_general_guide_tpm_preflight_skips_all_models_of_impossible_provider(mon
     assert result is not None
     assert calls == ["workers_ai"]
     assert result["provider"] == "workers_ai"
+
+
+
+def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def two_timeouts_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        if len(calls) < 3:
+            # Failed calls include small transport/loop overhead beyond their
+            # five-second timeout, leaving 4.96 seconds for the final candidate.
+            clock.value += float(timeout_override) + 0.02
+            raise RuntimeError("simulated provider timeout")
+        clock.value += float(timeout_override)
+        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_success)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert calls[0][1] == pytest.approx(5.0)
+    assert calls[1][1] == pytest.approx(5.0)
+    # Two failed calls consume 10.04 seconds including simulated overhead,
+    # leaving 4.96 seconds for the final independent candidate.
+    assert calls[2][1] == pytest.approx(4.96)
+    assert calls[2][1] > 4.0
+    assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS

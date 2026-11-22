@@ -3455,14 +3455,20 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         deadline_monotonic,
                         now=time.monotonic(),
                     ) or 0.0
-                reserved_fallback_seconds = min(
-                    max(0.0, float(next_candidate_timeout or 0.0)),
-                    remaining_window,
-                )
-                candidate_timeout = min(
-                    candidate_timeout,
-                    max(0.0, remaining_window - reserved_fallback_seconds),
-                )
+                # Preserve a full next-candidate reservation when both the
+                # current and next calls can fit. If the remaining window is
+                # already too small for both configured ceilings, use it for
+                # this candidate instead of reserving time that will strand the
+                # final viable fallback without ever attempting it.
+                next_reservation = max(0.0, float(next_candidate_timeout or 0.0))
+                if remaining_window >= candidate_timeout + next_reservation:
+                    reserved_fallback_seconds = min(next_reservation, remaining_window)
+                    candidate_timeout = min(
+                        candidate_timeout,
+                        max(0.0, remaining_window - reserved_fallback_seconds),
+                    )
+                else:
+                    candidate_timeout = min(candidate_timeout, remaining_window)
             if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
@@ -3515,6 +3521,16 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             )
+            # The arbitration calculation above is authoritative for Guide
+            # fallbacks. Reuse its reduced timeout for the actual transport call;
+            # recomputing only from the request deadline would silently discard
+            # the provider-window reservation.
+            if (
+                operation == "general_guide_composition"
+                and attempt_index > base_max_attempts
+                and attempt_timeout is not None
+            ):
+                attempt_timeout = min(attempt_timeout, candidate_timeout)
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
             ):
