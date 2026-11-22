@@ -688,6 +688,9 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
     assert result is not None
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert calls[0][1] == pytest.approx(5.0)
-    assert calls[1][1] == pytest.approx(4.98)
-    assert calls[2][1] == pytest.approx(4.98)
+    assert calls[1][1] == pytest.approx(5.0)
+    # Two failed calls consume 10.04 seconds including simulated overhead,
+    # leaving 4.96 seconds for the final independent candidate.
+    assert calls[2][1] == pytest.approx(4.96)
     assert calls[2][1] > 4.0
+    assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
