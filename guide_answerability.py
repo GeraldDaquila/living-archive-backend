@@ -24,6 +24,19 @@ _MEANING_REQUEST = re.compile(
     re.I,
 )
 
+_SOURCE_SPECIFIC_OR_SOURCE_ONLY = re.compile(
+    r"\\b(?:according to|as defined by|official|formal|institution(?:al)?[- ]specific|"
+    r"the archive(?:'s)? definition|in the living archive(?:'s)? (?:own )?(?:terms|usage|framework))\\b"
+    r"|\\b(?:using|based on|drawn from)\\b.{0,35}\\b(?:only|solely|exclusively)\\b.{0,30}\\b(?:source|document|archive|text|publication)\\b"
+    r"|\\b(?:only|solely|exclusively)\\b.{0,35}\\b(?:source|document|archive|text|publication)\\b",
+    re.I,
+)
+_HIGH_STAKES_CONTEXT = re.compile(
+    r"\\b(?:medical advice|diagnos\\w*|treatment plan|medication|legal advice|lawsuit|"
+    r"investment advice|financial advice|emergency response|self[- ]harm|clinical care)\\b",
+    re.I,
+)
+
 ARCHITECTURAL_CONTRACT = """LAYERED ANSWERABILITY — SHARED REASONING DISCIPLINE:
 Do not treat the absence of an authoritative, source-specific definition as proof that a question is unanswerable. Separate answerability from authority. First determine what can responsibly be explained from established general knowledge and ordinary conceptual usage; distinguish that from interpretation or inference; and distinguish both from claims about what a particular institution formally teaches, defines, or endorses. Answer the answerable portion directly. Qualify interpretations in proportion to their support. Attribute institutional doctrine only when an available authoritative source supports that attribution. If source-specific authority is unavailable, state that limitation narrowly rather than withholding the general explanation. Abstain only from the portion that cannot responsibly be answered; do not manufacture certainty, and do not manufacture uncertainty to avoid useful reasoning. This discipline does not override safety, high-stakes professional boundaries, explicit source-only constraints, or the need to verify time-sensitive and specific factual claims."""
 
@@ -33,7 +46,13 @@ Answer the general conceptual question directly; do not require a formal Living 
 def is_reality_vs_ideology_leadership_question(query: str) -> bool:
     """Recognize the bounded conceptual contrast and common paraphrases."""
     q = re.sub(r"\s+", " ", str(query or "")).strip()
-    return bool(q and _REALITY_IDEOLOGY.search(q) and _MEANING_REQUEST.search(q))
+    return bool(
+        q
+        and _REALITY_IDEOLOGY.search(q)
+        and _MEANING_REQUEST.search(q)
+        and not _SOURCE_SPECIFIC_OR_SOURCE_ONLY.search(q)
+        and not _HIGH_STAKES_CONTEXT.search(q)
+    )
 
 def build_answerability_plan(query: str) -> dict[str, Any] | None:
     """Return architectural and query-level guidance for this answerable concept."""
