@@ -69,13 +69,6 @@ CREATE TABLE IF NOT EXISTS gold_star_adjudication_jobs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_gold_star_jobs_ready
-    ON gold_star_adjudication_jobs (available_at, created_at_placeholder)
-    WHERE adjudication_state = 'queued';
-
--- The created_at ordering is represented by job_id insertion order in the first
--- schema version; avoid an unneeded extra timestamp column or provider-side sort.
-DROP INDEX IF EXISTS idx_gold_star_jobs_ready;
-CREATE INDEX idx_gold_star_jobs_ready
     ON gold_star_adjudication_jobs (available_at, job_id)
     WHERE adjudication_state = 'queued';
 
