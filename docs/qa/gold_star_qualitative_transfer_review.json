@@ -1157,6 +1157,15 @@
       "qualifying_context": "Visitors asking whether a transformation is substantive or merely rebranding, cosmetic change, a new identity, a new strategy, or a change in promises, including close paraphrases.",
       "abstention_boundary": "Apply to questions assessing whether an organization, institution, or wider system has genuinely transformed or merely changed its language, identity, strategy, or promises. Do not apply automatically to personal transformation, emotional relief, or every use of the word transformation. Do not diagnose a named system without evidence, assume every listed mechanism is present, or transfer the exact answer, its examples, or its doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-22-layered-answerability-calibrated-abstention",
+      "question": "What does it mean to lead from reality rather than ideology?",
+      "reasoning_family": "layered_answerability_and_calibrated_abstention",
+      "transferable_discipline": "Separate answerability from authority. Identify what can responsibly be explained from established general knowledge; distinguish explanation from interpretation and both from claims about a particular institution's formal teaching; answer the answerable portion directly; qualify interpretation in proportion to support; attribute institutional doctrine only when an authoritative source supports it; and abstain only from the unsupported portion. Do not manufacture certainty or uncertainty. Preserve explicit source-only constraints, safety and high-stakes boundaries, current-fact verification, and genuine limits caused by missing evidence or personal context.",
+      "qualifying_context": "Visitors asking ordinary conceptual, explanatory, or interpretive questions where a general answer is supportable but an Archive-specific or institutional definition is not established.",
+      "abstention_boundary": "Apply to ordinary conceptual, explanatory, or interpretive questions where general meaning is answerable but a source-specific or institutional definition is not established. Do not bypass explicit source-only constraints, safety or high-stakes professional boundaries, verification of specific/current facts, material ambiguity, or missing evidence/personal context. Do not invent institutional doctrine, overstate general knowledge, or force a doorway. When only the institutional meaning is unknown, answer the general question and qualify that limit; abstain or clarify only where the actual answer requires unavailable support.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
