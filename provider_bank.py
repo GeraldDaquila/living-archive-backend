@@ -2860,6 +2860,9 @@ PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/ap
 SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/active-active-guide-capability"
 ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT = 70
 ACTIVE_ACTIVE_TIMEOUT_SECONDS = 6.0
+# Never spend a visitor's provider budget delegating to a peer running a
+# different source revision. The readiness probe is intentionally brief.
+ACTIVE_ACTIVE_READINESS_TIMEOUT_SECONDS = 1.0
 # The counterpart executes one bounded Guide composition locally. The peer
 # transport budget must exceed the remote model budget plus Render/JSON overhead;
 # otherwise the caller disconnects from healthy work and collapses the intended
@@ -2906,6 +2909,64 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
         remaining = _request_remaining_seconds(deadline_monotonic, now=time.monotonic())
         if remaining < 1.0:
             return None
+
+    expected_commit = str(os.getenv("RENDER_GIT_COMMIT") or "").strip()
+    if expected_commit:
+        parsed_url = urllib.parse.urlsplit(url)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            print("USE active-active delegation: outcome=skipped, reason=counterpart_url_invalid")
+            return None
+        readiness_url = urllib.parse.urlunsplit((
+            parsed_url.scheme,
+            parsed_url.netloc,
+            "/api/provider-health-readiness",
+            "",
+            "",
+        ))
+        readiness_timeout = ACTIVE_ACTIVE_READINESS_TIMEOUT_SECONDS
+        if remaining is not None:
+            readiness_timeout = min(readiness_timeout, remaining)
+        if readiness_timeout < 0.5:
+            return None
+        readiness_request = Request(
+            readiness_url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "Living-Archive-Active-Active/1.0",
+            },
+            method="GET",
+        )
+        try:
+            with urlopen(readiness_request, timeout=max(0.5, float(readiness_timeout))) as response:
+                readiness = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:
+            print(
+                "USE active-active delegation: outcome=skipped"
+                + ", reason=counterpart_readiness_unavailable"
+                + ", exception=" + type(exc).__name__
+            )
+            return None
+        observed_commit = (
+            str(readiness.get("deployment_commit_sha") or "").strip()
+            if isinstance(readiness, dict) else ""
+        )
+        if (
+            not isinstance(readiness, dict)
+            or readiness.get("contract") != "provider-health-readiness-v1"
+            or observed_commit != expected_commit
+        ):
+            print(
+                "USE active-active delegation: outcome=skipped"
+                + ", reason=counterpart_commit_mismatch"
+                + ", expected_commit=" + expected_commit[:12]
+                + ", observed_commit=" + (observed_commit[:12] or "unavailable")
+            )
+            return None
+        if deadline_monotonic is not None:
+            remaining = _request_remaining_seconds(deadline_monotonic, now=time.monotonic())
+            if remaining < 1.0:
+                return None
+
     timeout = min(ACTIVE_ACTIVE_TIMEOUT_SECONDS, remaining) if remaining is not None else ACTIVE_ACTIVE_TIMEOUT_SECONDS
     payload = json.dumps({
         "contract_version": "v1",
