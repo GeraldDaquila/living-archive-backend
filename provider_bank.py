@@ -9,6 +9,7 @@ import time
 
 from provider_quota_control import (
     QuotaAdmissionDenied,
+    provider_input_exceeds_tpm_budget,
     reserve as reserve_provider_call,
     snapshot as quota_control_snapshot,
 )
@@ -3169,6 +3170,33 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
+    if operation == "general_guide_composition" and pool:
+        # A provider-account TPM limit smaller than the input alone is an
+        # impossible request, independent of model choice. Filter that provider
+        # before first-failure ranking so a known quota denial cannot displace a
+        # transport-viable independent lane. reserve() remains authoritative for
+        # output tokens, depleted buckets, concurrency, and model-specific limits.
+        impossible_provider_budgets = {}
+        for candidate in pool:
+            candidate_provider = str(candidate.get("provider") or "")
+            if candidate_provider in impossible_provider_budgets:
+                continue
+            preflight = provider_input_exceeds_tpm_budget(candidate_provider, messages)
+            if preflight is not None:
+                impossible_provider_budgets[candidate_provider] = preflight
+        if impossible_provider_budgets:
+            for candidate_provider, budget in sorted(impossible_provider_budgets.items()):
+                print(
+                    "USE provider bank TPM preflight: "
+                    f"operation={operation}, provider={candidate_provider}, "
+                    "action=skip_provider_account, "
+                    f"input_estimate={budget['input_estimate']}, "
+                    f"budget_limit={budget['budget_limit']}"
+                )
+            pool = [
+                candidate for candidate in pool
+                if str(candidate.get("provider") or "") not in impossible_provider_budgets
+            ]
     if operation == "general_guide_composition":
         print(
             "USE provider bank candidate arbitration: "
