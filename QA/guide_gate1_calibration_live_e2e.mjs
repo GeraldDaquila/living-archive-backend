@@ -97,9 +97,13 @@ try {
         { timeout: 10_000 }
       );
       readiness = await response.json();
+      // This endpoint's "ok" flag reports shared-provider-store readiness,
+      // not application liveness. Gate only on HTTP success, contract identity,
+      // and the exact deployed source commit.
       if (
         response.ok() &&
-        readiness?.ok === true &&
+        readiness?.contract === "provider-health-readiness-v1" &&
+        Boolean(readiness?.deployment_commit_sha) &&
         (!EXPECTED_COMMIT || readiness.deployment_commit_sha === EXPECTED_COMMIT)
       ) break;
       readinessError = {
@@ -114,7 +118,8 @@ try {
   }
   if (
     !readiness ||
-    readiness.ok !== true ||
+    readiness.contract !== "provider-health-readiness-v1" ||
+    !readiness.deployment_commit_sha ||
     (EXPECTED_COMMIT && readiness.deployment_commit_sha !== EXPECTED_COMMIT)
   ) {
     throw new Error("Primary production readiness did not match the expected deployment: " +
