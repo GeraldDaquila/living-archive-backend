@@ -104,6 +104,22 @@ def _emit_guide_outcome(outcome: str, **fields: Any) -> None:
     print(message, flush=True)
     _TELEMETRY_LOG.info(message)
 
+
+def _start_requested_gold_star_semantic_warmup() -> None:
+    """Start deferred semantic initialization only after visitor composition work."""
+    try:
+        from gold_star_semantic_retrieval import start_requested_semantic_warmup
+        if start_requested_semantic_warmup():
+            _TELEMETRY_LOG.info(
+                "Gold Star semantic index warmup scheduled after provider route"
+            )
+    except Exception as exc:
+        _TELEMETRY_LOG.warning(
+            "Gold Star semantic index warmup could not be scheduled: %s",
+            type(exc).__name__,
+        )
+
+
 # Repeated identical Guide questions must not be re-composed by whichever
 # provider happens to be next in the rotating Provider Bank. Cache only the
 # validated visitor-facing composition, keyed by the exact question, recent
@@ -4688,6 +4704,7 @@ def compose(
                     selection=cached_trace["selection"],
                     composition=cached_trace["composition"],
                 )
+                _start_requested_gold_star_semantic_warmup()
                 return cached_result
             del _COMPOSITION_CACHE[cache_key]
 
@@ -4719,17 +4736,7 @@ def compose(
         # A cold semantic index is requested during Gold Star selection but must
         # not initialize BGE/ONNX inside the visitor's request budget. Start the
         # one-time warmup only after provider routing has returned.
-        try:
-            from gold_star_semantic_retrieval import start_requested_semantic_warmup
-            if start_requested_semantic_warmup():
-                _TELEMETRY_LOG.info(
-                    "Gold Star semantic index warmup scheduled after provider route"
-                )
-        except Exception as exc:
-            _TELEMETRY_LOG.warning(
-                "Gold Star semantic index warmup could not be scheduled: %s",
-                type(exc).__name__,
-            )
+        _start_requested_gold_star_semantic_warmup()
     # A provider may technically return a parsed response while still producing
     # the generic verification refusal. For explicitly bounded conceptual
     # questions, that is not a successful synthesis and must enter the recovery
