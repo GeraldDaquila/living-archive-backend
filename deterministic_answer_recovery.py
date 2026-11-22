@@ -1772,21 +1772,21 @@ def _guide_meta_coverage_policy_recovery():
 
 def _is_institutional_legitimacy_question(question):
     """Recognize a bounded general-concept question about institutional legitimacy."""
-    q = re.sub(r"\\s+", " ", str(question or "")).strip()
+    q = re.sub(r"\s+", " ", str(question or "")).strip()
     if not q:
         return False
     asks_legitimacy = bool(
-        re.search(r"\\bwhat makes\\b.{0,45}\\binstitution(?:s|al)?\\b.{0,35}\\blegitim\\w*\\b", q, re.I)
-        or re.search(r"\\bwhat gives\\b.{0,35}\\binstitution(?:s)?\\b.{0,30}\\blegitim\\w*\\b", q, re.I)
-        or re.search(r"\\bwhen (?:is|are)\\b.{0,35}\\binstitution(?:s)?\\b.{0,30}\\blegitim\\w*\\b", q, re.I)
-        or re.search(r"\\binstitutional legitimacy\\b", q, re.I)
+        re.search(r"\bwhat makes\b.{0,45}\binstitution(?:s|al)?\b.{0,35}\blegitim\w*\b", q, re.I)
+        or re.search(r"\bwhat gives\b.{0,35}\binstitution(?:s)?\b.{0,30}\blegitim\w*\b", q, re.I)
+        or re.search(r"\bwhen (?:is|are)\b.{0,35}\binstitution(?:s)?\b.{0,30}\blegitim\w*\b", q, re.I)
+        or re.search(r"\binstitutional legitimacy\b", q, re.I)
     )
     source_only = bool(re.search(
-        r"\\b(?:according to|as defined by|official|formally defined|in the Living Archive(?:'s)? (?:own )?(?:terms|framework|teaching))\\b",
+        r"\b(?:according to|as defined by|official|formally defined|in the Living Archive(?:'s)? (?:own )?(?:terms|framework|teaching))\b",
         q, re.I,
     ))
     high_stakes = bool(re.search(
-        r"\\b(?:legal opinion|constitutional law advice|court case|specific lawsuit)\\b",
+        r"\b(?:legal opinion|constitutional law advice|court case|specific lawsuit)\b",
         q, re.I,
     ))
     return asks_legitimacy and not source_only and not high_stakes
