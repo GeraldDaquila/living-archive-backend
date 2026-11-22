@@ -298,6 +298,9 @@
     },
     "structural_transformation_vs_symbolic_rebranding": {
       "description": "Distinguish substantive transformation from symbolic rebranding by testing observable changes in system behavior, decision rights, power, incentives, resource flows, accountability, and lived outcomes."
+    },
+    "community_freedom_shared_responsibility": {
+      "description": "Balance legitimate individual rights and meaningful agency with evidence-based collective needs through affected-party participation, proportionality, fair burden distribution, transparent reasons, and accountable review."
     }
   },
   "entries": [
@@ -1433,13 +1436,22 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply to ordinary conceptual, explanatory, or interpretive questions where general meaning is answerable but a source-specific or institutional definition is not established. Do not bypass explicit source-only constraints, safety or high-stakes professional boundaries, verification of specific/current facts, material ambiguity, or missing evidence/personal context. Do not invent institutional doctrine, overstate general knowledge, or force a doorway. When only the institutional meaning is unknown, answer the general question and qualify that limit; abstain or clarify only where the actual answer requires unavailable support."
+    },
+    {
+      "benchmark_id": "gs-2026-11-22-community-freedom-shared-responsibility-decision",
+      "question": "When a community faces a difficult trade-off between individual freedom and shared responsibility, how should it make a decision that is both fair and workable?",
+      "family": "community_freedom_shared_responsibility_proportionate_decision",
+      "structural_lesson": "For community decisions involving tension between individual freedom and shared responsibility, protect legitimate rights and meaningful agency while identifying the shared need or harm with evidence. Include affected people, especially those with less influence; distinguish necessary shared obligations from majority preference; test less restrictive alternatives; require any constraint to be proportionate to the harm; distribute burdens fairly; make reasons transparent and rules consistent; and provide accountability, appeal, review, and correction. Treat collective responsibility as a reason for careful justification, not automatic authority to override individual rights.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to substantive community or collective decision questions balancing individual freedom with shared responsibility. Do not treat collective preference as sufficient authority to override rights; assume every proposed restriction is necessary or proportionate; replace jurisdiction-specific legal analysis; or decide a concrete dispute without its facts, governing rules, affected parties, and evidence. Preserve consent, meaningful agency, and genuine appeal or correction. Do not transfer the exact answer, its wording, or any doorway to unrelated questions, and do not grant deterministic fallback eligibility."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "0b9e9497be01960a55553bb2285720c86a5c0a04",
-    "qualitative_transfer_review_entries": 130,
-    "general_purpose_runtime_transfer_records": 126,
-    "map_entries": 126
+    "registry_content_sha": "9e724273dbd370e8604f0a1f216bf053b06a19f62",
+    "qualitative_transfer_review_entries": 131,
+    "general_purpose_runtime_transfer_records": 127,
+    "map_entries": 127
   }
 }
