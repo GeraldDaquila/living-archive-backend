@@ -304,3 +304,27 @@ def _reset_for_tests() -> None:
         _ACTIVE_MODEL.clear()
         for key in _COUNTERS:
             _COUNTERS[key] = 0
+
+
+def provider_input_exceeds_tpm_budget(provider: str, messages: Any) -> dict[str, int] | None:
+    """Return a provider-wide TPM impossibility before routing a model attempt.
+
+    This is deliberately only a necessary-condition preflight: it excludes a
+    provider only when the estimated input alone exceeds its configured account
+    TPM limit. Output reservations, current bucket depletion, concurrency, and
+    model-specific limits remain enforced atomically by reserve().
+    """
+    provider_slug = _slug(str(provider or "").strip().lower())
+    if not provider_slug:
+        return None
+    raw_limit = str(os.getenv(f"USE_QUOTA_{provider_slug}_TPM") or "").strip()
+    try:
+        limit = int(raw_limit)
+    except (TypeError, ValueError):
+        return None
+    if limit <= 0:
+        return None
+    input_estimate = estimate_input_tokens(messages)
+    if input_estimate <= limit:
+        return None
+    return {"budget_limit": limit, "input_estimate": input_estimate}
