@@ -12,16 +12,16 @@ MAX_POLICY_CANDIDATES = 4
 
 _CANDIDATES = (
     {
-        "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
-        "role": "core",
-        "condition": "A genuine conflict between important interests or values is present.",
-        "rationale": "The question asks how to decide a difficult trade-off fairly.",
-    },
-    {
         "benchmark_id": "gs-2026-11-22-community-freedom-shared-responsibility-decision",
         "role": "core",
         "condition": "The question balances individual freedom with shared responsibility in a community decision.",
         "rationale": "Adds the newly approved, directly relevant discipline of rights protection, evidence, proportionality, fair burdens, and accountable review.",
+    },
+    {
+        "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
+        "role": "core",
+        "condition": "A genuine conflict between important interests or values is present.",
+        "rationale": "Adds the broader discipline for deciding difficult trade-offs fairly.",
     },
     {
         "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
