@@ -8296,9 +8296,70 @@
       "user_approved_at": "2026-11-21",
       "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-22-layered-answerability-calibrated-abstention",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does it mean to lead from reality rather than ideology?",
+      "expected_response": "To lead from reality rather than ideology is to let actual conditions, evidence, constraints, and people's lived experience shape how you understand a situation and what you do. Ideology becomes the driver when a fixed set of beliefs or a preferred outcome decides in advance which facts count, which evidence is noticed, and which conclusions are allowed.\n\nThis does not mean leading without values or principles. Values can guide what matters; reality tests whether our understanding and chosen means fit the world as it is. A reality-led leader states assumptions, listens to people affected, looks for evidence that could challenge the current view, and changes course when the facts warrant it. Ideological rigidity instead protects the doctrine by dismissing or explaining away contrary evidence.\n\nFor example, if a policy intended to improve public services is not helping the people it was designed for, reality-led leadership examines the results, listens to those affected, and revises the policy. Ideological rigidity insists the policy must be working and discounts the evidence. This is a general conceptual explanation, not a claim about a formal Living Archive definition.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_omission_exception_reason": "The visitor's question is fully answered at the general conceptual level. No specific canonical Living Archive source was established as the authority for this formulation, and the answer explicitly disclaims a formal Archive definition. A forced doorway would blur the distinction between general explanation and institutional attribution. Offer a doorway only when the visitor asks for institutional doctrine or a directly relevant canonical source is verified.",
+      "rating_out_of_10": 9.2,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STANDARD — LIVE RESPONSE REVIEWED; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "On 2026-11-22, the user supplied a screenshot of the live Guide response, reviewed the assessment (9.2/10), and explicitly instructed: “elevate to gold star registry”. This authorizes registry elevation of the observed answer and its bounded reasoning discipline.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "layered_answerability_and_calibrated_abstention",
+      "transferable_lesson": "Separate answerability from authority. Identify what can responsibly be explained from established general knowledge; distinguish explanation from interpretation and both from claims about a particular institution's formal teaching; answer the answerable portion directly; qualify interpretation in proportion to support; attribute institutional doctrine only when an authoritative source supports it; and abstain only from the unsupported portion. Do not manufacture certainty or uncertainty. Preserve explicit source-only constraints, safety and high-stakes boundaries, current-fact verification, and genuine limits caused by missing evidence or personal context.",
+      "transfer_boundary": "Apply to ordinary conceptual, explanatory, or interpretive questions where general meaning is answerable but a source-specific or institutional definition is not established. Do not bypass explicit source-only constraints, safety or high-stakes professional boundaries, verification of specific/current facts, material ambiguity, or missing evidence/personal context. Do not invent institutional doctrine, overstate general knowledge, or force a doorway. When only the institutional meaning is unknown, answer the general question and qualify that limit; abstain or clarify only where the actual answer requires unavailable support.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "layered_answerability_and_calibrated_abstention",
+        "transferable_discipline": "Separate answerability from authority. Identify what can responsibly be explained from established general knowledge; distinguish explanation from interpretation and both from claims about a particular institution's formal teaching; answer the answerable portion directly; qualify interpretation in proportion to support; attribute institutional doctrine only when an authoritative source supports it; and abstain only from the unsupported portion. Do not manufacture certainty or uncertainty. Preserve explicit source-only constraints, safety and high-stakes boundaries, current-fact verification, and genuine limits caused by missing evidence or personal context.",
+        "abstention_boundary": "Apply to ordinary conceptual, explanatory, or interpretive questions where general meaning is answerable but a source-specific or institutional definition is not established. Do not bypass explicit source-only constraints, safety or high-stakes professional boundaries, verification of specific/current facts, material ambiguity, or missing evidence/personal context. Do not invent institutional doctrine, overstate general knowledge, or force a doorway. When only the institutional meaning is unknown, answer the general question and qualify that limit; abstain or clarify only where the actual answer requires unavailable support."
+      },
+      "assertions": [
+        "Answer ordinary conceptual questions directly when a responsible general explanation is available, even if a formal Living Archive definition is not established.",
+        "Distinguish general explanation, interpretation/inference, and claims about institutional doctrine.",
+        "Qualify the institutional boundary without implying that the general answer is unsupported.",
+        "Abstain only from the unsupported portion; do not convert a narrow authority gap into a whole-answer refusal.",
+        "Respect explicit source-only instructions, safety/high-stakes boundaries, current-fact verification, material ambiguity, and missing evidence.",
+        "Do not attach an unverified or merely topical doorway. A doorway is optional and requires a directly relevant verified canonical source or an explicit request for institutional material.",
+        "Transfer the reasoning discipline, not the exact wording or example, to unrelated questions."
+      ],
+      "known_theme": "answerability, epistemic calibration, general knowledge versus institutional authority, qualified interpretation, narrow abstention, source constraints, doorway restraint",
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide visitor-facing response, followed by explicit registry-elevation instruction.",
+        "source_date": "2026-11-22",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question, substantive three-paragraph answer, and the explicit qualification that the explanation is general rather than a formal Living Archive definition. The user's instruction authorizes registry elevation and bounded structural learning. The screenshot shows no doorway; the intentional omission is consistent with the answer's stated authority boundary, not proof that doorway behavior is globally correct in all contexts.",
+        "review_assessment": "Assistant assessment: 9.2/10 for directness, conceptual clarity, operational usefulness, authority calibration, and appropriate restraint. The answer is a positive calibration exemplar; held-out validation remains a separate system-level acceptance activity."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized registry elevation but did not separately request a display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "exact_answer_authority": false,
+      "active_quality_contributor": true,
+      "deterministic_fallback_eligible": false,
+      "approval_date": "2026-11-22",
+      "approval_evidence": "User explicitly instructed “elevate to gold star registry” after reviewing the live Guide screenshot and assessment.",
+      "user_approved_at": "2026-11-22",
+      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
+      "legacy_approval_grandfathered": false,
+      "forbids_doorway": true
     }
   ],
-  "last_reconciliation_note": "2026-11-21: User explicitly elevated the live Guide response to “When does ‘transformation’ become mere rebranding?” as a Gold Star. The exact screenshot-observed answer is frozen with a verified canonical continuation and bounded structural-transformation discipline. Exact-answer authority and deterministic fallback remain disabled; no display serial was requested.",
+  "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-layered-answerability-calibrated-abstention. It contributes the bounded reasoning discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, display serial, or doorway is granted. Held-out validation remains a separate system-level acceptance activity.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8428,20 +8489,20 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-20",
-    "approved_gold_star_count": 131,
-    "registry_record_count": 167,
-    "review_reconciliation": "Canonical approved inventory is 131 records: 129 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
+    "approved_gold_star_count": 132,
+    "registry_record_count": 168,
+    "review_reconciliation": "Canonical approved inventory is 132 records: 130 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. No structural candidate from the 2026-11-22 layered-answerability review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 131 approved Gold Stars; 39 assigned display serials #56–#94; 92 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the transformation-versus-rebranding exemplar.",
     "unassigned_approved_gold_star_count": 92,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 129,
+    "active_quality_contributor_count": 130,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-21-transformation-rebranding-structural-change approved by user 2026-11-21"
+    "structural_candidates_pending_live_review": 0,
+    "last_approval": "gs-2026-11-22-layered-answerability-calibrated-abstention approved by user 2026-11-22"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8540,20 +8601,20 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-21",
-    "approved_gold_star_count": 131,
-    "registry_record_count": 167,
-    "review_reconciliation": "Canonical approved inventory is 131 records: 129 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. 1 structural candidate remains pending live review and is excluded from the approved count.",
+    "approved_gold_star_count": 132,
+    "registry_record_count": 168,
+    "review_reconciliation": "Canonical approved inventory is 132 records: 130 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and is excluded from the approved Gold Star count. No structural candidate from the 2026-11-22 layered-answerability review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-21: 131 approved Gold Stars; 39 assigned display serials #56–#94; 92 approved records explicitly UNASSIGNED with reasons. No display serial was requested for the transformation-versus-rebranding exemplar.",
     "unassigned_approved_gold_star_count": 92,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 129,
+    "active_quality_contributor_count": 130,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 1,
-    "last_approval": "gs-2026-11-21-transformation-rebranding-structural-change approved by user 2026-11-21"
+    "structural_candidates_pending_live_review": 0,
+    "last_approval": "gs-2026-11-22-layered-answerability-calibrated-abstention approved by user 2026-11-22"
   },
-  "last_reconciled": "2026-11-21"
+  "last_reconciled": "2026-11-22"
 }
