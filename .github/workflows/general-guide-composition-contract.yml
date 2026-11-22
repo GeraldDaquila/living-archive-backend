@@ -110,6 +110,8 @@ on:
       - "tests/test_gold_star_transferability_map.py"
       - "docs/qa/gold_star_transferability_map.json"
       - "gold_star_lessons.py"
+      - "gold_star_semantic_retrieval.py"
+      - "tests/test_gold_star_semantic_retrieval.py"
       - "tests/test_gold_star_multi_candidate_adjudication.py"
       - "tests/test_claim_adjudication_request_gate.py"
       - "tests/test_general_guide_provider_parse_contract.py"
