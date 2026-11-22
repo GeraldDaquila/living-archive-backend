@@ -242,3 +242,34 @@ def test_terminal_doorway_boundary_does_not_repeat_an_attempted_search():
         fetch.assert_not_called()
     finally:
         main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(token)
+
+
+def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(monkeypatch):
+    question = (
+        "How should an unfamiliar organizational problem be approached when "
+        "the available evidence is incomplete?"
+    )
+    retrieval_calls = []
+
+    def retrieved_but_not_applied(_query):
+        retrieval_calls.append(_query)
+        return {
+            "benchmark_id": "reviewed-example",
+            "discipline": "Separate observations from interpretations.",
+            "abstention_boundary": "Do not infer causes without evidence.",
+        }
+
+    monkeypatch.setattr(
+        main,
+        "_gold_star_active_quality_contribution",
+        retrieved_but_not_applied,
+    )
+    result = main._basic_inquiry_provider_exhaustion_response(
+        question, {}, {}, recommendation_available=False
+    )
+
+    # The deterministic template has no safe mechanism to apply this lesson.
+    # It must not suppress its normal question-preserving opening on retrieval
+    # alone, and it must not invoke the provider-path selector.
+    assert retrieval_calls == []
+    assert result["response"].startswith("The question raises a real issue:")
