@@ -246,8 +246,9 @@ def _enqueue_job(connection, *, request_id=None, candidate_ids=None, fingerprint
     return connection.execute(
         """
         SELECT enqueue_gold_star_adjudication_job(
-            %s, %s, 1, %s, %s,
-            'provider_composition', 'provider_candidate_delivered'
+            %s::uuid, %s::char(32), 1::smallint,
+            %s::char(64), %s::text[],
+            'provider_composition'::text, 'provider_candidate_delivered'::text
         )
         """,
         (
