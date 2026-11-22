@@ -3461,6 +3461,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # this candidate instead of reserving time that will strand the
                 # final viable fallback without ever attempting it.
                 next_reservation = max(0.0, float(next_candidate_timeout or 0.0))
+                next_minimum_timeout = (
+                    GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+                    if str((next_candidate or {}).get("health_state") or "") == "half_open"
+                    else GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+                )
+                # Do not reserve budget for a later candidate that cannot
+                # receive its own supported minimum timeout.
+                if next_reservation < next_minimum_timeout:
+                    next_reservation = 0.0
                 if remaining_window >= candidate_timeout + next_reservation:
                     reserved_fallback_seconds = min(next_reservation, remaining_window)
                     candidate_timeout = min(
@@ -3469,6 +3478,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                 else:
                     candidate_timeout = min(candidate_timeout, remaining_window)
+                minimum_candidate_timeout = (
+                    GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+                    if str(item.get("health_state") or "") == "half_open"
+                    else GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+                )
+                if candidate_timeout < minimum_candidate_timeout:
+                    print(
+                        "USE provider bank fast-failure fallback: "
+                        f"operation={operation}, action=skip_candidate_below_minimum_timeout, "
+                        f"provider={candidate_provider}, model={candidate_model}, "
+                        f"candidate_timeout_seconds={candidate_timeout:.2f}, "
+                        f"minimum_timeout_seconds={minimum_candidate_timeout:.2f}, "
+                        f"elapsed_seconds={elapsed:.2f}, "
+                        f"budget_seconds={fast_failure_window:.2f}, "
+                        "reason=insufficient_remaining_time"
+                    )
+                    # A later half-open probe may have a lower supported
+                    # minimum, so evaluate it independently on the next loop.
+                    continue
             if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
