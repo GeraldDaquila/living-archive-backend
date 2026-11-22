@@ -669,11 +669,12 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
 
     def two_timeouts_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        # Include small transport/loop overhead so the last candidate has
-        # slightly less than its nominal five-second ceiling remaining.
-        clock.value += float(timeout_override) + 0.02
         if len(calls) < 3:
+            # Failed calls include small transport/loop overhead beyond their
+            # five-second timeout, leaving 4.96 seconds for the final candidate.
+            clock.value += float(timeout_override) + 0.02
             raise RuntimeError("simulated provider timeout")
+        clock.value += float(timeout_override)
         return json.dumps({"response": "A grounded answer in three short paragraphs."})
 
     monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_success)
