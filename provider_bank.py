@@ -1465,6 +1465,23 @@ def candidates(use_core, operation="generic", schema=None):
             })
     return out
 
+def _provider_route_candidate_snapshot(items, limit=14):
+    """Return bounded, non-sensitive arbitration evidence for provider candidates."""
+    snapshot = []
+    now = time.time()
+    for index, item in enumerate(list(items or [])[: max(0, int(limit))], start=1):
+        last_success = float(item.get("last_success", 0) or 0)
+        snapshot.append(
+            f"{index}:{item.get('provider', 'unknown')}/{item.get('model', 'unknown')}"
+            f"[health={item.get('health_state', 'unknown')},"
+            f"quality_failures={int(item.get('quality_failures', 0) or 0)},"
+            f"transport_failures={int(item.get('transport_failures', 0) or 0)},"
+            f"consecutive_failures={int(item.get('consecutive_failures', 0) or 0)},"
+            f"last_success_age_seconds={max(0, int(now - last_success)) if last_success else 'never'}]"
+        )
+    return ";".join(snapshot)
+
+
 def _predictive_shadow_metrics(item, budget_seconds=4.0):
     """Deadline evidence used by bounded Predictive Assignment."""
     latency = float(item.get("ewma_latency_seconds", 0.0) or 0.0)
@@ -3067,6 +3084,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
+    if operation == "general_guide_composition":
+        print(
+            "USE provider bank candidate arbitration: "
+            f"operation={operation}, eligible_count={len(pool)}, "
+            f"candidate_order={_provider_route_candidate_snapshot(pool)}"
+        )
     _gold_star_trace.set_provider_route_candidate_count(operation, len(pool))
     if not pool:
         # Local capacity may be empty while the independent counterpart still has

@@ -392,3 +392,22 @@ def test_quota_reservation_is_released_even_if_correlation_logging_raises(monkey
         )
 
     assert released == [True]
+
+
+def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fields(monkeypatch):
+    candidates = [
+        {
+            **_item("gemini", "gemini-3.8-flash"),
+            "last_success": 100.0,
+            "credential_fingerprint": "DO_NOT_LOG_THIS",
+            "api_key": "SECRET",
+        },
+        _item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+    ]
+    monkeypatch.setattr(provider_bank.time, "time", lambda: 130.0)
+    snapshot = provider_bank._provider_route_candidate_snapshot(candidates, limit=1)
+    assert snapshot.startswith("1:gemini/gemini-3.8-flash[health=healthy")
+    assert "last_success_age_seconds=30" in snapshot
+    assert "workers_ai" not in snapshot
+    assert "DO_NOT_LOG_THIS" not in snapshot
+    assert "SECRET" not in snapshot
