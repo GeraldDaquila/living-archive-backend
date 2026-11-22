@@ -931,3 +931,18 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Candidate response:** the two-paragraph historical wording is preserved verbatim in `tests/fixtures/general_guide_trust_community_stewardship_candidate.json`.
 - **Doorway:** [Trust Architecture](https://geralddaquila.com/trust-architecture/) — sourced from the merged visitor-facing doorway contract in PR #1808; kept separate from the answer.
 - **QA boundary:** fixture integrity is testable now. This does not count as an approved or live Gold Star, and does not authorize production deployment.
+
+
+### Gold Star — Community freedom and shared responsibility in fair decisions (2026-11-22)
+
+- **Benchmark:** `gs-2026-11-22-community-freedom-shared-responsibility-decision`.
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; the exact live visitor-facing response is frozen after explicit user elevation.
+- **Question:** “When a community faces a difficult trade-off between individual freedom and shared responsibility, how should it make a decision that is both fair and workable?”
+- **Answer:** Exact three-paragraph production response preserved verbatim in `docs/qa/gold_standard_registry.json`.
+- **Rating:** 9.4/10 (assistant assessment; equivalent to 4.7/5).
+- **Reasoning discipline:** Protect legitimate rights and meaningful agency while identifying the shared need or harm with evidence; include affected people, especially those with less influence; distinguish necessary obligations from majority preference; test less restrictive alternatives; require proportionality; distribute burdens fairly; and provide transparent reasons, consistent rules, accountability, appeal, review, and correction.
+- **Doorway:** Intentionally none approved. The supplied live screenshot displayed no doorway, and no directly relevant canonical destination was verified for this exemplar. Do not append an unverified or generic resource.
+- **Adaptive-learning boundary:** Active qualitative contributor only. Transfer the bounded decision discipline to relevant community-governance questions; do not copy the exact answer or imply that collective preference automatically overrides individual rights. Exact-answer authority and deterministic fallback remain disabled.
+- **Production evidence:** The same question previously returned an abstention; after PR #1902 was merged and deployed, the live visitor interface returned this substantive answer.
+- **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.

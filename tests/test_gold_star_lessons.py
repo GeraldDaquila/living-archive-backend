@@ -341,3 +341,17 @@ def test_event_pattern_structure_gold_star_is_active_bounded_structural_learning
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
     assert lessons.deterministic_fallback_contribution(query) is None
+
+
+def test_community_freedom_shared_responsibility_gold_star_contributes_bounded_guidance():
+    question = "When a community faces a difficult trade-off between individual freedom and shared responsibility, how should it make a decision that is both fair and workable?"
+    selected = lessons.select_lesson(question)
+    assert selected and selected["exact"] is True
+    assert selected["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    contribution = lessons.active_quality_contribution(question)
+    assert contribution
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert "proportionate" in contribution["discipline"]
+    assert "meaningful agency" in contribution["discipline"]
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution

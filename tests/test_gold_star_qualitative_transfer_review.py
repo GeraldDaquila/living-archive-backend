@@ -398,8 +398,8 @@ def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounde
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 130
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 126
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 131
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 127
 
 
 def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bounded():
@@ -436,5 +436,17 @@ def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bo
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 130
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 126
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 131
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 127
+
+
+def test_community_freedom_shared_responsibility_is_mapped_with_its_boundary():
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    transfer_map = json.loads((root / "docs/qa/gold_star_transferability_map.json").read_text(encoding="utf-8"))
+    entry = next(item for item in transfer_map["entries"] if item["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision")
+    assert entry["family"] == "community_freedom_shared_responsibility_proportionate_decision"
+    assert "meaningful agency" in entry["structural_lesson"]
+    assert "automatic authority to override individual rights" in entry["structural_lesson"]
+    assert "jurisdiction-specific legal analysis" in entry["abstention_boundary"]
