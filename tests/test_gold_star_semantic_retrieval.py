@@ -132,3 +132,73 @@ def test_cold_semantic_warmup_starts_only_after_provider_route(monkeypatch):
         "provider_route",
         "warmup_started",
     ]
+
+
+
+def _reset_semantic_warmup_state():
+    semantic._WARMUP_REQUESTED = False
+    semantic._WARMUP_THREAD = None
+
+
+def test_background_warmup_materializes_index_and_marks_ready(monkeypatch):
+    _reset_semantic_warmup_state()
+    ready = {"value": False}
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: ready["value"])
+
+    def materialize():
+        ready["value"] = True
+        return {"reviewed-lesson": [1.0]}
+
+    monkeypatch.setattr(semantic, "_lesson_vectors", materialize)
+
+    assert semantic.request_semantic_index_warmup() is True
+    assert semantic.start_requested_semantic_warmup() is True
+    thread = semantic._WARMUP_THREAD
+    assert thread is not None
+    thread.join(timeout=5)
+
+    assert not thread.is_alive()
+    assert ready["value"] is True
+    assert semantic.semantic_index_ready() is True
+    assert semantic._WARMUP_THREAD is None
+    assert semantic._WARMUP_REQUESTED is False
+
+
+def test_failed_background_warmup_clears_thread_and_allows_retry(monkeypatch):
+    _reset_semantic_warmup_state()
+    ready = {"value": False}
+    attempts = {"count": 0}
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: ready["value"])
+
+    def materialize():
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise RuntimeError("simulated embedding initialization failure")
+        ready["value"] = True
+        return {"reviewed-lesson": [1.0]}
+
+    monkeypatch.setattr(semantic, "_lesson_vectors", materialize)
+
+    assert semantic.request_semantic_index_warmup() is True
+    assert semantic.start_requested_semantic_warmup() is True
+    first_thread = semantic._WARMUP_THREAD
+    assert first_thread is not None
+    first_thread.join(timeout=5)
+
+    assert not first_thread.is_alive()
+    assert ready["value"] is False
+    assert semantic._WARMUP_THREAD is None
+
+    # A failed materialization must not poison readiness or suppress retries.
+    assert semantic.request_semantic_index_warmup() is True
+    assert semantic.start_requested_semantic_warmup() is True
+    second_thread = semantic._WARMUP_THREAD
+    assert second_thread is not None
+    second_thread.join(timeout=5)
+
+    assert not second_thread.is_alive()
+    assert attempts["count"] == 2
+    assert ready["value"] is True
+    assert semantic.semantic_index_ready() is True
+    assert semantic._WARMUP_THREAD is None
+    assert semantic._WARMUP_REQUESTED is False
