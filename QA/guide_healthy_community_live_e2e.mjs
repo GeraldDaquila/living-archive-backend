@@ -136,7 +136,9 @@ try {
   // Playwright auto-waiting on a possible form navigation.
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
 
-  const link = root.locator("#archive-response-text a.la-answer-doorway__link");
+  // The controller renders the canonical doorway in a sibling navigation surface,
+  // not inside the substantive answer-text element.
+  const link = root.locator("a.la-answer-doorway__link");
   try {
     await link.waitFor({ state: "visible", timeout: 60_000 });
   } catch (error) {
@@ -151,6 +153,12 @@ try {
         rects: node.getClientRects().length,
         className: node.className
       })).catch(() => null),
+      rootLinks: await root.locator("a").evaluateAll(nodes => nodes.map(node => ({
+        text: (node.innerText || "").trim(),
+        href: node.href,
+        className: node.className,
+        visible: Boolean(node.getClientRects().length)
+      }))).catch(() => []),
       answerLinks: await answer.locator("a").evaluateAll(nodes => nodes.map(node => ({
         text: (node.innerText || "").trim(),
         href: node.href,
@@ -258,7 +266,7 @@ try {
       waterUI.toLowerCase().includes("living archive's available material")) {
     throw new Error("The rendered visitor response did not match the concise general-fact boundary: " + waterUI);
   }
-  if (await root.locator("#archive-response-text a.la-answer-doorway__link").count() !== 0) {
+  if (await root.locator("a.la-answer-doorway__link").count() !== 0) {
     throw new Error("The boiling-point response displayed a doorway even though no relevant canonical resource was verified.");
   }
   if (!waterUI.includes(waterAPI.slice(0, Math.min(48, waterAPI.length)))) {
