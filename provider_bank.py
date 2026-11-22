@@ -3521,6 +3521,16 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             )
+            # The arbitration calculation above is authoritative for Guide
+            # fallbacks. Reuse its reduced timeout for the actual transport call;
+            # recomputing only from the request deadline would silently discard
+            # the provider-window reservation.
+            if (
+                operation == "general_guide_composition"
+                and attempt_index > base_max_attempts
+                and attempt_timeout is not None
+            ):
+                attempt_timeout = min(attempt_timeout, candidate_timeout)
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
             ):
