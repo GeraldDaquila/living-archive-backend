@@ -520,10 +520,23 @@ def select_lesson_candidates(
             for row in lexical_ranked[:limit]
         ]
 
-    # Semantic recovery only runs when the proven selector abstains. Missing
-    # model/runtime support safely preserves the old abstention behaviour.
+    # Semantic recovery only runs when the proven selector abstains. The first
+    # cold BGE/ONNX initialization can take most of the visitor request budget.
+    # Defer that one-time work until after this request's provider route; this
+    # request preserves the established abstention behavior and later requests
+    # receive the fully warmed semantic selector.
     try:
-        from gold_star_semantic_retrieval import rank_semantic_lessons
+        from gold_star_semantic_retrieval import (
+            rank_semantic_lessons,
+            request_semantic_index_warmup,
+            semantic_index_ready,
+        )
+        if not semantic_index_ready():
+            request_semantic_index_warmup()
+            _TELEMETRY_LOG.info(
+                "gold_star_semantic_retrieval deferred=cold_index_warmup_after_provider_route"
+            )
+            return []
         semantic_scores = rank_semantic_lessons(query, candidates)
     except Exception as exc:
         _TELEMETRY_LOG.warning(
