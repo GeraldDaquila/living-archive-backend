@@ -1,6 +1,8 @@
 """Behavioral tests for semantic Gold Star retrieval and abstention."""
 import gold_star_lessons as lessons
 import gold_star_semantic_retrieval as semantic
+import general_guide_composition as composition
+import pytest
 
 
 def test_semantic_paraphrase_can_retrieve_without_two_word_overlap(monkeypatch):
@@ -11,6 +13,7 @@ def test_semantic_paraphrase_can_retrieve_without_two_word_overlap(monkeypatch):
     query = "When is renewal just cosmetic rebranding?"
     query_terms = lessons._concept_terms(query)
     assert len(query_terms & target["signature_terms"]) < 2
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: True)
     monkeypatch.setattr(
         semantic, "rank_semantic_lessons",
         lambda _query, candidates: {item["id"]: (0.86 if item["id"] == target["id"] else 0.20) for item in candidates},
@@ -22,6 +25,7 @@ def test_semantic_paraphrase_can_retrieve_without_two_word_overlap(monkeypatch):
 
 
 def test_semantic_similarity_without_subject_anchor_is_rejected(monkeypatch):
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: True)
     monkeypatch.setattr(
         semantic, "rank_semantic_lessons",
         lambda _query, candidates: {item["id"]: 0.91 for item in candidates},
@@ -69,3 +73,62 @@ def test_semantic_retrieval_reuses_the_shared_use_core_model(monkeypatch):
         semantic._lesson_vectors.cache_clear()
         semantic._model.cache_clear()
 
+
+
+def test_cold_semantic_selector_requests_warmup_without_blocking(monkeypatch):
+    requested = []
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: False)
+    monkeypatch.setattr(
+        semantic,
+        "request_semantic_index_warmup",
+        lambda: requested.append(True) or True,
+    )
+    monkeypatch.setattr(
+        semantic,
+        "rank_semantic_lessons",
+        lambda *_args, **_kwargs: pytest.fail("cold semantic model must not load in the visitor path"),
+    )
+
+    result = lessons.select_lesson_candidates("When is renewal just cosmetic rebranding?")
+
+    assert result == []
+    assert requested == [True]
+
+
+def test_cold_semantic_warmup_starts_only_after_provider_route(monkeypatch):
+    events = []
+    composition._COMPOSITION_CACHE.clear()
+    monkeypatch.setattr(semantic, "semantic_index_ready", lambda: False)
+    monkeypatch.setattr(
+        semantic,
+        "request_semantic_index_warmup",
+        lambda: events.append("warmup_requested") or True,
+    )
+    monkeypatch.setattr(
+        semantic,
+        "start_requested_semantic_warmup",
+        lambda: events.append("warmup_started") or True,
+    )
+    monkeypatch.setattr(
+        composition,
+        "_gold_star_active_quality_contribution",
+        lambda query: lessons.active_quality_contribution(query),
+    )
+    monkeypatch.setattr(composition, "_registered_exact_gold_standard", lambda _query: None)
+    monkeypatch.setattr(
+        composition,
+        "route_with_model_bank",
+        lambda **_kwargs: events.append("provider_route") or None,
+    )
+
+    composition.compose(
+        use_core=None,
+        query="When is renewal just cosmetic rebranding?",
+        context_data={},
+    )
+
+    assert events[:3] == [
+        "warmup_requested",
+        "provider_route",
+        "warmup_started",
+    ]
