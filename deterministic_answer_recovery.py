@@ -289,12 +289,12 @@ def _is_ethical_tradeoff(question):
         r"\b(?:disagree|competing|conflict|trade.?offs?|priorit(?:y|ies)|"
         r"protect(?:ing)?|worth protecting|deeply value|important to each|"
         r"lose something|irreversible|bear the costs|"
-        r"stakeholders?|obligations?|duties|interests)\b", q
+        r"stakeholders?|obligations?|duties|interests|shared responsibility|individual freedom)\b", q
     ))
     asks_for_judgment = bool(re.search(
         r"\b(?:how can|how should|how do we|how should we decide|how do we decide|"
         r"what should we protect|what if|who should decide|which should|what is fair|"
-        r"fair process|balance|reconcile|hold .{0,70} obligations?|what does .{0,80} look like)\b", q
+        r"fair process|balance|reconcile|hold .{0,70} obligations?|what does .{0,80} look like|how should (?:it|a community|the community|they)\s+(?:make|reach|take)\s+(?:a\s+)?decision)\b", q
     ))
     return competing_values and asks_for_judgment
 
@@ -2009,7 +2009,29 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     # Ethical conflicts must outrank generic "how" / practical-action patterns.
     elif _is_ethical_tradeoff(q):
-        if re.search(r"\bstewardship\b", lower) and re.search(r"\b(?:disagree|protect)\w*\b", lower):
+        if (
+            re.search(r"\bindividual\s+freedom\b", lower)
+            and re.search(r"\bshared\s+responsibility\b", lower)
+        ):
+            answer = (
+                "A community should not treat individual freedom and shared responsibility as opposites. "
+                "Freedom gives people room to make choices and pursue legitimate interests; shared responsibility "
+                "recognizes that choices also affect the conditions other people depend on. A fair decision asks "
+                "how to protect both, and where a genuine conflict remains, what limits are justified.\n\n"
+                "Begin by identifying the specific freedom at stake, the shared need or harm the community is "
+                "trying to address, and the evidence connecting the proposed action to that need. Include the "
+                "people who will be affected, especially those with less influence, and distinguish a necessary "
+                "shared obligation from a preference being imposed by the majority. Consider less restrictive "
+                "alternatives, distribute burdens fairly, and make sure any constraint is proportionate to the "
+                "harm it is meant to prevent.\n\n"
+                "The decision is more defensible when its reasons are public, the rule applies consistently, "
+                "individual rights are not casually overridden, and people can question or appeal its application. "
+                "Agree on who is accountable, what outcomes will be reviewed, and when the arrangement should be "
+                "revised. A workable community does not require everyone to agree on every choice; it requires "
+                "people to understand the shared reasons, retain meaningful agency, and have a fair way to correct "
+                "decisions that impose unjustified costs."
+            )
+        elif re.search(r"\bstewardship\b", lower) and re.search(r"\b(?:disagree|protect)\w*\b", lower):
             answer = (
                 "When people disagree about what is worth protecting, the disagreement may reflect different "
                 "values, responsibilities, or fears about what could be lost. One person may be trying to preserve "
