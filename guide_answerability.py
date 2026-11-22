@@ -25,15 +25,15 @@ _MEANING_REQUEST = re.compile(
 )
 
 _SOURCE_SPECIFIC_OR_SOURCE_ONLY = re.compile(
-    r"\\b(?:according to|as defined by|official|formal|institution(?:al)?[- ]specific|"
-    r"the archive(?:'s)? definition|in the living archive(?:'s)? (?:own )?(?:terms|usage|framework))\\b"
-    r"|\\b(?:using|based on|drawn from)\\b.{0,35}\\b(?:only|solely|exclusively)\\b.{0,30}\\b(?:source|document|archive|text|publication)\\b"
-    r"|\\b(?:only|solely|exclusively)\\b.{0,35}\\b(?:source|document|archive|text|publication)\\b",
+    r"\b(?:according to|as defined by|official|formal|institution(?:al)?[- ]specific|"
+    r"the archive(?:'s)? definition|in the living archive(?:'s)? (?:own )?(?:terms|usage|framework))\b"
+    r"|\b(?:using|based on|drawn from)\b.{0,35}\b(?:only|solely|exclusively)\b.{0,30}\b(?:source|document|archive|text|publication)\b"
+    r"|\b(?:only|solely|exclusively)\b.{0,35}\b(?:source|document|archive|text|publication)\b",
     re.I,
 )
 _HIGH_STAKES_CONTEXT = re.compile(
-    r"\\b(?:medical advice|diagnos\\w*|treatment plan|medication|legal advice|lawsuit|"
-    r"investment advice|financial advice|emergency response|self[- ]harm|clinical care)\\b",
+    r"\b(?:medical advice|diagnos\w*|treatment plan|medication|legal advice|lawsuit|"
+    r"investment advice|financial advice|emergency response|self[- ]harm|clinical care)\b",
     re.I,
 )
 
