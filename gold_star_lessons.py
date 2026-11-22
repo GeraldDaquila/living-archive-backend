@@ -532,9 +532,11 @@ def select_lesson_candidates(
             semantic_index_ready,
         )
         if not semantic_index_ready():
-            request_semantic_index_warmup()
+            requested = request_semantic_index_warmup()
             _TELEMETRY_LOG.info(
-                "gold_star_semantic_retrieval deferred=cold_index_warmup_after_provider_route"
+                "gold_star_semantic_retrieval deferred=cold_index "
+                "warmup_requested=%s",
+                str(bool(requested)).lower(),
             )
             return []
         semantic_scores = rank_semantic_lessons(query, candidates)

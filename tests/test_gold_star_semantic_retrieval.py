@@ -141,6 +141,7 @@ def _reset_semantic_warmup_state():
 
 
 def test_background_warmup_materializes_index_and_marks_ready(monkeypatch):
+    monkeypatch.setenv("GOLD_STAR_SEMANTIC_WARMUP_ENABLED", "1")
     _reset_semantic_warmup_state()
     ready = {"value": False}
     monkeypatch.setattr(semantic, "semantic_index_ready", lambda: ready["value"])
@@ -165,6 +166,7 @@ def test_background_warmup_materializes_index_and_marks_ready(monkeypatch):
 
 
 def test_failed_background_warmup_clears_thread_and_allows_retry(monkeypatch):
+    monkeypatch.setenv("GOLD_STAR_SEMANTIC_WARMUP_ENABLED", "1")
     _reset_semantic_warmup_state()
     ready = {"value": False}
     attempts = {"count": 0}
@@ -202,3 +204,12 @@ def test_failed_background_warmup_clears_thread_and_allows_retry(monkeypatch):
     assert semantic.semantic_index_ready() is True
     assert semantic._WARMUP_THREAD is None
     assert semantic._WARMUP_REQUESTED is False
+
+
+def test_semantic_warmup_is_disabled_without_explicit_opt_in(monkeypatch):
+    _reset_semantic_warmup_state()
+    monkeypatch.delenv("GOLD_STAR_SEMANTIC_WARMUP_ENABLED", raising=False)
+    assert semantic.request_semantic_index_warmup() is False
+    assert semantic.start_requested_semantic_warmup() is False
+    assert semantic._WARMUP_REQUESTED is False
+    assert semantic._WARMUP_THREAD is None
