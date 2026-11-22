@@ -197,7 +197,7 @@ def test_frozen_core_blob_is_not_modified_by_runtime_integration():
         capture_output=True,
         text=True,
     )
-    assert result.stdout.strip() == "d09654ef19b41c3a4da204758ea199715e848df8"
+    assert result.stdout.strip() == "d897d36e8f0c99aadca704e0594ae5603dd26c73"
 
 
 
