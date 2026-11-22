@@ -11550,63 +11550,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "gold_star_question_contract": _build_gold_star_question_contract(query),
             "visitor_boundary_version": APP_VERSION,
         }
-    # Reality-versus-ideology questions are answerable at a general conceptual level.
-    # Do not require an authoritative Archive definition before explaining ordinary meaning.
-    from guide_answerability import (
-        is_reality_vs_ideology_leadership_question,
-        reality_vs_ideology_recovery,
-        has_reality_vs_ideology_explanation,
-    )
-    if is_reality_vs_ideology_leadership_question(query):
-        _answer = general_guide_composition.enforce_response_contracts(
-            query, reality_vs_ideology_recovery()
-        )
-        if not has_reality_vs_ideology_explanation(_answer):
-            raise RuntimeError("Layered answerability recovery failed its completeness contract.")
-        _request_id = "guide-reality-ideology-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
-        print(
-            "The Guide answer-first deterministic boundary: source=reality_vs_ideology_leadership, "
-            "retrieval_invoked=false, provider_invoked=false, source_specific_definition=qualified"
-        )
-        return {
-            "ok": True,
-            "version": APP_VERSION,
-            "fingerprint": DEPLOYMENT_FINGERPRINT,
-            "source_sha256": RUNTIME_SOURCE_SHA256,
-            "request_id": _request_id,
-            "query": query,
-            "intent": "TOPICAL_INQUIRY",
-            "response": _answer,
-            "recommendation": None,
-            "canonical_doorway": None,
-            "doorway_title": None,
-            "doorway_url": None,
-            "doorway_omission_reason": (
-                "A self-contained general conceptual explanation; no formal Archive definition or "
-                "specific canonical continuation is asserted without supporting source evidence."
-            ),
-            "navigation_suppressed_by_task_contract": True,
-            "answer_basis": {
-                "kind": "general_knowledge",
-                "label": "General conceptual explanation",
-                "explanation": (
-                    "This explains ordinary conceptual usage. It does not claim to state a formal "
-                    "Living Archive definition or doctrine."
-                ),
-            },
-            "response_provenance": {
-                "class": "deterministic_recovery",
-                "provider": "layered_answerability_recovery_v1",
-                "model": None,
-                "quality_adjusted_llm_eligible": False,
-                "llm_invoked": False,
-            },
-            "processing": "guide_reality_vs_ideology_answer_first",
-            "route_source": "guide_layered_answerability_early_boundary",
-            "recovery": "reality_vs_ideology_leadership",
-            "gold_star_question_contract": _build_gold_star_question_contract(query),
-            "visitor_boundary_version": APP_VERSION,
-        }
     # Epistemic-category questions require an answer-first conceptual response.
     # Resource discovery is a separate decision and must not replace the explanation.
     from deterministic_answer_recovery import (
