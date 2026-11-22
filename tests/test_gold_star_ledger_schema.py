@@ -151,6 +151,11 @@ def test_claim_function_rejects_unbounded_worker_parameters(database):
             "SELECT * FROM claim_gold_star_adjudication_jobs(%s, 1, 1)",
             (uuid.uuid4(),),
         )
+    with pytest.raises(errors.RaiseException, match="claim_limit_out_of_range"):
+        database.execute(
+            "SELECT * FROM claim_gold_star_adjudication_jobs(%s, NULL, 30)",
+            (uuid.uuid4(),),
+        )
 
 
 def test_two_concurrent_workers_never_claim_the_same_job(database):
