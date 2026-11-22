@@ -28,8 +28,6 @@ jobs:
   gate1-live-calibration:
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    env:
-      EXPECTED_USE_COMMIT_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +36,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Resolve current production main commit
+        run: |
+          git fetch --no-tags origin main
+          expected_commit="$(git rev-parse FETCH_HEAD)"
+          echo "EXPECTED_USE_COMMIT_SHA=$expected_commit" >> "$GITHUB_ENV"
+          echo "Production main commit under test: $expected_commit"
 
       - name: Install Playwright
         run: |
