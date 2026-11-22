@@ -12,7 +12,7 @@ def test_institutional_legitimacy_question_gets_substantive_provider_independent
     answer = compose_recovery(question)
 
     assert _is_institutional_legitimacy_question(question)
-    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
     for required in (
         "authority",
         "people affected",
@@ -42,4 +42,4 @@ def test_institutional_legitimacy_recovery_does_not_claim_archive_authority():
     answer = _institutional_legitimacy_recovery()
     assert "general conceptual explanation" in answer
     assert "formal doctrine" in answer
-    assert not re.search(r"\\bthe Living Archive teaches that\\b", answer, re.I)
+    assert not re.search(r"\bthe Living Archive teaches that\b", answer, re.I)
