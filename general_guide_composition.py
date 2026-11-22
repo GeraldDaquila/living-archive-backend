@@ -17,6 +17,10 @@ from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
+from guide_answerability import (
+    ARCHITECTURAL_CONTRACT as _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
+    build_answerability_plan as _build_layered_answerability_plan,
+)
 from gold_star_adjudication_trace import (
     build_adjudication_trace as _build_gold_star_adjudication_trace,
     mark_composition_result as _mark_gold_star_composition_result,
@@ -3625,6 +3629,17 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Preserve an answerable general explanation when a provider over-abstains.
+    from guide_answerability import (
+        is_reality_vs_ideology_leadership_question,
+        has_reality_vs_ideology_explanation,
+        reality_vs_ideology_recovery,
+    )
+    if (
+        is_reality_vs_ideology_leadership_question(question)
+        and not has_reality_vs_ideology_explanation(candidate)
+    ):
+        candidate = reality_vs_ideology_recovery()
     # Meta-level coverage-policy questions are governance questions, not resource discovery.
     from deterministic_answer_recovery import (
         is_guide_meta_coverage_policy_question,
@@ -4267,6 +4282,13 @@ def compose(
         if incomplete_knowledge_plan else ""
     )
 
+    # Separate general conceptual answerability from institution-specific authority.
+    layered_answerability_plan = _build_layered_answerability_plan(question)
+    layered_answerability_instruction = (
+        layered_answerability_plan["composition_instruction"] + "\n\n"
+        if layered_answerability_plan else ""
+    )
+
     public_live_source_instruction = _public_live_source_security_instruction(context_data)
 
     # Gold Star quality memory: an approved analogue may contribute reviewed
@@ -4566,6 +4588,7 @@ def compose(
             else ""
         )
         + incomplete_knowledge_instruction
+        + layered_answerability_instruction
         + integrity_recovery_instruction
         + archive_contrast_instruction
         + explicit_invitation_instruction
@@ -4631,7 +4654,7 @@ def compose(
         use_core=use_core,
         operation=OPERATION,
         messages=[
-            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + (
+            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
                 "\n\n" + incomplete_knowledge_plan["architectural_contract"]
                 if incomplete_knowledge_plan else ""
             ) + (
