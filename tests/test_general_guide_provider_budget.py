@@ -657,7 +657,8 @@ def test_general_guide_tpm_preflight_skips_all_models_of_impossible_provider(mon
 
 
 
-def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monkeypatch):
+
+def test_general_guide_skips_final_partial_window_below_supported_minimum(monkeypatch, capsys):
     _isolate(monkeypatch)
 
     class Clock:
@@ -667,17 +668,12 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
     monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
     calls = []
 
-    def two_timeouts_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+    def two_timeouts_then_exhaustion(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        if len(calls) < 3:
-            # Failed calls include small transport/loop overhead beyond their
-            # five-second timeout, leaving 4.96 seconds for the final candidate.
-            clock.value += float(timeout_override) + 0.02
-            raise RuntimeError("simulated provider timeout")
-        clock.value += float(timeout_override)
-        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+        clock.value += float(timeout_override) + 0.02
+        raise RuntimeError("simulated provider timeout")
 
-    monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_success)
+    monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_exhaustion)
     result = provider_bank.route(
         use_core=None,
         messages=[{"role": "system", "content": "Return one JSON object."}],
@@ -686,12 +682,65 @@ def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monke
         operation="general_guide_composition",
     )
 
-    assert result is not None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert result is None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai"]
+    assert [timeout for _, timeout in calls] == pytest.approx([5.0, 5.0])
+    # Two failed attempts consume 10.04 seconds of the 15-second window.
+    # The remaining 4.96 seconds cannot support a normal five-second attempt.
+    assert clock.value == pytest.approx(10.04)
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(15.0)
+    output = capsys.readouterr().out
+    assert "action=skip_candidate_below_minimum_timeout" in output
+    assert "candidate_timeout_seconds=4.96" in output
+    assert "minimum_timeout_seconds=5.00" in output
+    assert "reason=insufficient_remaining_time" in output
+
+
+
+def test_general_guide_rechecks_minimum_timeout_at_transport_boundary(monkeypatch, capsys):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    bounded_calls = {"count": 0}
+
+    def shrink_at_transport_boundary(timeout, deadline_monotonic, now=None):
+        bounded_calls["count"] += 1
+        if bounded_calls["count"] >= 4:
+            return min(float(timeout), 4.99)
+        return float(timeout)
+
+    monkeypatch.setattr(
+        provider_bank,
+        "_bounded_request_provider_timeout",
+        shrink_at_transport_boundary,
+    )
+    calls = []
+
+    def first_candidate_fails(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value += 0.1
+        raise RuntimeError("simulated provider failure")
+
+    monkeypatch.setattr(provider_bank, "_call", first_candidate_fails)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+        deadline_monotonic=100.0,
+    )
+
+    assert result is None
+    # The first attempt is allowed; the fallback is skipped after its final
+    # deadline recheck shrinks the transport timeout to 4.99 seconds.
+    assert [provider for provider, _ in calls] == ["gemini"]
     assert calls[0][1] == pytest.approx(5.0)
-    assert calls[1][1] == pytest.approx(5.0)
-    # Two failed calls consume 10.04 seconds including simulated overhead,
-    # leaving 4.96 seconds for the final independent candidate.
-    assert calls[2][1] == pytest.approx(4.96)
-    assert calls[2][1] > 4.0
-    assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+    output = capsys.readouterr().out
+    assert "reason=deadline_recheck_insufficient_remaining_time" in output
+    assert "candidate_timeout_seconds=4.99" in output
+    assert "minimum_timeout_seconds=5.00" in output
