@@ -217,7 +217,7 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
         provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS <= timeout <= provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 15.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 6
     assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
@@ -320,7 +320,7 @@ def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
 def test_general_guide_extended_provider_window_preserves_one_integrity_repair():
     from guide_request_budget import REQUEST_BUDGET_SECONDS, REPAIR_RESERVE_SECONDS
 
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 15.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
     assert (
         REQUEST_BUDGET_SECONDS - provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
         >= REPAIR_RESERVE_SECONDS
@@ -494,12 +494,13 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    assert len(calls) == 6
+    # The 18-second arbitration window admits all seven bounded 2.5s probes.
+    assert len(calls) == 7
     assert all(
         timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(15.0)
+    assert clock.value == pytest.approx(17.5)
 
 
 def _recovery_candidate(
@@ -683,15 +684,17 @@ def test_general_guide_skips_final_partial_window_below_supported_minimum(monkey
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai"]
-    assert [timeout for _, timeout in calls] == pytest.approx([5.0, 5.0])
-    # Two failed attempts consume 10.04 seconds of the 15-second window.
-    # The remaining 4.96 seconds cannot support a normal five-second attempt.
-    assert clock.value == pytest.approx(10.04)
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(15.0)
+    # The former 15-second window stranded the third provider after two
+    # ordinary five-second timeouts (10.04s elapsed, 4.96s left). The
+    # 18-second window admits one more independent candidate while retaining
+    # the six-second integrity-repair reserve in the shared 24-second budget.
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [timeout for _, timeout in calls] == pytest.approx([5.0, 5.0, 5.0])
+    assert clock.value == pytest.approx(15.06)
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(18.0)
     output = capsys.readouterr().out
     assert "action=skip_candidate_below_minimum_timeout" in output
-    assert "candidate_timeout_seconds=4.96" in output
+    assert "candidate_timeout_seconds=2.94" in output
     assert "minimum_timeout_seconds=5.00" in output
     assert "reason=insufficient_remaining_time" in output
 
