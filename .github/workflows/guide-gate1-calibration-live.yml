@@ -1,0 +1,47 @@
+name: Guide Gate 1 Isolated Live Calibration
+
+on:
+  pull_request:
+    paths:
+      - 'QA/guide_gate1_calibration_live_e2e.mjs'
+      - '.github/workflows/guide-gate1-calibration-live.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'QA/guide_gate1_calibration_live_e2e.mjs'
+      - '.github/workflows/guide-gate1-calibration-live.yml'
+      - 'main.py'
+      - 'use_core.py'
+      - 'provider_bank.py'
+      - 'archive_crosslink.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-gate1-live-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate1-live-calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      EXPECTED_USE_COMMIT_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Submit exactly one Gate 1 question through the live Guide
+        run: node QA/guide_gate1_calibration_live_e2e.mjs
