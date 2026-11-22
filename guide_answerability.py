@@ -32,8 +32,8 @@ _SOURCE_SPECIFIC_OR_SOURCE_ONLY = re.compile(
     re.I,
 )
 _HIGH_STAKES_CONTEXT = re.compile(
-    r"\b(?:medical advice|diagnos\w*|treatment plan|medication|legal advice|lawsuit|"
-    r"investment advice|financial advice|emergency response|self[- ]harm|clinical care)\b",
+    r"\b(?:medical|clinical|healthcare|diagnos\w*|treatment plan|medication|legal|law|lawsuit|"
+    r"investment|financial|tax|emergency|safety-critical|self[- ]harm)\b",
     re.I,
 )
 
