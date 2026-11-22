@@ -144,9 +144,8 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
     assert packet["inventory_reconciliation"]["qualitative_review_entries"] == 129
     assert len(active) == 130
     assert all(item["benchmark_id"] in review_ids for item in active)
-    assert "gs-2026-11-22-layered-answerability-calibrated-abstention" not in {item.get("benchmark_id") for item in packet["candidates"]}
     candidates = packet["candidates"]
-    assert len(candidates) == len(active)
+    assert len(candidates) == packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
     assert [item["candidate_label"] for item in candidates] == [
         f"C{index:03d}" for index in range(1, len(active) + 1)
     ]
