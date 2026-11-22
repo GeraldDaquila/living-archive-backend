@@ -3,6 +3,21 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _import_main_without_downloading_embedding_model(monkeypatch):
+    """Import the deterministic route without a network-dependent model fetch."""
+    import fastembed
+
+    class _EmbeddingStub:
+        model = None
+
+        def embed(self, *_args, **_kwargs):
+            return iter(())
+
+    monkeypatch.setattr(fastembed, "TextEmbedding", lambda **_kwargs: _EmbeddingStub())
+    import main
+    return main
 REGISTRY_PATH = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 STEWARDSHIP_FIXTURE_PATH = (
     ROOT / "tests" / "fixtures" / "general_guide_stewardship_gold_standard.json"
@@ -1457,7 +1472,7 @@ def test_personal_decision_agency_gold_star_93_has_active_transfer_review():
     assert "Do not make the person's life decision" in entry["abstention_boundary"]
 
 
-def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_doorway_across_both_paths():
+def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_doorway_across_both_paths(monkeypatch):
     from general_guide_composition import compose
     from general_guide_gold_standards import resolve_exact_gold_standard
 
@@ -1508,7 +1523,7 @@ def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_door
     # contracts above remain mandatory in every test environment.
     import pytest
     pytest.importorskip("fastapi")
-    import main
+    main = _import_main_without_downloading_embedding_model(monkeypatch)
     deterministic_contract = main._basic_inquiry_round1_deterministic_response(
         query, {}, {}, recommendation_available=False
     )
@@ -1575,7 +1590,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert entry["reasoning_family"] == "formal_informal_institutional_dynamics"
 
 
-def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_doorway_and_active_transfer():
+def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_doorway_and_active_transfer(monkeypatch):
     import json
     from general_guide_composition import compose
     from general_guide_gold_standards import resolve_exact_gold_standard
@@ -1618,7 +1633,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     import pytest
     pytest.importorskip("fastapi")
-    import main
+    main = _import_main_without_downloading_embedding_model(monkeypatch)
     deterministic_contract = main._basic_inquiry_round1_deterministic_response(
         fixture["query"], {}, {}, recommendation_available=False
     )
