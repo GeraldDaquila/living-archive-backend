@@ -58,6 +58,10 @@ def test_semantic_retrieval_reuses_the_shared_use_core_model(monkeypatch):
         assert list(vectors) == ["test-lesson"]
         assert len(vectors["test-lesson"]) == 384
         assert shared.calls[0][1] == 32
+
+        scores = semantic.rank_semantic_lessons("a test query", lessons_for_test)
+        assert scores == {"test-lesson": 1.0}
+        assert shared.calls[1][1] == 1
     finally:
         semantic._lesson_vectors.cache_clear()
         semantic._model.cache_clear()
