@@ -12,13 +12,13 @@ def test_community_freedom_responsibility_tradeoff_selects_governed_guidance():
     )
     selected = _selected(query)
     ids = [item["benchmark_id"] for item in selected]
+    # The exact, user-approved production exemplar takes precedence for this
+    # exact question. The broader governed trade-off policy remains covered by
+    # the paraphrase and required-core tests below.
     assert ids == [
-        "general-guide-ethical-tradeoff-2026-10",
-        "gs-2026-11-20-stewardship-consent-relational-legitimacy",
+        "gs-2026-11-22-community-freedom-shared-responsibility-decision",
     ]
-    assert [item["role"] for item in selected] == ["core", "conditional"]
-    assert all(item["match_basis"] == "governed_community_tradeoff_policy" for item in selected)
-    assert all(item["score"] is None for item in selected)
+    assert selected[0]["exact"] is True
 
 
 def test_stakeholder_obligations_are_added_only_when_explicit():
@@ -68,12 +68,10 @@ def test_active_contribution_carries_selected_disciplines_and_boundaries():
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
     assert contribution["authority_mode"] == "structural_guidance_only"
-    assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    assert contribution["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
     candidates = contribution["candidates"]
     assert [item["benchmark_id"] for item in candidates] == [
-        "general-guide-ethical-tradeoff-2026-10",
-        "gs-2026-11-20-stewardship-consent-relational-legitimacy",
+        "gs-2026-11-22-community-freedom-shared-responsibility-decision",
     ]
     assert all(item["discipline"].strip() for item in candidates)
     assert all(item["abstention_boundary"].strip() for item in candidates)
-    assert all(item["role"] in {"core", "conditional"} for item in candidates)
