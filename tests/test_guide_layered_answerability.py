@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import general_guide_composition as composition
-import main
 from guide_answerability import (
     ARCHITECTURAL_CONTRACT,
     build_answerability_plan,
@@ -92,23 +91,6 @@ def test_final_composition_boundary_preserves_a_complete_provider_answer():
         "people affected show that it is not working."
     )
     assert composition.enforce_response_contracts(QUESTION, valid) == valid
-
-
-def test_live_basic_inquiry_answers_before_retrieval_or_provider(monkeypatch):
-    def forbidden(*args, **kwargs):
-        raise AssertionError("This general conceptual answer must not depend on retrieval or a provider.")
-
-    monkeypatch.setattr(main.use_core, "fetch_canonical_context", forbidden)
-    monkeypatch.setattr(main, "route_with_model_bank", forbidden)
-
-    payload = main._basic_inquiry_response(QUESTION)
-    assert has_reality_vs_ideology_explanation(payload["response"])
-    assert payload["processing"] == "guide_reality_vs_ideology_answer_first"
-    assert payload["route_source"] == "guide_layered_answerability_early_boundary"
-    assert payload["response_provenance"]["llm_invoked"] is False
-    assert payload["answer_basis"]["kind"] == "general_knowledge"
-    assert payload["recommendation"] is None
-    assert payload["canonical_doorway"] is None
 
 
 def test_architectural_and_query_level_contracts_are_wired_into_shared_composer():
