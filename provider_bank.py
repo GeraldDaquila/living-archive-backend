@@ -3181,7 +3181,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             candidate_provider = str(candidate.get("provider") or "")
             if candidate_provider in impossible_provider_budgets:
                 continue
-            preflight = provider_input_exceeds_tpm_budget(candidate_provider, messages)
+            preflight = provider_input_exceeds_tpm_budget(candidate_provider, effective_messages)
             if preflight is not None:
                 impossible_provider_budgets[candidate_provider] = preflight
         if impossible_provider_budgets:
