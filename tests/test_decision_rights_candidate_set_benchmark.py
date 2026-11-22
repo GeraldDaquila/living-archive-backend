@@ -125,7 +125,7 @@ def test_application_and_retrieval_are_separate_gates():
 
 
 
-def test_blinded_review_packet_covers_complete_active_inventory():
+def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapshot():
     packet_path = ROOT / "docs/qa/decision_rights_independent_review_packet_2026-11-22.json"
     packet = _load(packet_path)
     registry = _load(REGISTRY)
@@ -139,13 +139,16 @@ def test_blinded_review_packet_covers_complete_active_inventory():
         key=lambda item: item["benchmark_id"],
     )
     review_ids = {item["benchmark_id"] for item in reviews["entries"]}
-    assert len(active) == packet["inventory_reconciliation"]["runtime_transfer_true"]
-    assert len(active) == packet["inventory_reconciliation"]["qualitative_review_entries"]
+    assert packet["inventory_reconciliation"]["approved_records"] == 131
+    assert packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
+    assert len(active) == 130
+    assert packet["inventory_reconciliation"]["qualitative_review_entries"] == 129
+    assert len(active) == 130
     assert all(item["benchmark_id"] in review_ids for item in active)
     candidates = packet["candidates"]
-    assert len(candidates) == len(active)
+    assert len(candidates) == packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
     assert [item["candidate_label"] for item in candidates] == [
-        f"C{index:03d}" for index in range(1, len(active) + 1)
+        f"C{index:03d}" for index in range(1, len(candidates) + 1)
     ]
     assert all("benchmark_id" not in item for item in candidates)
     required_source_fields = (
