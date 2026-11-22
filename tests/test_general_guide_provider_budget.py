@@ -113,7 +113,7 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
         provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS <= timeout <= provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 6
     assert clock.value == pytest.approx(1.0)
 
 
@@ -218,7 +218,7 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
         for _, timeout in calls
     )
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 15.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 6
     assert clock.value <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
@@ -419,7 +419,10 @@ def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks
         {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
         {**_item("workers_ai", "@cf/zai-org/glm-4.7-flash"), "health_state": "half_open"},
         {**_item("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"), "health_state": "half_open"},
-        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("groq", "openai/gpt-oss-20b"), "health_state": "half_open"},
+        {**_item("nvidia", "google/gemma-4-31b-it"), "health_state": "half_open"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open"},
     ]
     monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
 
@@ -446,10 +449,54 @@ def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks
 
     assert result is None
     assert [provider for provider, _ in calls] == [
-        "mistral", "workers_ai", "openrouter", "nvidia"
+        "mistral", "workers_ai", "openrouter", "gemini",
+        "groq", "nvidia", "workers_ai",
     ]
     assert all(
         timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(0.4)
+    assert clock.value == pytest.approx(0.7)
+
+
+def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
+    _isolate(monkeypatch)
+    candidates = [
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("workers_ai", "@cf/zai-org/glm-4.7-flash"), "health_state": "half_open"},
+        {**_item("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("groq", "openai/gpt-oss-20b"), "health_state": "half_open"},
+        {**_item("nvidia", "google/gemma-4-31b-it"), "health_state": "half_open"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open"},
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def timeout_failures(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value += timeout_override
+        raise RuntimeError("simulated full half-open probe timeout")
+
+    monkeypatch.setattr(provider_bank, "_call", timeout_failures)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is None
+    assert len(calls) == 5
+    assert all(
+        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+        for _, timeout in calls
+    )
+    assert clock.value == pytest.approx(12.5)
