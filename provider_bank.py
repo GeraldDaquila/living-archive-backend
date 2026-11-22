@@ -109,6 +109,9 @@ GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS = 8.0
 GENERAL_GUIDE_DEFAULT_LOW_LATENCY_TIMEOUT_SECONDS = 5.0
 GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS = 7.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS
+# A half-open Guide candidate is a recovery probe, not a normal generation lane.
+# Keep its probe short so one unproven endpoint cannot consume the visitor turn.
+GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = 2.5
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
@@ -2810,10 +2813,13 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
                 GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
                 min(GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS, (float(ewma) * 1.5) + 1.0),
             )
-        return max(
+        timeout = max(
             GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
             min(GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS, baseline),
         )
+        if str((item or {}).get("health_state") or "") == "half_open":
+            return min(timeout, GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS)
+        return timeout
     if operation == "fsd_report_composition":
         return FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS
     return None

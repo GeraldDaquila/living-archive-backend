@@ -411,3 +411,45 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "workers_ai" not in snapshot
     assert "DO_NOT_LOG_THIS" not in snapshot
     assert "SECRET" not in snapshot
+
+
+def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks(monkeypatch):
+    _isolate(monkeypatch)
+    candidates = [
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("workers_ai", "@cf/zai-org/glm-4.7-flash"), "health_state": "half_open"},
+        {**_item("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"), "health_state": "half_open"},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open"},
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def fast_probe_failure(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value += 0.1
+        raise RuntimeError("simulated half-open probe failure")
+
+    monkeypatch.setattr(provider_bank, "_call", fast_probe_failure)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is None
+    assert [provider for provider, _ in calls] == [
+        "mistral", "workers_ai", "openrouter", "nvidia"
+    ]
+    assert all(
+        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+        for _, timeout in calls
+    )
+    assert clock.value == pytest.approx(0.4)
