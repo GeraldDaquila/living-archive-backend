@@ -14,10 +14,10 @@ BEGIN
     IF p_worker_id IS NULL THEN
         RAISE EXCEPTION 'worker_id_required';
     END IF;
-    IF p_limit < 1 OR p_limit > 8 THEN
+    IF p_limit IS NULL OR p_limit < 1 OR p_limit > 8 THEN
         RAISE EXCEPTION 'claim_limit_out_of_range';
     END IF;
-    IF p_lease_seconds < 10 OR p_lease_seconds > 900 THEN
+    IF p_lease_seconds IS NULL OR p_lease_seconds < 10 OR p_lease_seconds > 900 THEN
         RAISE EXCEPTION 'lease_seconds_out_of_range';
     END IF;
 
