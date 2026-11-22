@@ -2728,11 +2728,23 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 raise strict_exc
             try:
                 parsed = json.loads(str(raw or "").strip())
-                if not isinstance(parsed, dict):
-                    raise ValueError("provider response was not an object")
-                response = _sanitize_candidate(parsed.get("response"))
-                if not response or len(response) < 40 or len(response) > 7000:
-                    raise ValueError("provider response failed basic visitor bounds")
+            except (TypeError, json.JSONDecodeError) as parse_error:
+                raise ValueError(
+                    "provider response failed basic visitor bounds: invalid JSON envelope"
+                ) from parse_error
+            if not isinstance(parsed, dict):
+                raise ValueError(
+                    "provider response failed basic visitor bounds: non-object JSON envelope"
+                )
+            response = _sanitize_candidate(parsed.get("response"))
+            if not response:
+                raise ValueError(
+                    "provider response failed basic visitor bounds: empty response"
+                )
+            if len(response) < 40:
+                raise ValueError("provider response too short for basic visitor bounds")
+            if len(response) > 7000:
+                raise ValueError("provider response too long for basic visitor bounds")
                 # Answer-first is constitutional at the visitor boundary. The
                 # soft-contract lane may relax paragraph count or examples, but
                 # it may never admit an announced answer or an echoed question.
