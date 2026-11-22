@@ -1,20 +1,8 @@
 name: Guide Gate 1 Isolated Live Calibration
 
+# This workflow submits one real visitor question to production.
+# It is intentionally manual-only: never run on pull requests or pushes.
 on:
-  pull_request:
-    paths:
-      - 'QA/guide_gate1_calibration_live_e2e.mjs'
-      - '.github/workflows/guide-gate1-calibration-live.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'QA/guide_gate1_calibration_live_e2e.mjs'
-      - '.github/workflows/guide-gate1-calibration-live.yml'
-      - 'main.py'
-      - 'use_core.py'
-      - 'provider_bank.py'
-      - 'archive_crosslink.py'
-      - 'gold_star_semantic_retrieval.py'
   workflow_dispatch:
 
 permissions:
