@@ -18,6 +18,8 @@ DECLARE
     stored_job_id UUID;
     stored_fingerprint CHAR(64);
     stored_candidate_ids TEXT[];
+    stored_provenance TEXT;
+    stored_composition_state TEXT;
 BEGIN
     IF p_job_id IS NULL THEN
         RAISE EXCEPTION 'job_id_required';
@@ -46,15 +48,19 @@ BEGIN
         RETURN stored_job_id;
     END IF;
 
-    SELECT job_id, candidate_set_fingerprint, candidate_ids
-    INTO stored_job_id, stored_fingerprint, stored_candidate_ids
+    SELECT job_id, candidate_set_fingerprint, candidate_ids,
+           delivered_answer_provenance, composition_state
+    INTO stored_job_id, stored_fingerprint, stored_candidate_ids,
+         stored_provenance, stored_composition_state
     FROM gold_star_adjudication_jobs
     WHERE request_id = p_request_id
       AND attempt_ordinal = p_attempt_ordinal
       AND adjudication_kind = 'gold_star_candidate';
 
     IF stored_fingerprint IS DISTINCT FROM p_candidate_set_fingerprint
-       OR stored_candidate_ids IS DISTINCT FROM p_candidate_ids THEN
+       OR stored_candidate_ids IS DISTINCT FROM p_candidate_ids
+       OR stored_provenance IS DISTINCT FROM p_delivered_answer_provenance
+       OR stored_composition_state IS DISTINCT FROM p_composition_state THEN
         RAISE EXCEPTION 'idempotency_key_payload_conflict';
     END IF;
 
