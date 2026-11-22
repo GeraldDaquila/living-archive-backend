@@ -19,7 +19,7 @@ _REALITY_IDEOLOGY = re.compile(
     re.I,
 )
 _MEANING_REQUEST = re.compile(
-    r"\\b(?:what does|what do|what is|how do|how does|explain|meaning of|"
+    r"\\b(?:what does|what do|what is|how is|how do|how does|explain|meaning of|"
     r"what would it mean|what is meant by)\\b",
     re.I,
 )
