@@ -654,3 +654,44 @@ def test_general_guide_tpm_preflight_skips_all_models_of_impossible_provider(mon
     assert result is not None
     assert calls == ["workers_ai"]
     assert result["provider"] == "workers_ai"
+
+
+
+def test_general_guide_uses_final_partial_window_for_last_viable_candidate(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def two_timeouts_then_success(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        # Include small transport/loop overhead so the last candidate has
+        # slightly less than its nominal five-second ceiling remaining.
+        clock.value += float(timeout_override) + 0.02
+        if len(calls) < 3:
+            raise RuntimeError("simulated provider timeout")
+        return json.dumps({"response": "A grounded answer in three short paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", two_timeouts_then_success)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert calls[0][1] == pytest.approx(5.0)
+    assert calls[1][1] < provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+    assert calls[2][1] == pytest.approx(
+        provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS - clock.value
+        + calls[2][1] - 0.02,
+        abs=0.1,
+    )
+    assert calls[2][1] > 4.0
