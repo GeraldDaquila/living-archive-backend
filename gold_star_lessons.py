@@ -484,6 +484,31 @@ def select_lesson_candidates(
             policy_payload.append(item)
         return policy_payload
 
+    # Community freedom/responsibility trade-offs have a separate, narrow
+    # governed policy. It selects only registry lessons already approved for
+    # runtime transfer and never initializes the semantic model.
+    try:
+        from community_tradeoff_candidate_policy import select_community_tradeoff_candidates
+        community_selection = select_community_tradeoff_candidates(query, candidates)
+    except Exception as exc:
+        _TELEMETRY_LOG.warning(
+            "community trade-off candidate policy unavailable; preserving ordinary selector: %s",
+            type(exc).__name__,
+        )
+        community_selection = None
+    if community_selection is not None:
+        policy_payload = []
+        for entry in community_selection[:limit]:
+            item = _lesson_candidate_payload(entry["lesson"], None, exact=False)
+            item.update({
+                "match_basis": "governed_community_tradeoff_policy",
+                "role": entry["role"],
+                "activation_condition": entry["activation_condition"],
+                "role_rationale": entry["role_rationale"],
+            })
+            policy_payload.append(item)
+        return policy_payload
+
     query_terms = _tokens(query)
     if len(query_terms) < 2:
         return []
@@ -627,7 +652,10 @@ def shadow_observation(
     score = float(score_value) if isinstance(score_value, (int, float)) else None
     match_kind = (
         "governed_policy"
-        if selected.get("match_basis") == "governed_decision_rights_policy"
+        if selected.get("match_basis") in {
+            "governed_decision_rights_policy",
+            "governed_community_tradeoff_policy",
+        }
         else ("exact" if bool(selected.get("exact")) else "cross_question")
     )
     score_field = f" score={score:.3f}" if score is not None else " score=not_scored"
@@ -648,7 +676,10 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     # Ordinary retrieval retains its three-candidate compatibility budget.
     # Four are admitted only when the governed decision-rights policy requires
     # a conditional discipline in addition to the three core disciplines.
-    if not any(item.get("match_basis") == "governed_decision_rights_policy" for item in candidates):
+    if not any(item.get("match_basis") in {
+        "governed_decision_rights_policy",
+        "governed_community_tradeoff_policy",
+    } for item in candidates):
         candidates = candidates[:3]
     primary = candidates[0]
     discipline = str(primary.get("transferable_discipline") or "").strip()
