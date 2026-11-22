@@ -1859,7 +1859,21 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     claims = _normalize_shared_claims_for_use(docs or [])
     synthesis = _build_shared_synthesis_material_for_use(claims)
     claims_for_composition = _legacy_claims_from_synthesis(synthesis, claims)
-    primary = _canonical_primary_from_docs(canonical_docs, query, profile)
+    selector_diagnostics = {}
+    primary = _canonical_primary_from_docs(
+        canonical_docs, query, profile, diagnostics=selector_diagnostics
+    )
+    if not primary:
+        # Emit only bounded aggregate reason codes and opaque URL fingerprints.
+        # Never log visitor question text, source bodies, or raw candidate URLs.
+        print(
+            "USE doorway selector: status=no_primary, "
+            f"candidate_count={selector_diagnostics.get('candidate_count', 0)}, "
+            f"eligible_count={selector_diagnostics.get('eligible_count', 0)}, "
+            f"rejection_counts={selector_diagnostics.get('rejection_counts', {})}, "
+            f"rejected_url_fingerprints={selector_diagnostics.get('rejected_url_fingerprints', [])}",
+            flush=True,
+        )
     if primary:
         secondary = _select_adjacent(claims_for_composition, query, primary["title"], profile)
     else:
