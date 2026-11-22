@@ -29,6 +29,8 @@ from gold_star_adjudication_trace import (
     mark_provider_adjudication as _mark_gold_star_provider_adjudication,
     mark_cache_reuse as _mark_gold_star_cache_reuse,
     current_provider_route_context as _current_gold_star_provider_route_context,
+    current_request_context as _current_gold_star_request_context,
+    current_attempt_trace as _current_gold_star_attempt_trace,
 )
 from gold_star_provider_adjudication import (
     build_adjudication_output_contract as _build_gold_star_adjudication_output_contract,
@@ -72,7 +74,28 @@ For questions about stewardship and consent, make the governing distinction expl
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
 
 def _emit_guide_outcome(outcome: str, **fields: Any) -> None:
-    """Emit compact telemetry through stdout and the named logger."""
+    """Emit compact telemetry with opaque request/attempt correlation when active."""
+    request_context = _current_gold_star_request_context()
+    attempt_context = _current_gold_star_attempt_trace()
+    route_context = _current_gold_star_provider_route_context()
+    if isinstance(request_context, dict):
+        for key in ("request_id", "request_ledger_version"):
+            value = request_context.get(key)
+            if value not in (None, "") and fields.get(key) in (None, ""):
+                fields[key] = value
+    if isinstance(attempt_context, dict):
+        value = attempt_context.get("attempt_ordinal")
+        if value not in (None, "") and fields.get("attempt_ordinal") in (None, ""):
+            fields["attempt_ordinal"] = value
+    if isinstance(route_context, dict):
+        for source_key, target_key in (
+            ("provider_route_ordinal", "provider_route_ordinal"),
+            ("attempt_count", "provider_route_attempt_count"),
+            ("terminal_state", "provider_route_terminal_state"),
+        ):
+            value = route_context.get(source_key)
+            if value not in (None, "") and fields.get(target_key) in (None, ""):
+                fields[target_key] = value
     parts = ["guide_outcome", f"outcome={outcome}"]
     for key, value in fields.items():
         if value not in (None, ""):
