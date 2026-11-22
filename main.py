@@ -11446,7 +11446,8 @@ def _is_registered_gold_standard_composition_result(result):
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only semantic retrieval is intentionally excluded from the
     # visitor request path. Active Gold Star contribution remains in the composer,
-    # where it is deadline-bounded and can influence the answer under adjudication.
+    # after the visitor request budget starts, where it can influence composition
+    # under the existing provider-adjudication and abstention contracts.
 
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
