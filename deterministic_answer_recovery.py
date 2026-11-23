@@ -1840,16 +1840,6 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
 
-    # Route the governed task-recovery catalogue through the shared recovery
-    # composer. This makes query-matched, provider-independent answers available
-    # to every caller of compose_recovery, rather than leaving them as unused
-    # helpers reachable only from selected request paths.
-    task_recovery = compose_task_specific_recovery(q)
-    if isinstance(task_recovery, dict):
-        task_response = _clean(task_recovery.get("response"))
-        if task_response:
-            return task_response
-
     if _is_institutional_legitimacy_question(q):
         return _institutional_legitimacy_recovery()
 
@@ -2311,6 +2301,17 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "This provides a grounded starting point without pretending to know details the question has not supplied. "
             "Where the evidence is incomplete, say what can reasonably be concluded and what remains open, instead of replacing the answer with a generic refusal."
         )
+
+    # Last-resort task recovery: preserve all higher-priority specialist and
+    # conceptual branches above, then consult the provider-independent task
+    # catalogue before returning a generic synthesis. This makes the catalogue
+    # part of the shared failure architecture without letting broad task matches
+    # override more specific recovery contracts.
+    task_recovery = compose_task_specific_recovery(q)
+    if isinstance(task_recovery, dict):
+        task_response = _clean(task_recovery.get("response"))
+        if task_response:
+            return task_response
 
     movement = _clean(desired_movement)
     if movement and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
