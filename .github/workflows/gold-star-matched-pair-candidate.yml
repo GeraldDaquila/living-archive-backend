@@ -14,14 +14,14 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Re-triggered after provider-secret updates so the new credentials are exercised.
+    # Prefer OpenRouter first for this candidate-local run; Groq and Gemini remain bounded alternatives for the selected exact lane.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "gemini,openrouter,groq"
+      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "openrouter,groq,gemini"
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
