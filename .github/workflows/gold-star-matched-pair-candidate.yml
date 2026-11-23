@@ -14,7 +14,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Try the independent Groq lane next after OpenRouter returned an invalid provider response; exact provider/model pinning remains fail-closed.
+    # Probe the explicitly registered Groq GPT-OSS 20B lane; exact provider/model pinning remains fail-closed.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -51,7 +51,7 @@ jobs:
           python scripts/capture_gold_star_matched_pairs.py
           --inter-call-delay-seconds 65
           --provider groq
-          --model allam-2-7b
+          --model openai/gpt-oss-20b
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
         if: always()
