@@ -3,10 +3,11 @@ name: Gold Star WP3 paired capture (USE2-Mirror)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, "test/gold-star-matched-pair-runner-20261123"]
     paths:
       - ".github/workflows/gold-star-wp3-paired-capture.yml"
       - "scripts/capture_gold_star_wp3_pairs.py"
+      - "scripts/capture_gold_star_matched_pairs.py"
       - "docs/qa/guide_learning_evaluation_set.json"
 
 permissions:
@@ -45,5 +46,47 @@ jobs:
         with:
           name: gold-star-wp3-paired-capture-${{ github.run_id }}
           path: artifacts/gold-star-wp3-paired-capture.json
+          if-no-files-found: warn
+          retention-days: 90
+
+  matched-pair-local:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/test/gold-star-matched-pair-runner-20261123' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONPATH: .
+      USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
+    steps:
+      - name: Check out the exact candidate commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Install candidate runtime and ASGI test transport
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt httpx
+      - name: Run same-provider, same-model control/treatment captures
+        run: python scripts/capture_gold_star_matched_pairs.py --output-dir artifacts/gold-star-matched-pairs
+      - name: Upload blinded review package and separate unblinding key
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-matched-pairs-${{ github.run_id }}
+          path: artifacts/gold-star-matched-pairs/
           if-no-files-found: warn
           retention-days: 90
