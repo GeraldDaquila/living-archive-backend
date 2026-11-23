@@ -48,6 +48,7 @@ from provider_bank import (
 )
 
 CONTRACT_VERSION = "v1.54"
+GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v1"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -4741,6 +4742,7 @@ def compose(
     evaluation_base_prompt_fingerprint = ""
     if evaluation is not None:
         base_prompt_material = {
+            "fingerprint_version": GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION,
             "operation": OPERATION,
             "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
             "max_tokens": 900,
