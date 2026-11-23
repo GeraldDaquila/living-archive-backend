@@ -199,7 +199,7 @@ def evaluate_gold(record, transport):
             out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
     return out
 
-def evaluate_held(case, transport, *, require_attributable_llm=True):
+def evaluate_held(case, transport, *, require_attributable_llm=True, expected_doorway=None):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}
     answer=body.get("response","")
     answer=answer if isinstance(answer,str) else ""
@@ -277,8 +277,13 @@ def evaluate_held(case, transport, *, require_attributable_llm=True):
         )
         doorway_title=str(rec.get("title") or "") if isinstance(rec,dict) else ""
         doorway_url=str(rec.get("url") or "") if isinstance(rec,dict) else ""
-        doorway_label=(doorway_title+" "+doorway_url).casefold()
-        doorway=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and bool(doorway_title.strip()) and re.search(r"barangay|community[- ](?:rule|governance)|governance|rule[- ]design|shared[- ]obligation|liberty",doorway_label))
+        expected_title=str((expected_doorway or {}).get("title") or "").strip()
+        expected_url=str((expected_doorway or {}).get("url") or "").strip()
+        doorway=bool(
+            expected_title and expected_url and isinstance(rec,dict)
+            and doorway_title.strip()==expected_title
+            and doorway_url.strip()==expected_url
+        )
         rationale=str(rec.get("rationale") or "") if isinstance(rec,dict) else ""
         clean_rationale=(
             bool(rationale.strip())
@@ -342,6 +347,11 @@ def main():
     if args.max_gold_standards < 1: parser.error("--max-gold-standards must be at least 1")
     rb,sb=REGISTRY.read_bytes(),SUITE.read_bytes()
     registry,suite=json.loads(rb),json.loads(sb)
+    registry_by_id={
+        str(record.get("benchmark_id")): record
+        for record in registry.get("records",[])
+        if isinstance(record,dict) and record.get("benchmark_id")
+    }
     eligible_records=[r for r in registry.get("records",[]) if r.get("subsystem")=="general-purpose-guide" and r.get("status") in {"USER_APPROVED_GOLD_STANDARD","FROZEN_REFERENCE_ONLY"} and r.get("query") and r.get("expected_response")]
     records=select_gold_standard_sample(eligible_records,args.max_gold_standards)
     expected_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None
@@ -356,8 +366,18 @@ def main():
         request_completed_at=datetime.now(timezone.utc).isoformat()
         body=transport.get("body")
         body=body if isinstance(body,dict) else None
-        checks=evaluate_gold(item,transport) if split=="gold_standard" else evaluate_held(item,transport)
-        report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"canonical_doorway":body.get("canonical_doorway") if body else None,"doorway_decision":body.get("doorway_decision") if body else None,"doorway_omission_reason":body.get("doorway_omission_reason") if body else None,"deployment_commit_sha":body.get("deployment_commit_sha") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
+        expected_doorway=None
+        if split=="gold_standard":
+            checks=evaluate_gold(item,transport)
+        else:
+            source_ids=item.get("source_benchmark_ids",[])
+            source_record=next(
+                (registry_by_id.get(str(source_id)) for source_id in source_ids if registry_by_id.get(str(source_id))),
+                None,
+            )
+            expected_doorway=source_record.get("expected_doorway") if isinstance(source_record,dict) else None
+            checks=evaluate_held(item,transport,expected_doorway=expected_doorway)
+        report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"expected_doorway":expected_doorway,"recommendation":body.get("recommendation") if body else None,"canonical_doorway":body.get("canonical_doorway") if body else None,"doorway_decision":body.get("doorway_decision") if body else None,"doorway_omission_reason":body.get("doorway_omission_reason") if body else None,"deployment_commit_sha":body.get("deployment_commit_sha") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
     provider_probe_started_at=datetime.now(timezone.utc).isoformat()
     provider_probe_transport=post(base,PROVIDER_PROBE_QUERY)
     provider_probe_completed_at=datetime.now(timezone.utc).isoformat()
