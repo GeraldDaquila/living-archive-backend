@@ -4839,6 +4839,10 @@ def compose(
                         cached_result.pop("_provider_execution_verified", False)
                         or cached_result.get("_provider_execution_origin_verified") is True
                     )
+                    cached_result["_provider_execution_origin_invocation_id"] = (
+                        cached_result.pop("_provider_invocation_id", None)
+                        or cached_result.get("_provider_execution_origin_invocation_id")
+                    )
                     cached_result["_provider_execution_origin_modified"] = bool(
                         cached_result.pop("_provider_execution_modified", False)
                         or cached_result.get("_provider_execution_origin_modified") is True
@@ -5150,6 +5154,7 @@ def compose(
         # contract-valid external provider response. Deterministic recovery
         # candidates never receive it. Keep it internal through final assembly.
         "_provider_execution_verified": result.get("_provider_execution_verified") is True,
+        "_provider_invocation_id": str(result.get("_provider_invocation_id") or ""),
         "_provider_execution_candidate_response": str(response),
         # Internal-only evidence travels with the composition candidate. The
         # shared visitor boundary consumes and strips it before public delivery.
@@ -5243,6 +5248,10 @@ def compose(
                     cached_result["_provider_execution_origin_verified"] = bool(
                         cached_result.pop("_provider_execution_verified", False)
                         or cached_result.get("_provider_execution_origin_verified") is True
+                    )
+                    cached_result["_provider_execution_origin_invocation_id"] = (
+                        cached_result.pop("_provider_invocation_id", None)
+                        or cached_result.get("_provider_execution_origin_invocation_id")
                     )
                     cached_result["_provider_execution_origin_modified"] = bool(
                         cached_result.pop("_provider_execution_modified", False)
