@@ -10714,13 +10714,18 @@ def _normalize_authoritative_recommendation(doorway):
     ).strip()
     if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
         return None
-    # Every doorway source—retrieval, reviewed registry, deterministic recovery,
-    # or terminal restoration—passes through the same visitor-language boundary.
-    # A valid canonical destination must never expose CMS/SEO field labels or
-    # concatenated catalogue metadata in its public introduction.
-    title = general_guide_composition._sanitize_candidate(title)
+    # Canonical titles are source identifiers, not prose: preserve them verbatim
+    # apart from a malformed CMS metadata suffix if one was concatenated.
+    title = re.sub(
+        r"(?is)\b(?:meta\s+description|seo\s+description)\s*:?.*$",
+        "",
+        title,
+    ).strip()
     if not title:
         return None
+    # Every doorway rationale—retrieval, reviewed registry, deterministic
+    # recovery, or terminal restoration—passes through the shared visitor-
+    # language sanitizer before it can reach the public response.
     normalized = {"title": title, "url": url}
     rationale = str(doorway.get("rationale") or doorway.get("doorway_rationale") or "").strip()
     if rationale:
