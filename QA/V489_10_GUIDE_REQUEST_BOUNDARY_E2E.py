@@ -92,35 +92,34 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         ],
     }
     context.update(context_flags or {})
-    def controlled_canonical_context(query):
-        # Only the practical-stewardship boundary case receives this separately
-        # verified canonical page; unrelated test queries retain the original
-        # fixture and cannot acquire an accidental recommendation.
-        result = dict(context)
-        result["generation_authority_protected_docs"] = list(
-            context.get("generation_authority_protected_docs") or []
-        )
+    # The bounded practical-recovery route does not call fetch_canonical_context.
+    # Supply its independently verified canonical search result at the selector's
+    # actual recovery seam, and only for this matching inquiry.
+    def controlled_canonical_search(query, limit=5):
         normalized_query = str(query or "").casefold()
-        if "community" in normalized_query and "stewardship" in normalized_query:
-            result["generation_authority_protected_docs"].append({
-                "title": "Leadership Foundations",
-                "url": "https://geralddaquila.com/leadership-foundations/",
-                "content": (
-                    "Leadership begins in ordinary decisions and responsibilities. "
-                    "It includes self-governance, integrity, accountability, "
-                    "ethical leadership, stewardship, governance, and decision-making "
-                    "under pressure. Leadership is a human systems function shaped "
-                    "by responsibility, consequence, relationships, and institutions."
-                ),
-            })
-        return result
+        if "community" not in normalized_query or "stewardship" not in normalized_query:
+            return []
+        return [{
+            "title": "Leadership Foundations",
+            "url": "https://geralddaquila.com/leadership-foundations/",
+            "text": (
+                "Leadership begins in how people respond under pressure, make "
+                "decisions when outcomes are uncertain, and relate to responsibility. "
+                "Before leadership becomes institutional or organizational, it is "
+                "behavioral. It is expressed through self-governance, integrity, "
+                "accountability, and responsibility. Relational leadership explores "
+                "relationships, teams, institutions, families, cultures, and social "
+                "environments. Governance and stewardship explores stewardship, "
+                "ethical leadership, governance, systems responsibility, and "
+                "leadership under complexity and constraint."
+            ),
+        }]
 
     monkeypatch.setattr(
-        use_main.use_core, "fetch_canonical_context", controlled_canonical_context
+        use_main,
+        "_wordpress_search_canonical_candidates",
+        controlled_canonical_search,
     )
-    # Keep existing request-boundary tests deterministic and offline. Dedicated
-    # recovery tests inject canonical search results explicitly.
-    monkeypatch.setattr(use_main, "_wordpress_search_canonical_candidates", lambda query, limit=5: [])
     monkeypatch.setattr(
         use_main._base, "_inquiry_profile", lambda query: {}
     )
