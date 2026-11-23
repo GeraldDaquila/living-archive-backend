@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run seven held-out Gold Star cases with authored simulation fixtures only.
+"""Run eight held-out Gold Star cases with authored simulation fixtures only.
 
 This is an offline harness exercise. It makes no HTTP/provider calls and must never
 be interpreted as live visitor capture, attributable LLM evidence, or certification.
@@ -50,6 +50,14 @@ SIMULATED_RESPONSES = {
         "Segment the traffic by landing page and inspect whether the increase came "
         "from search, a campaign, referrals, or bots."
     ),
+    "heldout-community-rule-design-transfer-001": (
+        "A community should first identify a legitimate shared purpose and a demonstrable harm or coordination need; "
+        "collective convenience alone is not enough. Any restriction should be necessary and proportionate, and use "
+        "the least restrictive workable means. Make clear who benefits, who carries the costs, and whose freedom is "
+        "limited; distribute burdens fairly and allow reasonable accommodation. People most affected should have a "
+        "meaningful opportunity to shape the decision. Provide a way to appeal or challenge its application, and set "
+        "observable criteria to review and revise the rule when its effects warrant it."
+    ),
     "heldout-explicit-no-handoff-001": (
         "A policy establishes the rule or principle that guides a decision. "
         "A procedure describes the steps for carrying it out. For example, a "
@@ -59,10 +67,24 @@ SIMULATED_RESPONSES = {
 }
 
 
+SIMULATED_RECOMMENDATIONS = {
+    "heldout-practical-trust-001": {
+        "title": "Steward of Organization",
+        "url": "https://geralddaquila.com/steward-of-organization/",
+        "rationale": "This resource offers a practical perspective on trust in organizational stewardship.",
+    },
+    "heldout-community-rule-design-transfer-001": {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": "This resource shows how human-scale community governance can connect shared responsibilities with accountable, locally grounded decision-making.",
+    },
+}
+
+
 def build_report(suite: dict) -> dict:
     cases = suite.get("cases")
-    if not isinstance(cases, list) or len(cases) != 7:
-        raise ValueError("The simulation requires exactly seven held-out cases.")
+    if not isinstance(cases, list) or len(cases) != 8:
+        raise ValueError("The simulation requires exactly eight held-out cases.")
     rubric = suite["human_review_rubric"]
     results = []
     seen = set()
@@ -79,7 +101,7 @@ def build_report(suite: dict) -> dict:
             {"status": 200, "error": None, "body": {
                 "ok": True,
                 "response": answer,
-                "recommendation": None,
+                "recommendation": SIMULATED_RECOMMENDATIONS.get(case_id),
                 "response_provenance": {
                     "class": "simulated_fixture",
                     "provider": None,
@@ -87,6 +109,7 @@ def build_report(suite: dict) -> dict:
                     "llm_invoked": False,
                 },
             }},
+            require_attributable_llm=False,
         )
         results.append({
             "case_id": case_id,

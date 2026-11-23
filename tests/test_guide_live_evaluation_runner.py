@@ -55,11 +55,19 @@ def test_practical_trust_heldout_accepts_concrete_actions():
     answer = ("Ask the people affected what they see before deciding. Explain the reasons for the decision, "
               "name who is responsible for the next step, and follow through when promised. Then check with "
               "the people affected whether the action changed their experience.")
-    transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": {
-        "title": "Steward of Organization",
-        "url": "https://geralddaquila.com/steward-of-organization/",
-        "rationale": "This resource offers a related perspective and a useful next step in the Living Archive.",
-    }}}
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "Steward of Organization",
+                "url": "https://geralddaquila.com/steward-of-organization/",
+                "rationale": "This resource offers a related perspective on trust in organizational stewardship.",
+            },
+        },
+    }
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
 
@@ -261,3 +269,93 @@ def test_live_evaluation_refuses_mismatched_target_commit(monkeypatch):
     else:
         raise AssertionError("A mismatched deployment must never receive synthetic visitor queries.")
 
+
+def test_community_rule_design_transfer_heldout_accepts_balanced_answer_and_clean_doorway():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should identify the shared purpose and the specific harm or coordination problem first. "
+        "Any limit should be necessary and proportionate, using the least restrictive workable means. "
+        "Ask who benefits, who carries the costs, and whose freedom is restricted; distribute duties fairly and "
+        "allow reasonable accommodation. People most affected should have a meaningful opportunity to shape the "
+        "decision. Provide a way to appeal and set observable criteria to review the rule."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "This resource offers a related perspective and a useful next step in the Living Archive.",
+            },
+            "response_provenance": {
+                "class": "llm",
+                "provider": "gemini",
+                "model": "gemini-3.8-flash",
+                "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert all(item["passed"] for item in checks), checks
+
+
+def test_community_rule_design_transfer_heldout_rejects_deterministic_fallback_even_when_content_looks_good():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should identify the shared purpose and the specific harm or coordination problem first. "
+        "Any limit should be necessary and proportionate, using the least restrictive workable means. "
+        "Ask who benefits, who carries the costs, and whose freedom is restricted; distribute duties fairly and "
+        "allow reasonable accommodation. People most affected should have a meaningful opportunity to shape the "
+        "decision. Provide a way to appeal and set observable criteria to review the rule."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "This resource offers a related perspective and a useful next step in the Living Archive.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "bounded_provider_exhaustion_recovery",
+                "model": None,
+                "llm_invoked": False,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    failed = {item["name"] for item in checks if not item["passed"]}
+    assert "attributable_llm" in failed
+
+
+def test_community_rule_design_transfer_heldout_rejects_unjustified_majority_rule_and_metadata_leak():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "The majority can restrict private choices whenever it prefers a shared rule. "
+        "There is no need to review the rule or provide an appeal."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "Meta Description: a long excerpt from the page",
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert not all(item["passed"] for item in checks)
+    failed = {item["name"] for item in checks if not item["passed"]}
+    assert "no_majority_or_convenience_shortcut" in failed
+    assert "visitor_facing_doorway_rationale" in failed

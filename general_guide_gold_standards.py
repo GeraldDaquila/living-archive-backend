@@ -47,7 +47,7 @@ def _normalize_question(value: Any) -> str:
     return normalized
 
 
-def load_approved_standards() -> Dict[str, Dict[str, str]]:
+def load_approved_standards() -> Dict[str, Dict[str, Any]]:
     """Load exact approved answers and explicitly authorized exact-query release candidates."""
     payload = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
     records = payload.get("records")
@@ -171,6 +171,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "doorway_title": doorway_title,
             "doorway_url": str(doorway_url) if doorway_url else "",
             "doorway_rationale": doorway_rationale,
+            "expected_doorway": dict(doorway) if doorway and not no_handoff else None,
             "forbids_doorway": no_handoff,
             "doorway_omission_exception_reason": (
                 doorway_omission_reason if no_handoff else ""
@@ -179,7 +180,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
     return standards
 
 
-def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, str]]:
+def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, Any]]:
     """Resolve only an exact normalized question; never fuzzy-match a benchmark."""
     normalized = _normalize_question(question)
     if not normalized:
@@ -187,7 +188,7 @@ def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, str]]:
     return load_approved_standards().get(normalized)
 
 
-def find_cross_question_standard_response(question: str, response: str) -> Optional[Dict[str, str]]:
+def find_cross_question_standard_response(question: str, response: str) -> Optional[Dict[str, Any]]:
     """Find an approved answer reused for a different question.
 
     This is a final-boundary integrity check, not a fuzzy answer matcher. It

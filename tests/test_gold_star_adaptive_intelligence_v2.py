@@ -105,8 +105,9 @@ def test_v2_heldout_suite_covers_all_required_question_classes():
         "technical_verification",
         "uncertain_or_insufficient_evidence",
         "explicit_no_handoff",
+        "community_rule_design_transfer",
     }
-    assert len(suite["cases"]) == 7
+    assert len(suite["cases"]) == 8
     assert all(case.get("rubric") and case.get("critical_dimensions") for case in suite["cases"])
 
 
@@ -130,6 +131,10 @@ def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
             "case_id": "heldout-explicit-no-handoff-001",
             "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
         },
+        {
+            "case_id": "heldout-community-rule-design-transfer-001",
+            "query": "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?",
+        },
     ]
     expected_checks = {
         "heldout-strategic-governance-001": {
@@ -146,6 +151,12 @@ def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
         "heldout-explicit-no-handoff-001": {
             "explains_policy_procedure", "no_links_or_doorways",
             "no_unrequested_followup",
+        },
+        "heldout-community-rule-design-transfer-001": {
+            "legitimate_shared_purpose", "necessity_and_least_restrictive_means",
+            "fair_burden_allocation", "affected_party_participation", "appeal_and_review",
+            "no_majority_or_convenience_shortcut", "relevant_archive_doorway",
+            "visitor_facing_doorway_rationale",
         },
     }
     for case in cases:

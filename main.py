@@ -6263,7 +6263,7 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+    if not node_title or not re.match(r"^https://\S+$", node_url, re.I):
         return None
     return {"title": node_title, "url": node_url}
 
@@ -6277,6 +6277,19 @@ def _gold_star_doorway_omission_is_justified(gold_standard):
         or ""
     ).strip()
     return bool(reason)
+
+
+def _gold_star_expected_doorway_fields(gold_standard):
+    """Normalize canonical expected_doorway and legacy doorway fields for delivery."""
+    if not isinstance(gold_standard, dict):
+        return {"title": "", "url": "", "rationale": ""}
+    expected = gold_standard.get("expected_doorway")
+    expected = expected if isinstance(expected, dict) else {}
+    return {
+        "title": str(gold_standard.get("doorway_title") or expected.get("title") or "").strip(),
+        "url": str(gold_standard.get("doorway_url") or expected.get("url") or "").strip(),
+        "rationale": str(gold_standard.get("doorway_rationale") or expected.get("rationale") or "").strip(),
+    }
 
 
 # Gold Star visitor contract: a doorway is the default; omission requires a reasoned exception.
@@ -6477,9 +6490,10 @@ def _guide_restore_verified_doorway(payload, query):
     # let the general conceptual-family selector replace it with an unrelated
     # but otherwise valid resource at the later terminal doorway boundary.
     if exact_standard is not None:
-        exact_title = str(exact_standard.get("doorway_title") or "").strip()
-        exact_url = str(exact_standard.get("doorway_url") or "").strip()
-        exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
+        exact_fields = _gold_star_expected_doorway_fields(exact_standard)
+        exact_title = exact_fields["title"]
+        exact_url = exact_fields["url"]
+        exact_rationale = exact_fields["rationale"]
         if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
             exact_doorway = {"title": exact_title, "url": exact_url}
             if exact_rationale:
@@ -15417,9 +15431,10 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
         if "answer" in payload:
             payload["answer"] = answer
     if not _gold_star_doorway_omission_is_justified(standard):
-        title = str(standard.get("doorway_title") or "").strip()
-        url = str(standard.get("doorway_url") or "").strip()
-        rationale = str(standard.get("doorway_rationale") or "").strip()
+        expected_doorway = _gold_star_expected_doorway_fields(standard)
+        title = expected_doorway["title"]
+        url = expected_doorway["url"]
+        rationale = expected_doorway["rationale"]
         if title and re.match(r"^https://\S+$", url, re.I):
             doorway = {"title": title, "url": url}
             if rationale:
@@ -15570,9 +15585,9 @@ async def _use_send_json(send, payload, status_code=200):
                 if "response" not in payload and "answer" not in payload:
                     payload["response"] = _boundary_answer
             if not _gold_star_doorway_omission_is_justified(_boundary_standard):
-                _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
-                _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
-                _boundary_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
+                _boundary_title = _gold_star_expected_doorway_fields(_boundary_standard)["title"]
+                _boundary_url = _gold_star_expected_doorway_fields(_boundary_standard)["url"]
+                _boundary_rationale = _gold_star_expected_doorway_fields(_boundary_standard)["rationale"]
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
                     _boundary_doorway = {"title": _boundary_title, "url": _boundary_url}
                     if _boundary_rationale:
@@ -15648,10 +15663,10 @@ async def _use_send_json(send, payload, status_code=200):
         # Explicit no-handoff standards and Archive-claim provenance remain terminal.
         _boundary_standard_has_doorway = bool(
             _boundary_standard
-            and str(_boundary_standard.get("doorway_title") or "").strip()
+            and _gold_star_expected_doorway_fields(_boundary_standard)["title"]
             and re.match(
                 r"^https://\S+$",
-                str(_boundary_standard.get("doorway_url") or "").strip(),
+                _gold_star_expected_doorway_fields(_boundary_standard)["url"],
                 re.I,
             )
         )
@@ -15678,12 +15693,12 @@ async def _use_send_json(send, payload, status_code=200):
         # Exact approved standards with a required canonical continuation must
         # fail visibly in QA rather than silently render as navigational dead ends.
         if _boundary_standard is not None and not bool(_boundary_standard.get("forbids_doorway")):
-            _required_title = str(_boundary_standard.get("doorway_title") or "").strip()
-            _required_url = str(_boundary_standard.get("doorway_url") or "").strip()
+            _required_title = _gold_star_expected_doorway_fields(_boundary_standard)["title"]
+            _required_url = _gold_star_expected_doorway_fields(_boundary_standard)["url"]
             if _required_title and _required_url:
                 _actual = payload.get("recommendation")
                 if not isinstance(_actual, dict) or _actual.get("title") != _required_title or _actual.get("url") != _required_url:
-                    _required_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
+                    _required_rationale = _gold_star_expected_doorway_fields(_boundary_standard)["rationale"]
                     _required_doorway = {"title": _required_title, "url": _required_url}
                     if _required_rationale:
                         _required_doorway["rationale"] = _required_rationale

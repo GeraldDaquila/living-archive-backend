@@ -29,6 +29,9 @@ def test_registered_doorway_is_preserved_when_no_handoff_was_not_requested():
     assert result is not None
     assert result["doorway_title"] == "The First Institution: Why Human Development Begins at Home"
     assert result["doorway_url"] == "https://geralddaquila.com/2025/06/17/the-first-institution-why-human-development-begins-at-home/"
+    assert result["expected_doorway"]["title"] == result["doorway_title"]
+    assert result["expected_doorway"]["url"] == result["doorway_url"]
+    assert result["expected_doorway"].get("rationale", "") == result["doorway_rationale"]
 
 
 def test_matching_is_case_and_whitespace_insensitive_but_not_fuzzy():
@@ -819,3 +822,60 @@ def test_shared_json_sender_does_not_rewrite_unrelated_questions(monkeypatch):
 
     assert result["response"] == "An ordinary answer."
     assert result.get("processing") != "sender_boundary_personal_decision_agency"
+
+def test_exact_gold_star_delivery_accepts_canonical_expected_doorway_object(monkeypatch):
+    import main
+
+    standard = {
+        "status": "USER_APPROVED_GOLD_STANDARD",
+        "expected_response": "The exact approved response.",
+        "expected_doorway": {
+            "title": "The verified doorway",
+            "url": "https://geralddaquila.com/verified-doorway/",
+            "rationale": "A concise visitor-facing explanation of why this resource is relevant.",
+        },
+    }
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: standard)
+    payload = {"query": "A frozen approved question?", "response": "A discarded draft."}
+    delivered = main._apply_exact_gold_standard_authority_to_payload(payload)
+
+    assert delivered["response"] == "The exact approved response."
+    assert delivered["recommendation"] == {
+        "title": "The verified doorway",
+        "url": "https://geralddaquila.com/verified-doorway/",
+        "rationale": "A concise visitor-facing explanation of why this resource is relevant.",
+    }
+    assert delivered["canonical_doorway"] == delivered["recommendation"]
+    assert delivered["doorway_title"] == "The verified doorway"
+    assert delivered["doorway_url"] == "https://geralddaquila.com/verified-doorway/"
+    assert delivered["doorway_rationale"] == "A concise visitor-facing explanation of why this resource is relevant."
+
+
+@pytest.mark.parametrize(
+    ("query", "expected_title", "expected_url"),
+    [
+        (
+            "How should these modes of knowing be placed in dialogue without being confused with one another?",
+            "Being in the Driver's Seat (Without Pretending You Control the Road)",
+            "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
+        ),
+        (
+            "A user wants a simple explanation for societal breakdown. How should the Guide preserve intelligibility without offering monocausal stories?",
+            "A Simple Story About Separation, Sharing, and the Way We Built the World",
+            "https://geralddaquila.com/a-simple-story-about-separation-sharing-and-the-way-we-built-the-world",
+        ),
+        (
+            "What is the difference between circularity and regeneration?",
+            "The Living Archive Navigator: Volume VI – Regeneration & Network Architecture",
+            "https://geralddaquila.com/the-living-archive-navigator-volume-vi-regeneration-network-architecture",
+        ),
+    ],
+)
+def test_live_exact_gold_standards_resolve_their_canonical_doorway(query, expected_title, expected_url):
+    result = resolve_exact_gold_standard(query)
+    assert result is not None
+    assert result["doorway_title"] == expected_title
+    assert result["doorway_url"] == expected_url
+    assert result["expected_doorway"]["title"] == expected_title
+    assert result["expected_doorway"]["url"] == expected_url
+

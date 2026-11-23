@@ -12,12 +12,12 @@ def _suite():
     return json.loads((ROOT / "docs/qa/guide_learning_evaluation_set.json").read_text())
 
 
-def test_seven_simulated_responses_exercise_every_heldout_rubric_without_claiming_live_evidence():
+def test_eight_simulated_responses_exercise_every_heldout_rubric_without_claiming_live_evidence():
     report = build_report(_suite())
     assert report["report_type"] == "offline_simulation_only"
     assert report["simulation_only"] is True
-    assert report["case_count"] == 7
-    assert report["cases_passing_all_heuristics"] == 7
+    assert report["case_count"] == 8
+    assert report["cases_passing_all_heuristics"] == 8
     assert report["cases_with_heuristic_failures"] == []
     assert report["live_visitor_requests"] == 0
     assert report["provider_calls"] == 0
@@ -48,5 +48,5 @@ def test_simulation_rejects_duplicate_or_incomplete_case_sets():
         build_report(suite)
     suite = _suite()
     suite["cases"] = suite["cases"][:-1]
-    with pytest.raises(ValueError, match="exactly seven"):
+    with pytest.raises(ValueError, match="exactly eight"):
         build_report(suite)

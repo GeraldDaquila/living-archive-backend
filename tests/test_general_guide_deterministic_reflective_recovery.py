@@ -30,3 +30,12 @@ def test_explicit_practical_how_question_keeps_practical_recovery():
 
     assert answer.startswith("Start by defining the outcome")
     assert "compare realistic options" in answer
+
+def test_generic_why_recovery_does_not_repeat_the_question_frame():
+    question = "Why can a well-designed policy still fail during implementation?"
+    answer = recovery.compose_recovery(question)
+
+    assert answer.startswith("A useful explanation begins by distinguishing the immediate event")
+    assert "why Why" not in answer
+    assert "well-designed policy" not in answer or answer.count("well-designed policy") <= 1
+    assert len(answer.split(chr(10) + chr(10))) == 3
