@@ -47,6 +47,7 @@ def _install_observers(composition):
     """Record only approved lesson IDs and adjudication metadata, never hidden reasoning."""
     original_contribution = composition._gold_star_active_quality_contribution
     original_normalizer = composition._normalize_gold_star_provider_adjudication
+    original_route = composition.route_with_model_bank
 
     def observe_contribution(query):
         result = original_contribution(query)
@@ -79,12 +80,31 @@ def _install_observers(composition):
             }
         return result
 
+    def observe_route(**kwargs):
+        state = CAPTURE_CONTEXT.get()
+        if state is not None:
+            messages = kwargs.get("messages")
+            if isinstance(messages, list) and len(messages) >= 2:
+                system_message = messages[0] if isinstance(messages[0], dict) else {}
+                user_message = messages[-1] if isinstance(messages[-1], dict) else {}
+                state["actual_system_prompt_sha256"] = _sha256(
+                    str(system_message.get("content") or "")
+                )
+                state["user_content_sha256"] = _sha256(
+                    str(user_message.get("content") or "")
+                )
+            state["route_operation"] = str(kwargs.get("operation") or "")
+            state["max_tokens"] = kwargs.get("max_tokens")
+        return original_route(**kwargs)
+
     composition._gold_star_active_quality_contribution = observe_contribution
     composition._normalize_gold_star_provider_adjudication = observe_adjudication
+    composition.route_with_model_bank = observe_route
 
     def restore():
         composition._gold_star_active_quality_contribution = original_contribution
         composition._normalize_gold_star_provider_adjudication = original_normalizer
+        composition.route_with_model_bank = original_route
 
     return restore
 
@@ -125,6 +145,10 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
 
     state: dict[str, Any] = {
         "retrieved_candidates": [],
+        "actual_system_prompt_sha256": None,
+        "user_content_sha256": None,
+        "route_operation": None,
+        "max_tokens": None,
         "provider_adjudication": {
             "status": "not_observed",
             "selected_candidate_ids": [],
@@ -165,6 +189,10 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
             "answer_envelope": payload.get("answer_envelope"),
             "retrieved_candidates": state["retrieved_candidates"],
             "provider_adjudication": state["provider_adjudication"],
+            "actual_system_prompt_sha256": state["actual_system_prompt_sha256"],
+            "user_content_sha256": state["user_content_sha256"],
+            "route_operation": state["route_operation"],
+            "max_tokens": state["max_tokens"],
             "route_source": payload.get("route_source"),
             "deployment_commit_sha": payload.get("deployment_commit_sha"),
         }
@@ -218,17 +246,6 @@ async def capture(args) -> dict:
     records = []
     blind_cases = []
     unblinding = {}
-    generation_config = {
-        "operation": "general_guide_composition",
-        "max_tokens": 750,
-        "provider": provider,
-        "model": model,
-        "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
-    }
-    generation_fingerprint = _sha256(
-        json.dumps(generation_config, sort_keys=True, separators=(",", ":"))
-    )
-
     try:
         transport = httpx.ASGITransport(app=main.app)
         async with httpx.AsyncClient(
@@ -253,6 +270,19 @@ async def capture(args) -> dict:
                         failures.append(f"{arm_name}_provider_model_pin_mismatch")
                 if control["retrieved_candidates"]:
                     failures.append("control_exposed_gold_star_guidance")
+                if not control["user_content_sha256"] or not treatment["user_content_sha256"]:
+                    failures.append("provider_route_prompt_capture_missing")
+                elif control["user_content_sha256"] != treatment["user_content_sha256"]:
+                    failures.append("paired_user_content_mismatch")
+                if not control["actual_system_prompt_sha256"] or not treatment["actual_system_prompt_sha256"]:
+                    failures.append("provider_route_system_prompt_capture_missing")
+                elif control["actual_system_prompt_sha256"] == treatment["actual_system_prompt_sha256"]:
+                    failures.append("treatment_system_prompt_not_adapted")
+                if (
+                    control["route_operation"] != treatment["route_operation"]
+                    or control["max_tokens"] != treatment["max_tokens"]
+                ):
+                    failures.append("paired_generation_configuration_mismatch")
 
                 target_in_treatment = any(
                     item["benchmark_id"] == TARGET_LESSON_ID
