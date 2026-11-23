@@ -975,10 +975,38 @@ def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
     response = request_client.chat.completions.create(**kwargs)
     usage = getattr(response, "usage", None)
     completion_tokens = getattr(usage, "completion_tokens", None)
-    return ProviderOutput(
-        str(response.choices[0].message.content or "").strip(),
-        completion_tokens=completion_tokens,
-    )
+    choice = response.choices[0]
+    message = choice.message
+    content = str(getattr(message, "content", None) or "").strip()
+    if not content:
+        # Keep provider response-shape evidence useful without logging generated
+        # reasoning or answer text. Some reasoning models can consume completion
+        # budget without returning visitor-facing content.
+        details = getattr(usage, "completion_tokens_details", None)
+        reasoning = getattr(message, "reasoning", None)
+        reasoning_content = getattr(message, "reasoning_content", None)
+        message_fields = getattr(message, "model_fields_set", None)
+        if not isinstance(message_fields, (set, frozenset, list, tuple)):
+            message_fields = ()
+        print(
+            "USE provider empty response shape: "
+            f"provider=groq, model={model}, "
+            f"finish_reason={getattr(choice, 'finish_reason', None) or 'missing'}, "
+            f"message_fields={','.join(sorted(str(item) for item in message_fields)) or 'unknown'}, "
+            f"content_type={type(getattr(message, 'content', None)).__name__}, "
+            f"content_chars={len(str(getattr(message, 'content', None) or ''))}, "
+            f"reasoning_present={bool(reasoning)}, "
+            f"reasoning_chars={len(str(reasoning or ''))}, "
+            f"reasoning_content_present={bool(reasoning_content)}, "
+            f"reasoning_content_chars={len(str(reasoning_content or ''))}, "
+            f"completion_tokens={completion_tokens or 0}, "
+            f"reasoning_tokens={getattr(details, 'reasoning_tokens', 0) or 0}"
+        )
+        raise ProviderCallError(
+            "Groq returned empty visitor-facing message content",
+            "groq", model, category="invalid_provider_response",
+        )
+    return ProviderOutput(content, completion_tokens=completion_tokens)
 
 def _gemini_compatible_response_schema(value):
     """Remove JSON Schema keywords that Gemini's responseSchema rejects."""
