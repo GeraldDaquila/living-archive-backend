@@ -413,7 +413,7 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "SECRET" not in snapshot
 
 
-def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks(monkeypatch):
+def test_general_guide_half_open_candidates_receive_composition_timeout_and_preserve_fallbacks(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
         {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
@@ -459,7 +459,43 @@ def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks
     assert clock.value == pytest.approx(0.7)
 
 
-def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
+def test_general_guide_half_open_candidate_can_finish_after_old_probe_timeout(monkeypatch):
+    _isolate(monkeypatch)
+    candidate = {
+        **_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        "health_state": "half_open",
+    }
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: [candidate])
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def valid_composition_after_three_seconds(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append(timeout_override)
+        assert timeout_override == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+        clock.value += 3.25
+        return json.dumps({"response": "A complete, grounded answer in three purposeful paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", valid_composition_after_three_seconds)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert calls == [provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS]
+    assert clock.value == pytest.approx(3.25)
+
+
+def test_general_guide_reserves_the_next_half_open_composition_timeout(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
         {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
@@ -494,13 +530,15 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    # The 18-second arbitration window admits all seven bounded 2.5s probes.
-    assert len(calls) == 7
+    # A slow full composition receives the supported 5s minimum. The 18s
+    # arbitration window therefore admits three timed-out recovery candidates,
+    # rather than seven calls that cannot finish a substantive answer.
+    assert len(calls) == 3
     assert all(
-        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+        timeout == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(17.5)
+    assert clock.value == pytest.approx(15.0)
 
 
 def _recovery_candidate(
