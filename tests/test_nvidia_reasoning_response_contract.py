@@ -37,7 +37,7 @@ def test_nvidia_super_vl_uses_documented_direct_answer_reasoning_control(monkeyp
 
     assert captured["reasoning_effort"] == "none"
     assert captured["chat_template_kwargs"] == {"enable_thinking": False}
-    assert result.content == '{"response":"A complete visitor-facing answer."}'
+    assert str(result) == '{"response":"A complete visitor-facing answer."}'
 
 
 def test_nvidia_lightning_keeps_thinking_disabled_without_unsupported_reasoning_effort(monkeypatch):
