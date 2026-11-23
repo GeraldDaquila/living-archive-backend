@@ -1626,9 +1626,9 @@ def select(use_core, operation="generic", schema=None):
                 prediction_penalty = ((shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)) if telemetry_ready else 0.0
                 last_success = float(item.get("last_success", 0) or 0)
                 # NVIDIA's Super-VL endpoint exposes a documented
-                # reasoning_effort="none" control. Prefer that reviewed direct-
-                # answer lane over Lightning when both have comparable recency;
-                # empty-content responses must still fail the visitor contract.
+                # reasoning_effort="none" control. Within the same health tier
+                # and prior-success class, prefer that direct-answer lane before
+                # stale transport counters; empty content still fails contract.
                 nvidia_direct_answer_priority = (
                     0
                     if str(item.get("provider") or "") == "nvidia"
