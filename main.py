@@ -15457,6 +15457,61 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         composition_repair_attempted = True
     if _repair_outcome.get("status") == "repaired":
         response = str(payload.get("response") or response)
+        # The bounded repair runs after the first provenance decision. Reconcile
+        # attribution again against the actual post-repair visitor answer so a
+        # late deterministic rewrite cannot retain an earlier provider label.
+        _post_repair_response_text = _sanitize_basic_inquiry_response(
+            str(payload.get("response") or "")
+        )
+        _has_provider_origin = bool(
+            composition_result
+            and (
+                composition_result.get("_provider_execution_verified") is True
+                or composition_result.get("_provider_execution_origin_verified") is True
+                or composition_result.get("_provider_execution_modified") is True
+                or composition_result.get("_provider_execution_origin_modified") is True
+            )
+        )
+        _llm_invoked = bool(
+            composition_result
+            and composition_result.get("_provider_execution_verified") is True
+            and not _registered_gold_standard_composition
+            and _is_attributable_provider_model(_provider_name, _model_name)
+            and _llm_candidate_text
+            and _post_repair_response_text == _llm_candidate_text
+        )
+        _cached_provider_composition = bool(
+            composition_result
+            and composition_result.get("_provider_execution_origin_verified") is True
+            and composition_result.get("_provider_execution_origin_modified") is not True
+            and composition_result.get("_provider_execution_verified") is not True
+        )
+        _provider_assisted_recovery = bool(
+            _has_provider_origin
+            and (
+                composition_result.get("_provider_execution_modified") is True
+                or composition_result.get("_provider_execution_origin_modified") is True
+                or (
+                    _llm_candidate_text
+                    and _post_repair_response_text != _llm_candidate_text
+                )
+            )
+        )
+        if _llm_invoked:
+            _response_provenance = "llm"
+            _quality_adjusted_llm_eligible = True
+        elif _cached_provider_composition:
+            _response_provenance = "cached_provider_composition"
+            _quality_adjusted_llm_eligible = False
+        elif _provider_assisted_recovery:
+            _response_provenance = "provider_assisted_recovery"
+            _quality_adjusted_llm_eligible = False
+        provenance_payload = payload.get("response_provenance")
+        if isinstance(provenance_payload, dict):
+            provenance_payload["class"] = _response_provenance
+            provenance_payload["llm_invoked"] = _llm_invoked
+            provenance_payload["quality_adjusted_llm_eligible"] = _quality_adjusted_llm_eligible
+            provenance_payload["provider_invocation_id"] = _provider_invocation_id or None
     if _repair_outcome.get("status") == "failed":
         print(
             "The Guide bounded repair ended without an accepted candidate: "
