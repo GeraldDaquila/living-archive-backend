@@ -65,9 +65,8 @@ def test_selected_canonical_doorway_can_support_discovery_when_general_sufficien
         "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
     }
     document = {
-        "title": "Governance & Decentralization",
-        "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
-        "text": "This canonical governance hub covers institutional accountability, transparency, public trust, and civic participation across institutions and societies."
+        "title": doorway["title"],
+        "url": doorway["url"],
         "_guide_node": {
             "node_id": "governance-decentralization",
             "title": "Governance & Decentralization",
@@ -75,7 +74,8 @@ def test_selected_canonical_doorway_can_support_discovery_when_general_sufficien
             "semantic_hints": ["public accountability", "institutional accountability", "civic participation"],
             "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
             "status": "active",
-        },,
+        },
+        "text": "This canonical governance hub covers institutional accountability, transparency, public trust, and civic participation across institutions and societies.",
     }
     monkeypatch.setattr(
         main.use_core,
@@ -89,7 +89,6 @@ def test_selected_canonical_doorway_can_support_discovery_when_general_sufficien
     assert len(selected) == 1
     assert selected[0]["_discovery_relevance"] == "related"
     assert "accountability" in selected[0]["_discovery_support_terms"]
-
 
 def test_discovery_evidence_must_match_the_selected_canonical_url(monkeypatch):
     doorway = {
@@ -227,8 +226,6 @@ def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monke
     document = {
         "title": doorway["title"],
         "url": doorway["url"],
-        "text": (
-            "This canonical resource explains governance structures, institutional accountability, "
         "_guide_node": {
             "node_id": "governance-decentralization",
             "title": "Governance & Decentralization",
@@ -237,6 +234,8 @@ def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monke
             "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
             "status": "active",
         },
+        "text": (
+            "This canonical resource explains governance structures, institutional accountability, "
             "transparency, civic participation, and how responsibility is distributed across institutions."
         ),
     }
@@ -246,11 +245,12 @@ def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monke
         lambda subject, candidate: (0, 0, 0, 0),
     )
 
-    assert main._guide_selected_doorway_discovery_evidence(
+    selected = main._guide_selected_doorway_discovery_evidence(
         [document], "public accountability", doorway
-    ) == [document]
-
-
+    )
+    assert len(selected) == 1
+    assert selected[0]["_discovery_relevance"] == "related"
+    assert "accountability" in selected[0]["_discovery_support_terms"]
 
 def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatch):
     doorway = {
@@ -260,8 +260,6 @@ def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatc
     document = {
         "title": doorway["title"],
         "url": doorway["url"],
-        "text": (
-            "A canonical governance hub covering institutional accountability, transparency, "
         "_guide_node": {
             "node_id": "governance-decentralization",
             "title": "Governance & Decentralization",
@@ -270,6 +268,8 @@ def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatc
             "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
             "status": "active",
         },
+        "text": (
+            "A canonical governance hub covering institutional accountability, transparency, "
             "public trust, civic participation, and distributed responsibility across institutions."
         ),
     }
@@ -292,7 +292,6 @@ def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatc
     assert len(evidence) == 1
     assert evidence[0]["_guide_node"]["node_id"] == "governance-decentralization"
     assert evidence[0]["_discovery_relevance"] == "related"
-
 
 def test_discovery_doorway_is_not_returned_without_matching_vetted_body(monkeypatch):
     doorway = {
