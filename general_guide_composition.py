@@ -2640,13 +2640,24 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
 def _composition_response_shape_diagnostic(parsed: Dict[str, Any], raw: str) -> str:
     """Describe a rejected JSON envelope without logging answer text or reasoning."""
     value = parsed.get("response")
+    answer = parsed.get("answer")
+    doorway = parsed.get("doorway")
     raw_value = str(value or "")
+    raw_answer = str(answer or "")
     sanitized = _sanitize_candidate(value)
+    sanitized_answer = _sanitize_candidate(answer)
     keys = sorted(str(key) for key in parsed.keys())
+    doorway_keys = sorted(str(key) for key in doorway.keys()) if isinstance(doorway, dict) else []
     return (
         "response_key_present=" + str("response" in parsed)
         + ", response_type=" + type(value).__name__
         + ", response_raw_chars=" + str(len(raw_value))
+        + ", answer_key_present=" + str("answer" in parsed)
+        + ", answer_type=" + type(answer).__name__
+        + ", answer_raw_chars=" + str(len(raw_answer))
+        + ", answer_sanitized_chars=" + str(len(sanitized_answer))
+        + ", doorway_type=" + type(doorway).__name__
+        + ", doorway_keys=" + ",".join(doorway_keys[:8])
         + ", response_sanitized_chars=" + str(len(sanitized))
         + ", envelope_chars=" + str(len(str(raw or "")))
         + ", top_level_keys=" + ",".join(keys[:12])
