@@ -6520,10 +6520,6 @@ def _guide_restore_verified_doorway(payload, query):
     answer_first_general_knowledge = (
         isinstance(answer_basis, dict)
         and answer_basis.get("kind") == "general_knowledge"
-        and safe.get("processing") in {
-            "basic_inquiry",
-            "guide_epistemic_category_distinction_deterministic",
-        }
     )
     has_selection_evidence = any(
         safe.get(key)
