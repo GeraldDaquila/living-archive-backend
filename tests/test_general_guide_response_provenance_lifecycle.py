@@ -162,3 +162,16 @@ def test_cached_provider_composition_preserves_origin_without_claiming_fresh_exe
     assert '_response_provenance = "cached_provider_composition"' in function_source
     assert '_quality_adjusted_llm_eligible = False' in function_source
     assert 'not _cached_provider_composition' in function_source
+
+
+def test_provider_rewrite_is_not_attributed_as_the_original_model_answer():
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_candidate_response": str(response)' in composition
+    assert 'candidate["_provider_execution_verified"] = False' in composition
+    assert 'candidate["_provider_execution_modified"] = True' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert '_provider_assisted_recovery = bool(' in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+    assert 'not _provider_assisted_recovery' in function_source
