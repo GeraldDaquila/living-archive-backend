@@ -13,6 +13,7 @@ from pathlib import Path
 
 from scripts.guide_live_evaluation import build_human_review_template, evaluate_held
 
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 SIMULATED_RESPONSES = {
@@ -86,6 +87,13 @@ def build_report(suite: dict) -> dict:
     if not isinstance(cases, list) or len(cases) != 8:
         raise ValueError("The simulation requires exactly eight held-out cases.")
     rubric = suite["human_review_rubric"]
+    registry_path = ROOT / "docs/qa/gold_standard_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    registry_by_id = {
+        str(record.get("benchmark_id")): record
+        for record in registry.get("records", [])
+        if isinstance(record, dict) and record.get("benchmark_id")
+    }
     results = []
     seen = set()
     for case in cases:
@@ -110,6 +118,15 @@ def build_report(suite: dict) -> dict:
                 },
             }},
             require_attributable_llm=False,
+            expected_doorway=next(
+                (
+                    registry_by_id[str(source_id)].get("expected_doorway")
+                    for source_id in case.get("source_benchmark_ids", [])
+                    if str(source_id) in registry_by_id
+                    and isinstance(registry_by_id[str(source_id)].get("expected_doorway"), dict)
+                ),
+                None,
+            ),
         )
         results.append({
             "case_id": case_id,
