@@ -1581,15 +1581,22 @@ def select(use_core, operation="generic", schema=None):
     # this independent model must get a chance before slower/limited lanes can
     # consume the entire 18-second provider window.
     if operation == "general_guide_composition":
-        preferred = ["openrouter"] if "openrouter" in grouped else []
-        groq_direct_answer_available = any(
-            str(item.get("provider") or "") == "groq"
-            and str(item.get("model") or "") == "openai/gpt-oss-120b"
-            and str(item.get("health_state") or "") == "healthy"
-            for item in grouped.get("groq", [])
-        )
-        if groq_direct_answer_available:
-            preferred.append("groq")
+        # Candidate-local evaluation may supply an explicit provider preference
+        # order without pinning a model. This is a test-harness override only;
+        # normal production routing retains the established free-lane policy.
+        evaluation_order = _csv("USE_GUIDE_EVALUATION_PROVIDER_ORDER")
+        if evaluation_order:
+            preferred = [name for name in evaluation_order if name in grouped]
+        else:
+            preferred = ["openrouter"] if "openrouter" in grouped else []
+            groq_direct_answer_available = any(
+                str(item.get("provider") or "") == "groq"
+                and str(item.get("model") or "") == "openai/gpt-oss-120b"
+                and str(item.get("health_state") or "") == "healthy"
+                for item in grouped.get("groq", [])
+            )
+            if groq_direct_answer_available:
+                preferred.append("groq")
         configured = preferred + [name for name in configured if name not in preferred]
     elif "openrouter" in grouped:
         configured = ["openrouter"] + [name for name in configured if name != "openrouter"]
