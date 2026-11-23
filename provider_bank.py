@@ -2840,7 +2840,7 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
         # completion usage to settle. Preserve the conservative input-token
         # charge, but refund the unused maximum-completion reservation so one
         # failed lane cannot exhaust local TPM admission for later fallbacks.
-        reservation.settle_output("")
+        reservation.settle_output(None, failed=True)
         raise
     finally:
         elapsed = time.perf_counter() - started
