@@ -4,6 +4,7 @@ from scripts.capture_gold_star_matched_pairs import (
     CASE_IDS,
     TARGET_LESSON_ID,
     _safe_provider_identity,
+    _skipped_arm,
 )
 
 
@@ -117,3 +118,11 @@ def test_review_template_matches_governed_paired_evaluation_schema_without_answe
         "safety", "evidence_integrity", "epistemic_calibration"
     }
     assert "question" not in record and "response" not in record
+
+
+
+def test_skipped_arm_cannot_be_counted_as_provider_output():
+    skipped = _skipped_arm("provider_lane_unavailable")
+    provider, model, attributable = _safe_provider_identity(skipped)
+    assert skipped["skipped_reason"] == "provider_lane_unavailable"
+    assert (provider, model, attributable) == ("", "", False)
