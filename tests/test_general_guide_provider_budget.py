@@ -6,6 +6,7 @@ import json
 import provider_bank
 import gold_star_lessons
 import general_guide_composition as guide_composition
+import provider_quota_control
 from provider_quota_control import estimate_input_tokens
 
 
@@ -895,3 +896,46 @@ def test_failed_provider_route_never_issues_execution_proof_or_invocation_id(mon
     )
 
     assert result is None
+
+
+
+def test_failed_provider_call_refunds_unused_output_quota_for_fallback(monkeypatch):
+    provider_quota_control._reset_for_tests()
+    monkeypatch.setenv("USE_QUOTA_TESTPROVIDER_TPM", "140")
+    item = _item("testprovider", "test-model")
+    messages = [{"role": "user", "content": "Q" * 100}]
+    attempts = []
+
+    def fail_once_then_succeed(use_core, selected, request_messages, max_tokens, schema, timeout_override=None):
+        attempts.append(selected["model"])
+        if len(attempts) == 1:
+            raise RuntimeError("simulated upstream failure")
+        return provider_bank.ProviderOutput("A valid fallback response.", completion_tokens=6)
+
+    monkeypatch.setattr(provider_bank, "_call", fail_once_then_succeed)
+
+    with pytest.raises(RuntimeError, match="simulated upstream failure"):
+        provider_bank._quota_guarded_call(
+            use_core=None,
+            item=item,
+            messages=messages,
+            max_tokens=50,
+            schema=None,
+            timeout_override=5.0,
+            operation="general_guide_composition",
+        )
+
+    # The failed attempt retains its estimated input charge but must not retain
+    # the unused 50-token completion reservation.
+    fallback = provider_bank._quota_guarded_call(
+        use_core=None,
+        item=item,
+        messages=messages,
+        max_tokens=50,
+        schema=None,
+        timeout_override=5.0,
+        operation="general_guide_composition",
+    )
+
+    assert str(fallback) == "A valid fallback response."
+    assert attempts == ["test-model", "test-model"]
