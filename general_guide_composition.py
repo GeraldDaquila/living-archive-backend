@@ -4833,6 +4833,12 @@ def compose(
                     # so prior selected IDs, rejection codes, and span assertions
                     # cannot be attributed to the current request.
                     cached_result = dict(cached_value)
+                    # Cache reuse preserves origin provenance but is not a fresh
+                    # provider invocation for this request.
+                    cached_result["_provider_execution_origin_verified"] = bool(
+                        cached_result.pop("_provider_execution_verified", False)
+                        or cached_result.get("_provider_execution_origin_verified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star cache-reuse trace failed validation.")
@@ -5220,6 +5226,12 @@ def compose(
                     # request's provider candidate is discarded, so its adjudication
                     # must not be attached to the different answer being returned.
                     cached_result = dict(cached_value)
+                    # A concurrent winner's answer is cache reuse for this
+                    # request, even if this request also attempted composition.
+                    cached_result["_provider_execution_origin_verified"] = bool(
+                        cached_result.pop("_provider_execution_verified", False)
+                        or cached_result.get("_provider_execution_origin_verified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
