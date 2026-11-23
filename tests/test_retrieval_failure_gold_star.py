@@ -1,5 +1,6 @@
 """Regression tests for graceful recovery when canonical retrieval itself fails."""
 from unittest.mock import patch
+from pathlib import Path
 import main
 
 
@@ -328,3 +329,43 @@ def test_default_evidence_recovery_requires_collective_query_term_coverage():
     assert result["provider"] == "gold_standard_evidence_recovery"
     assert "Stewardship" in result["response"]
     assert "shared resources" in result["response"]
+
+
+
+def test_guide_doorway_policy_remains_default_across_composition_prompt_layers():
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+
+    # The constitutional default must survive the general system prompt,
+    # task-quality guidance, recovery guidance, and integrity-repair prompt.
+    assert "A doorway is a separate but default part of the Guide's role:" in source
+    assert "include one concise, verified, relevant Archive doorway separately by default." in source
+    assert "include one concise, canonical Archive doorway by default" in source
+    assert "A doorway is optional and follows the completed answer." not in source
+    assert "offer a verified relevant doorway only when it materially advances the inquiry." not in source
+    assert "offer a canonical Archive doorway only when" not in source
+    assert "A doorway is a separate decision: include one only when a verified resource" not in source
+
+
+def test_community_rule_doorway_fallback_resolves_exact_verified_barangay_resource():
+    query = (
+        "How should community rules and restrictions be justified when they limit "
+        "personal liberty and freedom in the name of shared obligations and collective duties?"
+    )
+    expected_title = "The Barangay Before the State: Human-Scale Governance in Practice"
+    expected_url = (
+        "https://geralddaquila.com/2026/09/21/"
+        "the-barangay-before-the-state-human-scale-governance-in-practice/"
+    )
+
+    selected = main._community_rule_design_canonical_doorway(query)
+    fallback = main._verified_archive_doorway_fallback(query, [], None)
+
+    assert selected is not None
+    assert selected["title"] == expected_title
+    assert selected["url"] == expected_url
+    assert selected["rationale"]
+    assert fallback is not None
+    assert fallback["title"] == expected_title
+    assert fallback["url"] == expected_url
