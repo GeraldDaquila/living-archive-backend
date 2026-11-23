@@ -6325,6 +6325,32 @@ def _guide_restore_verified_doorway(payload, query):
             safe["doorway_omission_exception_reason"] = None
             return safe
 
+    # Reciprocity has its own reviewed, query-specific Archive continuation.
+    # Preserve that independently approved selection at the terminal boundary,
+    # just as the Trust pathway does, rather than allowing generic retrieval
+    # to replace or erase it when the answer itself is general knowledge.
+    if (
+        exact_standard is None
+        and _is_reciprocity_community_purpose_question(query)
+    ):
+        reciprocity_doorway = _normalize_authoritative_recommendation(
+            _reciprocity_community_canonical_recommendation(query)
+        )
+        if reciprocity_doorway is not None:
+            safe["recommendation"] = reciprocity_doorway
+            safe["canonical_doorway"] = reciprocity_doorway
+            safe["authoritative_doorway"] = reciprocity_doorway
+            safe["doorway_title"] = reciprocity_doorway["title"]
+            safe["doorway_url"] = reciprocity_doorway["url"]
+            safe["doorway_rationale"] = reciprocity_doorway["rationale"]
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "reviewed_reciprocity_community_purpose_contract"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     exact_gold_star_omission = (
         exact_standard is not None
         and _gold_star_doorway_omission_is_justified(exact_standard)
