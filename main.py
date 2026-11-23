@@ -12911,13 +12911,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and not _is_healthy_community_orientation_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
+        and not authoritative_doorway
     ):
-        # This bounded recovery has no canonical source body selected as direct
-        # evidence for the exact practical question. Suppress an incidental
-        # doorway for a practical how-to request, but do not override a
-        # conceptual inquiry whose canonical bodies have already passed the
-        # frame-neutral, sufficiency, and question-fit gates above.
-        authoritative_doorway = None
+        # A practical recovery must not inherit an incidental doorway. However,
+        # when the independent selector has already verified a materially
+        # relevant canonical page body for this exact inquiry, preserve it as a
+        # separate continuation. Answer recovery and Archive navigation remain
+        # independent responsibilities.
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
