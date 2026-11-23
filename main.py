@@ -15168,12 +15168,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _provider_name = ""
     _model_name = ""
     _llm_candidate_text = ""
+    _provider_invocation_id = ""
     if composition_result:
         _provider_name = str(composition_result.get("provider") or "").strip()
         _model_name = str(composition_result.get("model") or "").strip()
         _llm_candidate_text = _sanitize_basic_inquiry_response(
             str(composition_result.get("response") or "")
         )
+        _provider_invocation_id = str(
+            composition_result.get("_provider_invocation_id")
+            or composition_result.get("_provider_execution_origin_invocation_id")
+            or ""
+        ).strip()
     elif deterministic_result:
         _provider_name = str(deterministic_result.get("provider") or "").strip()
         _model_name = str(deterministic_result.get("model") or "").strip()
@@ -15284,6 +15290,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         f"provenance={_response_provenance}, "
         f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
         f"llm_invoked={str(_llm_invoked).lower()}, "
+        f"provider_invocation_id={_provider_invocation_id or 'unavailable'}, "
         f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
     )
 
@@ -15394,6 +15401,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "model": _model_name or None,
             "quality_adjusted_llm_eligible": _quality_adjusted_llm_eligible,
             "llm_invoked": _llm_invoked,
+            "provider_invocation_id": _provider_invocation_id or None,
         },
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
