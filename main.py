@@ -11126,9 +11126,21 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             f"how it addresses {normalized_subject}."
         )
 
+    # Match the evidence grader's treatment of generic query wrappers and
+    # modifiers. A word such as "public" should not be required verbatim in a
+    # quoted source sentence when the substantive anchor is "accountability".
+    discovery_stop_words = {
+        "about", "article", "articles", "content", "document", "documents",
+        "general", "information", "material", "materials", "public", "resource",
+        "resources", "specific", "where", "find", "please", "useful", "relevant",
+        "could", "would", "should", "from", "with", "into", "that", "this",
+        "how", "what", "why", "when", "does", "do", "did", "can", "in", "the",
+        "and", "to", "of", "for", "affect", "affects", "affecting", "read",
+        "want", "understand", "learn",
+    }
     subject_tokens = {
         token for token in re.findall(r"[a-z0-9]+", normalized_subject.casefold())
-        if len(token) >= 4
+        if len(token) >= 4 and token not in discovery_stop_words
     }
     # WordPress excerpts can concatenate a title/subheading directly with the
     # following sentence. If a complete question follows the heading, discard
