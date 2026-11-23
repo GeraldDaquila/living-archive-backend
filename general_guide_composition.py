@@ -344,10 +344,11 @@ def _build_general_guide_system_message(
     parts = [
         _build_general_guide_system_prompt(
             question, gold_star_guidance=has_gold_star_guidance
-        )
+        ),
+        # Gold Star v2.0 is the global answer-quality floor, not a lesson
+        # selected from retrieval. It must remain present even on cold starts.
+        _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
     ]
-    if has_gold_star_guidance:
-        parts.append(_GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT)
     parts.append(_LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT)
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
