@@ -645,15 +645,15 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
 
 def _community_rule_design_canonical_doorway(query):
     """Return the independently verified human-scale governance doorway for this narrow query family."""
-    normalized = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
+    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
     if not (
-        re.search(r"\\bcommunity\\b", normalized)
+        re.search(r"\bcommunity\b", normalized)
         and re.search(
-            r"\\b(?:rule|rules|limit|limits|restriction|restrictions|liberty|freedom|rights?|obligation|obligations|shared responsibility)\\b",
+            r"\b(?:rule|rules|limit|limits|restriction|restrictions|liberty|freedom|rights?|obligation|obligations|shared responsibility)\b",
             normalized,
         )
         and re.search(
-            r"\\b(?:decide|decision|justify|justified|necessary|proportionate|balance|design|set|establish)\\b",
+            r"\b(?:decide|decision|justify|justified|necessary|proportionate|balance|design|set|establish)\b",
             normalized,
         )
     ):
