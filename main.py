@@ -12099,6 +12099,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+    # Preserve the original canonical evidence snapshot for independent
+    # navigation decisions. Later answer-evidence gates may narrow composition
+    # context, but must not erase material already retrieved for doorway review.
+    _doorway_source_context = dict(context_data)
+    for _doorway_evidence_key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "canonical_evidence_documents",
+        "evidence_documents",
+    ):
+        _doorway_evidence_value = context_data.get(_doorway_evidence_key)
+        if isinstance(_doorway_evidence_value, list):
+            _doorway_source_context[_doorway_evidence_key] = list(_doorway_evidence_value)
     if _reflexive_critique_plan:
         # Enforce a content-type boundary before evidence reaches composition:
         # WordPress media/caption metadata is not Archive worldview evidence.
@@ -12919,7 +12932,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         # evidence already supplied to the request.
         if not authoritative_doorway:
             try:
-                _practical_doorway_context = dict(context_data)
+                _practical_doorway_context = dict(_doorway_source_context)
                 _practical_doorway_context["_skip_doorway_search_recovery"] = True
                 _practical_doorway_candidate = _normalize_authoritative_recommendation(
                     _general_guide_authoritative_doorway(
