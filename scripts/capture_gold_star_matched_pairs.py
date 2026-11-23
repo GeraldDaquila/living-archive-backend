@@ -18,7 +18,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 CASE_SET_PATH = ROOT / "docs" / "qa" / "gold_star_matched_pair_cases.json"
@@ -113,6 +112,8 @@ def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
 
 
 async def _request_arm(client, evaluation_context, provider, model, query, arm):
+    import httpx
+
     state: dict[str, Any] = {
         "retrieved_candidates": [],
         "provider_adjudication": {
@@ -163,6 +164,7 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
 
 
 async def capture(args) -> dict:
+    import httpx
     import main
     import general_guide_composition as composition
     import provider_bank
