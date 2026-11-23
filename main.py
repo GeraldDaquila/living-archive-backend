@@ -6425,11 +6425,15 @@ def _guide_restore_verified_doorway(payload, query):
     # bounded canonical selection pass when no reviewed family doorway has
     # already been selected. Retrieval context and answer provenance are not
     # prerequisites for offering a separately verified continuation.
-    #
-    # This flag also prevents an unverified upstream/provider candidate from
-    # re-entering through the weaker registry-overlap fallback after the
-    # independent selector has had its opportunity.
     requires_independent_selection = True
+    answer_first_general_knowledge = (
+        isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and safe.get("processing") in {
+            "basic_inquiry",
+            "guide_epistemic_category_distinction_deterministic",
+        }
+    )
     has_selection_evidence = any(
         safe.get(key)
         for key in (
@@ -6561,11 +6565,12 @@ def _guide_restore_verified_doorway(payload, query):
                         "source": "upstream_candidate_source_verified",
                     })
                     break
-    # The approved Guide Node registry remains a valid independent source
-    # after the canonical evidence selector has run. The default-search flag
-    # suppresses only unverified upstream/provider candidates, not this
-    # separately relevance-checked canonical registry fallback.
-    if not doorway:
+    # The Guide Node fallback remains available on routes with contextual
+    # evidence. For answer-first general-knowledge routes, the independent
+    # canonical selector is the doorway authority: do not let a broad registry
+    # fallback attach a merely adjacent destination (for example, a pressure
+    # resource to a boiling-point fact) after that bounded search returns none.
+    if not doorway and not answer_first_general_knowledge:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception as exc:
