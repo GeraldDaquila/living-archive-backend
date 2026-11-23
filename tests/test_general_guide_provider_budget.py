@@ -839,14 +839,11 @@ def test_guide_system_prompt_retains_meta_evaluation_modules_only_for_meta_quest
 def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
     quality = _community_rule_gold_star_candidates()
-    system = "\n\n".join(
-        [
-            guide_composition._build_general_guide_system_prompt(question, gold_star_guidance=True),
-            guide_composition._GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
-            guide_composition._LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
-            "INTEGRITY RECOVERY: Answer the visitor's exact question using supplied canonical material. Distinguish source-supported claims from inference and do not repeat an unrelated approved answer.",
-            guide_composition._build_gold_star_quality_instruction(quality),
-        ]
+    system = guide_composition._build_general_guide_system_message(
+        question,
+        has_gold_star_guidance=True,
+        integrity_recovery_instruction="INTEGRITY RECOVERY: Answer the visitor's exact question using supplied canonical material. Distinguish source-supported claims from inference and do not repeat an unrelated approved answer.",
+        gold_star_quality_instruction=guide_composition._build_gold_star_quality_instruction(quality),
     )
     messages = [
         {"role": "system", "content": system},
@@ -854,3 +851,13 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     ]
 
     assert estimate_input_tokens(messages) + 900 <= 8000
+
+
+def test_gold_star_system_contract_is_omitted_when_no_candidate_is_available():
+    prompt = guide_composition._build_general_guide_system_message(
+        "How should a community make a fair decision?",
+        has_gold_star_guidance=False,
+    )
+
+    assert "GOLD STAR ADAPTIVE INTELLIGENCE SYSTEM CONTRACT" not in prompt
+    assert "LAYERED ANSWERABILITY" in prompt
