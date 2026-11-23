@@ -238,7 +238,6 @@ async def capture(args) -> dict:
     import provider_bank
     import gold_star_lessons
     from gold_star_evaluation_context import evaluation_context
-    from gold_star_adaptation_evaluation import HARD_GATE_DIMENSIONS, SCORE_DIMENSIONS
     from general_guide_composition import CONTRACT_VERSION as COMPOSITION_CONTRACT_VERSION
 
     suite, cases = _load_cases()
