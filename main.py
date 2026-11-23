@@ -1124,6 +1124,10 @@ def _term_forms(term):
     forms = {value}
     if value.endswith("ies") and len(value) > 4:
         forms.add(value[:-3] + "y")
+    elif value.endswith("y") and len(value) > 4:
+        # Match singular query concepts against plural canonical evidence too:
+        # "community" must match a resource that naturally says "communities".
+        forms.add(value[:-1] + "ies")
     if value.endswith("ness") and len(value) > 5:
         forms.add(value[:-4])
     if value.endswith("ing") and len(value) > 5:
@@ -6299,6 +6303,31 @@ def _guide_restore_verified_doorway(payload, query):
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
 
+    # A prior canonical selector may already have completed the bounded
+    # evidence/relevance checks and marked its result as verified. Preserve
+    # that server-selected destination across terminal restoration instead of
+    # discarding it and re-running discovery against a thinner payload. Exact
+    # Gold Star authority and explicit/reviewed omissions remain higher priority.
+    if (
+        exact_standard is None
+        and safe.get("doorway_selection_status") == "VERIFIED_RELEVANT_DESTINATION"
+        and safe.get("doorway_selection_evaluated") is True
+        and safe.get("doorway_selection_source") == "final_authoritative_recommendation_contract"
+    ):
+        _preselected_doorway = _normalize_authoritative_recommendation(
+            safe.get("recommendation") or safe.get("canonical_doorway")
+        )
+        if _preselected_doorway is not None:
+            safe["recommendation"] = _preselected_doorway
+            safe["canonical_doorway"] = _preselected_doorway
+            safe["doorway_title"] = _preselected_doorway.get("title")
+            safe["doorway_url"] = _preselected_doorway.get("url")
+            safe["doorway_rationale"] = _preselected_doorway.get("rationale")
+            safe["doorway_decision"] = "selected"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     # Trust-in-community-stewardship has a reviewed, query-specific doorway.
     # Resolve it before generic retrieval/relevance fallbacks: a transient
     # canonical-search failure must not erase a destination already selected
@@ -6321,6 +6350,68 @@ def _guide_restore_verified_doorway(payload, query):
             safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
             safe["doorway_selection_evaluated"] = True
             safe["doorway_selection_source"] = "reviewed_trust_community_stewardship_contract"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
+    # Personal decision-agency questions have a reviewed, query-specific
+    # Archive continuation. Preserve the registered answer-and-doorway pair
+    # through terminal restoration; generic retrieval may otherwise return no
+    # candidate and erase the independently approved destination.
+    if (
+        not _gold_star_doorway_omission_is_justified(exact_standard)
+    ):
+        try:
+            from deterministic_answer_recovery import (
+                is_guide_personal_decision_agency_question,
+                registered_recovery_recommendation as _personal_agency_recommendation,
+            )
+            _personal_agency_match = is_guide_personal_decision_agency_question(query)
+            personal_agency_doorway = (
+                _normalize_authoritative_recommendation(
+                    _personal_agency_recommendation(query)
+                )
+                if _personal_agency_match else None
+            )
+        except Exception:
+            personal_agency_doorway = None
+        if personal_agency_doorway is not None:
+            safe["recommendation"] = personal_agency_doorway
+            safe["canonical_doorway"] = personal_agency_doorway
+            safe["authoritative_doorway"] = personal_agency_doorway
+            safe["doorway_title"] = personal_agency_doorway["title"]
+            safe["doorway_url"] = personal_agency_doorway["url"]
+            safe["doorway_rationale"] = personal_agency_doorway["rationale"]
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "reviewed_personal_decision_agency_contract"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
+    # Reciprocity has its own reviewed, query-specific Archive continuation.
+    # Preserve that independently approved selection at the terminal boundary,
+    # just as the Trust pathway does, rather than allowing generic retrieval
+    # to replace or erase it when the answer itself is general knowledge.
+    if (
+        not _gold_star_doorway_omission_is_justified(exact_standard)
+        and _is_reciprocity_community_purpose_question(query)
+    ):
+        reciprocity_doorway = _normalize_authoritative_recommendation(
+            _reciprocity_community_canonical_recommendation(query)
+        )
+        if reciprocity_doorway is not None:
+            safe["recommendation"] = reciprocity_doorway
+            safe["canonical_doorway"] = reciprocity_doorway
+            safe["authoritative_doorway"] = reciprocity_doorway
+            safe["doorway_title"] = reciprocity_doorway["title"]
+            safe["doorway_url"] = reciprocity_doorway["url"]
+            safe["doorway_rationale"] = reciprocity_doorway["rationale"]
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "reviewed_reciprocity_community_purpose_contract"
             safe["doorway_omission_reason"] = None
             safe["doorway_omission_exception_reason"] = None
             return safe
@@ -6420,16 +6511,29 @@ def _guide_restore_verified_doorway(payload, query):
             "source": "reviewed_conceptual_family",
         })
 
-    # Deterministic answer-first routes intentionally have no retrieval context.
-    # That is not a reason to skip navigation evaluation. Run one bounded
-    # canonical selection pass for these general-knowledge answer routes.
-    requires_independent_selection = (
-        isinstance(answer_basis, dict)
-        and answer_basis.get("kind") == "general_knowledge"
-        and safe.get("processing") in {
+    # The Guide is both an answering system and a doorway into the Living
+    # Archive. Every eligible substantive response receives an independent,
+    # bounded canonical selection pass when no reviewed family doorway has
+    # already been selected. Retrieval context and answer provenance are not
+    # prerequisites for offering a separately verified continuation.
+    requires_independent_selection = True
+    answer_first_general_knowledge = (
+        (
+            isinstance(answer_basis, dict)
+            and answer_basis.get("kind") == "general_knowledge"
+        )
+        or safe.get("processing") in {
             "basic_inquiry",
             "guide_epistemic_category_distinction_deterministic",
+            "final_visitor_boundary_recurring_problem_explanation",
+            "bounded_practical_stewardship_recovery",
         }
+        or bool(re.search(
+            r"\b(?:same|repeated|recurring)\s+problems?\b|"
+            r"\bproblems?\s+keep\s+(?:returning|recurring)\b",
+            str(query or ""),
+            re.I,
+        ))
     )
     has_selection_evidence = any(
         safe.get(key)
@@ -6489,7 +6593,10 @@ def _guide_restore_verified_doorway(payload, query):
                 })
                 break
 
-    if not doorway and registered_candidate:
+    if not doorway and registered_candidate and not answer_first_general_knowledge:
+        # A broad registered-recovery doorway must not become a substitute for
+        # the independent canonical selector on answer-first general-knowledge
+        # routes. Query-specific reviewed selectors above remain eligible.
         doorway = registered_candidate
         selection_trace.update({
             "status": "VERIFIED_RELEVANT_DESTINATION",
@@ -6562,7 +6669,12 @@ def _guide_restore_verified_doorway(payload, query):
                         "source": "upstream_candidate_source_verified",
                     })
                     break
-    if not doorway and not requires_independent_selection:
+    # The Guide Node fallback remains available on routes with contextual
+    # evidence. For answer-first general-knowledge routes, the independent
+    # canonical selector is the doorway authority: do not let a broad registry
+    # fallback attach a merely adjacent destination (for example, a pressure
+    # resource to a boiling-point fact) after that bounded search returns none.
+    if not doorway and not answer_first_general_knowledge:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception as exc:
@@ -6586,6 +6698,33 @@ def _guide_restore_verified_doorway(payload, query):
             "status": "RETRIEVAL_OR_VERIFICATION_FAILURE",
             "reason": "selected_destination_missing_visitor_rationale",
         })
+
+    _recurring_problem_query = bool(re.search(
+        r"\b(?:same|repeated|recurring)\s+problems?\b|"
+        r"\bproblems?\s+keep\s+(?:returning|recurring)\b",
+        str(query or ""),
+        re.I,
+    ))
+    if doorway and _recurring_problem_query:
+        _doorway_evidence_text = " ".join(
+            str(doorway.get(key) or "")
+            for key in ("title", "rationale", "purpose", "text", "content", "excerpt")
+        )
+        _doorway_evidence_text += " " + " ".join(
+            str(item) for item in (doorway.get("semantic_hints") or [])
+            if isinstance(item, (str, int, float))
+        )
+        if not re.search(
+            r"\b(?:system|systems|feedback|cycle|cycles|pattern|patterns|"
+            r"conditions|recurrence|recurring|problem|problems)\b",
+            _doorway_evidence_text,
+            re.I,
+        ):
+            doorway = None
+            selection_trace.update({
+                "status": "NO_RELEVANT_CANDIDATE_AFTER_BOUNDED_SEARCH",
+                "reason": "recurring_problem_doorway_lacks_system_pattern_or_feedback_evidence",
+            })
 
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
@@ -7028,12 +7167,51 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["response"] = recovery["response"]
         if "answer" in safe:
             safe["answer"] = safe["response"]
-        safe["recommendation"] = None
-        safe["canonical_doorway"] = None
-        safe["doorway_title"] = None
-        safe["doorway_url"] = None
-        safe["doorway_rationale"] = None
-        safe["doorway_omission_reason"] = "no_verified_direct_archive_continuation"
+        # This evidence-evaluation answer is general knowledge, not Archive
+        # proof. A separately verified canonical doorway may still be offered
+        # as a related continuation; preserve it without changing the answer's
+        # provenance or implying that it substantiates the visitor's claim.
+        _autonomy_candidate = safe.get("recommendation") or safe.get("canonical_doorway")
+        if isinstance(_autonomy_candidate, dict):
+            _autonomy_title = str(_autonomy_candidate.get("title") or "").strip()
+            _autonomy_url = str(
+                _autonomy_candidate.get("url")
+                or _autonomy_candidate.get("canonical_url")
+                or ""
+            ).strip()
+            _autonomy_rationale = str(
+                _autonomy_candidate.get("rationale")
+                or _autonomy_candidate.get("doorway_rationale")
+                or ""
+            ).strip()
+            _autonomy_doorway = (
+                {"title": _autonomy_title, "url": _autonomy_url}
+                if _autonomy_title
+                and re.match(r"^https://geralddaquila\.com(?:/.*)?$", _autonomy_url, re.I)
+                and not re.search(r"[\x00-\x20<>]", _autonomy_url)
+                else None
+            )
+            if _autonomy_doorway and _autonomy_rationale:
+                if len(_autonomy_rationale) <= 600 and not re.search(r"<[^>]+>", _autonomy_rationale):
+                    _autonomy_doorway["rationale"] = _autonomy_rationale
+                else:
+                    _autonomy_doorway = None
+        else:
+            _autonomy_doorway = None
+        safe["recommendation"] = _autonomy_doorway
+        safe["canonical_doorway"] = _autonomy_doorway
+        safe["doorway_title"] = _autonomy_doorway.get("title") if _autonomy_doorway else None
+        safe["doorway_url"] = _autonomy_doorway.get("url") if _autonomy_doorway else None
+        safe["doorway_rationale"] = _autonomy_doorway.get("rationale") if _autonomy_doorway else None
+        safe["doorway_decision"] = "selected" if _autonomy_doorway else "omit"
+        safe["doorway_selection_status"] = (
+            "VERIFIED_RELEVANT_DESTINATION" if _autonomy_doorway
+            else "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
+        )
+        safe["doorway_selection_evaluated"] = True
+        safe["doorway_omission_reason"] = (
+            None if _autonomy_doorway else "no_verified_direct_archive_continuation"
+        )
         safe["processing"] = "final_visitor_boundary_autonomy_evidence_evaluation"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -10031,10 +10209,21 @@ def _general_guide_authoritative_doorway(query, context_data):
     if not isinstance(context_data, dict):
         _record_selection_state("NOT_EVALUATED", reason="invalid_selection_context")
         return None
-    if context_data.get("canonical_doorway_search_attempted"):
-        _record_selection_state("PRIOR_SEARCH_ALREADY_ATTEMPTED")
-        return None
-    _record_selection_state("EVALUATING")
+    # A prior bounded search suppresses another network/search fan-out, not
+    # evaluation of canonical evidence already present in the payload. Retrieval
+    # and selection are distinct: the terminal boundary must still rank supplied
+    # protected documents even when an earlier route attempted discovery.
+    prior_search_attempted = bool(
+        context_data.get("canonical_doorway_search_attempted")
+        or context_data.get("_skip_doorway_search_recovery")
+    )
+    if prior_search_attempted:
+        _record_selection_state(
+            "EVALUATING_RETRIEVED_EVIDENCE",
+            canonical_search_attempted=True,
+        )
+    else:
+        _record_selection_state("EVALUATING")
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
@@ -10127,7 +10316,7 @@ def _general_guide_authoritative_doorway(query, context_data):
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         recovered_from_search = False
-        if not primary and not bool(context_data.get("_skip_doorway_search_recovery")):
+        if not primary and not prior_search_attempted:
             recovered_from_search = True
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
@@ -10298,7 +10487,29 @@ def _general_guide_authoritative_doorway(query, context_data):
             title=title,
             url=url,
         )
-        return {"title": title, "url": url}
+        # The shared renderer needs a source-grounded reason for the handoff.
+        # Use an existing reviewed rationale when supplied; otherwise retain a
+        # short excerpt from the selected canonical evidence rather than
+        # inventing a description from the resource title.
+        rationale = str(
+            primary.get("rationale") or primary.get("doorway_rationale") or ""
+        ).strip()
+        if not rationale:
+            rationale = re.sub(
+                r"\s+", " ",
+                str(primary.get("text") or primary.get("content") or primary.get("excerpt") or ""),
+            ).strip()
+            if len(rationale) > 400:
+                sentence_end = rationale.rfind(". ", 0, 400)
+                rationale = (
+                    rationale[: sentence_end + 1]
+                    if sentence_end > 100
+                    else rationale[:397].rsplit(" ", 1)[0] + "…"
+                )
+        result = {"title": title, "url": url}
+        if rationale and len(rationale) <= 600 and not re.search(r"<[^>]+>", rationale):
+            result["rationale"] = rationale
+        return result
     except Exception as exc:
         _record_selection_state(
             "RETRIEVAL_OR_VERIFICATION_FAILURE",
@@ -11988,7 +12199,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         if isinstance(general_knowledge_recovery, dict)
         else ""
     )
-    if concept_subject and not correction_subject:
+    if (
+        concept_subject
+        and not correction_subject
+        and not _is_practical_stewardship_question(query)
+    ):
+        # A practical how-to question about stewardship is an answer task, not
+        # a request to discover a topic page. Keep its doorway independently
+        # selected without routing it through the stricter discovery-only
+        # selected-body contract.
         discovery_subject = concept_subject
     resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     # Reflexive institutional critique needs retrieval of the Archive's stated
@@ -12014,6 +12233,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+    # Preserve the original canonical evidence snapshot for independent
+    # navigation decisions. Later answer-evidence gates may narrow composition
+    # context, but must not erase material already retrieved for doorway review.
+    _doorway_source_context = dict(context_data)
+    for _doorway_evidence_key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "canonical_evidence_documents",
+        "evidence_documents",
+    ):
+        _doorway_evidence_value = context_data.get(_doorway_evidence_key)
+        if isinstance(_doorway_evidence_value, list):
+            _doorway_source_context[_doorway_evidence_key] = list(_doorway_evidence_value)
     if _reflexive_critique_plan:
         # Enforce a content-type boundary before evidence reaches composition:
         # WordPress media/caption metadata is not Archive worldview evidence.
@@ -12061,7 +12293,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             context_data.get("recommendation_canonical_primary"),
             _general_guide_authoritative_doorway,
             _doorway_context,
-            resource_query=resource_query,
+            # Retrieval may use a compressed concept subject, but doorway
+            # relevance must be judged against the visitor's actual inquiry.
+            # A broad subject such as "Stewardship" must not erase the
+            # community/everyday-decision context that makes a resource fit.
+            resource_query=correction_subject or query,
             normalize=_normalize_authoritative_recommendation,
         )
     # Recognized public concepts carry their own reviewed canonical doorway.
@@ -12823,16 +13059,45 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
     ):
-        # This bounded recovery has no canonical source body selected as direct
-        # evidence for the exact practical question. Suppress an incidental
-        # doorway for a practical how-to request, but do not override a
-        # conceptual inquiry whose canonical bodies have already passed the
-        # frame-neutral, sufficiency, and question-fit gates above.
-        authoritative_doorway = None
-        archive_evidence_unavailable = True
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
-        composition_context["evidence_sufficiency_unavailable"] = True
+        # The bounded answer path is intentionally independent of composition.
+        # Before declaring that no Archive continuation exists, evaluate the
+        # already-retrieved canonical evidence against the visitor's full query.
+        # Do not repeat WordPress discovery here: this is a selection pass over
+        # evidence already supplied to the request.
+        if not authoritative_doorway:
+            try:
+                _practical_doorway_context = dict(_doorway_source_context)
+                _practical_doorway_context["_skip_doorway_search_recovery"] = True
+                _practical_selection_trace = {}
+                _practical_doorway_context["_doorway_selection_trace"] = _practical_selection_trace
+                _practical_doorway_candidate = _normalize_authoritative_recommendation(
+                    _general_guide_authoritative_doorway(
+                        query, _practical_doorway_context
+                    )
+                )
+                print(
+                    "The Guide practical doorway recovery: "
+                    f"selected={bool(_practical_doorway_candidate)}, "
+                    f"status={_practical_selection_trace.get('status') or 'unknown'}, "
+                    f"error={_practical_selection_trace.get('error_type') or 'none'}"
+                )
+                if _practical_doorway_candidate:
+                    authoritative_doorway = _practical_doorway_candidate
+                    composition_context["authoritative_doorway"] = authoritative_doorway
+                    composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            except Exception as exc:
+                print(
+                    "The Guide practical doorway selection failed safely: "
+                    f"exception={type(exc).__name__}"
+                )
+        if not authoritative_doorway:
+            # No materially relevant canonical destination passed the same
+            # relevance gate; preserve the complete general answer and report
+            # the Archive evidence limitation honestly.
+            archive_evidence_unavailable = True
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context["evidence_sufficiency_unavailable"] = True
 
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
@@ -12953,14 +13218,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                 general_guide_composition._practical_application_recovery()
             )
             print("The Guide final practical-answer boundary: replaced abstract response with observable actions.")
-        if not re.search(
-            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
-            query,
-            re.I,
-        ):
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            print("The Guide final practical-answer boundary: suppressed premature canonical doorway.")
+        # A separately validated canonical doorway is a default continuation,
+        # not a navigation handoff. It remains available even when the visitor
+        # did not explicitly ask for a link; the practical answer stays first.
 
     # Final provider-independent contract: if every provider attempt and its
     # fallback still produced analysis without a concrete next step, replace it
@@ -13131,7 +13391,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                 "The Guide general-knowledge boundary: preserved the registered "
                 "concept doorway alongside the general explanation."
             )
-        else:
+        elif not authoritative_doorway:
+            # A registered general-knowledge answer may have no doorway of its
+            # own. That absence does not revoke an independently selected,
+            # relevance-checked canonical continuation for the visitor's full
+            # question.
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
@@ -13999,6 +14263,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "label": "General knowledge",
             "explanation": "This established fact is answered from general knowledge, not attributed to the Living Archive.",
         }
+    elif (
+        isinstance(deterministic_result, dict)
+        and deterministic_result.get("provider") == "bounded_practical_stewardship_recovery"
+    ):
+        # The separately selected Archive doorway is navigation, not evidence
+        # that the deterministic practical answer was sourced from the Archive.
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This practical response is a bounded general-knowledge recovery. "
+                "The separately selected Archive doorway is a related continuation, "
+                "not evidence for the answer's claims."
+            ),
+        }
     elif direct_attribute_evidence_missing:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
@@ -14803,6 +15082,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Navigation is a visitor-facing contract. Publish the final authoritative
     # doorway under both the stable recommendation field and an explicit canonical
     # alias so presentation adapters cannot lose it through field translation.
+    print(
+        "The Guide final doorway diagnostic: "
+        f"selected={bool(authoritative_doorway)}, "
+        f"title={(authoritative_doorway or {}).get('title') or 'none'}"
+    )
     _visitor_recommendation = authoritative_doorway
     if not _visitor_recommendation:
         try:

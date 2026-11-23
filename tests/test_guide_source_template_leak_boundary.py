@@ -153,5 +153,12 @@ def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
     )
     body = json.loads(response_body.decode("utf-8"))
     assert body["ok"] is True
-    assert body["recommendation"] is None
+    # A clean substantive answer receives the independently selected canonical
+    # doorway when the Archive has a relevant destination for the inquiry.
+    assert body["recommendation"]["title"] == (
+        "How Human Systems Spiral: Perception, Action, Feedback, and the Conditions of Human Flourishing"
+    )
+    assert body["recommendation"]["url"].startswith("https://geralddaquila.com/")
+    assert body["recommendation"].get("rationale")
+    assert body["doorway_decision"] == "selected"
     # The outer boundary may restore a registered deterministic orientation when a\n    # payload is structurally incomplete; cleanliness means no internal template\n    # metadata leaks into the visitor response, not that the response is immutable.\n    assert body["response"]\n    assert "processing" not in body\n    assert body["route_source"] == "guide_outer_visitor_boundary"

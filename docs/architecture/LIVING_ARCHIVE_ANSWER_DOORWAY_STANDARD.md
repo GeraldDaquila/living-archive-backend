@@ -6,6 +6,13 @@ Applies to: The Guide / USE, HRN, FSD, SPE, Public Living Archive Navigator, Min
 ## Purpose
 Every visitor-facing module should present a complete answer or result first, then offer a distinct, optional doorway into a verified Living Archive resource when that resource materially advances the visitor's inquiry. The doorway is orientation, not promotion.
 
+### The Guide's doorway-by-default invariant
+For every eligible substantive Guide response, evaluate a separate, bounded selection for one verified Living Archive continuation by default. This applies regardless of retrieval context, answer provenance, provider route, deterministic recovery, or Gold Star pathway. A doorway is optional navigation and must never weaken, shorten, distort, or become a prerequisite for the answer.
+
+Omit the doorway only when the visitor explicitly declines further navigation, no materially relevant verified canonical destination passes the applicable relevance and authority checks, a reviewed Gold Star exception authorizes omission, or safety/protected-access handling requires a different handoff. A general-knowledge answer is not itself a reason to omit a doorway. Conversely, a broad registry fallback must not attach an adjacent but unrelated resource after the bounded canonical selector finds no relevant destination. At most one doorway is rendered for a Guide answer.
+
+A failed resolver or source-verification pass is recorded as a selection failure, not misreported as an intentional no-destination result. Never invent a destination. The complete answer remains useful without the doorway.
+
 ## Shared visual form
 1. A restrained pale cream panel, thin neutral border, and muted gold left accent.
 2. The small uppercase label **CONTINUE EXPLORING**.

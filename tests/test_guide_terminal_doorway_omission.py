@@ -187,6 +187,40 @@ def test_shared_doorway_restoration_emits_one_explicit_selection_or_omission(mon
     assert omitted["doorway_omission_reason"]
 
 
+def test_independent_canonical_selection_is_default_without_family_or_retrieval_context(monkeypatch):
+    """A substantive answer gets a bounded Archive search even without a family match."""
+    import deterministic_answer_recovery
+
+    query = "How should a town balance individual choice with shared responsibilities?"
+    selected = {
+        "title": "A Verified Archive Continuation",
+        "url": "https://geralddaquila.com/verified-continuation/",
+        "rationale": "Explores the governance principles relevant to this question.",
+    }
+    calls = []
+
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _q: None)
+    monkeypatch.setattr(main, "_select_verified_doorway_conceptual_family", lambda _q: None)
+    monkeypatch.setattr(main, "_general_guide_authoritative_doorway",
+                        lambda received_query, _payload: calls.append(received_query) or selected)
+    monkeypatch.setattr(main, "_healthy_community_canonical_recommendation", lambda *_a: None)
+    monkeypatch.setattr(main, "_trust_community_stewardship_canonical_recommendation", lambda *_a: None)
+    monkeypatch.setattr(main, "_reciprocity_community_canonical_recommendation", lambda *_a: None)
+    monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda _q: None)
+    monkeypatch.setattr(deterministic_answer_recovery, "registered_recovery_recommendation", lambda _q: None)
+
+    result = main._guide_restore_verified_doorway(
+        {"response": "A complete substantive answer.", "processing": "unclassified_answer_route"},
+        query,
+    )
+
+    assert calls == [query]
+    assert result["doorway_decision"] == "selected"
+    assert result["recommendation"] == selected
+    assert result["doorway_selection_evaluated"] is True
+    assert result["doorway_selection_source"] == "canonical_evidence_selector"
+
+
 def test_reviewed_no_doorway_standard_remains_terminal_and_explicit():
     query = "A deliberately reviewed no-handoff calibration question."
     payload = {
@@ -277,4 +311,38 @@ def test_json_sender_honors_explicit_no_handoff_instruction():
     assert result["canonical_doorway"] is None
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
+
+def test_terminal_restoration_preserves_already_verified_server_selected_doorway(monkeypatch):
+    query = "How can a community practice stewardship in everyday decisions?"
+    selected = {
+        "title": "Applied Stewardship Program",
+        "url": "https://geralddaquila.com/applied-stewardship-program/",
+        "rationale": "Its cases examine community stewardship through shared decisions and responsibilities.",
+    }
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _q: None)
+    monkeypatch.setattr(
+        main,
+        "_general_guide_authoritative_doorway",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("terminal restoration must preserve the completed selection")
+        ),
+    )
+    payload = {
+        "response": "A complete practical answer.",
+        "recommendation": selected,
+        "canonical_doorway": selected,
+        "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION",
+        "doorway_selection_evaluated": True,
+        "doorway_selection_source": "final_authoritative_recommendation_contract",
+    }
+
+    result = main._guide_restore_verified_doorway(payload, query)
+
+    assert result["response"] == payload["response"]
+    assert result["recommendation"] == selected
+    assert result["canonical_doorway"] == selected
+    assert result["doorway_title"] == selected["title"]
+    assert result["doorway_url"] == selected["url"]
+    assert result["doorway_decision"] == "selected"
+    assert result["doorway_omission_reason"] is None
 

@@ -92,12 +92,63 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         ],
     }
     context.update(context_flags or {})
+    def controlled_canonical_context(query):
+        # Return the controlled base context for ordinary request-boundary
+        # composition. The practical-stewardship canonical page is injected
+        # separately at the bounded canonical-search recovery seam below.
+        result = dict(context)
+        result["generation_authority_protected_docs"] = list(
+            context.get("generation_authority_protected_docs") or []
+        )
+        normalized_query = str(query or "").casefold()
+        if "stewardship" in normalized_query:
+            result["generation_authority_protected_docs"].append({
+                "title": "Applied Stewardship Program",
+                "url": "https://geralddaquila.com/applied-stewardship-program/",
+                "content": (
+                    "The Applied Stewardship Program is a case-based learning "
+                    "framework for ethical leadership and systems responsibility. "
+                    "It examines how responsibility unfolds through personal ethical "
+                    "decisions, organizational management, institutional governance, "
+                    "and complex social systems. Stewardship appears wherever people "
+                    "make decisions that influence others, shape institutions, or "
+                    "affect shared resources. Its cases examine everyday situations, "
+                    "decision-making, competing responsibilities, communities, and "
+                    "how stewardship principles are practiced under real-world conditions."
+                ),
+            })
+        return result
+
     monkeypatch.setattr(
-        use_main.use_core, "fetch_canonical_context", lambda query: context
+        use_main.use_core, "fetch_canonical_context", controlled_canonical_context
     )
-    # Keep existing request-boundary tests deterministic and offline. Dedicated
-    # recovery tests inject canonical search results explicitly.
-    monkeypatch.setattr(use_main, "_wordpress_search_canonical_candidates", lambda query, limit=5: [])
+
+    # The bounded practical-recovery route does not call fetch_canonical_context.
+    # Supply its independently verified canonical search result at the selector's
+    # actual recovery seam, and only for this matching inquiry.
+    def controlled_canonical_search(query, limit=5):
+        normalized_query = str(query or "").casefold()
+        if "community" not in normalized_query or "stewardship" not in normalized_query:
+            return []
+        return [{
+            "title": "Applied Stewardship Program",
+            "url": "https://geralddaquila.com/applied-stewardship-program/",
+            "text": (
+                "The Applied Stewardship Program is a case-based learning framework "
+                "for practicing community stewardship through everyday decisions and "
+                "shared responsibilities. It examines how community members care for "
+                "shared resources, make decisions together, and respond to consequences "
+                "that affect other people. Its cases connect personal ethical choices "
+                "with organizational management, institutional governance, and systems "
+                "responsibility under real-world conditions."
+            ),
+        }]
+
+    monkeypatch.setattr(
+        use_main,
+        "_wordpress_search_canonical_candidates",
+        controlled_canonical_search,
+    )
     monkeypatch.setattr(
         use_main._base, "_inquiry_profile", lambda query: {}
     )
@@ -440,6 +491,11 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
     assert doorway == {
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
+        "rationale": (
+            "Burnout can follow prolonged strain and overextension. "
+            "Burnout is not a personal failure; it is a signal that capacity "
+            "and demands have become mismatched."
+        ),
     }
 
 
@@ -489,6 +545,19 @@ def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(m
 def test_practical_stewardship_request_bypasses_oversized_composition_envelope(monkeypatch):
     query = "How can a community practice stewardship in its everyday decisions and responsibilities?"
     _install_controlled_provider_and_retrieval(monkeypatch)
+    # Verify the canonical selector against the exact evidence supplied to this
+    # request before exercising the full ASGI boundary. The evidence is grounded
+    # in the published Applied Stewardship Program page.
+    selection_context = use_main.use_core.fetch_canonical_context(query)
+    selection_trace = {}
+    selection_context["_doorway_selection_trace"] = selection_trace
+    selected = use_main._general_guide_authoritative_doorway(
+        query, selection_context
+    )
+    assert selected and selected.get("title") == "Applied Stewardship Program", selection_trace
+    monkeypatch.setattr(
+        use_main.use_core, "fetch_canonical_context", lambda _query: selection_context
+    )
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "auto")
     composer_calls = []
 
@@ -515,7 +584,24 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert "general practical suggestions" in answer
     assert "could not complete this request" not in answer
     assert composer_calls == []
-    assert payload.get("recommendation") is None
+    # The answer remains direct and complete; the separately selected
+    # canonical doorway is an optional continuation, not part of composition.
+    _doorway_diagnostics = {
+        key: payload.get(key) for key in (
+            "doorway_decision", "doorway_selection_status",
+            "doorway_selection_evaluated", "doorway_selection_source",
+            "doorway_omission_reason", "doorway_omission_exception_reason",
+            "navigation_suppressed_by_task_contract",
+        )
+    }
+    print("PRACTICAL_DOORWAY_DIAGNOSTICS", _doorway_diagnostics)
+    assert payload["recommendation"] is not None, _doorway_diagnostics
+    assert payload["recommendation"]["title"] == "Applied Stewardship Program"
+    assert payload["recommendation"]["url"] == "https://geralddaquila.com/applied-stewardship-program/"
+    assert payload["recommendation"].get("rationale")
+    # A verified doorway is a separate navigation result, not evidence that
+    # the deterministic practical answer itself was sourced from the Archive.
     assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert payload["answer_basis"]["label"] == "General knowledge"
     assert payload["processing"] == "basic_inquiry"
 
