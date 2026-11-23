@@ -33,6 +33,8 @@ def test_shared_recovery_composer_exposes_task_specific_recovery():
     answer = compose_recovery(question)
     assert "least restrictive workable means" in answer
     assert "If not, the rule needs redesign" in answer
+    assert len([paragraph for paragraph in answer.split("\\n\\n") if paragraph.strip()]) == 3
+    assert "\\\\n" not in answer
 
 
 def test_fair_rule_recovery_does_not_claim_archive_doctrine():
