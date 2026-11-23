@@ -8416,6 +8416,77 @@
       "user_approved_at": "2026-11-22",
       "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should a community balance personal liberty with collective obligations when setting a fair rule?",
+      "expected_response": "A fair community rule should protect a meaningful sphere of personal freedom while addressing responsibilities that arise because people share space, resources, risks, and consequences. Neither side should be treated as absolute: collective convenience does not by itself justify controlling private choices, and personal liberty does not remove responsibility for avoidable harm imposed on others.\n\nStart by stating the legitimate shared purpose of the rule and the specific harm or coordination problem it is meant to address. Ask who benefits, who carries the costs, whose freedom is restricted, and whether the people most affected have had a meaningful opportunity to shape the decision. A restriction is more defensible when it responds to a demonstrable shared need, is necessary and proportionate to that need, and uses the least restrictive workable means. It should not reach further into people's lives than its purpose requires.\n\nMake the obligations reciprocal and fairly distributed: apply the same principle across status and influence, allow reasonable accommodation where circumstances differ, explain how the rule will be enforced, and provide a way to question or appeal its application. Set a review point and observable criteria for checking whether it actually reduces the problem without creating greater burdens or new harms. The practical test is: can the community explain the shared need, justify the limit, show that burdens are fairly allocated, and revise the rule when experience shows it is not working? If not, the rule needs redesign rather than stronger enforcement.",
+      "expected_doorway": {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive."
+      },
+      "assertions": [
+        "Answer the rule-design question directly before the optional Archive doorway.",
+        "Protect a meaningful sphere of personal freedom while recognizing responsibilities arising from shared space, resources, risks, and consequences.",
+        "Require a legitimate shared purpose and a demonstrable harm or coordination problem; collective convenience alone is insufficient.",
+        "Make visible who benefits, who bears costs, whose freedom is restricted, and whether affected people had a meaningful opportunity to shape the decision.",
+        "Require necessity, proportionality, and the least restrictive workable means; do not reach further than the rule's purpose requires.",
+        "Distribute obligations fairly across status and influence, allow reasonable accommodation, explain enforcement, and provide a way to question or appeal application.",
+        "Set observable review criteria and revise rules that do not work or create greater burdens or new harms.",
+        "Keep the answer complete before the separate Continue Exploring doorway; the linked essay is a continuation, not the source of the general reasoning.",
+        "Do not transfer the exact answer or doorway to unrelated questions."
+      ],
+      "known_theme": "community rule design, personal liberty, collective obligations, proportionality, least restrictive means, fair burden distribution, accommodation, participation, appeal, review, human-scale governance",
+      "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+      "transferable_lesson": "For community rules that constrain personal liberty in the name of collective obligations, identify the legitimate shared purpose and demonstrable harm or coordination need; include the people most affected; examine who benefits, who bears costs, and whose freedom is restricted; require necessity, proportionality, and the least restrictive workable means; distribute obligations fairly with reasonable accommodation; explain enforcement and provide appeal; and set observable review criteria. Collective convenience or majority preference alone does not justify controlling private choices.",
+      "transfer_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_response_behavioral_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+        "transferable_discipline": "For community rules that constrain personal liberty in the name of collective obligations, identify the legitimate shared purpose and demonstrable harm or coordination need; include the people most affected; examine who benefits, who bears costs, and whose freedom is restricted; require necessity, proportionality, and the least restrictive workable means; distribute obligations fairly with reasonable accommodation; explain enforcement and provide appeal; and set observable review criteria. Collective convenience or majority preference alone does not justify controlling private choices.",
+        "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
+        "runtime_transfer": true
+      },
+      "rating_out_of_10": 9.1,
+      "review_assessment": "Assistant assessment: 9.1/10 for directness, proportionality, fair burden allocation, meaningful participation, appeal, review, and a relevant separate Archive continuation; not a user-assigned numerical rating.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR-FACING RESPONSE REVIEWED; BOUNDED COMMUNITY RULE-DESIGN LEARNING AUTHORIZED",
+      "elevation_approval_evidence": "On 2026-11-23, the user supplied the live visitor-interface screenshot showing this exact question, three-paragraph answer, and separate Continue Exploring doorway, then explicitly instructed: “elevate to gold star first.” This is explicit human approval to elevate this exact response and its bounded rule-design discipline.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor interface, followed by explicit user authorization for Gold Star elevation.",
+        "source_date": "2026-11-23",
+        "live_surface": "The Guide visitor interface",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, substantive answer, and doorway title/rationale. The published destination and canonical permalink were separately verified through the connected WordPress content source. The screenshot does not establish a request-correlated runtime trace, exact serving commit, provider/model, lesson selection, semantic application, or adaptive contribution.",
+        "canonical_doorway_verification": {
+          "source": "Published WordPress post retrieved through the connected Living Archive WordPress source",
+          "post_id": 56857,
+          "status": "publish",
+          "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+          "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+          "verification": "Published post title and canonical permalink verified."
+        },
+        "review_assessment": "Assistant assessment: 9.1/10; qualitative assessment only."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "exact_answer_authority": false,
+      "active_quality_contributor": true,
+      "deterministic_fallback_eligible": false,
+      "user_approved_at": "2026-11-23",
+      "approval_date": "2026-11-23",
+      "approval_evidence": "User explicitly instructed “elevate to gold star first” on 2026-11-23 after reviewing the exact live visitor-facing response and doorway.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-community-freedom-shared-responsibility-decision. It contributes bounded community freedom/shared-responsibility decision discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, or display serial is granted. Held-out validation remains a separate system-level acceptance activity.",
@@ -8547,21 +8618,21 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-22",
-    "approved_gold_star_count": 133,
-    "registry_record_count": 169,
-    "review_reconciliation": "Canonical approved inventory is 133 records: 131 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-22 live review remains pending.",
+    "last_audit_date": "2026-11-23",
+    "approved_gold_star_count": 134,
+    "registry_record_count": 170,
+    "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 3 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-22: 133 approved Gold Stars; 39 assigned display serials #56–#94; 94 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 94,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-23: 134 approved Gold Stars; 39 assigned display serials #56–#94; 95 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 95,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 131,
+    "active_quality_contributor_count": 132,
     "exact_query_only_successor_count": 1,
-    "superseded_historical_reference_count": 1,
+    "superseded_historical_reference_count": 3,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "gs-2026-11-22-community-freedom-shared-responsibility-decision approved by user 2026-11-22"
+    "last_approval": "gs-2026-11-23-community-rule-design-liberty-shared-obligations approved by user 2026-11-23"
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -8675,5 +8746,5 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "gs-2026-11-22-community-freedom-shared-responsibility-decision approved by user 2026-11-22"
   },
-  "last_reconciled": "2026-11-22"
+  "last_reconciled": "2026-11-23"
 }
