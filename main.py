@@ -695,6 +695,8 @@ def _select_guide_node_fallback_doorway(query):
     distinction. This precedes lexical node scoring so a sparse node registry
     cannot erase a stronger canonical continuation.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
     normalized = str(query or "").casefold()
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
