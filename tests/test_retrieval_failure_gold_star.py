@@ -278,3 +278,53 @@ def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(mon
     )
     assert "Separate observations from interpretations." not in result["response"]
     assert "Do not infer causes without evidence." not in result["response"]
+
+
+def test_default_evidence_recovery_rejects_single_generic_word_overlap():
+    from general_guide_composition import _default_gold_standard_evidence_recovery
+
+    question = (
+        "Why does a metal spoon feel colder than a wooden spoon "
+        "when both are at the same room temperature?"
+    )
+    unrelated = [
+        "People sometimes feel more confident when a familiar story gives them a sense of direction.",
+        "Some visitors feel uncertain when they encounter a new idea without a clear explanation.",
+        "People may feel pressure to agree when others express a strong preference.",
+        "An individual can feel pressure when outcomes depend on wider institutions and other people.",
+        "People feel a need for belonging when their relationships and daily routines change.",
+        "Someone may feel overwhelmed when several competing expectations arise at once.",
+    ]
+    documents = [{
+        "title": "Unrelated reflections",
+        "url": "https://geralddaquila.com/unrelated-reflections/",
+        "content": " ".join(unrelated),
+    }]
+
+    assert _default_gold_standard_evidence_recovery(question, documents) is None
+
+
+def test_default_evidence_recovery_requires_collective_query_term_coverage():
+    from general_guide_composition import _default_gold_standard_evidence_recovery
+
+    question = "How does stewardship support responsible care for shared resources?"
+    relevant = [
+        "Stewardship turns responsible care into explicit commitments for shared resources.",
+        "Shared resources need stewardship rules that make responsible care observable.",
+        "Responsible care for shared resources depends on stewardship and clear accountability.",
+        "Good stewardship assigns care duties for shared resources to people with authority.",
+        "Care for shared resources requires stewardship, fair participation, and review.",
+        "Stewardship protects shared resources by making responsible care reciprocal.",
+    ]
+    documents = [{
+        "title": "Stewardship and shared resources",
+        "url": "https://geralddaquila.com/stewardship/",
+        "content": " ".join(relevant),
+    }]
+
+    result = _default_gold_standard_evidence_recovery(question, documents)
+
+    assert result is not None
+    assert result["provider"] == "gold_standard_evidence_recovery"
+    assert "Stewardship" in result["response"]
+    assert "shared resources" in result["response"]
