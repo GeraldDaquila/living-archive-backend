@@ -242,25 +242,6 @@ async def capture(args) -> dict:
 
     suite, cases = _load_cases()
     runtime_commit = _git_sha()
-    from gold_star_semantic_retrieval import _lesson_vectors, semantic_index_ready
-    memory_current = memory_limit = None
-    try:
-        memory_current = int(Path("/sys/fs/cgroup/memory.current").read_text().strip())
-        raw_limit = Path("/sys/fs/cgroup/memory.max").read_text().strip()
-        memory_limit = None if raw_limit == "max" else int(raw_limit)
-    except (OSError, ValueError):
-        pass
-    if memory_limit is not None and memory_current is not None:
-        if memory_limit - memory_current < 1536 * 1024 * 1024:
-            raise RuntimeError(
-                "Insufficient cgroup memory headroom for the shared Gold Star semantic index."
-            )
-    # This opt-in is confined to the GitHub-hosted candidate runner. Prewarm the
-    # existing shared USE embedding model before any visitor requests, so the
-    # first held-out question is not evaluated against a cold, empty selector.
-    _lesson_vectors()
-    if not semantic_index_ready():
-        raise RuntimeError("Gold Star semantic index did not become ready in candidate runner.")
     registry_bytes = (
         ROOT / "docs" / "qa" / "gold_standard_registry.json"
     ).read_bytes()
