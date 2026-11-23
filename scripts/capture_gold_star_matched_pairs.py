@@ -207,6 +207,7 @@ async def capture(args) -> dict:
     import provider_bank
     import gold_star_lessons
     from gold_star_evaluation_context import evaluation_context
+    from gold_star_adaptation_evaluation import HARD_GATE_DIMENSIONS, SCORE_DIMENSIONS
     from general_guide_composition import CONTRACT_VERSION as COMPOSITION_CONTRACT_VERSION
 
     suite, cases = _load_cases()
@@ -434,6 +435,61 @@ async def capture(args) -> dict:
     }
 
 
+def _build_evaluation_template(report: dict) -> dict:
+    """Create an intentionally incomplete, privacy-safe human scoring template."""
+    from gold_star_adaptation_evaluation import HARD_GATE_DIMENSIONS, SCORE_DIMENSIONS
+
+    records = []
+    for case in report.get("cases", []):
+        critical = list(case.get("critical_dimensions") or [])
+        score_dimensions = sorted(set(SCORE_DIMENSIONS) | set(critical))
+        shared = {
+            "runtime_commit": case["runtime_commit"],
+            "composition_contract_version": case["composition_contract_version"],
+            "provider": case["provider"],
+            "model": case["model"],
+            "base_prompt_fingerprint": case["base_prompt_fingerprint"],
+            "generation_config_fingerprint": case["generation_config_fingerprint"],
+            "gold_star_registry_sha256": case["gold_star_registry_sha256"],
+        }
+        record = {
+            "evaluation_id": f"{report['evaluation_id']}:{case['case_id']}",
+            "case_id": case["case_id"],
+            "case_family": case["case_family"],
+            **shared,
+            "blind_review": False,
+            "reviewer_verdict": None,
+            "reviewer_evidence_ref": f"blind-review-package.json#cases/{case['case_id']}",
+            "reviewed_at": None,
+            "critical_dimensions": critical,
+        }
+        for arm_name, enabled in (("control", False), ("treatment", True)):
+            record[arm_name] = {
+                "adaptation_enabled": enabled,
+                "output_artifact_ref": (
+                    f"matched-pair-evidence.json#cases/{case['case_id']}/{arm_name}"
+                ),
+                **shared,
+                "scores": {dimension: None for dimension in score_dimensions},
+                "na_reasons": {},
+                "hard_gates": {dimension: None for dimension in HARD_GATE_DIMENSIONS},
+            }
+        records.append(record)
+    return {
+        "schema_version": "1.0",
+        "evaluation_id": report["evaluation_id"],
+        "status": "awaiting_blind_human_review",
+        "instructions": (
+            "Score Response A and Response B in the blind review package first. "
+            "Only after scoring, consult the separate unblinding key and map scores "
+            "to control/treatment here. Set blind_review=true, provide the reviewer "
+            "verdict and reviewed_at timestamp, then complete every score, NA reason, "
+            "and hard gate before running gold_star_adaptation_evaluation.evaluate_batch."
+        ),
+        "records": records,
+    }
+
+
 def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/gold-star-matched-pairs"))
@@ -447,6 +503,7 @@ def main_cli() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
     blind_cases = report.pop("_blind_review_cases")
     unblinding_key = report.pop("_unblinding_key")
+    evaluation_template = _build_evaluation_template(report)
     (output_dir / "matched-pair-evidence.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
@@ -461,6 +518,10 @@ def main_cli() -> int:
     )
     (output_dir / "unblinding-key.json").write_text(
         json.dumps(unblinding_key, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    (output_dir / "paired-evaluation-template.json").write_text(
+        json.dumps(evaluation_template, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
     summary = {
         key: report[key] for key in (
