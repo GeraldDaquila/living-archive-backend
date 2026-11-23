@@ -6529,8 +6529,8 @@ def _guide_restore_verified_doorway(payload, query):
             "bounded_practical_stewardship_recovery",
         }
         or bool(re.search(
-            r"\\b(?:same|repeated|recurring)\\s+problems?\\b|"
-            r"\\bproblems?\\s+keep\\s+(?:returning|recurring)\\b",
+            r"\b(?:same|repeated|recurring)\s+problems?\b|"
+            r"\bproblems?\s+keep\s+(?:returning|recurring)\b",
             str(query or ""),
             re.I,
         ))
