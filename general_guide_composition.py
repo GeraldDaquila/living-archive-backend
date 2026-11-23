@@ -3480,7 +3480,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         ):
             return (
                 f"In {context}, {subject} is best understood as a means rather than the thing that sets the direction. "
-                f"Its role should be judged by whether it strengthens the purposes, relationships, and responsibilities that {context} is meant to sustain—not only by how efficiently it performs a task.\n\n"
+                f"Its role should be judged by whether it strengthens the purposes and relationships that {context} is meant to sustain—and whether it supports long-term responsibility for the consequences of its use—not only by how efficiently it performs a task.\n\n"
                 f"That means asking what {subject} makes easier or harder to see, decide, and care for over time. "
                 "A useful role can extend human and institutional capacity, reduce unnecessary burdens, improve coordination, or reveal patterns that deserve attention. "
                 "But capability does not determine what ought to be valued, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
