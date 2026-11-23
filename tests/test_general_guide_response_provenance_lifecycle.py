@@ -183,3 +183,11 @@ def test_outer_final_response_rewrite_cannot_keep_live_provider_attribution():
     assert 'composition_result.get("_provider_execution_verified") is True' in function_source
     assert '_final_response_text != _llm_candidate_text' in function_source
     assert '_response_provenance = "provider_assisted_recovery"' in function_source
+
+
+def test_outer_rewrite_of_cached_provider_answer_is_provider_assisted_recovery():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_execution_origin_verified") is True' in function_source
+    assert '_final_response_text != _llm_candidate_text' in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
