@@ -123,3 +123,12 @@ def test_llm_attribution_requires_an_registered_provider_model_pair():
     )
     assert not main._is_attributable_provider_model("gold_standard_registry", "approved-reference")
     assert not main._is_attributable_provider_model("groq", "unregistered-model")
+
+
+def test_non_provider_composition_recovery_keeps_its_identity_without_claiming_llm():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert "_deterministic_composition_recovery = bool(" in function_source
+    assert "elif not _deterministic_composition_recovery:" in function_source
+    assert 'elif deterministic_result or _deterministic_composition_recovery:' in function_source
+    assert '_response_provenance = "deterministic_recovery"' in function_source
