@@ -18,6 +18,12 @@ _CANDIDATES = (
         "rationale": "Adds the newly approved, directly relevant discipline of rights protection, evidence, proportionality, fair burdens, and accountable review.",
     },
     {
+        "benchmark_id": "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
+        "role": "conditional",
+        "condition": "The question explicitly asks how to formulate, justify, or review a community rule, policy, or restriction.",
+        "rationale": "Adds the more specific discipline for legitimate rule purpose, demonstrable need, least-restrictive means, reciprocal burdens, accommodation, appeal, and observable review.",
+    },
+    {
         "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
         "role": "core",
         "condition": "A genuine conflict between important interests or values is present.",
@@ -63,6 +69,8 @@ def select_community_tradeoff_candidates(
         return None
 
     modes = {"core"}
+    if re.search(r"\b(?:rule|rules|policy|policies|restriction\w*|limit\w*)\b", q):
+        modes.add("conditional:rule_design")
     if re.search(r"\b(?:stakeholder\w*|affected parties|competing obligations|multiple parties)\b", q):
         modes.add("conditional:stakeholders")
     if re.search(r"\b(?:power|authority|influence|unequal|least power|burden\w*)\b", q):
@@ -84,6 +92,8 @@ def select_community_tradeoff_candidates(
                 if "stakeholder" in definition["benchmark_id"]
                 else "conditional:power"
                 if "power-responsibility" in definition["benchmark_id"]
+                else "conditional:rule_design"
+                if "community-rule-design" in definition["benchmark_id"]
                 else "conditional:consent"
             ),
         }[definition["role"]]
