@@ -149,3 +149,16 @@ def test_llm_attribution_requires_verified_provider_execution_not_only_registere
     # sufficient evidence that an external model actually ran.
     assert 'and composition_result.get("_provider_execution_verified") is True' in function_source
     assert 'and composition_result.get("_provider_execution_verified") is not True' in function_source
+
+
+def test_cached_provider_composition_preserves_origin_without_claiming_fresh_execution():
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert composition.count('cached_result["_provider_execution_origin_verified"] = bool(') == 2
+    assert 'cached_result.pop("_provider_execution_verified", False)' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert '_provider_execution_origin_verified") is True' in function_source
+    assert '_response_provenance = "cached_provider_composition"' in function_source
+    assert '_quality_adjusted_llm_eligible = False' in function_source
+    assert 'not _cached_provider_composition' in function_source
