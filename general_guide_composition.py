@@ -3411,7 +3411,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     ))
     if names_ai and names_interpretation and names_authority and (asks_role_meaning or contrasts_roles):
         return (
-            "For an AI to act as an interpreter rather than an authority is for it to help people understand information "
+            "For an AI to act as an interpreter rather than an authority is for it to help people make sense of information "
             "without claiming the final right to decide what that information means or what should be done. It can organize "
             "evidence, compare perspectives, identify patterns, explain relationships, and make uncertainty easier to see. "
             "Those are interpretive contributions: they improve the material available for judgment, but they do not settle "
@@ -3422,10 +3422,10 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "or accountability required to decide for people. For example, an AI might compare policy options and expose "
             "who could be affected; the accountable people or institution must still weigh the evidence, values, rights, "
             "and consequences before making the decision.\n\n"
-            "The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
+            "This is a general conceptual distinction, not a claim that every institution defines the interpreter-authority relationship in exactly the same way. The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
             "system's contribution should remain inspectable and contestable: people need to be able to ask what evidence "
             "was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty "
-            "remains. The human or institutional decision-maker must retain responsibility for the values applied and "
+            "remains. Human and institutional responsibility must remain explicit: accountable people and institutions must retain responsibility for the values they uphold and "
             "the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly "
             "appropriating the authority to decide."
         )
