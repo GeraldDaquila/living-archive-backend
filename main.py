@@ -957,8 +957,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             "recommended_resource",
             "recommended_resources",
         ):
-            if key in safe:
-                safe[key] = None
+            safe[key] = None
         safe["doorway_decision"] = "omit"
         safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
         safe["doorway_selection_evaluated"] = False
