@@ -328,6 +328,38 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
     return "\n\n".join(paragraphs)
 
 
+
+
+
+def _build_general_guide_system_message(
+    question: str,
+    *,
+    has_gold_star_guidance: bool = False,
+    incomplete_knowledge_plan: Optional[Dict[str, Any]] = None,
+    integrity_recovery_instruction: str = "",
+    gold_star_quality_instruction: str = "",
+    public_live_source_instruction: str = "",
+) -> str:
+    """Assemble only the system contracts required by this request."""
+    parts = [
+        _build_general_guide_system_prompt(
+            question, gold_star_guidance=has_gold_star_guidance
+        )
+    ]
+    if has_gold_star_guidance:
+        parts.append(_GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT)
+    parts.append(_LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT)
+    if incomplete_knowledge_plan:
+        parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
+    if integrity_recovery_instruction:
+        parts.append(integrity_recovery_instruction.strip())
+    if gold_star_quality_instruction:
+        parts.append(gold_star_quality_instruction.strip())
+    if public_live_source_instruction:
+        parts.append(public_live_source_instruction)
+    return "\n\n".join(part for part in parts if part)
+
+
 def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
     """Build compact, governed candidate context and the provider adjudication contract."""
     if not isinstance(gold_star_quality, dict):
@@ -4791,18 +4823,16 @@ def compose(
             use_core=use_core,
             operation=OPERATION,
             messages=[
-                {"role": "system", "content": _build_general_guide_system_prompt(question, gold_star_guidance=bool(gold_star_quality)) + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
-                    "\n\n" + incomplete_knowledge_plan["architectural_contract"]
-                    if incomplete_knowledge_plan else ""
-                ) + (
-                    "\n\n" + integrity_recovery_instruction.strip()
-                    if integrity_recovery_instruction else ""
-                ) + (
-                    "\n\n" + gold_star_quality_instruction.strip()
-                    if gold_star_quality_instruction else ""
-                ) + (
-                    "\n\n" + public_live_source_instruction
-                    if public_live_source_instruction else ""
+                {"role": "system", "content": _build_general_guide_system_message(
+                    question,
+                    has_gold_star_guidance=bool(
+                        isinstance(gold_star_quality, dict)
+                        and gold_star_quality.get("candidates")
+                    ),
+                    incomplete_knowledge_plan=incomplete_knowledge_plan,
+                    integrity_recovery_instruction=integrity_recovery_instruction,
+                    gold_star_quality_instruction=gold_star_quality_instruction,
+                    public_live_source_instruction=public_live_source_instruction,
                 )},
                 {"role": "user", "content": user_content[:7000]},
             ],
