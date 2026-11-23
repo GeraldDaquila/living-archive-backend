@@ -270,12 +270,13 @@ async def capture(args) -> dict:
                 # This is a fingerprint of the shared, non-adaptive request contract.
                 # The actual treatment prompt is intentionally different because it
                 # contains the approved lesson's structural guidance.
-                base_prompt_fingerprint = _sha256(json.dumps({
-                    "runtime_commit": runtime_commit,
-                    "composition_contract_version": COMPOSITION_CONTRACT_VERSION,
-                    "question": case["query"],
-                    "gold_star_guidance": "excluded_from_base_prompt_fingerprint",
-                }, sort_keys=True, separators=(",", ":")))
+                base_system_prompt = composition._build_general_guide_system_message(
+                    case["query"], has_gold_star_guidance=False,
+                    gold_star_quality_instruction="",
+                )
+                base_prompt_fingerprint = _sha256(
+                    base_system_prompt + "\\n\\nVISITOR_QUESTION\\n" + case["query"]
+                )
 
                 record = {
                     "case_id": case["case_id"],
