@@ -1124,6 +1124,10 @@ def _term_forms(term):
     forms = {value}
     if value.endswith("ies") and len(value) > 4:
         forms.add(value[:-3] + "y")
+    elif value.endswith("y") and len(value) > 4:
+        # Match singular query concepts against plural canonical evidence too:
+        # "community" must match a resource that naturally says "communities".
+        forms.add(value[:-1] + "ies")
     if value.endswith("ness") and len(value) > 5:
         forms.add(value[:-4])
     if value.endswith("ing") and len(value) > 5:
