@@ -10,8 +10,8 @@ from scripts.capture_gold_star_matched_pairs import (
 def test_matched_pair_suite_includes_community_rule_and_two_unrelated_families():
     assert CASE_IDS == (
         "heldout-community-rule-design-transfer-001",
-        "heldout-policy-implementation-001",
-        "heldout-thermal-conductivity-001",
+        "heldout-community-rule-necessity-002",
+        "heldout-community-rule-burdens-003",
     )
 
 
@@ -62,6 +62,7 @@ def test_custom_case_set_has_three_distinct_families_and_target_lesson():
     data = json.loads(CASE_SET_PATH.read_text(encoding="utf-8"))
     assert len(data["cases"]) == 3
     assert len({case["case_family"] for case in data["cases"]}) == 3
+    assert all("community" in case["case_family"] for case in data["cases"])
     target = next(
         case for case in data["cases"]
         if case["case_id"] == "heldout-community-rule-design-transfer-001"
