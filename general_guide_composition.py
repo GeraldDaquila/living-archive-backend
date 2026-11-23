@@ -2664,6 +2664,22 @@ def _composition_response_shape_diagnostic(parsed: Dict[str, Any], raw: str) -> 
     )
 
 
+def _normalize_composition_envelope(parsed: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize the observed answer/doorway envelope into the visitor contract.
+
+    Only a string-valued legacy/alternate answer field is accepted. All existing
+    strict visitor, grounding, and quality checks still run after normalization.
+    Provider-supplied doorway metadata is deliberately ignored; canonical
+    navigation is selected independently by the Guide.
+    """
+    normalized = dict(parsed)
+    if not normalized.get("response") and isinstance(normalized.get("answer"), str):
+        normalized["response"] = normalized["answer"]
+    if not normalized.get("response_shape"):
+        normalized["response_shape"] = "general"
+    return normalized
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_candidates: Any = None, emit_telemetry: bool = True):
     titles = {item["title"] for item in documents}
     def _parse_strict(raw: str) -> Dict[str, Any]:
@@ -2674,6 +2690,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
         if not isinstance(parsed, dict):
             raise ValueError("general composition response was not an object")
 
+        parsed = _normalize_composition_envelope(parsed)
         response = _sanitize_candidate(parsed.get("response"))
         if not response:
             diagnostic = _composition_response_shape_diagnostic(parsed, raw)
