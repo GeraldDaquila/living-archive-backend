@@ -135,6 +135,9 @@ def _generation_config_fingerprint(provider: str, model: str) -> str:
         "frequency_penalty": None,
         "presence_penalty": None,
         "routing": "exact-provider-model-local-only",
+        "max_provider_attempts": 1,
+        "active_active_delegation": False,
+        "provider_model_fallback": False,
         "cache": "read-and-write-bypass",
         "arm_timeout_seconds": ARM_TIMEOUT_SECONDS,
     }
