@@ -7106,9 +7106,33 @@ def _guide_finalize_visitor_payload(payload, query):
         # proof. A separately verified canonical doorway may still be offered
         # as a related continuation; preserve it without changing the answer's
         # provenance or implying that it substantiates the visitor's claim.
-        _autonomy_doorway = _normalize_authoritative_recommendation(
-            safe.get("recommendation") or safe.get("canonical_doorway")
-        )
+        _autonomy_candidate = safe.get("recommendation") or safe.get("canonical_doorway")
+        if isinstance(_autonomy_candidate, dict):
+            _autonomy_title = str(_autonomy_candidate.get("title") or "").strip()
+            _autonomy_url = str(
+                _autonomy_candidate.get("url")
+                or _autonomy_candidate.get("canonical_url")
+                or ""
+            ).strip()
+            _autonomy_rationale = str(
+                _autonomy_candidate.get("rationale")
+                or _autonomy_candidate.get("doorway_rationale")
+                or ""
+            ).strip()
+            _autonomy_doorway = (
+                {"title": _autonomy_title, "url": _autonomy_url}
+                if _autonomy_title
+                and re.match(r"^https://geralddaquila\\.com(?:/.*)?$", _autonomy_url, re.I)
+                and not re.search(r"[\\x00-\\x20<>]", _autonomy_url)
+                else None
+            )
+            if _autonomy_doorway and _autonomy_rationale:
+                if len(_autonomy_rationale) <= 600 and not re.search(r"<[^>]+>", _autonomy_rationale):
+                    _autonomy_doorway["rationale"] = _autonomy_rationale
+                else:
+                    _autonomy_doorway = None
+        else:
+            _autonomy_doorway = None
         safe["recommendation"] = _autonomy_doorway
         safe["canonical_doorway"] = _autonomy_doorway
         safe["doorway_title"] = _autonomy_doorway.get("title") if _autonomy_doorway else None
