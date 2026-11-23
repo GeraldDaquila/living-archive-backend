@@ -7102,12 +7102,27 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["response"] = recovery["response"]
         if "answer" in safe:
             safe["answer"] = safe["response"]
-        safe["recommendation"] = None
-        safe["canonical_doorway"] = None
-        safe["doorway_title"] = None
-        safe["doorway_url"] = None
-        safe["doorway_rationale"] = None
-        safe["doorway_omission_reason"] = "no_verified_direct_archive_continuation"
+        # This evidence-evaluation answer is general knowledge, not Archive
+        # proof. A separately verified canonical doorway may still be offered
+        # as a related continuation; preserve it without changing the answer's
+        # provenance or implying that it substantiates the visitor's claim.
+        _autonomy_doorway = _normalize_authoritative_recommendation(
+            safe.get("recommendation") or safe.get("canonical_doorway")
+        )
+        safe["recommendation"] = _autonomy_doorway
+        safe["canonical_doorway"] = _autonomy_doorway
+        safe["doorway_title"] = _autonomy_doorway.get("title") if _autonomy_doorway else None
+        safe["doorway_url"] = _autonomy_doorway.get("url") if _autonomy_doorway else None
+        safe["doorway_rationale"] = _autonomy_doorway.get("rationale") if _autonomy_doorway else None
+        safe["doorway_decision"] = "selected" if _autonomy_doorway else "omit"
+        safe["doorway_selection_status"] = (
+            "VERIFIED_RELEVANT_DESTINATION" if _autonomy_doorway
+            else "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
+        )
+        safe["doorway_selection_evaluated"] = True
+        safe["doorway_omission_reason"] = (
+            None if _autonomy_doorway else "no_verified_direct_archive_continuation"
+        )
         safe["processing"] = "final_visitor_boundary_autonomy_evidence_evaluation"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
