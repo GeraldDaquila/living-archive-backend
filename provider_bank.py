@@ -1575,11 +1575,23 @@ def select(use_core, operation="generic", schema=None):
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
     configured = _csv("USE_LLM_PROVIDER_ORDER")
-    # OpenRouter is the preferred free lane whenever its credential enables it.
-    # Promote it to the front even when a legacy explicit order lists it later;
-    # otherwise the two-candidate HRN window can repeatedly spend its fallback
-    # on rate-limited lanes before reaching the configured free router.
-    if "openrouter" in grouped:
+    # OpenRouter remains the preferred free lane. For Guide composition only,
+    # place a healthy Groq GPT-OSS 120B lane immediately behind it: the real
+    # community-rule prompt is now bounded to Groq's configured TPM budget, and
+    # this independent model must get a chance before slower/limited lanes can
+    # consume the entire 18-second provider window.
+    if operation == "general_guide_composition":
+        preferred = ["openrouter"] if "openrouter" in grouped else []
+        groq_direct_answer_available = any(
+            str(item.get("provider") or "") == "groq"
+            and str(item.get("model") or "") == "openai/gpt-oss-120b"
+            and str(item.get("health_state") or "") == "healthy"
+            for item in grouped.get("groq", [])
+        )
+        if groq_direct_answer_available:
+            preferred.append("groq")
+        configured = preferred + [name for name in configured if name not in preferred]
+    elif "openrouter" in grouped:
         configured = ["openrouter"] + [name for name in configured if name != "openrouter"]
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
     # HRN invokes several semantic operations within one visitor turn. Rotating
@@ -1635,8 +1647,15 @@ def select(use_core, operation="generic", schema=None):
                     and str(item.get("model") or "") == "nvidia/nemotron-3.5-super-vl-120b-a12b"
                     else 1
                 )
+                groq_120b_priority = (
+                    0
+                    if str(item.get("provider") or "") == "groq"
+                    and str(item.get("model") or "") == "openai/gpt-oss-120b"
+                    else 1
+                )
                 return (
                     0 if item.get("health_state") == "healthy" else 1,
+                    groq_120b_priority,
                     0 if last_success > 0 else 1,
                     nvidia_direct_answer_priority,
                     int(item.get("transport_failures", 0) or 0),

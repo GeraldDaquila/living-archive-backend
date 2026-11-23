@@ -149,3 +149,128 @@ def test_guide_arbitration_prefers_nvidia_super_vl_direct_answer_lane(monkeypatc
     selected = provider_bank.select(None, operation="general_guide_composition")
 
     assert selected[0]["model"] == NVIDIA_SUPER_VL
+
+
+def test_guide_arbitration_places_healthy_groq_120b_after_openrouter(monkeypatch):
+    candidates = [
+        {
+            "provider": "openrouter",
+            "model": "openrouter/free",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "gemini",
+            "model": "gemini-3.8-flash",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "mistral",
+            "model": "mistral-small-latest",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+    ]
+    state = dict(provider_bank._STATE)
+    state["provider_cursor"] = 0
+    state["model_cursors"] = {}
+    monkeypatch.setattr(provider_bank, "_STATE", state)
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: [dict(x) for x in candidates])
+    monkeypatch.setenv("USE_LLM_PROVIDER_ORDER", "gemini,mistral,groq,openrouter")
+
+    selected = provider_bank.select(None, operation="general_guide_composition")
+
+    assert [(x["provider"], x["model"]) for x in selected[:3]] == [
+        ("openrouter", "openrouter/free"),
+        ("groq", "openai/gpt-oss-120b"),
+        ("gemini", "gemini-3.8-flash"),
+    ]
+
+
+def test_guide_arbitration_does_not_promote_rate_limited_groq_120b(monkeypatch):
+    candidates = [
+        {
+            "provider": "openrouter",
+            "model": "openrouter/free",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "health_state": "half_open",
+            "last_success": 100,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+        {
+            "provider": "gemini",
+            "model": "gemini-3.8-flash",
+            "health_state": "healthy",
+            "last_success": 0,
+            "transport_failures": 0,
+            "consecutive_failures": 0,
+            "quality_failures": 0,
+            "latency_attempts": 0,
+            "capabilities": ["composition", "low_latency"],
+        },
+    ]
+    state = dict(provider_bank._STATE)
+    state["provider_cursor"] = 0
+    state["model_cursors"] = {}
+    monkeypatch.setattr(provider_bank, "_STATE", state)
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: [dict(x) for x in candidates])
+    monkeypatch.setenv("USE_LLM_PROVIDER_ORDER", "gemini,groq,openrouter")
+
+    selected = provider_bank.select(None, operation="general_guide_composition")
+
+    assert [(x["provider"], x["model"]) for x in selected[:2]] == [
+        ("openrouter", "openrouter/free"),
+        ("gemini", "gemini-3.8-flash"),
+    ]
