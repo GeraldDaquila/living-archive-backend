@@ -100,6 +100,7 @@ def test_explicit_no_doorway_request_overrides_community_rule_family_mapping():
     assert main._general_guide_authoritative_doorway(
         query, {"_doorway_selection_trace": {}}
     ) is None
+    assert main._select_guide_node_fallback_doorway(query) is None
     assert main._verified_archive_doorway_fallback(
         query, [], {"risk": True, "action": "risk"}
     ) is None
