@@ -560,9 +560,13 @@ def _build_evaluation_template(report: dict) -> dict:
         "instructions": (
             "Score Response A and Response B in the blind review package first. "
             "Only after scoring, consult the separate unblinding key and map scores "
-            "to control/treatment here. Set blind_review=true, provide the reviewer "
-            "verdict and reviewed_at timestamp, then complete every score, NA reason, "
-            "and hard gate before running gold_star_adaptation_evaluation.evaluate_batch."
+            "to control/treatment here. Set blind_review=true, set reviewer_verdict to "
+            "improved, not_improved, regressed, or inconclusive, and provide reviewed_at "
+            "as an ISO-8601 timestamp. Complete every score and hard gate. For NA scores, "
+            "use only these na_reasons codes: not_relevant_to_question, "
+            "no_archive_specific_claim, no_doorway_requested_or_permitted, or "
+            "dimension_not_applicable_to_case. Then run "
+            "gold_star_adaptation_evaluation.evaluate_batch."
         ),
         "records": records,
     }
@@ -600,6 +604,18 @@ def main_cli() -> int:
             "cases": blind_cases,
             "scoring_scale": report["human_review_template"]["scale"],
             "hard_gates": report["human_review_template"]["hard_gates"],
+            "reviewer_verdicts": [
+                {"value": "improved", "guidance": "Treatment is materially better overall than control."},
+                {"value": "not_improved", "guidance": "Treatment is not materially better than control."},
+                {"value": "regressed", "guidance": "Treatment is materially worse or violates a required boundary."},
+                {"value": "inconclusive", "guidance": "The evidence does not support a reliable comparison."},
+            ],
+            "na_reason_codes": [
+                "not_relevant_to_question",
+                "no_archive_specific_claim",
+                "no_doorway_requested_or_permitted",
+                "dimension_not_applicable_to_case",
+            ],
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     (output_dir / "unblinding-key.json").write_text(
