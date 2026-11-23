@@ -278,7 +278,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True):
         doorway_title=str(rec.get("title") or "") if isinstance(rec,dict) else ""
         doorway_url=str(rec.get("url") or "") if isinstance(rec,dict) else ""
         doorway_label=(doorway_title+" "+doorway_url).casefold()
-        doorway=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and bool(doorway_title.strip()) and re.search(r"barangay|community|governance|stewardship",doorway_label))
+        doorway=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and bool(doorway_title.strip()) and re.search(r"barangay|community[- ](?:rule|governance)|governance|rule[- ]design|shared[- ]obligation|liberty",doorway_label))
         rationale=str(rec.get("rationale") or "") if isinstance(rec,dict) else ""
         clean_rationale=(
             bool(rationale.strip())
