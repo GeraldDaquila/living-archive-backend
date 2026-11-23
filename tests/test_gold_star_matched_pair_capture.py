@@ -90,6 +90,7 @@ def test_unrelated_physical_science_question_excludes_community_rule_gold_star()
 
 def test_review_template_matches_governed_paired_evaluation_schema_without_answer_content():
     from scripts.capture_gold_star_matched_pairs import _build_evaluation_template
+    from gold_star_adaptation_evaluation import HARD_GATE_DIMENSIONS, evaluate_paired_case
 
     shared = {
         "runtime_commit": "abc123",
@@ -121,6 +122,22 @@ def test_review_template_matches_governed_paired_evaluation_schema_without_answe
     assert "question" not in record and "response" not in record
     assert "improved, not_improved, regressed, or inconclusive" in template["instructions"]
     assert "not_relevant_to_question" in template["instructions"]
+
+    record["blind_review"] = True
+    record["reviewer_verdict"] = "improved"
+    record["reviewed_at"] = "2026-11-23T12:00:00+00:00"
+    for arm_name in ("control", "treatment"):
+        arm = record[arm_name]
+        arm["scores"] = {
+            dimension: 1 for dimension in arm["scores"]
+        }
+        arm["hard_gates"] = {
+            dimension: "pass" for dimension in HARD_GATE_DIMENSIONS
+        }
+    record["treatment"]["scores"]["legitimate_shared_purpose"] = 2
+    evaluated = evaluate_paired_case(record)
+    assert evaluated["valid"] is True
+    assert evaluated["status"] == "reviewed_improvement"
 
 
 
