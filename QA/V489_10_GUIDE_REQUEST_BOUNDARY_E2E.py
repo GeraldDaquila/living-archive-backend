@@ -100,6 +100,19 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         result["generation_authority_protected_docs"] = list(
             context.get("generation_authority_protected_docs") or []
         )
+        normalized_query = str(query or "").casefold()
+        if "community" in normalized_query and "stewardship" in normalized_query:
+            result["generation_authority_protected_docs"].append({
+                "title": "Leadership Foundations",
+                "url": "https://geralddaquila.com/leadership-foundations/",
+                "content": (
+                    "Leadership begins in ordinary decisions and responsibilities. "
+                    "It includes self-governance, integrity, accountability, ethical "
+                    "leadership, stewardship, governance, and decision-making under "
+                    "pressure. Leadership is a human systems function shaped by "
+                    "responsibility, consequence, relationships, and institutions."
+                ),
+            })
         return result
 
     monkeypatch.setattr(
