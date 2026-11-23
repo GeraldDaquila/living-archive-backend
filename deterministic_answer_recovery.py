@@ -1264,14 +1264,14 @@ def _reflective_conceptual_recovery(question):
     """Keep reflective how-questions on conceptual tension, not action planning."""
     q = _clean(question)
     match = re.search(
-        r"^how can (?:(?:one|we|you)\s+)?(.+?)\s+(?:be|remain|stay)\s+"
+        r"^how can (?:(?:one|we|you)\s+)?(.+?)\s+(be|remain|stay)\s+"
         r"(.+?)\s+(?:without becoming|rather than becoming|rather than being|rather than|without)\s+(.+?)[?.!]*$",
         q,
         re.I,
     )
     if not match:
         return None
-    subject, constructive_form, counterfeit = (
+    subject, linking_verb, constructive_form, counterfeit = (
         _clean(part).strip(" .?!;:") for part in match.groups()
     )
     if not subject or not constructive_form or not counterfeit:
@@ -1279,7 +1279,7 @@ def _reflective_conceptual_recovery(question):
     if len(subject.split()) > 7 or len(counterfeit.split()) > 8:
         return None
     return (
-        f"{subject.capitalize()} can be {constructive_form} without becoming {counterfeit} when it stays answerable to reality. "
+        f"{subject.capitalize()} can {linking_verb.casefold()} {constructive_form} without becoming {counterfeit} when it stays answerable to reality. "
         f"It does not require pretending that difficulties are smaller than they are, or treating a desired outcome as guaranteed. "
         f"The discipline lies in holding open a possibility while remaining honest about the conditions that could prevent it.\n\n"
         f"The distinction becomes clearer when circumstances disappoint. {subject.capitalize()} in its constructive form allows evidence to change expectations and allows setbacks to change the approach; {counterfeit.casefold()} instead either refuses that correction or turns disappointment into a reason to dismiss possibility altogether. "
