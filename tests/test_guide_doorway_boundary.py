@@ -97,6 +97,7 @@ def test_explicit_no_doorway_request_overrides_community_rule_family_mapping():
         "How should a community decide whether limits on personal liberty are justified "
         "by shared obligations and risks? Please don't include links or resources."
     )
+    assert main._select_verified_doorway_conceptual_family(query) is None
     assert main._general_guide_authoritative_doorway(
         query, {"_doorway_selection_trace": {}}
     ) is None
