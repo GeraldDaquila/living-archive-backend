@@ -237,8 +237,10 @@ def run_synthetic_matched_pair(
     if control["base_prompt_fingerprint"] != treatment["base_prompt_fingerprint"]:
         raise GoldStarEvaluationRunError("base_prompt_fingerprint_mismatch")
 
-    control_ref = f"urn:gold-star-evaluation:{evaluation_id}:control:{secrets.token_hex(8)}"
-    treatment_ref = f"urn:gold-star-evaluation:{evaluation_id}:treatment:{secrets.token_hex(8)}"
+    # Artifact references are deliberately arm-neutral; only the private
+    # operator manifest retains the control/treatment mapping.
+    control_ref = f"urn:gold-star-evaluation:{evaluation_id}:{secrets.token_hex(12)}"
+    treatment_ref = f"urn:gold-star-evaluation:{evaluation_id}:{secrets.token_hex(12)}"
     base_fingerprint = control["base_prompt_fingerprint"]
     generation_fingerprint = _generation_config_fingerprint(provider, model)
     contract_version = _composition.CONTRACT_VERSION
