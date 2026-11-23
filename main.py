@@ -17263,6 +17263,7 @@ async def _provider_capability_route(request: Request):
         })
 
 
+GOLD_STAR_EVALUATION_MAX_REQUEST_BYTES = 1024
 _GOLD_STAR_EVAL_PAIR_LOCK = threading.Lock()
 _GOLD_STAR_EVAL_PAIR_CASES_USED = set()
 _GOLD_STAR_EVAL_PAIR_CASES_RESERVED = set()
@@ -17280,7 +17281,7 @@ async def _gold_star_evaluation_pair_route(request: Request):
     if not authorized:
         return JSONResponse(status_code=404, content={"ok": False, "error": "not_found"})
 
-    max_body_bytes = 1024
+    max_body_bytes = GOLD_STAR_EVALUATION_MAX_REQUEST_BYTES
     declared_length = request.headers.get("content-length")
     if declared_length:
         try:
