@@ -3,6 +3,7 @@
 import pytest
 
 import general_guide_composition as composition
+import provider_bank
 from gold_star_evaluation_context import (
     current_evaluation_context,
     evaluation_context,
@@ -46,6 +47,31 @@ def test_provider_candidate_filter_keeps_only_exact_pinned_pair():
     ) as pin:
         selected = _filter_evaluation_candidate_pool(candidates, pin)
     assert selected == [candidates[0]]
+
+
+def test_pinned_route_never_attempts_active_active_delegation(monkeypatch):
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("evaluation routing must remain local")
+
+    monkeypatch.setattr(provider_bank, "_active_active_primary_assignment", forbidden)
+    monkeypatch.setattr(provider_bank, "_active_active_delegate", forbidden)
+    monkeypatch.setattr(provider_bank, "_active_active_role", lambda: "primary")
+    monkeypatch.setattr(provider_bank, "refresh_server_capacity_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "select", lambda *_args, **_kwargs: [])
+
+    with evaluation_context(
+        arm="control", provider="groq", model="openai/gpt-oss-120b"
+    ):
+        result = provider_bank.route(
+            use_core=object(),
+            messages=[{"role": "user", "content": "synthetic evaluation"}],
+            max_tokens=100,
+            parse=lambda value: value,
+            operation="general_guide_composition",
+        )
+
+    assert result is None
 
 
 def test_control_and_treatment_each_generate_without_composition_cache(monkeypatch):
