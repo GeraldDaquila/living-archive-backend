@@ -8086,7 +8086,8 @@ def _guide_finalize_visitor_payload(payload, query):
             # A registered family may have a pinned canonical doorway. When it
             # does not, retain or recover a verified contextual continuation
             # instead of allowing answer repair to create a navigational dead end.
-            _pinned = _terminal_recovery_recommendation(query)
+            safe["recommendation"] = _terminal_recovery_recommendation(query)
+            _pinned = safe["recommendation"]
             _preserved = _pinned or _normalize_authoritative_recommendation(
                 safe.get("recommendation")
             )
