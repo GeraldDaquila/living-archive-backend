@@ -53,10 +53,10 @@ class GuideLatencyContractTests(unittest.TestCase):
             and isinstance(node.test, ast.Name)
             and node.test.id == "healthy_community_short_circuit"
         ]
-        self.assertEqual(len(branches), 1, "Expected one explicit governed newcomer branch.")
-        self.assertFalse(
-            _contains_composer_call(branches[0]),
-            "The deterministic newcomer branch must not invoke the model composer.",
+        self.assertEqual(len(branches), 2, "Expected separate doorway and deterministic-answer branches.")
+        self.assertTrue(
+            all(not _contains_composer_call(branch) for branch in branches),
+            "Neither governed newcomer branch may invoke the model composer.",
         )
         source_position = MAIN_SOURCE.index(
             "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)",
@@ -70,7 +70,7 @@ class GuideLatencyContractTests(unittest.TestCase):
 
     def test_final_paragraph_guard_never_reenters_composer(self):
         marker = MAIN_SOURCE.index(
-            "# Paragraph quality is enforced at the final payload boundary below."
+            "# Single owner for the responsibility-boundary answer contract."
         )
         start = MAIN_SOURCE.rfind("\n", 0, marker) + 1
         end = MAIN_SOURCE.index(
@@ -80,9 +80,9 @@ class GuideLatencyContractTests(unittest.TestCase):
         final_guard = ast.parse(textwrap.dedent(MAIN_SOURCE[start:end]))
         self.assertFalse(
             _contains_composer_call(final_guard),
-            "A last-mile formatting failure must fail honestly, not start another LLM turn.",
+            "The final visitor-boundary contract must not start another LLM turn.",
         )
-        self.assertIn("single final repair", MAIN_SOURCE[start:end])
+        self.assertIn("enforce_response_contracts", MAIN_SOURCE[start:end])
 
 
 if __name__ == "__main__":
