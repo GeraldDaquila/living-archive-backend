@@ -148,3 +148,4 @@ def test_llm_attribution_requires_verified_provider_execution_not_only_registere
     # A registered provider/model pair without the execution marker is not
     # sufficient evidence that an external model actually ran.
     assert 'and composition_result.get("_provider_execution_verified") is True' in function_source
+    assert 'and composition_result.get("_provider_execution_verified") is not True' in function_source
