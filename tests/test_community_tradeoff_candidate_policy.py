@@ -104,6 +104,6 @@ def test_paraphrase_contribution_includes_new_gold_star_as_structural_guidance_o
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
     assert contribution["authority_mode"] == "structural_guidance_only"
-    assert contribution["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    assert contribution["benchmark_id"] == "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
     assert contribution["exact"] is False
     assert contribution["abstention_boundary"]
