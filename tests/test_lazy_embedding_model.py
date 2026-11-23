@@ -1,10 +1,13 @@
 """Regression tests for deferred local ONNX embedding initialization."""
 
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 import threading
 import time
 
 import use_core
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class _FakeVector:
@@ -19,11 +22,23 @@ class _FakeEmbeddingModel:
 
 
 def test_module_import_does_not_load_fastembed_or_onnxruntime():
+    import subprocess
     import sys
 
-    assert use_core.embedding_model is None
-    assert "fastembed" not in sys.modules
-    assert "onnxruntime" not in sys.modules
+    probe = (
+        "import sys, use_core; "
+        "assert use_core.embedding_model is None; "
+        "assert 'fastembed' not in sys.modules; "
+        "assert 'onnxruntime' not in sys.modules"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_embedding_model_is_initialized_only_when_embedding_is_requested(monkeypatch):
