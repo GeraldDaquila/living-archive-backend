@@ -106,8 +106,10 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
                 "title": "Leadership Foundations",
                 "url": "https://geralddaquila.com/leadership-foundations/",
                 "content": (
-                    "Community stewardship is practiced in everyday decisions and "
-                    "shared responsibilities. Leadership begins in how community "
+                    "The practice of community stewardship means making everyday "
+                    "decisions and shared responsibilities visible. A community can "
+                    "practice stewardship in its everyday decisions and responsibilities. "
+                    "Leadership begins in how community "
                     "members care for shared resources, make decisions, and respond "
                     "to consequences together. It includes self-governance, integrity, "
                     "accountability, ethical leadership, stewardship, governance, and "
