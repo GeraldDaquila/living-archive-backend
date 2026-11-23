@@ -1333,11 +1333,11 @@ def compose_task_specific_recovery(question):
     # liberty-versus-community slogan. This is bounded general reasoning and
     # does not claim to state a formal Living Archive doctrine.
     if (
-        re.search(r"\\b(?:personal\\s+)?libert(?:y|ies)\\b", q)
-        and re.search(r"\\bcollective\\s+(?:obligations?|responsibilit(?:y|ies))\\b", q)
-        and re.search(r"\\b(?:community|communities|group|society)\\b", q)
-        and re.search(r"\\b(?:fair\\s+rule|rule|rules|policy|governance)\\b", q)
-        and re.search(r"\\b(?:balanc(?:e|ing)|reconcil(?:e|ing)|set(?:ting)?|establish(?:ing)?)\\b", q)
+        re.search(r"\b(?:personal\s+)?libert(?:y|ies)\b", q)
+        and re.search(r"\bcollective\s+(?:obligations?|responsibilit(?:y|ies))\b", q)
+        and re.search(r"\b(?:community|communities|group|society)\b", q)
+        and re.search(r"\b(?:fair\s+rule|rule|rules|policy|governance)\b", q)
+        and re.search(r"\b(?:balanc(?:e|ing)|reconcil(?:e|ing)|set(?:ting)?|establish(?:ing)?)\b", q)
     ):
         return {
             "recovery_id": "task_fair_community_rule_liberty_and_collective_obligations",
