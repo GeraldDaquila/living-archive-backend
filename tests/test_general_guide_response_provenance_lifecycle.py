@@ -108,3 +108,18 @@ def test_response_metric_carries_opaque_request_ledger_correlation_without_repla
     assert 'request_id={request_id}' in function_source
     assert "request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}" in function_source
 
+
+
+def test_llm_attribution_requires_an_registered_provider_model_pair():
+    import main
+
+    assert main._is_attributable_provider_model("groq", "openai/gpt-oss-120b")
+    assert main._is_attributable_provider_model("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
+    assert not main._is_attributable_provider_model(
+        "gold_standard_evidence_recovery", "extractive-deterministic"
+    )
+    assert not main._is_attributable_provider_model(
+        "bounded_provider_exhaustion_recovery", "deterministic-contract-recovery"
+    )
+    assert not main._is_attributable_provider_model("gold_standard_registry", "approved-reference")
+    assert not main._is_attributable_provider_model("groq", "unregistered-model")
