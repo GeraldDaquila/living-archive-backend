@@ -199,7 +199,7 @@ def evaluate_gold(record, transport):
             out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
     return out
 
-def evaluate_held(case, transport):
+def evaluate_held(case, transport, *, require_attributable_llm=True):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}
     answer=body.get("response","")
     answer=answer if isinstance(answer,str) else ""
@@ -259,6 +259,13 @@ def evaluate_held(case, transport):
         no_fabrication=not any(x in low for x in ("the cause was definitely","this was caused by","the reason is certainly"))
         out += [check("calibrates_uncertainty",uncertainty,"State that the cause cannot be established from the information provided."),check("names_discriminating_evidence",evidence,"Identify evidence that could distinguish causes."),check("offers_investigation",steps,"Give a practical investigation step."),check("avoids_false_causation",no_fabrication,"Do not assert an unsupported cause.")]
     elif cid=="heldout-community-rule-design-transfer-001":
+        if require_attributable_llm:
+            attributable, provenance = classify_llm_payload(body)
+            out.append(check(
+                "attributable_llm",
+                attributable,
+                f"Community-rule transfer must be produced by an attributable LLM response, not deterministic fallback; observed {provenance!r}.",
+            ))
         purpose=any(x in low for x in ("shared purpose","shared need","coordination problem","demonstrable harm","common need"))
         proportionality=any(x in low for x in ("proportionate","proportionality","necessary","least restrictive","least-restrictive"))
         burden=any(x in low for x in ("who benefits","who bears","who carries","fairly distributed","fair burden","reciprocal","accommodation"))

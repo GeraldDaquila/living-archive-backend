@@ -123,6 +123,12 @@ def test_every_heldout_question_has_a_registered_positive_evaluator_contract():
                         "rationale": "This resource offers a practical perspective on trust in organizational stewardship.",
                     } if case_id == "heldout-practical-trust-001" else None
                 ),
+                "response_provenance": ({
+                    "class": "llm",
+                    "provider": "gemini",
+                    "model": "gemini-3.8-flash",
+                    "llm_invoked": True,
+                } if case_id == "heldout-community-rule-design-transfer-001" else None),
             }},
         )
         assert checks and all(item["passed"] for item in checks), {

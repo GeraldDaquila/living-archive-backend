@@ -109,6 +109,7 @@ def build_report(suite: dict) -> dict:
                     "llm_invoked": False,
                 },
             }},
+            require_attributable_llm=False,
         )
         results.append({
             "case_id": case_id,
