@@ -312,6 +312,8 @@ async def capture(args) -> dict:
                 control, treatment = arms["control"], arms["treatment"]
                 failures = []
                 for arm_name, result in arms.items():
+                    if result.get("skipped_reason"):
+                        failures.append(f"{arm_name}_skipped_{result['skipped_reason']}")
                     if result["http_status"] != 200 or not result["ok"] or not result["response"].strip():
                         failures.append(f"{arm_name}_visitor_response_invalid")
                     if not result["llm_invoked"]:
@@ -436,6 +438,7 @@ async def capture(args) -> dict:
         "runtime_commit": runtime_commit,
         "provider": provider,
         "model": model,
+        "provider_call_spacing_seconds": args.inter_call_delay_seconds,
         "composition_contract_version": COMPOSITION_CONTRACT_VERSION,
         "gold_star_registry_sha256": registry_sha,
         "selector_negative_control": {
