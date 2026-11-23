@@ -4,6 +4,7 @@ from urllib.request import Request, urlopen
 from functools import wraps
 
 import gold_star_adjudication_trace as _gold_star_trace
+from gold_star_evaluation_context import current_evaluation_context as _current_gold_star_evaluation_context
 from collections import OrderedDict
 import time
 
@@ -3127,12 +3128,29 @@ def _track_gold_star_provider_route(function):
     return wrapped
 
 
+def _filter_evaluation_candidate_pool(pool, evaluation):
+    """Keep only the exact pinned lane; never widen an evaluation candidate set."""
+    if evaluation is None:
+        return list(pool or [])
+    return [
+        candidate for candidate in (pool or [])
+        if str(candidate.get("provider") or "") == evaluation.provider
+        and str(candidate.get("model") or "") == evaluation.model
+    ]
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
     # Hard-wired 70/30 workload split for Guide composition. The secondary receives
     # its assigned share through the authenticated capability boundary; if that lane
     # is unavailable the primary continues locally rather than failing the visitor.
+    evaluation = _current_gold_star_evaluation_context()
     delegated = False
-    assigned_to_counterpart = _active_active_primary_assignment(messages, operation)
+    # Matched-pair evaluation must execute on this process and may never
+    # delegate to the active-active counterpart.
+    assigned_to_counterpart = (
+        False if evaluation is not None
+        else _active_active_primary_assignment(messages, operation)
+    )
     if operation == "general_guide_composition" and _active_active_role() == "primary":
         print(
             "USE active-active allocation: assigned_server="
@@ -3170,6 +3188,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
+    if evaluation is not None:
+        # Fail closed: only the exact eligible provider/model may be attempted.
+        # No sibling, alternate provider, or remote counterpart is admissible.
+        pool = _filter_evaluation_candidate_pool(pool, evaluation)
     if operation == "general_guide_composition" and pool:
         # A provider-account TPM limit smaller than the input alone is an
         # impossible request, independent of model choice. Filter that provider
@@ -3207,7 +3229,12 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     if not pool:
         # Local capacity may be empty while the independent counterpart still has
         # viable providers. One bounded remote attempt precedes deterministic recovery.
-        if operation == "general_guide_composition" and not delegated and _active_active_role() == "primary":
+        if (
+            evaluation is None
+            and operation == "general_guide_composition"
+            and not delegated
+            and _active_active_role() == "primary"
+        ):
             remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
             if remote:
                 return remote
@@ -3280,6 +3307,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # window below. Slow failures return promptly so the WordPress boundary can
     # spend its remaining turn budget on the mirror instead of waiting on a second
     # provider inside the same request.
+    if evaluation is not None:
+        operation_attempt_cap = 1
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
     if operation in {"hrn_perception", "hrn_relational", "general_guide_composition", "claim_adjudication", "fsd_report_composition"} and len(pool) > base_max_attempts:

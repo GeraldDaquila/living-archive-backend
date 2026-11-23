@@ -40,6 +40,7 @@ from gold_star_provider_adjudication import (
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
+from gold_star_evaluation_context import current_evaluation_context as _current_gold_star_evaluation_context
 
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
@@ -4350,7 +4351,12 @@ def compose(
 
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
-    gold_star_quality = _gold_star_active_quality_contribution(question)
+    evaluation = _current_gold_star_evaluation_context()
+    gold_star_quality = (
+        None
+        if evaluation is not None and evaluation.arm == "control"
+        else _gold_star_active_quality_contribution(question)
+    )
     # Runtime retrieval is recorded separately from actual selection, application,
     # and outcome. This active trace never consumes the observation-only shadow lane.
     gold_star_adjudication_trace = _build_gold_star_adjudication_trace(gold_star_quality)
@@ -4674,39 +4680,40 @@ def compose(
         documents,
     )
     now = time.monotonic()
-    with _COMPOSITION_CACHE_LOCK:
-        cached_entry = _COMPOSITION_CACHE.get(cache_key)
-        if cached_entry is not None:
-            cached_at, cached_value = cached_entry
-            if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
-                _COMPOSITION_CACHE.move_to_end(cache_key)
-                _emit_guide_outcome(
-                    "interpretive_path_observed",
-                    path="validated_cache",
-                    openness="preserved_cache_not_authority",
-                )
-                # A cached answer is reusable composition, not a fresh provider
-                # adjudication. Rebuild the trace from this request's candidates
-                # so prior selected IDs, rejection codes, and span assertions
-                # cannot be attributed to the current request.
-                cached_result = dict(cached_value)
-                cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
-                if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
-                    raise RuntimeError("Gold Star cache-reuse trace failed validation.")
-                cached_result["_gold_star_adjudication_trace"] = cached_trace
-                _emit_guide_outcome(
-                    "gold_star_adjudication_cache_reuse",
-                    request_id=cached_trace.get("request_id"),
-                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
-                    trace_version=cached_trace["version"],
-                    candidate_count=cached_trace["candidate_count"],
-                    provider_adjudication_status=cached_trace["provider_adjudication_status"],
-                    selection=cached_trace["selection"],
-                    composition=cached_trace["composition"],
-                )
-                _start_requested_gold_star_semantic_warmup()
-                return cached_result
-            del _COMPOSITION_CACHE[cache_key]
+    if evaluation is None:
+        with _COMPOSITION_CACHE_LOCK:
+            cached_entry = _COMPOSITION_CACHE.get(cache_key)
+            if cached_entry is not None:
+                cached_at, cached_value = cached_entry
+                if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                    _COMPOSITION_CACHE.move_to_end(cache_key)
+                    _emit_guide_outcome(
+                        "interpretive_path_observed",
+                        path="validated_cache",
+                        openness="preserved_cache_not_authority",
+                    )
+                    # A cached answer is reusable composition, not a fresh provider
+                    # adjudication. Rebuild the trace from this request's candidates
+                    # so prior selected IDs, rejection codes, and span assertions
+                    # cannot be attributed to the current request.
+                    cached_result = dict(cached_value)
+                    cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
+                    if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
+                        raise RuntimeError("Gold Star cache-reuse trace failed validation.")
+                    cached_result["_gold_star_adjudication_trace"] = cached_trace
+                    _emit_guide_outcome(
+                        "gold_star_adjudication_cache_reuse",
+                        request_id=cached_trace.get("request_id"),
+                        attempt_ordinal=cached_trace.get("attempt_ordinal"),
+                        trace_version=cached_trace["version"],
+                        candidate_count=cached_trace["candidate_count"],
+                        provider_adjudication_status=cached_trace["provider_adjudication_status"],
+                        selection=cached_trace["selection"],
+                        composition=cached_trace["composition"],
+                    )
+                    _start_requested_gold_star_semantic_warmup()
+                    return cached_result
+                del _COMPOSITION_CACHE[cache_key]
 
     try:
         result = route_with_model_bank(
@@ -5059,39 +5066,43 @@ def compose(
             candidate["doorway_url"] = doorway.get("doorway_url", "")
             _emit_guide_outcome("authoritative_doorway_attached")
 
-    # If identical requests arrive concurrently, the first validated answer
-    # wins; every concurrent caller returns that same answer. This prevents
-    # response races without serializing unrelated questions.
-    with _COMPOSITION_CACHE_LOCK:
-        cached_entry = _COMPOSITION_CACHE.get(cache_key)
-        if cached_entry is not None:
-            cached_at, cached_value = cached_entry
-            if time.monotonic() - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
-                _COMPOSITION_CACHE.move_to_end(cache_key)
-                # Another in-flight request populated the cache first. This
-                # request's provider candidate is discarded, so its adjudication
-                # must not be attached to the different answer being returned.
-                cached_result = dict(cached_value)
-                cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
-                if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
-                    raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
-                cached_result["_gold_star_adjudication_trace"] = cached_trace
-                _emit_guide_outcome(
-                    "gold_star_adjudication_cache_race_reuse",
-                    request_id=cached_trace.get("request_id"),
-                    attempt_ordinal=cached_trace.get("attempt_ordinal"),
-                    trace_version=cached_trace["version"],
-                    candidate_count=cached_trace["candidate_count"],
-                    provider_adjudication_status=cached_trace["provider_adjudication_status"],
-                    selection=cached_trace["selection"],
-                    composition=cached_trace["composition"],
-                )
-                return cached_result
-            del _COMPOSITION_CACHE[cache_key]
-
-        _COMPOSITION_CACHE[cache_key] = (time.monotonic(), dict(candidate))
-        while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
-            _COMPOSITION_CACHE.popitem(last=False)
+    if evaluation is None:
+        # Visitor requests retain the normal cache. Evaluation arms bypass both
+        # cache reads and writes so each arm must perform a fresh provider call.
+        # If identical requests arrive concurrently, the first validated answer
+        # wins; every concurrent caller returns that same answer. This prevents
+        # response races without serializing unrelated questions.
+        with _COMPOSITION_CACHE_LOCK:
+            cached_entry = _COMPOSITION_CACHE.get(cache_key)
+            if cached_entry is not None:
+                cached_at, cached_value = cached_entry
+                if time.monotonic() - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                    _COMPOSITION_CACHE.move_to_end(cache_key)
+                    # Another in-flight request populated the cache first. This
+                    # request's provider candidate is discarded, so its adjudication
+                    # must not be attached to the different answer being returned.
+                    cached_result = dict(cached_value)
+                    cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
+                    if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
+                        raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
+                    cached_result["_gold_star_adjudication_trace"] = cached_trace
+                    _emit_guide_outcome(
+                        "gold_star_adjudication_cache_race_reuse",
+                        request_id=cached_trace.get("request_id"),
+                        attempt_ordinal=cached_trace.get("attempt_ordinal"),
+                        trace_version=cached_trace["version"],
+                        candidate_count=cached_trace["candidate_count"],
+                        provider_adjudication_status=cached_trace["provider_adjudication_status"],
+                        selection=cached_trace["selection"],
+                        composition=cached_trace["composition"],
+                    )
+                    return cached_result
+                del _COMPOSITION_CACHE[cache_key]
+    
+            _COMPOSITION_CACHE[cache_key] = (time.monotonic(), dict(candidate))
+            while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
+                _COMPOSITION_CACHE.popitem(last=False)
+    
 
     return candidate
 
