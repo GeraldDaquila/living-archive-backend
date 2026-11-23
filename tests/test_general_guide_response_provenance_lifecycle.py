@@ -208,3 +208,15 @@ def test_provider_invocation_id_is_created_only_after_success_and_flows_to_final
     assert 'composition_result.get("_provider_execution_origin_invocation_id")' in function_source
     assert 'provider_invocation_id={_provider_invocation_id or' in function_source
     assert '"provider_invocation_id": _provider_invocation_id or None' in function_source
+
+
+def test_final_bounded_repair_reconciles_provider_provenance_after_rewrite():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    repair_call = function_source.index("payload, _repair_outcome = _run_gold_star_bounded_repair(")
+    post_repair = function_source.index("_post_repair_response_text = _sanitize_basic_inquiry_response(")
+    assert post_repair > repair_call
+    assert "_post_repair_response_text == _llm_candidate_text" in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+    assert 'provenance_payload["llm_invoked"] = _llm_invoked' in function_source
+    assert 'provenance_payload["class"] = _response_provenance' in function_source
