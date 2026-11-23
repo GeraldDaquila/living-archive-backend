@@ -43,7 +43,7 @@ The response contains:
 - `blind_artifacts`: two outputs in randomized order, containing only the case ID, arm-neutral opaque artifact reference, and answer text. No doorway metadata or other ancillary fields are exposed to reviewers.
 - `operator_manifest`: private mapping of artifact references to control/treatment, plus provider/runtime/prompt/configuration/registry fingerprints, candidate-exposure metadata, and arm-specific doorway metadata.
 
-The runner randomizes **generation order** for each pair as well as reviewer presentation order. This reduces systematic order effects; it does not eliminate all provider nondeterminism or guarantee identical generation conditions beyond the recorded pins and fingerprints.
+The runner randomizes **generation order** for each pair as well as reviewer presentation order, and records the actual control/treatment generation order in the private operator manifest. This reduces systematic order effects and makes each pair auditable; it does not eliminate all provider nondeterminism or guarantee identical generation conditions beyond the recorded pins and fingerprints.
 
 Share only `blind_artifacts` with the reviewer. Keep `operator_manifest` separate until scoring and reviewer verdict are locked. Share no manifest fields, doorway metadata, or operator mapping with the reviewer before the verdict is recorded. The runner returns outputs in memory and does not persist them. The operator must preserve the blind artifacts in a separately controlled location and use those opaque references in the final review record.
 
