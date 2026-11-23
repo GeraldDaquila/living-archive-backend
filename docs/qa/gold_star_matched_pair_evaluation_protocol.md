@@ -55,7 +55,7 @@ A pair is rejected unless:
 - Treatment has at least one approved candidate and its guidance exposure is `included_in_provider_prompt`.
 - Neither arm reuses the composition cache.
 - Neither final composer output was replaced by a deterministic response rewrite.
-- Runtime commit, composition contract, base-prompt fingerprint, generation-config fingerprint, and registry digest are recorded.
+- Runtime commit, composition contract, generation-config fingerprint, and registry digest are recorded. The base-prompt fingerprint hashes the complete shared system/user messages with only the treatment-specific lesson instruction excluded; both arms must match exactly.
 
 ## Human review
 
