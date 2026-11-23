@@ -235,12 +235,17 @@ def run_synthetic_matched_pair(
     case_id = str(case_id or "").strip()
     case = _load_held_out_case(case_id)
     evaluation_id = uuid.uuid4().hex
-    control = _run_arm(
-        case=case, arm="control", provider=provider, model=model, use_core=use_core
-    )
-    treatment = _run_arm(
-        case=case, arm="treatment", provider=provider, model=model, use_core=use_core
-    )
+    # Randomize execution order as well as reviewer presentation order to
+    # reduce systematic provider/order effects within each matched pair.
+    generation_order = ["control", "treatment"]
+    secrets.SystemRandom().shuffle(generation_order)
+    arm_results: dict[str, dict[str, Any]] = {}
+    for arm in generation_order:
+        arm_results[arm] = _run_arm(
+            case=case, arm=arm, provider=provider, model=model, use_core=use_core
+        )
+    control = arm_results["control"]
+    treatment = arm_results["treatment"]
     if control["base_prompt_fingerprint"] != treatment["base_prompt_fingerprint"]:
         raise GoldStarEvaluationRunError("base_prompt_fingerprint_mismatch")
 
@@ -275,6 +280,8 @@ def run_synthetic_matched_pair(
             "base_prompt_fingerprint": base_fingerprint,
             "generation_config_fingerprint": generation_fingerprint,
             "gold_star_registry_sha256": registry_sha256,
+            "doorway_title": control["doorway_title"],
+            "doorway_url": control["doorway_url"],
         },
         "treatment": {
             "adaptation_enabled": True,
@@ -286,6 +293,8 @@ def run_synthetic_matched_pair(
             "base_prompt_fingerprint": base_fingerprint,
             "generation_config_fingerprint": generation_fingerprint,
             "gold_star_registry_sha256": registry_sha256,
+            "doorway_title": treatment["doorway_title"],
+            "doorway_url": treatment["doorway_url"],
         },
         "treatment_guidance_candidate_count": treatment["candidate_count"],
         "treatment_guidance_candidate_ids": treatment["candidate_ids"],
@@ -300,15 +309,11 @@ def run_synthetic_matched_pair(
             "case_id": case_id,
             "artifact_ref": control_ref,
             "output": control["output"],
-            "doorway_title": control["doorway_title"],
-            "doorway_url": control["doorway_url"],
         },
         {
             "case_id": case_id,
             "artifact_ref": treatment_ref,
             "output": treatment["output"],
-            "doorway_title": treatment["doorway_title"],
-            "doorway_url": treatment["doorway_url"],
         },
     ]
     secrets.SystemRandom().shuffle(blind_artifacts)
