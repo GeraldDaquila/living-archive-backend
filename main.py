@@ -15195,6 +15195,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
     )
+    _deterministic_composition_recovery = bool(
+        composition_result
+        and not _registered_gold_standard_composition
+        and not _llm_invoked
+        and _provider_name
+        and _model_name
+        and not _is_attributable_provider_model(_provider_name, _model_name)
+    )
     if (
         composition_result
         and not _llm_invoked
@@ -15203,7 +15211,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         if deterministic_result:
             _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
             _model_name = str(deterministic_result.get("model") or "").strip()
-        else:
+        elif not _deterministic_composition_recovery:
             _provider_name = "deterministic_final_boundary"
             _model_name = ""
 
@@ -15226,7 +15234,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     elif _deterministic_by_design:
         _response_provenance = "deterministic_by_design"
         _quality_adjusted_llm_eligible = False
-    elif deterministic_result:
+    elif deterministic_result or _deterministic_composition_recovery:
         _response_provenance = "deterministic_recovery"
         _quality_adjusted_llm_eligible = True
     else:
