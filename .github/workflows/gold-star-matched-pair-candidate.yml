@@ -14,14 +14,12 @@ permissions:
 jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
-    # The embedding model is prewarmed only after the runner memory-headroom guard.
     if: ${{ contains(github.event.head_commit.message, '[run-matched-pairs]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      GOLD_STAR_SEMANTIC_WARMUP_ENABLED: "1"
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
