@@ -10,8 +10,8 @@ from scripts.capture_gold_star_matched_pairs import (
 def test_matched_pair_suite_includes_community_rule_and_two_unrelated_families():
     assert CASE_IDS == (
         "heldout-community-rule-design-transfer-001",
-        "heldout-strategic-governance-001",
-        "heldout-technical-verification-001",
+        "heldout-policy-implementation-001",
+        "heldout-thermal-conductivity-001",
     )
 
 
@@ -51,3 +51,19 @@ def test_target_gold_star_identity_is_the_approved_community_rule_record():
     assert TARGET_LESSON_ID == (
         "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
     )
+
+
+
+def test_custom_case_set_has_three_distinct_families_and_target_lesson():
+    import json
+    from pathlib import Path
+    from scripts.capture_gold_star_matched_pairs import CASE_SET_PATH
+
+    data = json.loads(CASE_SET_PATH.read_text(encoding="utf-8"))
+    assert len(data["cases"]) == 3
+    assert len({case["case_family"] for case in data["cases"]}) == 3
+    target = next(
+        case for case in data["cases"]
+        if case["case_id"] == "heldout-community-rule-design-transfer-001"
+    )
+    assert "personal liberty" in target["query"]
