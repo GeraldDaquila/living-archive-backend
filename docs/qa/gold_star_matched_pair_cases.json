@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "evaluation_id": "gold-star-community-rule-matched-pair-2026-11-23",
-  "purpose": "Candidate-local, same-provider control/treatment evaluation. The community-rule case tests the newly approved bounded lesson; the other cases test unrelated-domain abstention and ordinary answer quality.",
+  "purpose": "Candidate-local, same-provider control/treatment evaluation. Three held-out community-rule questions test transfer across distinct rule-design subfamilies; an unrelated physical-science query is a selector-only negative control.",
   "cases": [
     {
       "case_id": "heldout-community-rule-design-transfer-001",
@@ -25,37 +25,37 @@
       ]
     },
     {
-      "case_id": "heldout-policy-implementation-001",
-      "case_family": "policy_implementation",
-      "query": "Why can a well-designed policy still fail during implementation?",
+      "case_id": "heldout-community-rule-necessity-002",
+      "case_family": "community_rule_necessity",
+      "query": "How should a community decide whether a rule that limits individual freedom is necessary to prevent harm to others while respecting shared obligations?",
       "critical_dimensions": [
         "answer_directness",
-        "factual_accuracy",
-        "context_sensitivity",
+        "legitimate_shared_purpose",
+        "liberty_proportionality",
         "uncertainty_honesty"
       ],
       "rubric": [
-        "Distinguish policy design from the conditions and actions involved in implementation.",
-        "Explain multiple plausible mechanisms such as capacity, incentives, resources, communication, authority, and feedback.",
-        "Identify evidence that would distinguish among explanations rather than asserting a single cause.",
-        "Offer practical diagnostic questions or next steps without assuming facts not supplied."
+        "Identify the specific shared purpose and demonstrable harm the rule is meant to prevent.",
+        "Test whether the restriction is necessary and proportionate, including less restrictive workable alternatives.",
+        "Distinguish preventing harm from enforcing convenience or conformity.",
+        "Explain how the community should review whether the restriction remains justified."
       ]
     },
     {
-      "case_id": "heldout-thermal-conductivity-001",
-      "case_family": "general_physical_science",
-      "query": "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?",
+      "case_id": "heldout-community-rule-burdens-003",
+      "case_family": "community_rule_burden_participation",
+      "query": "What makes limits on personal liberty fair when a community must balance shared responsibilities, unequal burdens, and the voices of affected members?",
       "critical_dimensions": [
         "answer_directness",
-        "factual_accuracy",
-        "conceptual_clarity",
-        "uncertainty_honesty"
+        "fair_burden_allocation",
+        "affected_party_participation",
+        "appeal_and_review"
       ],
       "rubric": [
-        "State that the two spoons can be at the same temperature; metal is not necessarily colder.",
-        "Explain that metal conducts heat away from the hand faster than wood.",
-        "Distinguish the rate of heat transfer from the object's actual temperature.",
-        "Use a clear everyday explanation and do not introduce unrelated Archive material."
+        "Make visible who benefits, who carries costs, and whose freedom is restricted.",
+        "Distribute obligations fairly and allow reasonable accommodation for materially different circumstances.",
+        "Give affected members a meaningful role in shaping the rule.",
+        "Provide a way to challenge application and review outcomes for unintended harms."
       ]
     }
   ]
