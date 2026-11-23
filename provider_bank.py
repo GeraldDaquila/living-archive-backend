@@ -113,9 +113,12 @@ GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS = 8.0
 GENERAL_GUIDE_DEFAULT_LOW_LATENCY_TIMEOUT_SECONDS = 5.0
 GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS = 7.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS
-# A half-open Guide candidate is a recovery probe, not a normal generation lane.
-# Keep its probe short so one unproven endpoint cannot consume the visitor turn.
-GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = 2.5
+# A half-open Guide candidate still has to produce a complete composition.
+# The former 2.5s cap treated a full answer generation as a tiny health probe
+# and caused false provider exhaustion. Give recovery candidates the supported
+# minimum composition window; the shared 18s arbitration ceiling still bounds
+# the total cost and preserves the six-second integrity-repair reserve.
+GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
