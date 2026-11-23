@@ -10712,14 +10712,24 @@ def _normalize_authoritative_recommendation(doorway):
         or doorway.get("canonical_url")
         or ""
     ).strip()
-    if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
+    if not title or not re.match(r"^https://geralddaquila\\.com(?:/.*)?$", url, re.I):
+        return None
+    # Every doorway source—retrieval, reviewed registry, deterministic recovery,
+    # or terminal restoration—passes through the same visitor-language boundary.
+    # A valid canonical destination must never expose CMS/SEO field labels or
+    # concatenated catalogue metadata in its public introduction.
+    title = general_guide_composition._sanitize_candidate(title)
+    if not title:
         return None
     normalized = {"title": title, "url": url}
     rationale = str(doorway.get("rationale") or doorway.get("doorway_rationale") or "").strip()
     if rationale:
-        if len(rationale) > 600 or re.search(r"<[^>]+>", rationale) or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", rationale):
-            return None
-        normalized["rationale"] = rationale
+        rationale = general_guide_composition._sanitize_candidate(rationale)
+        rationale = re.sub(r"\\s+", " ", rationale).strip()
+        if rationale:
+            if len(rationale) > 600 or re.search(r"<[^>]+>", rationale) or re.search(r"[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]", rationale):
+                return None
+            normalized["rationale"] = rationale
     return normalized
 
 
