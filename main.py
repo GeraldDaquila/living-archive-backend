@@ -15224,6 +15224,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and composition_result.get("_provider_execution_origin_verified") is True
         and composition_result.get("_provider_execution_origin_modified") is not True
         and composition_result.get("_provider_execution_verified") is not True
+        and _final_response_text == _llm_candidate_text
     )
     _deterministic_composition_recovery = bool(
         composition_result
@@ -15485,6 +15486,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             and composition_result.get("_provider_execution_origin_verified") is True
             and composition_result.get("_provider_execution_origin_modified") is not True
             and composition_result.get("_provider_execution_verified") is not True
+            and _post_repair_response_text == _llm_candidate_text
         )
         _provider_assisted_recovery = bool(
             _has_provider_origin
