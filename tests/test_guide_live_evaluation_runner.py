@@ -335,6 +335,39 @@ def test_community_rule_design_transfer_heldout_rejects_deterministic_fallback_e
     assert "attributable_llm" in failed
 
 
+def test_community_rule_design_transfer_rejects_generic_community_ledger_doorway():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should identify the shared purpose and the specific harm or coordination problem first. "
+        "Any limit should be necessary and proportionate, using the least restrictive workable means. "
+        "Ask who benefits, who carries the costs, and whose freedom is restricted; distribute duties fairly and "
+        "allow reasonable accommodation. People most affected should have a meaningful opportunity to shape the "
+        "decision. Provide a way to appeal and set observable criteria to review the rule."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "ARK-004: Post-Fiat Trade — The Community Ledger SOP",
+                "url": "https://geralddaquila.com/2026/05/02/ark-004-post-fiat-trade-the-community-ledger-sop/",
+                "rationale": "This resource offers a related perspective and a useful next step in the Living Archive.",
+            },
+            "response_provenance": {
+                "class": "llm",
+                "provider": "gemini",
+                "model": "gemini-3.8-flash",
+                "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    failed = {item["name"] for item in checks if not item["passed"]}
+    assert "relevant_archive_doorway" in failed
+
+
 def test_community_rule_design_transfer_heldout_rejects_unjustified_majority_rule_and_metadata_leak():
     case = {"case_id": "heldout-community-rule-design-transfer-001"}
     answer = (
