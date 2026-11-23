@@ -58,7 +58,13 @@ def test_pinned_route_never_attempts_active_active_delegation(monkeypatch):
     monkeypatch.setattr(provider_bank, "_active_active_role", lambda: "primary")
     monkeypatch.setattr(provider_bank, "refresh_server_capacity_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
-    monkeypatch.setattr(provider_bank, "select", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        provider_bank,
+        "select",
+        lambda *_args, **_kwargs: [
+            {"provider": "workers_ai", "model": "@cf/google/gemma-4-26b-a4b-it"}
+        ],
+    )
 
     with evaluation_context(
         arm="control", provider="groq", model="openai/gpt-oss-120b"
