@@ -130,21 +130,27 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
     packet = _load(packet_path)
     registry = _load(REGISTRY)
     reviews = _load(REVIEWS)
-    active = sorted(
+    # The packet is a pinned 2026-11-22 snapshot. Exclude explicitly approved
+    # Gold Stars added after that source revision rather than comparing its
+    # historical denominator with today's evolving registry.
+    post_snapshot_approvals = {
+        "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
+    }
+    active_at_snapshot = sorted(
         (
             item for item in registry["records"]
             if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
             and item.get("runtime_transfer") is True
+            and item.get("benchmark_id") not in post_snapshot_approvals
         ),
         key=lambda item: item["benchmark_id"],
     )
     review_ids = {item["benchmark_id"] for item in reviews["entries"]}
     assert packet["inventory_reconciliation"]["approved_records"] == 131
     assert packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
-    assert len(active) == 131
+    assert len(active_at_snapshot) == 131
     assert packet["inventory_reconciliation"]["qualitative_review_entries"] == 129
-    assert len(active) == 131
-    assert all(item["benchmark_id"] in review_ids for item in active)
+    assert all(item["benchmark_id"] in review_ids for item in active_at_snapshot)
     candidates = packet["candidates"]
     assert len(candidates) == packet["inventory_reconciliation"]["runtime_transfer_true"] == 129
     assert [item["candidate_label"] for item in candidates] == [
