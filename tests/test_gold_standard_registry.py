@@ -410,10 +410,7 @@ def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer(
 
 def test_community_trust_candidate_preserves_sequence_and_evidence_boundary():
     registry = _registry()
-    record = next(
-        item for item in registry["records"]
-        if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24"
-    )
+    record = next(item for item in registry["records"] if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24")
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "What is the role of trust in community stewardship?"
     fixture = json.loads(
