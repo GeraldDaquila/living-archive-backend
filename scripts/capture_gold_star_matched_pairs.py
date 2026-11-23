@@ -24,8 +24,8 @@ CASE_SET_PATH = ROOT / "docs" / "qa" / "gold_star_matched_pair_cases.json"
 TARGET_LESSON_ID = "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
 CASE_IDS = (
     "heldout-community-rule-design-transfer-001",
-    "heldout-policy-implementation-001",
-    "heldout-thermal-conductivity-001",
+    "heldout-community-rule-necessity-002",
+    "heldout-community-rule-burdens-003",
 )
 CAPTURE_CONTEXT: ContextVar[dict[str, Any] | None] = ContextVar(
     "gold_star_matched_pair_capture", default=None
