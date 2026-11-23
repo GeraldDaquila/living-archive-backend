@@ -140,6 +140,28 @@ def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
     return provider, model, bool(attributable)
 
 
+def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: str = "") -> dict:
+    """Choose one exact eligible provider/model pair; never silently substitute."""
+    provider = str(provider or "").strip()
+    model = str(model or "").strip()
+    if bool(provider) != bool(model):
+        raise ValueError("Both --provider and --model must be supplied together.")
+    if provider and model:
+        candidate = next((
+            item for item in eligible
+            if str(item.get("provider") or "").strip() == provider
+            and str(item.get("model") or "").strip() == model
+        ), None)
+        if candidate is None:
+            raise RuntimeError(
+                f"The pinned provider/model is not eligible for this operation: {provider}/{model}"
+            )
+        return candidate
+    if not eligible:
+        raise RuntimeError("No eligible provider/model is configured in this GitHub Actions runner.")
+    return eligible[0]
+
+
 async def _request_arm(client, evaluation_context, provider, model, query, arm):
     import httpx
 
@@ -263,13 +285,17 @@ async def capture(args) -> dict:
     eligible = provider_bank.select(
         main.use_core, operation="general_guide_composition"
     )
-    if not eligible:
-        raise RuntimeError(
-            "No eligible provider/model is configured in this GitHub Actions runner. "
-            "Configure an approved provider credential as a repository or environment secret."
-        )
-    provider = str(eligible[0].get("provider") or "").strip()
-    model = str(eligible[0].get("model") or "").strip()
+    try:
+        chosen = _choose_provider_candidate(eligible, args.provider, args.model)
+    except RuntimeError as exc:
+        if not eligible:
+            raise RuntimeError(
+                "No eligible provider/model is configured in this GitHub Actions runner. "
+                "Configure an approved provider credential as a repository or environment secret."
+            ) from exc
+        raise
+    provider = str(chosen.get("provider") or "").strip()
+    model = str(chosen.get("model") or "").strip()
     if not provider or not model:
         raise RuntimeError("Provider bank returned an incomplete provider/model identity.")
 
@@ -546,6 +572,8 @@ def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/gold-star-matched-pairs"))
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
+    parser.add_argument("--provider", default="", help="Optional exact provider pin.")
+    parser.add_argument("--model", default="", help="Optional exact model pin.")
     parser.add_argument(
         "--inter-call-delay-seconds", type=float, default=65.0,
         help="Delay between pinned provider calls to respect the 60-second TPM window.",
