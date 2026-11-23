@@ -88,3 +88,21 @@ def test_abstract_consequential_uncertainty_keeps_its_verified_doorway():
     assert doorway["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
 
 
+
+
+def test_explicit_no_doorway_request_overrides_community_rule_family_mapping():
+    import main
+
+    query = (
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks? Please don't include links or resources."
+    )
+    assert main._general_guide_authoritative_doorway(
+        query, {"_doorway_selection_trace": {}}
+    ) is None
+    assert main._verified_archive_doorway_fallback(
+        query, [], {"risk": True, "action": "risk"}
+    ) is None
+    assert main._boundary_canonical_doorway(
+        {"recommendation": None}, query
+    ) is None
