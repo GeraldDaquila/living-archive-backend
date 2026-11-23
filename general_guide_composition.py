@@ -3004,7 +3004,7 @@ _PRACTICAL_ACTION_MARKERS = (
 
 _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
-    r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
+    r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|strengthen|support|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
@@ -3024,6 +3024,7 @@ def _conceptual_relationship_terms(query: str) -> List[str]:
     question = _normalize_space(query)
     patterns = (
         r"\brelationship between\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
+        r"\bhow\s+(?:do|does|can|could|might)\s+(.+?)\s+and\s+(.+?)\s+(?:relate to|connect with|reinforce|strengthen|support|shape)\s+(?:one another|each other)(?:[?.!]|$)",
         r"\bwhat does\s+(.+?)\s+have to do with\s+(.+?)(?:[?.!]|$)",
         r"\b(?:what(?:'s| is) the connection between)\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
         r"\bwhy does\s+(.+?)\s+matter (?:for|to)\s+(.+?)(?:[?.!]|$)",
@@ -3280,6 +3281,18 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "checking effectiveness can make an unhelpful activity faster, while "
             "pursuing effectiveness without regard to efficiency can waste resources "
             "that could support other important work."
+        )
+
+    if (
+        re.search(r"\baccountability\b", normalized)
+        and re.search(r"\btrust\b", normalized)
+        and re.search(r"\brepair(?:ing)?\s+harm\b|\bability to repair harm\b", normalized)
+        and re.search(r"\b(?:reinforce|strengthen|support|relationship|connect)\b", normalized)
+    ):
+        return (
+            "Accountability, trust, and the ability to repair harm reinforce one another because people can judge whether commitments are kept and whether concerns are addressed honestly. Trust makes it safer to raise a problem before it becomes entrenched; accountability makes the response answerable to the people affected. Without trust, people may stay silent. Without accountability, trust can become an expectation that others should simply overlook what went wrong.\n\n"
+            "Repair turns accountability into action. It requires naming what happened, hearing its effects, correcting what can be corrected, and changing the conditions that allowed the harm to occur. A sincere apology may matter, but it is not enough if the same conduct or system remains untouched. When repair is visible and proportionate, people have reason to believe that speaking up can lead to change rather than retaliation or empty reassurance.\n\n"
+            "These relationships are reciprocal, not automatic. Trust supports honest accountability; accountability gives trust a dependable basis; and repair shows that both can survive a failure without denying it. In a community, the useful question is whether people can raise harm, receive a fair hearing, and see meaningful correction. What helps make that possible in your community?"
         )
 
     _open_question_recovery = _open_question_orientation_recovery(question)
