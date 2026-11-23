@@ -37,12 +37,17 @@ def test_held_out_evaluation_passes_against_approved_transfer_contract(monkeypat
     assert report["passed"], report
 
 
-def test_pending_fixture_record_cannot_enter_live_transfer_pool():
-    # This is an existing unresolved selector behavior test, kept independent of
-    # the synthetic fixture above so it continues to expose any false-positive.
-    assert lessons.select_lesson(
+def test_user_approved_developmental_language_gold_star_supports_related_transfer():
+    # This canonical record is user-approved, explicitly elevated, and active
+    # for cross-question quality contribution. A close paraphrase should retrieve
+    # structural guidance, not exact-answer authority.
+    selected = lessons.select_lesson(
         "How can language about development make some people seem inferior?"
-    ) is None
+    )
+    assert selected is not None
+    assert selected["benchmark_id"] == "general-guide-developmental-language-gold-star-2026-11-09"
+    assert selected["runtime_transfer"] is True
+    assert selected["exact"] is False
 
 
 def test_held_out_evaluation_is_not_a_composition_path():
