@@ -110,7 +110,7 @@ def test_response_metric_carries_opaque_request_ledger_correlation_without_repla
 
 
 
-def test_llm_attribution_requires_an_registered_provider_model_pair():
+def test_llm_attribution_requires_a_registered_provider_model_pair():
     import main
 
     assert main._is_attributable_provider_model("groq", "openai/gpt-oss-120b")
