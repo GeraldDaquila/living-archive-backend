@@ -418,6 +418,20 @@ try {
         recommendation: item.payload?.recommendation
       }))));
   }
+  const calibrationRationale = String(
+    calibrationResponse.payload?.recommendation?.rationale || ""
+  ).replace(/\s+/g, " ").trim();
+  if (!calibrationRationale) {
+    throw new Error("The community-governance doorway omitted its visitor-facing introduction.");
+  }
+  if (/^(?:preface|foreword|introduction|abstract|table of contents|contents|chapter\s+\d+|part\s+[ivxlcdm0-9]+)\b/i.test(calibrationRationale) ||
+      /meta description|seo description|document type|canonical reference hub/i.test(calibrationRationale) ||
+      /the chaos hasn.t fully ended|the losses are still real/i.test(calibrationRationale)) {
+    throw new Error("The community-governance doorway exposed source-page prose or internal metadata: " + calibrationRationale);
+  }
+  if (!/^this resource offers a related perspective/i.test(calibrationRationale)) {
+    throw new Error("The community-governance doorway introduction is not using the approved visitor-facing fallback contract: " + calibrationRationale);
+  }
   await page.waitForFunction(() => {
     const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
     const text = (root?.querySelector("#archive-response-text")?.innerText || "").toLowerCase();
