@@ -6700,8 +6700,8 @@ def _guide_restore_verified_doorway(payload, query):
         })
 
     _recurring_problem_query = bool(re.search(
-        r"\\b(?:same|repeated|recurring)\\s+problems?\\b|"
-        r"\\bproblems?\\s+keep\\s+(?:returning|recurring)\\b",
+        r"\b(?:same|repeated|recurring)\s+problems?\b|"
+        r"\bproblems?\s+keep\s+(?:returning|recurring)\b",
         str(query or ""),
         re.I,
     ))
@@ -6715,8 +6715,8 @@ def _guide_restore_verified_doorway(payload, query):
             if isinstance(item, (str, int, float))
         )
         if not re.search(
-            r"\\b(?:system|systems|feedback|cycle|cycles|pattern|patterns|"
-            r"conditions|recurrence|recurring|problem|problems)\\b",
+            r"\b(?:system|systems|feedback|cycle|cycles|pattern|patterns|"
+            r"conditions|recurrence|recurring|problem|problems)\b",
             _doorway_evidence_text,
             re.I,
         ):
