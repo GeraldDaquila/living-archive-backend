@@ -36,9 +36,9 @@ def test_applied_conclusion_that_derives_a_new_post_event_test_is_preserved():
 def test_provider_templates_integrate_gold_star_discipline_without_appending_it_to_paragraph_three():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert "GOLD STAR INTEGRATION RULE:" in source
-    assert "Never append the lesson's wording, abstention boundary, or a meta-label to paragraph three." in source
-    assert "Broad lexical overlap" in source
-    assert "Do not append this guidance, its wording, or its boundary to paragraph three" in source
+    assert "Broad lexical overlap is insufficient." in source
+    assert "Integrate relevant discipline without copying its wording or abstention boundary" in source
+    assert "never append Gold Star guidance or meta-labels to the conclusion" in source
 
 
 def test_deterministic_template_gives_paragraph_three_a_new_correctability_function():
@@ -47,7 +47,7 @@ def test_deterministic_template_gives_paragraph_three_a_new_correctability_funct
     answer = compose_recovery(
         "How should people act when the future is uncertain but consequential?"
     )
-    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
     assert len(paragraphs) == 3
     assert "who will be affected" in paragraphs[0]
     assert "Compare realistic options" in paragraphs[1]
@@ -66,6 +66,6 @@ def test_deterministic_gold_star_guidance_is_not_appended_to_visitor_answers():
 
 def test_compact_llm_contract_blocks_unrequested_ai_and_gold_star_content_transfer():
     prompt = composition._GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "Do not introduce AI, artificial intelligence, or another adjacent subject unless the visitor explicitly asks about it." in prompt
-    assert "Never append the lesson's wording, abstention boundary, or a meta-label to paragraph three." in prompt
-    assert "Paragraph three must remain a coherent conclusion to this answer" in prompt
+    assert "Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability unless the question itself calls for them." in prompt
+    assert "never append Gold Star guidance or meta-labels to the conclusion" in prompt
+    assert "The conclusion or final response element must build on the reasoning already established" in prompt
