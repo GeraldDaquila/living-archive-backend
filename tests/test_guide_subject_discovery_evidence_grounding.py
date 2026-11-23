@@ -422,7 +422,7 @@ def test_discovery_fallback_offers_verified_doorway_without_claiming_page_conten
     )
     assert "Governance & Decentralization" in response
     assert "public accountability" in response
-    assert "inspect its contents" in response
+    assert "not enough page text to explain" in response
     assert "Google Scholar" not in response
 
 
@@ -466,7 +466,7 @@ def test_discovery_fallback_uses_a_complete_sentence_when_available():
         "public accountability", doorway, evidence
     )
     assert "This section explores public accountability in institutional life." in response
-    assert "relevant entry point" in response
+    assert "focused entry point" in response
 
 def test_subject_discovery_replaces_provider_specific_prose_with_selected_page_evidence():
     doorway = {
