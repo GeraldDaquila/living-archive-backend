@@ -361,6 +361,18 @@ def _build_general_guide_system_message(
     return "\n\n".join(part for part in parts if part)
 
 
+def _compact_gold_star_prompt_field(value: Any, max_chars: int) -> str:
+    """Bound candidate metadata in the provider prompt without mutating the registry."""
+    normalized = " ".join(str(value or "").split())
+    if len(normalized) <= max_chars:
+        return normalized
+    # Preserve both the opening scope and closing qualification of reviewed
+    # lesson text; the full immutable source remains in the canonical registry.
+    head_chars = max(1, (max_chars - 3) * 2 // 3)
+    tail_chars = max(1, max_chars - head_chars - 3)
+    return normalized[:head_chars].rstrip() + " … " + normalized[-tail_chars:].lstrip()
+
+
 def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
     """Build compact, governed candidate context and the provider adjudication contract."""
     if not isinstance(gold_star_quality, dict):
@@ -378,10 +390,12 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         candidate_lines.append(
             f"{index}. ID={item.get('benchmark_id')}; match_basis={item.get('match_basis')}; "
             f"role={item.get('role') or 'unclassified'}; "
-            f"activation_condition={item.get('activation_condition') or 'none'}; "
-            f"score={score_label}; question={item.get('query')}; theme={item.get('known_theme')}; "
-            f"reasoning discipline={item.get('reasoning_family')}: {item.get('discipline')}; "
-            f"boundary={item.get('abstention_boundary')}"
+            f"activation_condition={_compact_gold_star_prompt_field(item.get('activation_condition'), 120) or 'none'}; "
+            f"score={score_label}; subject={_compact_gold_star_prompt_field(item.get('query'), 100)}; "
+            f"theme={_compact_gold_star_prompt_field(item.get('known_theme'), 100)}; "
+            f"reasoning family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 80)}; "
+            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 300)}; "
+            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 240)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
@@ -4837,7 +4851,7 @@ def compose(
                 )},
                 {"role": "user", "content": user_content[:7000]},
             ],
-            max_tokens=900,
+            max_tokens=750,
             parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
             deadline_monotonic=deadline_monotonic,
         )
