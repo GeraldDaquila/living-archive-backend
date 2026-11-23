@@ -14941,6 +14941,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Navigation is a visitor-facing contract. Publish the final authoritative
     # doorway under both the stable recommendation field and an explicit canonical
     # alias so presentation adapters cannot lose it through field translation.
+    print(
+        "The Guide final doorway diagnostic: "
+        f"selected={bool(authoritative_doorway)}, "
+        f"title={(authoritative_doorway or {}).get('title') or 'none'}"
+    )
     _visitor_recommendation = authoritative_doorway
     if not _visitor_recommendation:
         try:
