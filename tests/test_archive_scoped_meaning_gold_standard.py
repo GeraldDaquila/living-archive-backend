@@ -23,7 +23,7 @@ def test_archive_scoped_meaning_rejects_one_paragraph_generic_answer():
         "can vary by field or institution, so this is a general explanation rather "
         "than a claim that the Living Archive uses a particular formal definition."
     )
-    with pytest.raises(ValueError, match="three-paragraph Guide Gold Standard"):
+    with pytest.raises(ValueError, match="useful everyday example|circular meta-definition"):
         enforce_response_contracts(QUESTION, generic)
 
 
