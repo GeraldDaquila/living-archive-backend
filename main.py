@@ -15196,10 +15196,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
     )
+    _cached_provider_composition = bool(
+        composition_result
+        and composition_result.get("_provider_execution_origin_verified") is True
+        and composition_result.get("_provider_execution_verified") is not True
+    )
     _deterministic_composition_recovery = bool(
         composition_result
         and not _registered_gold_standard_composition
         and not _llm_invoked
+        and not _cached_provider_composition
         and _provider_name
         and _model_name
         and composition_result.get("_provider_execution_verified") is not True
@@ -15212,7 +15218,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         if deterministic_result:
             _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
             _model_name = str(deterministic_result.get("model") or "").strip()
-        elif not _deterministic_composition_recovery:
+        elif not _deterministic_composition_recovery and not _cached_provider_composition:
             _provider_name = "deterministic_final_boundary"
             _model_name = ""
 
@@ -15234,6 +15240,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         _quality_adjusted_llm_eligible = True
     elif _deterministic_by_design:
         _response_provenance = "deterministic_by_design"
+        _quality_adjusted_llm_eligible = False
+    elif _cached_provider_composition:
+        _response_provenance = "cached_provider_composition"
         _quality_adjusted_llm_eligible = False
     elif deterministic_result or _deterministic_composition_recovery:
         _response_provenance = "deterministic_recovery"
