@@ -4839,6 +4839,10 @@ def compose(
                         cached_result.pop("_provider_execution_verified", False)
                         or cached_result.get("_provider_execution_origin_verified") is True
                     )
+                    cached_result["_provider_execution_origin_modified"] = bool(
+                        cached_result.pop("_provider_execution_modified", False)
+                        or cached_result.get("_provider_execution_origin_modified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star cache-reuse trace failed validation.")
@@ -5146,6 +5150,7 @@ def compose(
         # contract-valid external provider response. Deterministic recovery
         # candidates never receive it. Keep it internal through final assembly.
         "_provider_execution_verified": result.get("_provider_execution_verified") is True,
+        "_provider_execution_candidate_response": str(response),
         # Internal-only evidence travels with the composition candidate. The
         # shared visitor boundary consumes and strips it before public delivery.
         "_gold_star_adjudication_trace": dict(gold_star_adjudication_trace),
@@ -5232,6 +5237,10 @@ def compose(
                         cached_result.pop("_provider_execution_verified", False)
                         or cached_result.get("_provider_execution_origin_verified") is True
                     )
+                    cached_result["_provider_execution_origin_modified"] = bool(
+                        cached_result.pop("_provider_execution_modified", False)
+                        or cached_result.get("_provider_execution_origin_modified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
@@ -5253,6 +5262,13 @@ def compose(
             while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
                 _COMPOSITION_CACHE.popitem(last=False)
     
+
+    provider_candidate_response = candidate.pop("_provider_execution_candidate_response", None)
+    if candidate.get("_provider_execution_verified") is True and str(candidate.get("response") or "") != str(provider_candidate_response or ""):
+        # A deterministic quality recovery replaced the provider's text. The
+        # provider did execute, but it did not author the final visitor answer.
+        candidate["_provider_execution_verified"] = False
+        candidate["_provider_execution_modified"] = True
 
     return candidate
 
