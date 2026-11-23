@@ -44,7 +44,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt httpx
       - name: Run same-provider, same-model control/treatment captures
-        run: python scripts/capture_gold_star_matched_pairs.py --output-dir artifacts/gold-star-matched-pairs
+        run: >-
+          python scripts/capture_gold_star_matched_pairs.py
+          --inter-call-delay-seconds 65
+          --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
         if: always()
         uses: actions/upload-artifact@v4
