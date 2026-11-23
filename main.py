@@ -913,6 +913,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             "recommendation_canonical_primary", "recommendation_canonical_secondary",
             "recommendation_canonical", "recommended_resource", "recommended_resources",
         ):
+            # Emit every alias explicitly so clients receive a stable omission schema.
             safe[key] = None
         safe["doorway_decision"] = "omit"
         safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
