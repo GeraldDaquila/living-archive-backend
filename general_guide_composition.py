@@ -489,7 +489,7 @@ def _sanitize_candidate(text: Any) -> str:
     # removing the metadata field and everything that follows it. This shared
     # sanitizer is used for both composed answers and doorway introductions.
     raw = re.sub(
-        r"(?is)\\b(?:meta\\s+description|seo\\s+description)\\s*:?.*$",
+        r"(?is)\b(?:meta\s+description|seo\s+description)\s*:?.*$",
         "",
         raw,
     ).rstrip()
