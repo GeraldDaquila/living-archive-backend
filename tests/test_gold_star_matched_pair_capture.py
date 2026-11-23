@@ -176,9 +176,3 @@ def test_exact_provider_model_pin_requires_both_values():
             "groq",
             "",
         )
-
-
-
-def test_blind_review_package_discloses_allowed_verdicts_and_na_codes():
-    from scripts.capture_gold_star_matched_pairs import _build_blind_review_package
-
