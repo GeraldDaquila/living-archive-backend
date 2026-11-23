@@ -10487,25 +10487,27 @@ def _general_guide_authoritative_doorway(query, context_data):
             title=title,
             url=url,
         )
-        # The shared renderer needs a source-grounded reason for the handoff.
-        # Use an existing reviewed rationale when supplied; otherwise retain a
-        # short excerpt from the selected canonical evidence rather than
-        # inventing a description from the resource title.
+        # A selected document's body, excerpt, or CMS summary is evidence for
+        # relevance, not visitor-facing prose. Only an authored rationale may
+        # be shown. When none exists, use a modest, accurate handoff sentence
+        # that does not pretend the source excerpt is an explanation.
         rationale = str(
             primary.get("rationale") or primary.get("doorway_rationale") or ""
         ).strip()
+        if rationale:
+            rationale = general_guide_composition._sanitize_candidate(rationale)
+            rationale = re.sub(r"\s+", " ", rationale).strip()
+            if re.match(
+                r"(?is)^\s*(?:preface|foreword|introduction|abstract|table of contents|contents|chapter\s+\d+|part\s+[ivxlcdm0-9]+|executive summary)\b",
+                rationale,
+            ):
+                rationale = ""
         if not rationale:
-            rationale = re.sub(
-                r"\s+", " ",
-                str(primary.get("text") or primary.get("content") or primary.get("excerpt") or ""),
-            ).strip()
-            if len(rationale) > 400:
-                sentence_end = rationale.rfind(". ", 0, 400)
-                rationale = (
-                    rationale[: sentence_end + 1]
-                    if sentence_end > 100
-                    else rationale[:397].rsplit(" ", 1)[0] + "…"
-                )
+            rationale = (
+                "This resource offers a related perspective on the question you have "
+                "raised, and a useful next step if you would like to explore the topic "
+                "further in the Living Archive."
+            )
         result = {"title": title, "url": url}
         if rationale and len(rationale) <= 600 and not re.search(r"<[^>]+>", rationale):
             result["rationale"] = rationale
@@ -10731,6 +10733,15 @@ def _normalize_authoritative_recommendation(doorway):
     if rationale:
         rationale = general_guide_composition._sanitize_candidate(rationale)
         rationale = re.sub(r"\s+", " ", rationale).strip()
+        # Section headings indicate copied source-page prose, not an authored
+        # visitor-facing explanation. Never publish the following body text as
+        # an introduction merely because the heading itself was stripped or
+        # survived retrieval normalization.
+        if re.match(
+            r"(?is)^\s*(?:preface|foreword|introduction|abstract|table of contents|contents|chapter\s+\d+|part\s+[ivxlcdm0-9]+|executive summary)\b",
+            rationale,
+        ):
+            rationale = ""
         if rationale:
             if len(rationale) > 600 or re.search(r"<[^>]+>", rationale) or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", rationale):
                 return None
