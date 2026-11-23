@@ -10447,7 +10447,29 @@ def _general_guide_authoritative_doorway(query, context_data):
             title=title,
             url=url,
         )
-        return {"title": title, "url": url}
+        # The shared renderer needs a source-grounded reason for the handoff.
+        # Use an existing reviewed rationale when supplied; otherwise retain a
+        # short excerpt from the selected canonical evidence rather than
+        # inventing a description from the resource title.
+        rationale = str(
+            primary.get("rationale") or primary.get("doorway_rationale") or ""
+        ).strip()
+        if not rationale:
+            rationale = re.sub(
+                r"\\s+", " ",
+                str(primary.get("text") or primary.get("content") or primary.get("excerpt") or ""),
+            ).strip()
+            if len(rationale) > 400:
+                sentence_end = rationale.rfind(". ", 0, 400)
+                rationale = (
+                    rationale[: sentence_end + 1]
+                    if sentence_end > 100
+                    else rationale[:397].rsplit(" ", 1)[0] + "…"
+                )
+        result = {"title": title, "url": url}
+        if rationale and len(rationale) <= 600 and not re.search(r"<[^>]+>", rationale):
+            result["rationale"] = rationale
+        return result
     except Exception as exc:
         _record_selection_state(
             "RETRIEVAL_OR_VERIFICATION_FAILURE",
