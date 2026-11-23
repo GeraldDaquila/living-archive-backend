@@ -7122,8 +7122,8 @@ def _guide_finalize_visitor_payload(payload, query):
             _autonomy_doorway = (
                 {"title": _autonomy_title, "url": _autonomy_url}
                 if _autonomy_title
-                and re.match(r"^https://geralddaquila\\.com(?:/.*)?$", _autonomy_url, re.I)
-                and not re.search(r"[\\x00-\\x20<>]", _autonomy_url)
+                and re.match(r"^https://geralddaquila\.com(?:/.*)?$", _autonomy_url, re.I)
+                and not re.search(r"[\x00-\x20<>]", _autonomy_url)
                 else None
             )
             if _autonomy_doorway and _autonomy_rationale:
