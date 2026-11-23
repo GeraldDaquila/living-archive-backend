@@ -268,6 +268,7 @@ def run_synthetic_matched_pair(
         "base_prompt_fingerprint": base_fingerprint,
         "generation_config_fingerprint": generation_fingerprint,
         "gold_star_registry_sha256": registry_sha256,
+        "generation_order": list(generation_order),
         "critical_dimensions": list(case.get("critical_dimensions") or []),
         "adaptation_scope": "approved_cross_question_structural_guidance_only",
         "control": {
