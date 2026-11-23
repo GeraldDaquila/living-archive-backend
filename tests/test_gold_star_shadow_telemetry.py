@@ -38,7 +38,7 @@ def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monk
     fixture[0]["variant_terms"] = lessons._concept_terms(" ".join(fixture[0]["variants"]))
     fixture[0]["reasoning_terms"] = lessons._concept_terms(fixture[0]["reasoning_family"])
     monkeypatch.setattr(lessons, "_LESSONS", fixture)
-    selected = lessons.select_lesson("How can I orient myself while things remain uncertain and unresolved?")
+    selected = lessons.select_lesson("How can I orient myself and preserve agency while circumstances remain uncertain?")
     assert selected is not None
     assert selected["benchmark_id"] == "orientation-lesson"
     assert selected["exact"] is False
