@@ -13,8 +13,11 @@ def test_system_concept_is_registered_as_user_approved_gold_standard():
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
     assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
-    assert resolved["doorway_title"] == "Leadership Beyond Control: The Rise of Coherence-Based Governance"
+    # The approved registry intentionally leaves this legacy doorway unset;
+    # do not infer a canonical URL or title from the older fixture.
+    assert resolved["doorway_title"] == ""
     assert resolved["doorway_url"] == ""
+    assert resolved["expected_doorway"] is None
 
 
 def test_system_concept_gold_standard_preserves_three_paragraphs_and_fsd_boundary():
