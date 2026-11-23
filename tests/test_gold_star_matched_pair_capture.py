@@ -119,6 +119,8 @@ def test_review_template_matches_governed_paired_evaluation_schema_without_answe
         "safety", "evidence_integrity", "epistemic_calibration"
     }
     assert "question" not in record and "response" not in record
+    assert "improved, not_improved, regressed, or inconclusive" in template["instructions"]
+    assert "not_relevant_to_question" in template["instructions"]
 
 
 
@@ -174,3 +176,9 @@ def test_exact_provider_model_pin_requires_both_values():
             "groq",
             "",
         )
+
+
+
+def test_blind_review_package_discloses_allowed_verdicts_and_na_codes():
+    from scripts.capture_gold_star_matched_pairs import _build_blind_review_package
+
