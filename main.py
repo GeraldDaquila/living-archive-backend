@@ -838,12 +838,12 @@ def _guide_doorway_risk_suppression_is_required(query, profile=None):
     profile = profile or _base._inquiry_profile(query)
     if not (profile.get("risk") or profile.get("action") == "risk"):
         return False
-    normalized = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
+    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
     return bool(
         re.search(
-            r"\\b(?:self[- ]harm|suicid\\w*|kill myself|hurt myself|overdose|poison|"
+            r"\b(?:self[- ]harm|suicid\w*|kill myself|hurt myself|overdose|poison|"
             r"medical emergency|physical danger|immediate danger|urgent safety|"
-            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\\b",
+            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\b",
             normalized,
         )
     )
