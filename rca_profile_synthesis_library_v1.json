@@ -197,7 +197,7 @@
     "boundary_cases": [
       {
         "gap": 0.79,
-        "expected": "No relational pattern qualifies on threshold alone at a 0.79 gap."
+        "expected": "no relational pattern qualifies on threshold alone at a 0.79 gap."
       },
       {
         "gap": 0.8,
