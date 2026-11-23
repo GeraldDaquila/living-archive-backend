@@ -87,7 +87,7 @@ def test_new_community_freedom_gold_star_transfers_to_a_close_paraphrase():
     )
     selected = _selected(query)
     ids = [item["benchmark_id"] for item in selected]
-    target = "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    target = "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
     assert target in ids
     candidate = next(item for item in selected if item["benchmark_id"] == target)
     assert candidate["exact"] is False
