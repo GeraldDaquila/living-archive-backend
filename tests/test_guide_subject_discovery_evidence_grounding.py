@@ -55,7 +55,7 @@ def test_ordinary_queries_only_trigger_recovery_when_evidence_is_unavailable():
 def test_subject_discovery_uses_broader_candidate_recall_than_general_recovery():
     assert main._guide_subject_supplement_limit("institutional responsibility") == 10
     assert main._guide_subject_supplement_limit("public accountability") == 10
-    assert main._guide_subject_supplement_limit("") == 3
+    assert main._guide_subject_supplement_limit("") == 5
 
 
 
@@ -67,7 +67,15 @@ def test_selected_canonical_doorway_can_support_discovery_when_general_sufficien
     document = {
         "title": "Governance & Decentralization",
         "url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
-        "text": "This canonical governance hub covers institutional accountability, transparency, public trust, and civic participation across institutions and societies.",
+        "text": "This canonical governance hub covers institutional accountability, transparency, public trust, and civic participation across institutions and societies."
+        "_guide_node": {
+            "node_id": "governance-decentralization",
+            "title": "Governance & Decentralization",
+            "purpose": "Institutional accountability, transparency, public trust, civic participation, and distributed responsibility across institutions.",
+            "semantic_hints": ["public accountability", "institutional accountability", "civic participation"],
+            "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+            "status": "active",
+        },,
     }
     monkeypatch.setattr(
         main.use_core,
@@ -75,9 +83,12 @@ def test_selected_canonical_doorway_can_support_discovery_when_general_sufficien
         lambda subject, candidate: (1, 1, 2, 2),
     )
 
-    assert main._guide_selected_doorway_discovery_evidence(
+    selected = main._guide_selected_doorway_discovery_evidence(
         [document], "public accountability", doorway
-    ) == [document]
+    )
+    assert len(selected) == 1
+    assert selected[0]["_discovery_relevance"] == "related"
+    assert "accountability" in selected[0]["_discovery_support_terms"]
 
 
 def test_discovery_evidence_must_match_the_selected_canonical_url(monkeypatch):
@@ -204,7 +215,7 @@ def test_deterministic_discovery_recovery_uses_selected_resource_content():
     assert "Governance & Decentralization" in response
     assert "accountability" in response
     assert "public accountability" in response
-    assert "relevant entry point" in response
+    assert "focused entry point" in response
 
 
 
@@ -218,6 +229,14 @@ def test_selected_doorway_discovery_can_use_direct_topic_term_in_page_body(monke
         "url": doorway["url"],
         "text": (
             "This canonical resource explains governance structures, institutional accountability, "
+        "_guide_node": {
+            "node_id": "governance-decentralization",
+            "title": "Governance & Decentralization",
+            "purpose": "Institutional accountability, transparency, public trust, civic participation, and distributed responsibility across institutions.",
+            "semantic_hints": ["public accountability", "institutional accountability", "civic participation"],
+            "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+            "status": "active",
+        },
             "transparency, civic participation, and how responsibility is distributed across institutions."
         ),
     }
@@ -243,6 +262,14 @@ def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatc
         "url": doorway["url"],
         "text": (
             "A canonical governance hub covering institutional accountability, transparency, "
+        "_guide_node": {
+            "node_id": "governance-decentralization",
+            "title": "Governance & Decentralization",
+            "purpose": "Institutional accountability, transparency, public trust, civic participation, and distributed responsibility across institutions.",
+            "semantic_hints": ["public accountability", "institutional accountability", "civic participation"],
+            "canonical_url": "https://geralddaquila.com/2026/05/20/governance-decentralization/",
+            "status": "active",
+        },
             "public trust, civic participation, and distributed responsibility across institutions."
         ),
     }
@@ -262,7 +289,9 @@ def test_discovery_doorway_is_reselected_from_the_vetted_evidence_set(monkeypatc
     )
 
     assert selected == doorway
-    assert evidence == [document]
+    assert len(evidence) == 1
+    assert evidence[0]["_guide_node"]["node_id"] == "governance-decentralization"
+    assert evidence[0]["_discovery_relevance"] == "related"
 
 
 def test_discovery_doorway_is_not_returned_without_matching_vetted_body(monkeypatch):
@@ -324,7 +353,7 @@ def test_discovery_fallback_still_offers_selected_doorway_when_body_is_unavailab
     )
     assert "Institutional Stewardship Case Library" in response
     assert "institutional responsibility" in response
-    assert "inspect its contents" in response
+    assert "not enough page text to explain" in response
     assert "Google Scholar" not in response
 
 
@@ -417,7 +446,7 @@ def test_discovery_fallback_never_constructs_fragmentary_page_summary():
         "public accountability", doorway, evidence
     )
     assert "Governance & Decentralization" in response
-    assert "could not verify a complete description" in response
+    assert "couldn’t isolate a complete source sentence" in response
     assert "influence long-term outcomes Constitutional Responsibility" not in response
 
 
@@ -546,4 +575,8 @@ def test_registered_discovery_requires_matching_canonical_body(monkeypatch):
         "institutional responsibility", [registered]
     )
 
-    assert selected == [registered]
+    assert len(selected) == 1
+    assert selected[0]["title"] == registered["title"]
+    assert selected[0]["url"] == registered["url"]
+    assert selected[0]["_guide_node"]["node_id"] == "steward-readiness"
+    assert selected[0]["_discovery_relevance"] == "related"
