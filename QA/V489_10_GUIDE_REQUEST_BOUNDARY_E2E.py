@@ -106,11 +106,14 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
                 "title": "Leadership Foundations",
                 "url": "https://geralddaquila.com/leadership-foundations/",
                 "content": (
-                    "Leadership begins in ordinary decisions and responsibilities. "
-                    "It includes self-governance, integrity, accountability, ethical "
-                    "leadership, stewardship, governance, and decision-making under "
-                    "pressure. Leadership is a human systems function shaped by "
-                    "responsibility, consequence, relationships, and institutions."
+                    "Community stewardship is practiced in everyday decisions and "
+                    "shared responsibilities. Leadership begins in how community "
+                    "members care for shared resources, make decisions, and respond "
+                    "to consequences together. It includes self-governance, integrity, "
+                    "accountability, ethical leadership, stewardship, governance, and "
+                    "decision-making under pressure. Leadership is a human systems "
+                    "function shaped by responsibility, consequence, relationships, "
+                    "and institutions."
                 ),
             })
         return result
