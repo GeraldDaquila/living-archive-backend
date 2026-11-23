@@ -161,6 +161,11 @@ def test_query_family_selector_selects_the_stewardship_consent_doorway():
     root = Path(__file__).resolve().parents[1]
     source = (root / "main.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
+    helper = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_guide_query_explicitly_forbids_handoff"
+    )
     function = next(
         node for node in tree.body
         if isinstance(node, ast.FunctionDef)
@@ -168,7 +173,7 @@ def test_query_family_selector_selects_the_stewardship_consent_doorway():
     )
     namespace = {"re": re, "is_stewardship_consent_relationship_question":
                  is_stewardship_consent_relationship_question}
-    exec(compile(ast.Module(body=[function], type_ignores=[]), "<family>", "exec"), namespace)
+    exec(compile(ast.Module(body=[helper, function], type_ignores=[]), "<family>", "exec"), namespace)
     selector = namespace["_select_verified_doorway_conceptual_family"]
     assert selector("What is the relationship between stewardship and consent?") == (
         "stewardship_consent_relational_legitimacy"

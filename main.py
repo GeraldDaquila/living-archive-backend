@@ -278,6 +278,8 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    if _guide_query_explicitly_forbids_handoff(text):
+        return None
     from institutional_learning_failure_contract import is_institutional_learning_failure_question
     if is_institutional_learning_failure_question(text):
         return "institutional_learning_failure"
@@ -528,7 +530,12 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "community_rule_design_personal_liberty_shared_obligations": {
         "title": "The Barangay Before the State: Human-Scale Governance in Practice",
         "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
-        "rationale": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive.",
+        "rationale": (
+            "This Archive essay examines human-scale governance through community decision-making, "
+            "shared responsibilities, local accountability, and collective coordination. It offers "
+            "a grounded next step for considering how community rules can remain connected to the "
+            "people affected by them."
+        ),
     },
     "stewardship_significance": {
         "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
@@ -659,6 +666,20 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     },
 }
 
+def _community_rule_design_canonical_doorway(query):
+    """Resolve the Barangay doorway through the shared verified-family registry."""
+    family = _select_verified_doorway_conceptual_family(query)
+    if family != "community_rule_design_personal_liberty_shared_obligations":
+        return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
+    candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+    return dict(candidate) if isinstance(candidate, dict) else None
+
+
+
+
 
 def _select_guide_node_fallback_doorway(query):
     """Select a verified canonical doorway when recovery has no retrieval docs.
@@ -668,6 +689,14 @@ def _select_guide_node_fallback_doorway(query):
     distinction. This precedes lexical node scoring so a sparse node registry
     cannot erase a stronger canonical continuation.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     normalized = str(query or "").casefold()
     from deterministic_answer_recovery import (
         is_guide_personal_decision_agency_question,
@@ -679,7 +708,6 @@ def _select_guide_node_fallback_doorway(query):
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
         return dict(verified_family_doorway)
-    profile = _base._inquiry_profile(query)
     eligible = []
     for index, node in enumerate(_guide_node_registry_snapshot()):
         if not isinstance(node, dict):
@@ -767,6 +795,14 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     an approved Guide Node with direct lexical grounding. It never invents a
     destination and still returns None when no verifiable continuation exists.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
+    profile = profile or _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     try:
         candidate = _canonical_primary_from_docs(docs or [], query, profile)
     except Exception:
@@ -797,6 +833,23 @@ def _guide_query_explicitly_forbids_handoff(query):
         r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
     )
     return any(re.search(pattern, value, re.I) for pattern in patterns)
+
+
+def _guide_doorway_risk_suppression_is_required(query, profile=None):
+    """Suppress navigation only for acute safety situations, not abstract risk analysis."""
+    if profile is None:
+        profile = _base._inquiry_profile(query)
+    if not (profile.get("risk") or profile.get("action") == "risk"):
+        return False
+    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
+    return bool(
+        re.search(
+            r"\b(?:self[- ]harm|suicid\w*|kill myself|hurt myself|overdose|poison|"
+            r"medical emergency|physical danger|immediate danger|urgent safety|"
+            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\b",
+            normalized,
+        )
+    )
 
 
 def _guide_registered_fact_matches_current_response(query, response, recovery):
@@ -860,6 +913,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             "recommendation_canonical_primary", "recommendation_canonical_secondary",
             "recommendation_canonical", "recommended_resource", "recommended_resources",
         ):
+            # Emit every alias explicitly so clients receive a stable omission schema.
             safe[key] = None
         safe["doorway_decision"] = "omit"
         safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
@@ -904,8 +958,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             "recommended_resource",
             "recommended_resources",
         ):
-            if key in safe:
-                safe[key] = None
+            safe[key] = None
         safe["doorway_decision"] = "omit"
         safe["doorway_selection_status"] = "AUTHORIZED_OMISSION"
         safe["doorway_selection_evaluated"] = False
@@ -6205,12 +6258,20 @@ def _boundary_canonical_doorway(payload, query):
     context already attached to the visitor payload; it never invents a link or
     searches beyond the request evidence.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     existing = _normalize_authoritative_recommendation(
         payload.get("recommendation") if isinstance(payload, dict) else None
     )
     if existing:
         return existing
     if not isinstance(payload, dict):
+        return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
     context = str(
         payload.get("canonical_link_context")
@@ -6248,7 +6309,6 @@ def _boundary_canonical_doorway(payload, query):
             except Exception as exc:
                 print(f"The Guide doorway recovery: canonical context unavailable: {exc}")
         
-    profile = _base._inquiry_profile(query)
     primary = _canonical_primary_from_docs(docs, query, profile)
     if primary:
         title = str(primary.get("title") or "").strip()
@@ -10259,6 +10319,25 @@ def _general_guide_authoritative_doorway(query, context_data):
         if isinstance(trace, dict):
             trace.update({"status": status, **details})
 
+    if _guide_query_explicitly_forbids_handoff(query):
+        _record_selection_state("AUTHORIZED_OMISSION", reason="visitor_requested_no_handoff")
+        return None
+    try:
+        profile = _base._inquiry_profile(query)
+    except Exception:
+        profile = {}
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        _record_selection_state("POLICY_SUPPRESSED", reason="acute_safety_risk_gate")
+        return None
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        _record_selection_state(
+            "SELECTED_VERIFIED_FAMILY_DOORWAY",
+            family="community_rule_design_personal_liberty_shared_obligations",
+            title=community_rule_doorway["title"],
+            url=community_rule_doorway["url"],
+        )
+        return community_rule_doorway
     if is_guide_meta_coverage_policy_question(query):
         _record_selection_state("AUTHORIZED_OMISSION", reason="guide_coverage_policy_question")
         return None
@@ -10281,11 +10360,6 @@ def _general_guide_authoritative_doorway(query, context_data):
     else:
         _record_selection_state("EVALUATING")
     try:
-        profile = _base._inquiry_profile(query)
-        if profile.get("risk") or profile.get("action") == "risk":
-            _record_selection_state("POLICY_SUPPRESSED", reason="risk_gate")
-            return None
-
         candidates = []
         protected = (
             context_data.get("generation_authority_protected_docs")

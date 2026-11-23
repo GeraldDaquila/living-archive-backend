@@ -4,6 +4,8 @@ import pytest
 import json
 
 import provider_bank
+import general_guide_composition as guide_composition
+from provider_quota_control import estimate_input_tokens
 
 
 def _item(provider, model):
@@ -413,7 +415,7 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "SECRET" not in snapshot
 
 
-def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks(monkeypatch):
+def test_general_guide_half_open_candidates_receive_composition_timeout_and_preserve_fallbacks(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
         {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
@@ -459,7 +461,43 @@ def test_general_guide_half_open_probes_use_short_timeout_and_preserve_fallbacks
     assert clock.value == pytest.approx(0.7)
 
 
-def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
+def test_general_guide_half_open_candidate_can_finish_after_old_probe_timeout(monkeypatch):
+    _isolate(monkeypatch)
+    candidate = {
+        **_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        "health_state": "half_open",
+    }
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: [candidate])
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def valid_composition_after_three_seconds(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append(timeout_override)
+        assert timeout_override == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+        clock.value += 3.25
+        return json.dumps({"response": "A complete, grounded answer in three purposeful paragraphs."})
+
+    monkeypatch.setattr(provider_bank, "_call", valid_composition_after_three_seconds)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert calls == [provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS]
+    assert clock.value == pytest.approx(3.25)
+
+
+def test_general_guide_reserves_the_next_half_open_composition_timeout(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
         {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
@@ -494,13 +532,15 @@ def test_general_guide_reserves_the_next_half_open_probe_timeout(monkeypatch):
     )
 
     assert result is None
-    # The 18-second arbitration window admits all seven bounded 2.5s probes.
-    assert len(calls) == 7
+    # A slow full composition receives the supported 5s minimum. The 18s
+    # arbitration window therefore admits three timed-out recovery candidates,
+    # rather than seven calls that cannot finish a substantive answer.
+    assert len(calls) == 3
     assert all(
-        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+        timeout == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(17.5)
+    assert clock.value == pytest.approx(15.0)
 
 
 def _recovery_candidate(
@@ -747,3 +787,80 @@ def test_general_guide_rechecks_minimum_timeout_at_transport_boundary(monkeypatc
     assert "reason=deadline_recheck_insufficient_remaining_time" in output
     assert "candidate_timeout_seconds=4.99" in output
     assert "minimum_timeout_seconds=5.00" in output
+
+
+def _community_rule_gold_star_candidates():
+    return {
+        "candidates": [
+            {
+                "benchmark_id": f"fixture-community-rule-{index}",
+                "score": 0.91 - index * 0.03,
+                "match_basis": "governed_community_tradeoff_policy",
+                "role": "CORE" if index < 3 else "CONDITIONAL",
+                "activation_condition": "when affected-party consent or authority is directly implicated" if index == 3 else "",
+                "query": "How should a community balance personal liberty with collective obligations when setting a fair rule?",
+                "known_theme": "community rule design, personal liberty, collective obligations, proportionality, least restrictive means, fair burden distribution, accommodation, participation, appeal, review, human-scale governance",
+                "reasoning_family": "community_rule_design",
+                "discipline": "identify shared purpose and affected parties; test necessity and proportionality; distribute burdens fairly; include participation, accommodation, appeal, and review",
+                "abstention_boundary": "Do not prescribe a specific restriction without evidence about the actual harm, legal context, affected parties, and available alternatives.",
+            }
+            for index in range(4)
+        ]
+    }
+
+
+def test_community_rule_prompt_loads_only_relevant_task_modules_and_keeps_default_doorway():
+    question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    prompt = guide_composition._build_general_guide_system_prompt(
+        question, gold_star_guidance=True
+    )
+
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
+    assert "For consequential action under uncertainty" in prompt
+    assert "GOLD STAR INTEGRATION RULE" in prompt
+    assert "The answer must stand on its own and, by default, include one concise, optional, verified Living Archive doorway" in prompt
+    assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" not in prompt
+    assert "GOLD STAR REMEDY SELECTION" not in prompt
+    assert "QUOTED-PASSAGE CONTEXT RESTORATION" not in prompt
+    assert "COMMUNITY PROJECT TRADE-OFF QUESTIONS" not in prompt
+
+
+def test_guide_system_prompt_retains_meta_evaluation_modules_only_for_meta_questions():
+    question = "How can we validate Gold Star adaptive learning transfer and decide whether a recurring failure needs engineering repair?"
+    prompt = guide_composition._build_general_guide_system_prompt(question)
+
+    assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" in prompt
+    assert "Separate the claims and identify evidence appropriate to each" in prompt
+    assert "Explain how to make the evidence credible" in prompt
+    assert "GOLD STAR SCOPE GOVERNANCE" in prompt
+    assert "GOLD STAR REMEDY SELECTION" in prompt
+
+
+def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
+    question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    quality = _community_rule_gold_star_candidates()
+    system = guide_composition._build_general_guide_system_message(
+        question,
+        has_gold_star_guidance=True,
+        integrity_recovery_instruction="INTEGRITY RECOVERY: Answer the visitor's exact question using supplied canonical material. Distinguish source-supported claims from inference and do not repeat an unrelated approved answer.",
+        gold_star_quality_instruction=guide_composition._build_gold_star_quality_instruction(quality),
+    )
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": "U" * 7000},
+    ]
+
+    assert estimate_input_tokens(messages) + 900 <= 8000
+
+
+def test_gold_star_quality_standard_remains_active_when_no_candidate_is_available():
+    prompt = guide_composition._build_general_guide_system_message(
+        "How should a community make a fair decision?",
+        has_gold_star_guidance=False,
+    )
+
+    assert "GOLD STAR ADAPTIVE INTELLIGENCE STANDARD v2.0" in prompt
+    assert "PROSE" in prompt
+    assert "ADAPTIVE LEARNING INTEGRITY" in prompt
+    assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" not in prompt
+    assert "LAYERED ANSWERABILITY" in prompt

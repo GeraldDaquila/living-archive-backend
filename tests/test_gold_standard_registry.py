@@ -659,7 +659,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_without_global
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "never requires three paragraphs or any fixed number of response units" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" not in composition_source
-    assert 'CONTRACT_VERSION = "v1.54"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.55"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != general_guide_composition.CONTRACT_VERSION' in main_source
@@ -1028,12 +1028,17 @@ def test_human_development_family_matcher_executes_for_live_regression_query():
         "re": __import__("re"),
         "is_stewardship_consent_relationship_question": is_stewardship_consent_relationship_question,
     }
+    helper = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_guide_query_explicitly_forbids_handoff"
+    )
     fn = next(
         node for node in tree.body
         if isinstance(node, ast.FunctionDef)
         and node.name == "_select_verified_doorway_conceptual_family"
     )
-    exec(compile(ast.Module(body=[fn], type_ignores=[]), "<family>", "exec"), namespace)
+    exec(compile(ast.Module(body=[helper, fn], type_ignores=[]), "<family>", "exec"), namespace)
     assert namespace["_select_verified_doorway_conceptual_family"](
         "What roles do practice, community, and feedback play in development?"
     ) == "human_development_ecology"

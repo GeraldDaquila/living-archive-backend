@@ -73,7 +73,7 @@ def test_active_quality_contribution_exposes_candidate_comparison_fields_only(mo
 
 
 def test_composition_contract_requires_select_combine_or_reject_adjudication():
-    source = inspect.getsource(composition.compose)
+    source = inspect.getsource(composition._build_gold_star_quality_instruction)
     required = (
         "GOLD STAR MULTI-CANDIDATE ADJUDICATION",
         "Select one ",

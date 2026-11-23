@@ -64,7 +64,8 @@ def test_contract_is_scoped_to_shared_composition_and_query_instruction():
     assert "from guide_incomplete_knowledge import build_incomplete_knowledge_plan" in source
     assert "build_incomplete_knowledge_plan(question)" in source
     assert "+ incomplete_knowledge_instruction" in source
-    assert 'incomplete_knowledge_plan["architectural_contract"]' in source
+    assert 'parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))' in source
+    assert "_build_general_guide_system_message(" in source
 
 
 def test_incomplete_knowledge_contract_requires_actionable_epistemic_and_correction_moves():

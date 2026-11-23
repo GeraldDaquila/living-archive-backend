@@ -234,7 +234,12 @@ def test_community_rule_design_selects_the_verified_barangay_doorway(monkeypatch
     expected = {
         "title": "The Barangay Before the State: Human-Scale Governance in Practice",
         "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
-        "rationale": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive.",
+        "rationale": (
+            "This Archive essay examines human-scale governance through community decision-making, "
+            "shared responsibilities, local accountability, and collective coordination. It offers "
+            "a grounded next step for considering how community rules can remain connected to the "
+            "people affected by them."
+        ),
     }
     assert main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS[family] == expected
 

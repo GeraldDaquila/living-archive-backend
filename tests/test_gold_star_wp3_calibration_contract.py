@@ -130,6 +130,12 @@ def test_every_heldout_question_has_a_registered_positive_evaluator_contract():
                     "llm_invoked": True,
                 } if case_id == "heldout-community-rule-design-transfer-001" else None),
             }},
+            expected_doorway=(
+                {
+                    "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                    "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                } if case_id == "heldout-community-rule-design-transfer-001" else None
+            ),
         )
         assert checks and all(item["passed"] for item in checks), {
             "case_id": case_id, "failed_checks": [x for x in checks if not x["passed"]]

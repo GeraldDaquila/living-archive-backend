@@ -298,7 +298,11 @@ def test_community_rule_design_transfer_heldout_accepts_balanced_answer_and_clea
             },
         },
     }
-    checks = evaluate_held(case, transport)
+    expected_doorway = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
     assert all(item["passed"] for item in checks), checks
 
 
@@ -330,7 +334,11 @@ def test_community_rule_design_transfer_heldout_rejects_deterministic_fallback_e
             },
         },
     }
-    checks = evaluate_held(case, transport)
+    expected_doorway = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
     failed = {item["name"] for item in checks if not item["passed"]}
     assert "attributable_llm" in failed
 
@@ -363,7 +371,11 @@ def test_community_rule_design_transfer_rejects_generic_community_ledger_doorway
             },
         },
     }
-    checks = evaluate_held(case, transport)
+    expected_doorway = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
     failed = {item["name"] for item in checks if not item["passed"]}
     assert "relevant_archive_doorway" in failed
 
@@ -387,7 +399,11 @@ def test_community_rule_design_transfer_heldout_rejects_unjustified_majority_rul
             },
         },
     }
-    checks = evaluate_held(case, transport)
+    expected_doorway = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
     assert not all(item["passed"] for item in checks)
     failed = {item["name"] for item in checks if not item["passed"]}
     assert "no_majority_or_convenience_shortcut" in failed
