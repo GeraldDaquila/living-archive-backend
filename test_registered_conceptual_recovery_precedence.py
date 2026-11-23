@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 MAIN = Path(__file__).with_name("main.py").read_text(encoding="utf-8")
+COMPOSITION = Path(__file__).with_name("general_guide_composition.py").read_text(encoding="utf-8")
 
 class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
     def test_registered_recovery_is_not_rejected_by_narrower_intent_classifier(self):
@@ -15,11 +16,15 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("not _guide_composition.is_meta_answer_failure(_conceptual_recovery)", MAIN)
 
     def test_gold_star_baseline_is_wired_into_live_composition(self):
-        self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", MAIN)
-        self.assertIn("_gold_star_quality = _gold_star_active_quality_contribution(query)", MAIN)
-        self.assertIn("Gold Star structural baseline: answer the recognized question first.", MAIN)
-        self.assertIn("if _direct_answer_baseline", MAIN)
-        self.assertIn("_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)", MAIN)
+        # Active Gold Star guidance now belongs to the provider-neutral composer,
+        # not the API boundary. Verify retrieval, structural-only authority,
+        # adjudication, prompt exposure, and exact control-arm isolation there.
+        self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", COMPOSITION)
+        self.assertIn("else _gold_star_active_quality_contribution(question)", COMPOSITION)
+        self.assertIn("gold_star_quality.get(\"authority_mode\") != \"structural_guidance_only\"", COMPOSITION)
+        self.assertIn("gold_star_quality_instruction = _build_gold_star_quality_instruction(gold_star_quality)", COMPOSITION)
+        self.assertIn("gold_star_quality_instruction=gold_star_quality_instruction", COMPOSITION)
+        self.assertIn('evaluation.arm == "control"', COMPOSITION)
 
     def test_gold_star_baseline_uses_application_closing_not_context_fallback(self):
         self.assertIn("Gold Star closing discipline", MAIN)
