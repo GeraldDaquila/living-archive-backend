@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "purpose": "Full historical Gold Star revalidation and best-practice harvesting audit. Historical labels are not treated as current quality proof.",
+  "purpose": "Historical Gold Star revalidation audit for the original 61-record tranche. This is a scoped historical subset, not a full inventory of the current canonical registry.",
   "principles": [
     "Revalidate whole responses against current Guide standards.",
     "Harvest component-level strengths without canonizing a weak whole response.",
@@ -14,7 +14,7 @@
     "control_or_fixture": 10,
     "other": 1,
     "provenance_gap": 1,
-    "current_gold_standard": 23
+    "approved_gold_standards_in_audited_subset": 23
   },
   "records": [
     {
@@ -444,5 +444,16 @@
       "audit_lane": "candidate_or_incomplete",
       "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
     }
-  ]
+  ],
+  "scope": {
+    "audit_population": "selected_historical_tranche",
+    "historical_audit_records": 61,
+    "canonical_registry_records": 169,
+    "canonical_registry_unique_ids": 169,
+    "canonical_approved_gold_standards": 133,
+    "canonical_runtime_transfer_approved": 131,
+    "general_purpose_runtime_transfer_records": 127,
+    "general_purpose_transfer_map_entries": 127,
+    "coverage_note": "All historical audit IDs must exist in the canonical registry. The 61-record historical audit is not expected to contain every newer registry record."
+  }
 }
