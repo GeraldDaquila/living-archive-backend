@@ -109,7 +109,7 @@ def test_healthy_community_recommendation_uses_exact_canonical_pair(monkeypatch)
     assert result is not None
     assert result["title"] == expected["title"]
     assert result["url"] == expected["url"]
-    assert calls, "Canonical WordPress retrieval should supply the candidate"
+    assert not calls, "The approved exact canonical pair should be returned directly without a redundant WordPress search"
 
 
 def test_healthy_community_recommendation_rejects_unrelated_candidate(monkeypatch):
@@ -126,14 +126,14 @@ def test_healthy_community_recommendation_rejects_unrelated_candidate(monkeypatc
     monkeypatch.setattr(main, "_general_guide_authoritative_doorway", lambda *_: None)
 
     result = main._healthy_community_canonical_recommendation(query, {})
-    assert result == {
-        "title": "What Healthy Communities Actually Look Like",
-        "url": (
-            "https://geralddaquila.com/2025/10/07/"
-            "t4-codex-overflow-communities-governance-by-resonance/"
-        ),
-        "kind": "archive_resource",
-    }
+    assert result is not None
+    assert result["title"] == "What Healthy Communities Actually Look Like"
+    assert result["url"] == (
+        "https://geralddaquila.com/2025/10/07/"
+        "t4-codex-overflow-communities-governance-by-resonance/"
+    )
+    assert result["kind"] == "archive_resource"
+    assert result["rationale"]
 
 
 def test_pure_navigation_is_not_reclassified_as_healthy_community_topic():
@@ -172,7 +172,7 @@ def test_public_basic_inquiry_payload_carries_exact_canonical_recommendation(mon
     monkeypatch.setattr(main, "_is_navigator_orientation_request", lambda *_args, **_kwargs: False)
     monkeypatch.setattr(main, "_guide_requires_canonical_subject_supplement", lambda *_args, **_kwargs: False)
     monkeypatch.setattr(main, "_guide_discovery_doorway_is_evidence_backed", lambda *_args, **_kwargs: True)
-    monkeypatch.setattr(main, "use_core.fetch_canonical_context", lambda _query: {
+    monkeypatch.setattr(main.use_core, "fetch_canonical_context", lambda _query: {
         "context_blocks": "",
         "canonical_link_context": "",
         "intent": "TOPICAL_INQUIRY",
