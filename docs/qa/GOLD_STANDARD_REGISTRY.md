@@ -946,3 +946,18 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Production evidence:** The same question previously returned an abstention; after PR #1902 was merged and deployed, the live visitor interface returned this substantive answer.
 - **Numbering:** `UNASSIGNED`; no display serial was separately requested.
 - **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star — Fair community rules balancing personal liberty and collective obligations (2026-11-23)
+
+- **Benchmark:** `gs-2026-11-23-community-rule-design-liberty-shared-obligations`.
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; the exact visitor-facing answer is frozen after explicit user elevation.
+- **Question:** “How should a community balance personal liberty with collective obligations when setting a fair rule?”
+- **Answer:** Exact three-paragraph visitor-facing response preserved verbatim in `docs/qa/gold_standard_registry.json` and its dedicated fixture.
+- **Rating:** 9.1/10 (assistant assessment; not represented as a user-supplied numerical rating).
+- **Reasoning discipline:** Establish a legitimate shared purpose and demonstrable harm; include affected people; expose benefits, burdens, and liberty restrictions; require necessity, proportionality, and the least restrictive workable means; distribute obligations fairly; allow accommodation and appeal; and set observable review criteria.
+- **Doorway:** Verified **The Barangay Before the State: Human-Scale Governance in Practice** — https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/ — as a separate continuation, not evidence for the answer.
+- **Adaptive-learning boundary:** Active qualitative contributor only. Transfer the bounded rule-design discipline to relevant community-rule questions; do not copy the answer or doorway, assume restrictions are justified, or replace jurisdiction-specific legal analysis. Exact-answer authority and deterministic fallback remain disabled.
+- **Production evidence boundary:** The supplied screenshot confirms the visitor-facing response and doorway. It does not establish the serving commit or request-correlated Gold Star retrieval, selection, application, or outcome trace.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
+- **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
