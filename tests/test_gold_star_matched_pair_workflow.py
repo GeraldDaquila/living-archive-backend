@@ -4,7 +4,7 @@ from pathlib import Path
 def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     workflow = (
         Path(__file__).resolve().parents[1]
-        / ".github/workflows/gold-star-wp3-paired-capture.yml"
+        / ".github/workflows/gold-star-matched-pair-candidate.yml"
     ).read_text(encoding="utf-8")
     assert 'test/gold-star-matched-pair-runner-20261123' in workflow
     assert "matched-pair-local:" in workflow
@@ -13,8 +13,7 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     assert "gold-star-blind-review-" in workflow
     assert "gold-star-unblinding-evidence-" in workflow
     assert "[run-matched-pairs]" in workflow
-    assert "living-archive-backend.onrender.com" not in workflow
-    assert "living-archive-backend-mirror.onrender.com" in workflow
+    assert ".onrender.com" not in workflow
 
 
 def test_candidate_local_runner_uses_existing_provider_pins_and_complete_asgi_boundary():
@@ -33,6 +32,17 @@ def test_candidate_local_runner_uses_existing_provider_pins_and_complete_asgi_bo
 def test_matched_pair_case_file_is_wired_into_the_workflow():
     workflow = (
         Path(__file__).resolve().parents[1]
-        / ".github/workflows/gold-star-wp3-paired-capture.yml"
+        / ".github/workflows/gold-star-matched-pair-candidate.yml"
     ).read_text(encoding="utf-8")
     assert "docs/qa/gold_star_matched_pair_cases.json" in workflow
+
+
+
+def test_existing_mirror_capture_workflow_remains_main_only():
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/gold-star-wp3-paired-capture.yml"
+    ).read_text(encoding="utf-8")
+    assert "branches: [main]" in workflow
+    assert "living-archive-backend-mirror.onrender.com" in workflow
+    assert "matched-pair-local:" not in workflow
