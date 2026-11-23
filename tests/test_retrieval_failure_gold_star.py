@@ -343,6 +343,8 @@ def test_guide_doorway_policy_remains_default_across_composition_prompt_layers()
     assert "include one concise, verified, relevant Archive doorway separately by default." in source
     assert "include one concise, canonical Archive doorway by default" in source
     assert "A doorway is optional and follows the completed answer." not in source
+    assert "The answer must be complete before any optional doorway appears." not in source
+    assert "The answer must be complete before any optional Archive doorway appears." not in source
     assert "offer a verified relevant doorway only when it materially advances the inquiry." not in source
     assert "offer a canonical Archive doorway only when" not in source
     assert "A doorway is a separate decision: include one only when a verified resource" not in source
