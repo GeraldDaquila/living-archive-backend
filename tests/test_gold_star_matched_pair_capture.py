@@ -5,6 +5,7 @@ from scripts.capture_gold_star_matched_pairs import (
     TARGET_LESSON_ID,
     _safe_provider_identity,
     _skipped_arm,
+    _choose_provider_candidate,
 )
 
 
@@ -140,3 +141,36 @@ def test_all_heldout_community_rule_subfamilies_retrieve_the_target_lesson():
         assert TARGET_LESSON_ID in {
             item["benchmark_id"] for item in selected
         }, case["case_id"]
+
+
+
+def test_exact_provider_model_pin_selects_only_the_requested_eligible_lane():
+    eligible = [
+        {"provider": "groq", "model": "openai/gpt-oss-120b"},
+        {"provider": "groq", "model": "openai/gpt-oss-20b"},
+    ]
+    assert _choose_provider_candidate(
+        eligible, "groq", "openai/gpt-oss-20b"
+    ) == eligible[1]
+
+
+def test_exact_provider_model_pin_fails_closed_when_unavailable():
+    import pytest
+
+    with pytest.raises(RuntimeError, match="not eligible"):
+        _choose_provider_candidate(
+            [{"provider": "groq", "model": "openai/gpt-oss-120b"}],
+            "groq",
+            "openai/gpt-oss-20b",
+        )
+
+
+def test_exact_provider_model_pin_requires_both_values():
+    import pytest
+
+    with pytest.raises(ValueError, match="supplied together"):
+        _choose_provider_candidate(
+            [{"provider": "groq", "model": "openai/gpt-oss-120b"}],
+            "groq",
+            "",
+        )
