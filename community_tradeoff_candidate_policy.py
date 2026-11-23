@@ -71,7 +71,7 @@ def select_community_tradeoff_candidates(
     modes = {"core"}
     if re.search(r"\b(?:rule|rules|policy|policies|restriction\w*|limit\w*)\b", q):
         modes.add("conditional:rule_design")
-    if re.search(r"\b(?:trade[- ]?off|conflict\w*|competing obligations|competing values|competing interests)\b", q):
+    if re.search(r"\b(?:trade[- ]?off|conflict\w*|competing obligations|competing values|competing interests|justif\w*)\b", q):
         modes.add("conditional:ethical_tradeoff")
     if re.search(r"\b(?:stakeholder\w*|affected parties|competing obligations|multiple parties)\b", q):
         modes.add("conditional:stakeholders")
