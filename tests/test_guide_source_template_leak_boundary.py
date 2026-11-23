@@ -204,3 +204,17 @@ def test_metadata_only_doorway_rationale_is_omitted_not_exposed():
         "url": "https://geralddaquila.com/canonical-resource/",
     }
 
+
+def test_source_section_excerpt_is_not_published_as_doorway_rationale():
+    source = {
+        "title": "Being in the Driver’s Seat (Without Pretending You Control the Road)",
+        "url": "https://geralddaquila.com/2026/01/20/being-in-the-drivers-seat-without-pretending-you-control-the-road",
+        "rationale": (
+            "Preface There is a particular moment in prolonged change when something "
+            "subtle shifts. The chaos hasn’t fully ended. The losses are still real."
+        ),
+    }
+    normalized = main._normalize_authoritative_recommendation(source)
+    assert "rationale" not in normalized
+    assert "Preface" not in str(normalized)
+    assert "The chaos" not in str(normalized)
