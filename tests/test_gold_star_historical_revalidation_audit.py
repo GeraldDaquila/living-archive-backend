@@ -17,7 +17,9 @@ def test_historical_revalidation_audit_is_a_valid_scoped_registry_subset():
     assert all(record["audit_lane"] for record in audit["records"])
     assert audit["scope"]["audit_population"] == "selected_historical_tranche"
     assert audit["scope"]["historical_audit_records"] == len(audit["records"])
-    assert audit["scope"]["canonical_registry_records"] == len(registry["records"])
+    # This audit is a frozen historical tranche; later registry additions do not
+    # retroactively enlarge its population. Its IDs must remain a subset.
+    assert audit["scope"]["canonical_registry_records"] <= len(registry["records"])
 
     for record in audit["records"]:
         canonical = registry_by_id[record["benchmark_id"]]
