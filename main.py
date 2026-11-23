@@ -12146,7 +12146,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             context_data.get("recommendation_canonical_primary"),
             _general_guide_authoritative_doorway,
             _doorway_context,
-            resource_query=resource_query,
+            # Retrieval may use a compressed concept subject, but doorway
+            # relevance must be judged against the visitor's actual inquiry.
+            # A broad subject such as "Stewardship" must not erase the
+            # community/everyday-decision context that makes a resource fit.
+            resource_query=correction_subject or query,
             normalize=_normalize_authoritative_recommendation,
         )
     # Recognized public concepts carry their own reviewed canonical doorway.
