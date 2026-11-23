@@ -4,6 +4,8 @@ import pytest
 import json
 
 import provider_bank
+import general_guide_composition as guide_composition
+from provider_quota_control import estimate_input_tokens
 
 
 def _item(provider, model):
@@ -785,3 +787,70 @@ def test_general_guide_rechecks_minimum_timeout_at_transport_boundary(monkeypatc
     assert "reason=deadline_recheck_insufficient_remaining_time" in output
     assert "candidate_timeout_seconds=4.99" in output
     assert "minimum_timeout_seconds=5.00" in output
+
+
+def _community_rule_gold_star_candidates():
+    return {
+        "candidates": [
+            {
+                "benchmark_id": f"fixture-community-rule-{index}",
+                "score": 0.91 - index * 0.03,
+                "match_basis": "governed_community_tradeoff_policy",
+                "role": "CORE" if index < 3 else "CONDITIONAL",
+                "activation_condition": "when affected-party consent or authority is directly implicated" if index == 3 else "",
+                "query": "How should a community balance personal liberty with collective obligations when setting a fair rule?",
+                "known_theme": "community rule design, personal liberty, collective obligations, proportionality, least restrictive means, fair burden distribution, accommodation, participation, appeal, review, human-scale governance",
+                "reasoning_family": "community_rule_design",
+                "discipline": "identify shared purpose and affected parties; test necessity and proportionality; distribute burdens fairly; include participation, accommodation, appeal, and review",
+                "abstention_boundary": "Do not prescribe a specific restriction without evidence about the actual harm, legal context, affected parties, and available alternatives.",
+            }
+            for index in range(4)
+        ]
+    }
+
+
+def test_community_rule_prompt_loads_only_relevant_task_modules_and_keeps_default_doorway():
+    question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    prompt = guide_composition._build_general_guide_system_prompt(
+        question, gold_star_guidance=True
+    )
+
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
+    assert "For consequential action under uncertainty" in prompt
+    assert "GOLD STAR INTEGRATION RULE" in prompt
+    assert "The answer must stand on its own and, by default, include one concise, optional, verified Living Archive doorway" in prompt
+    assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" not in prompt
+    assert "GOLD STAR REMEDY SELECTION" not in prompt
+    assert "QUOTED-PASSAGE CONTEXT RESTORATION" not in prompt
+    assert "COMMUNITY PROJECT TRADE-OFF QUESTIONS" not in prompt
+
+
+def test_guide_system_prompt_retains_meta_evaluation_modules_only_for_meta_questions():
+    question = "How can we validate Gold Star adaptive learning transfer and decide whether a recurring failure needs engineering repair?"
+    prompt = guide_composition._build_general_guide_system_prompt(question)
+
+    assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" in prompt
+    assert "Separate the claims and identify evidence appropriate to each" in prompt
+    assert "Explain how to make the evidence credible" in prompt
+    assert "GOLD STAR SCOPE GOVERNANCE" in prompt
+    assert "GOLD STAR REMEDY SELECTION" in prompt
+
+
+def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
+    question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    quality = _community_rule_gold_star_candidates()
+    system = "\n\n".join(
+        [
+            guide_composition._build_general_guide_system_prompt(question, gold_star_guidance=True),
+            guide_composition._GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
+            guide_composition._LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
+            "INTEGRITY RECOVERY: Answer the visitor's exact question using supplied canonical material. Distinguish source-supported claims from inference and do not repeat an unrelated approved answer.",
+            guide_composition._build_gold_star_quality_instruction(quality),
+        ]
+    )
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": "U" * 7000},
+    ]
+
+    assert estimate_input_tokens(messages) + 900 <= 8000
