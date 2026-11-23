@@ -169,7 +169,7 @@ def compose_teaching_conflict_protocol(
         "So the governing discipline is: **pause, observe, clarify, test against "
         "appropriate evidence, examine ethical impact, act without surrendering your "
         "judgment, and remain open to correction.** Conscience matters as an ethical "
-        "signal that calls for examination; it is not treated as automatic proof. "
+        "signal that calls for examination; conscience is not automatic proof. "
         "Likewise, a teaching is not made true by the authority of the person who gives it."
     )
     return {
