@@ -24,8 +24,11 @@ def test_institutional_legitimacy_selector_rejects_geographic_decoy_explicitly()
         "url": "https://geralddaquila.com/philippine-institutions/",
         "text": "Institutions, governance, public systems, policy, and civic accountability.",
     }
+    # Make the visitor's geographic scope explicit; without it, a Philippine
+    # resource is merely a relevance question, not a geographic mismatch.
     accepted, reason = main._evaluate_outward_doc_eligibility(
-        QUERY, candidate, PROFILE, min_relevance=2
+        "What makes an institution legitimate in the United States?",
+        candidate, PROFILE, min_relevance=2
     )
     assert accepted is False
     assert reason == "geographic_scope_mismatch"
