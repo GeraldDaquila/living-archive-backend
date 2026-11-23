@@ -61,5 +61,6 @@ jobs:
           path: |
             artifacts/gold-star-matched-pairs/matched-pair-evidence.json
             artifacts/gold-star-matched-pairs/unblinding-key.json
+            artifacts/gold-star-matched-pairs/paired-evaluation-template.json
           if-no-files-found: warn
           retention-days: 90
