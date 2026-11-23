@@ -22,7 +22,7 @@ def test_shadow_abstention_emits_explicit_event(monkeypatch, capsys):
 
 
 def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monkeypatch):
-    lessons = [{
+    fixture = [{
         "id": "orientation-lesson",
         "query": "How can someone recover orientation during uncertainty?",
         "known_theme": "orientation, uncertainty, provisional agency",
@@ -34,7 +34,7 @@ def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monk
         "abstention_boundary": "Do not manufacture certainty.",
         "variants": ["How do I regain my bearings amid uncertain change?"],
     }]
-    monkeypatch.setattr(lessons, "_LESSONS", lessons)
+    monkeypatch.setattr(lessons, "_LESSONS", fixture)
     selected = lessons.select_lesson("How can I orient myself while things remain uncertain and unresolved?")
     assert selected is not None
     assert selected["benchmark_id"] == "orientation-lesson"
@@ -42,7 +42,7 @@ def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monk
 
 
 def test_structural_signature_still_abstains_on_unrelated_topic(monkeypatch):
-    lessons = [{
+    fixture = [{
         "id": "orientation-lesson",
         "query": "How can someone recover orientation during uncertainty?",
         "known_theme": "orientation, uncertainty, provisional agency",
@@ -54,7 +54,7 @@ def test_structural_signature_still_abstains_on_unrelated_topic(monkeypatch):
         "abstention_boundary": "Do not manufacture certainty.",
         "variants": [],
     }]
-    monkeypatch.setattr(lessons, "_LESSONS", lessons)
+    monkeypatch.setattr(lessons, "_LESSONS", fixture)
     assert lessons.select_lesson("What is the boiling point of water at sea level?") is None
 
 def test_shadow_match_includes_opaque_request_correlation(monkeypatch, capsys):
