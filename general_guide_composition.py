@@ -4715,24 +4715,55 @@ def compose(
                     return cached_result
                 del _COMPOSITION_CACHE[cache_key]
 
+    base_system_content = (
+        _GENERAL_GUIDE_SYSTEM_COMPACT
+        + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT
+        + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT
+        + (
+            "\n\n" + incomplete_knowledge_plan["architectural_contract"]
+            if incomplete_knowledge_plan else ""
+        )
+        + (
+            "\n\n" + integrity_recovery_instruction.strip()
+            if integrity_recovery_instruction else ""
+        )
+        + (
+            "\n\n" + public_live_source_instruction
+            if public_live_source_instruction else ""
+        )
+    )
+    # Gold Star lesson guidance is the sole treatment difference. Fingerprint
+    # the complete shared system/user prompt without that treatment-only block.
+    system_content = base_system_content + (
+        "\n\n" + gold_star_quality_instruction.strip()
+        if gold_star_quality_instruction else ""
+    )
+    evaluation_base_prompt_fingerprint = ""
+    if evaluation is not None:
+        base_prompt_material = {
+            "operation": OPERATION,
+            "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
+            "max_tokens": 900,
+            "messages": [
+                {"role": "system", "content": base_system_content},
+                {"role": "user", "content": user_content[:7000]},
+            ],
+        }
+        evaluation_base_prompt_fingerprint = hashlib.sha256(
+            json.dumps(
+                base_prompt_material,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
     try:
         result = route_with_model_bank(
             use_core=use_core,
             operation=OPERATION,
             messages=[
-                {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
-                    "\n\n" + incomplete_knowledge_plan["architectural_contract"]
-                    if incomplete_knowledge_plan else ""
-                ) + (
-                    "\n\n" + integrity_recovery_instruction.strip()
-                    if integrity_recovery_instruction else ""
-                ) + (
-                    "\n\n" + gold_star_quality_instruction.strip()
-                    if gold_star_quality_instruction else ""
-                ) + (
-                    "\n\n" + public_live_source_instruction
-                    if public_live_source_instruction else ""
-                )},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": user_content[:7000]},
             ],
             max_tokens=900,
@@ -5072,6 +5103,9 @@ def compose(
         # with the exact provider candidate before any deterministic recovery.
         candidate["_gold_star_evaluation_response_unchanged"] = (
             candidate.get("response") == response
+        )
+        candidate["_gold_star_evaluation_base_prompt_fingerprint"] = (
+            evaluation_base_prompt_fingerprint
         )
 
     if evaluation is None:
