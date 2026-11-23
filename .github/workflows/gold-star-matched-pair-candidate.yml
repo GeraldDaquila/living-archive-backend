@@ -4,6 +4,8 @@ name: Gold Star candidate-local matched-pair evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+# Replaces the former push-only [run-matched-pairs] opt-in with a visible PR-head run.
+# The capture script reads docs/qa/gold_star_matched_pair_cases.json as its pinned case source.
 
 permissions:
   contents: read
