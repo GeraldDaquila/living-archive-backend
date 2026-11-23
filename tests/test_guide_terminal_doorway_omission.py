@@ -312,3 +312,37 @@ def test_json_sender_honors_explicit_no_handoff_instruction():
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
 
+def test_terminal_restoration_preserves_already_verified_server_selected_doorway(monkeypatch):
+    query = "How can a community practice stewardship in everyday decisions?"
+    selected = {
+        "title": "Applied Stewardship Program",
+        "url": "https://geralddaquila.com/applied-stewardship-program/",
+        "rationale": "Its cases examine community stewardship through shared decisions and responsibilities.",
+    }
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _q: None)
+    monkeypatch.setattr(
+        main,
+        "_general_guide_authoritative_doorway",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("terminal restoration must preserve the completed selection")
+        ),
+    )
+    payload = {
+        "response": "A complete practical answer.",
+        "recommendation": selected,
+        "canonical_doorway": selected,
+        "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION",
+        "doorway_selection_evaluated": True,
+        "doorway_selection_source": "final_authoritative_recommendation_contract",
+    }
+
+    result = main._guide_restore_verified_doorway(payload, query)
+
+    assert result["response"] == payload["response"]
+    assert result["recommendation"] == selected
+    assert result["canonical_doorway"] == selected
+    assert result["doorway_title"] == selected["title"]
+    assert result["doorway_url"] == selected["url"]
+    assert result["doorway_decision"] == "selected"
+    assert result["doorway_omission_reason"] is None
+
