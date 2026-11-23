@@ -799,7 +799,8 @@ def test_community_rule_prompt_loads_only_relevant_task_modules_and_keeps_defaul
     assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
     assert "For consequential action under uncertainty" in prompt
     assert "GOLD STAR INTEGRATION RULE" in prompt
-    assert "The answer must stand on its own and, by default, include one concise, optional, verified Living Archive doorway" in prompt
+    assert "A doorway is a separate but default part of the Guide's role" in prompt
+    assert "include one concise, verified Living Archive destination" in prompt
     assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" not in prompt
     assert "GOLD STAR REMEDY SELECTION" not in prompt
     assert "QUOTED-PASSAGE CONTEXT RESTORATION" not in prompt
