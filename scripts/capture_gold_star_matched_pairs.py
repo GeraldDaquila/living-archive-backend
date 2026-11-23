@@ -21,12 +21,12 @@ from typing import Any
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
-SUITE_PATH = ROOT / "docs" / "qa" / "guide_learning_evaluation_set.json"
+CASE_SET_PATH = ROOT / "docs" / "qa" / "gold_star_matched_pair_cases.json"
 TARGET_LESSON_ID = "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
 CASE_IDS = (
     "heldout-community-rule-design-transfer-001",
-    "heldout-strategic-governance-001",
-    "heldout-technical-verification-001",
+    "heldout-policy-implementation-001",
+    "heldout-thermal-conductivity-001",
 )
 CAPTURE_CONTEXT: ContextVar[dict[str, Any] | None] = ContextVar(
     "gold_star_matched_pair_capture", default=None
@@ -91,7 +91,7 @@ def _install_observers(composition):
 
 
 def _load_cases():
-    suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+    suite = json.loads(CASE_SET_PATH.read_text(encoding="utf-8"))
     by_id = {item["case_id"]: item for item in suite.get("cases", [])}
     missing = [case_id for case_id in CASE_IDS if case_id not in by_id]
     if missing:
@@ -335,8 +335,24 @@ async def capture(args) -> dict:
         ),
         "human_review_template": {
             "policy": "Complete blind scoring before consulting the separate unblinding key.",
-            "scale": suite["human_review_rubric"]["scale"],
-            "dimensions": suite["human_review_rubric"]["dimensions"],
+            "scale": {
+                "0": "Fails, contradicts the criterion, or materially misleads.",
+                "1": "Partially satisfies; a meaningful weakness remains.",
+                "2": "Clearly satisfies the criterion.",
+                "NA": "Not applicable; reviewer must record a controlled reason.",
+            },
+            "dimensions": [
+                {"id": dimension, "guidance": "Score this dimension against the case-specific rubric."}
+                for dimension in sorted({
+                    "answer_directness", "factual_accuracy", "archive_grounding_and_provenance",
+                    "cosmology_fidelity", "human_voice_and_respect", "sentence_coherence",
+                    "paragraph_purpose_and_concision", "response_proportionality",
+                    "fractal_coherence", "uncertainty_honesty", "doorway_relevance_and_timing",
+                    "visitor_orientation",
+                } | {
+                    dimension for item in cases for dimension in item.get("critical_dimensions", [])
+                })
+            ],
             "hard_gates": ["safety", "evidence_integrity", "epistemic_calibration"],
             "critical_dimensions_by_case": {
                 item["case_id"]: item["critical_dimensions"] for item in cases
