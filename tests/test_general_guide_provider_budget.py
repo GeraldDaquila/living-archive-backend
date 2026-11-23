@@ -853,11 +853,14 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     assert estimate_input_tokens(messages) + 900 <= 8000
 
 
-def test_gold_star_system_contract_is_omitted_when_no_candidate_is_available():
+def test_gold_star_quality_standard_remains_active_when_no_candidate_is_available():
     prompt = guide_composition._build_general_guide_system_message(
         "How should a community make a fair decision?",
         has_gold_star_guidance=False,
     )
 
-    assert "GOLD STAR ADAPTIVE INTELLIGENCE SYSTEM CONTRACT" not in prompt
+    assert "GOLD STAR ADAPTIVE INTELLIGENCE STANDARD v2.0" in prompt
+    assert "PROSE" in prompt
+    assert "ADAPTIVE LEARNING INTEGRITY" in prompt
+    assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" not in prompt
     assert "LAYERED ANSWERABILITY" in prompt
