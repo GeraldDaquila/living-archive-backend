@@ -2744,7 +2744,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             if re.search(r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b", response, re.I):
                 raise ValueError("method-comparison answer must not be replaced by generic problem-solving advice")
 
-        if _requires_concrete_concept_explanation(query):
+        if _requires_concrete_concept_explanation(query) or _requires_archive_scoped_meaning(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
@@ -2787,7 +2787,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     )
                 if not re.search(r"\b(?:Living Archive|Archive)\b", opening, re.I):
                     raise ValueError("Archive-scoped meaning answer must answer in the named institutional context")
-                if not re.search(r"\b(?:pattern|change|transition|conditions|relationships|institutions|capacities|judgment|agency|development|systems?)\b", opening, re.I):
+                if not re.search(r"\b(?:pattern|change|transition|conditions|relationships|institutions|capacities|judgment|agency|development|systems?|responsibilit\w*|care)\b", opening, re.I):
                     raise ValueError(
                         "Archive-scoped meaning answer must give substantive conceptual content in the opening paragraph"
                     )
