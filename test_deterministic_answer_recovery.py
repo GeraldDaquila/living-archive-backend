@@ -327,7 +327,7 @@ def test_consequential_action_under_uncertainty_has_grounded_doorway_and_rationa
     result = main._guide_restore_verified_doorway(payload, query)
     doorway = result["recommendation"]
     assert doorway is not None
-    assert doorway["title"] == "Sovereign Sensemaking Compass"
+    assert doorway["title"] == "The Sovereign Sensemaking Compass"
     assert doorway["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
     assert "uncertainty" in doorway["rationale"].lower()
     assert "clarity" in doorway["rationale"].lower()
