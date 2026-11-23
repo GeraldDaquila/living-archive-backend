@@ -4717,7 +4717,7 @@ def compose(
                     return cached_result
                 del _COMPOSITION_CACHE[cache_key]
 
-    base_system_content = (
+    base_system_prefix = (
         _GENERAL_GUIDE_SYSTEM_COMPACT
         + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT
         + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT
@@ -4729,16 +4729,23 @@ def compose(
             "\n\n" + integrity_recovery_instruction.strip()
             if integrity_recovery_instruction else ""
         )
+    )
+    base_system_content = base_system_prefix + (
+        "\n\n" + public_live_source_instruction
+        if public_live_source_instruction else ""
+    )
+    # Preserve the established prompt order: treatment-only Gold Star guidance
+    # precedes the public-source instruction exactly as in visitor composition.
+    system_content = (
+        base_system_prefix
+        + (
+            "\n\n" + gold_star_quality_instruction.strip()
+            if gold_star_quality_instruction else ""
+        )
         + (
             "\n\n" + public_live_source_instruction
             if public_live_source_instruction else ""
         )
-    )
-    # Gold Star lesson guidance is the sole treatment difference. Fingerprint
-    # the complete shared system/user prompt without that treatment-only block.
-    system_content = base_system_content + (
-        "\n\n" + gold_star_quality_instruction.strip()
-        if gold_star_quality_instruction else ""
     )
     evaluation_base_prompt_fingerprint = ""
     if evaluation is not None:
