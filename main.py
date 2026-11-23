@@ -6325,6 +6325,42 @@ def _guide_restore_verified_doorway(payload, query):
             safe["doorway_omission_exception_reason"] = None
             return safe
 
+    # Personal decision-agency questions have a reviewed, query-specific
+    # Archive continuation. Preserve the registered answer-and-doorway pair
+    # through terminal restoration; generic retrieval may otherwise return no
+    # candidate and erase the independently approved destination.
+    if (
+        not _gold_star_doorway_omission_is_justified(exact_standard)
+    ):
+        try:
+            from deterministic_answer_recovery import (
+                is_guide_personal_decision_agency_question,
+                registered_recovery_recommendation as _personal_agency_recommendation,
+            )
+            _personal_agency_match = is_guide_personal_decision_agency_question(query)
+            personal_agency_doorway = (
+                _normalize_authoritative_recommendation(
+                    _personal_agency_recommendation(query)
+                )
+                if _personal_agency_match else None
+            )
+        except Exception:
+            personal_agency_doorway = None
+        if personal_agency_doorway is not None:
+            safe["recommendation"] = personal_agency_doorway
+            safe["canonical_doorway"] = personal_agency_doorway
+            safe["authoritative_doorway"] = personal_agency_doorway
+            safe["doorway_title"] = personal_agency_doorway["title"]
+            safe["doorway_url"] = personal_agency_doorway["url"]
+            safe["doorway_rationale"] = personal_agency_doorway["rationale"]
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "reviewed_personal_decision_agency_contract"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     # Reciprocity has its own reviewed, query-specific Archive continuation.
     # Preserve that independently approved selection at the terminal boundary,
     # just as the Trust pathway does, rather than allowing generic retrieval
