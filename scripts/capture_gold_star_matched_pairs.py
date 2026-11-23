@@ -306,15 +306,13 @@ async def capture(args) -> dict:
                 case_family = str(
                     case.get("case_family") or case.get("question_type") or case["case_id"]
                 )
-                # This is a fingerprint of the shared, non-adaptive request contract.
-                # The actual treatment prompt is intentionally different because it
-                # contains the approved lesson's structural guidance.
-                base_system_prompt = composition._build_general_guide_system_message(
-                    case["query"], has_gold_star_guidance=False,
-                    gold_star_quality_instruction="",
-                )
+                # The control system prompt is the actual non-adaptive baseline sent
+                # through the same route. Pairing also includes the exact shared user
+                # message hash; treatment's adaptive system prompt hash is retained per arm.
                 base_prompt_fingerprint = _sha256(
-                    base_system_prompt + "\n\nUSER_CONTENT_SHA256\n"
+                    "CONTROL_SYSTEM_PROMPT_SHA256\\n"
+                    + str(control["actual_system_prompt_sha256"] or "")
+                    + "\\nUSER_CONTENT_SHA256\\n"
                     + str(control["user_content_sha256"] or "")
                 )
                 generation_config = {
