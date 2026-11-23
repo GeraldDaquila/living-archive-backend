@@ -15202,7 +15202,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and not _llm_invoked
         and _provider_name
         and _model_name
-        and not _is_attributable_provider_model(_provider_name, _model_name)
+        and composition_result.get("_provider_execution_verified") is not True
     )
     if (
         composition_result
