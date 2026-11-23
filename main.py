@@ -6699,6 +6699,33 @@ def _guide_restore_verified_doorway(payload, query):
             "reason": "selected_destination_missing_visitor_rationale",
         })
 
+    _recurring_problem_query = bool(re.search(
+        r"\\b(?:same|repeated|recurring)\\s+problems?\\b|"
+        r"\\bproblems?\\s+keep\\s+(?:returning|recurring)\\b",
+        str(query or ""),
+        re.I,
+    ))
+    if doorway and _recurring_problem_query:
+        _doorway_evidence_text = " ".join(
+            str(doorway.get(key) or "")
+            for key in ("title", "rationale", "purpose", "text", "content", "excerpt")
+        )
+        _doorway_evidence_text += " " + " ".join(
+            str(item) for item in (doorway.get("semantic_hints") or [])
+            if isinstance(item, (str, int, float))
+        )
+        if not re.search(
+            r"\\b(?:system|systems|feedback|cycle|cycles|pattern|patterns|"
+            r"conditions|recurrence|recurring|problem|problems)\\b",
+            _doorway_evidence_text,
+            re.I,
+        ):
+            doorway = None
+            selection_trace.update({
+                "status": "NO_RELEVANT_CANDIDATE_AFTER_BOUNDED_SEARCH",
+                "reason": "recurring_problem_doorway_lacks_system_pattern_or_feedback_evidence",
+            })
+
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
     safe["doorway_title"] = doorway.get("title") if doorway else None
