@@ -15201,6 +15201,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and (
             composition_result.get("_provider_execution_modified") is True
             or composition_result.get("_provider_execution_origin_modified") is True
+            or (
+                composition_result.get("_provider_execution_verified") is True
+                and _llm_candidate_text
+                and _final_response_text != _llm_candidate_text
+            )
         )
     )
     _cached_provider_composition = bool(
