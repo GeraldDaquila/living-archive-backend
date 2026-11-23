@@ -143,7 +143,7 @@ def test_basic_inquiry_uses_deterministic_recovery_before_provider_or_retrieval(
     start = MAIN_SOURCE.index("def _basic_inquiry_response(")
     end = MAIN_SOURCE.index("def _v48831_basic_inquiry_seam_self_audit(", start)
     block = MAIN_SOURCE[start:end]
-    exact_standard = block.index("_resolve_exact_guide_gold_standard(query)")
+    exact_standard = block.index("_final_exact_gold_standard_authority(query)")
     recovery = block.index("_autonomy_evidence_evaluation_recovery(query)")
     provider_fallback = block.index("_gold_star_remedy_selection_recovery(query)")
     assert exact_standard < recovery < provider_fallback
@@ -181,6 +181,7 @@ def test_final_visitor_boundary_runtime_recovers_when_payload_response_is_noncom
         "_apply_stewardship_consent_relationship_boundary": lambda _query, payload: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
+        "_final_exact_gold_standard_authority": lambda _query: None,
         "_gold_star_doorway_omission_is_justified": lambda _standard: False,
         "general_guide_composition": type(
             "Composition",
@@ -233,6 +234,7 @@ def test_final_visitor_boundary_preserves_an_already_compliant_autonomy_answer()
         "_apply_stewardship_consent_relationship_boundary": lambda _query, payload: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
+        "_final_exact_gold_standard_authority": lambda _query: None,
         "_gold_star_doorway_omission_is_justified": lambda _standard: False,
         "general_guide_composition": type(
             "Composition",

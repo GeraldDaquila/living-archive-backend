@@ -133,6 +133,7 @@ def test_actual_final_visitor_boundary_repairs_the_exact_query():
         "_guide_finalize_visitor_payload_inner": lambda payload, _query: payload,
         "APP_VERSION": "test",
         "_resolve_exact_guide_gold_standard": lambda _query: None,
+        "_final_exact_gold_standard_authority": lambda _query: None,
         "_gold_star_doorway_omission_is_justified": lambda _standard: False,
         "_normalize_authoritative_recommendation": lambda value: value,
         "is_stewardship_consent_relationship_question": is_stewardship_consent_relationship_question,

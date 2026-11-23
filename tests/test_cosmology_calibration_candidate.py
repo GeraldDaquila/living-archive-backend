@@ -18,5 +18,5 @@ def test_cosmology_gold_standard_retains_exact_answer_authority_and_scope():
     assert record["expected_doorway"]["title"] == "The Worldview of a Conscious Human"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/02/07/the-worldview-of-a-conscious-human/"
     assert "not labels for judging a person" in record["expected_response"]
-    assert "not a claim that one article exhausts" in record["expected_response"]
+    assert "rather than a claim that one article exhausts" in record["expected_response"]
     assert "User explicitly approved promotion to gold standard" in record["provenance"]["user_approval"]
