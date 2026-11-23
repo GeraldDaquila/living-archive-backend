@@ -224,6 +224,34 @@ def test_unapproved_legacy_doorway_metadata_does_not_change_other_gold_star_fall
     assert unrelated["forbids_doorway"] is False
 
 
+
+def test_community_rule_design_selects_the_verified_barangay_doorway(monkeypatch):
+    query = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _query: None)
+    family = main._select_verified_doorway_conceptual_family(query)
+    assert family == "community_rule_design_personal_liberty_shared_obligations"
+
+    expected = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive.",
+    }
+    assert main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS[family] == expected
+
+    result = main._guide_restore_verified_doorway(
+        {"response": "I could not produce a reliable substantive answer just now."},
+        query,
+    )
+    assert result["recommendation"] == expected
+    assert result["canonical_doorway"] == expected
+
+
+def test_community_rule_design_doorway_does_not_capture_generic_community_ledger_queries():
+    query = "How can a community maintain a shared ledger for post-fiat exchange?"
+    assert main._select_verified_doorway_conceptual_family(query) != (
+        "community_rule_design_personal_liberty_shared_obligations"
+    )
+
 def test_exact_gold_star_doorway_survives_terminal_family_selection(monkeypatch):
     standard = {
         "benchmark_id": "fixture-exact-doorway",
