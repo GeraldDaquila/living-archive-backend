@@ -25,8 +25,8 @@ _CANDIDATES = (
     },
     {
         "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
-        "role": "core",
-        "condition": "A genuine conflict between important interests or values is present.",
+        "role": "conditional",
+        "condition": "The question explicitly identifies a trade-off, conflict, or competing obligations or interests.",
         "rationale": "Adds the broader discipline for deciding difficult trade-offs fairly.",
     },
     {
@@ -89,6 +89,8 @@ def select_community_tradeoff_candidates(
             "core": "core",
             "conditional": (
                 "conditional:stakeholders"
+                if "ethical-tradeoff" in definition["benchmark_id"]
+                else "conditional:stakeholders"
                 if "stakeholder" in definition["benchmark_id"]
                 else "conditional:power"
                 if "power-responsibility" in definition["benchmark_id"]
