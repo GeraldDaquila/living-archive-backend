@@ -7,7 +7,7 @@ from scripts.capture_gold_star_matched_pairs import (
 )
 
 
-def test_matched_pair_suite_includes_community_rule_and_two_unrelated_families():
+def test_matched_pair_suite_includes_three_community_rule_subfamilies():
     assert CASE_IDS == (
         "heldout-community-rule-design-transfer-001",
         "heldout-community-rule-necessity-002",
@@ -68,3 +68,16 @@ def test_custom_case_set_has_three_distinct_families_and_target_lesson():
         if case["case_id"] == "heldout-community-rule-design-transfer-001"
     )
     assert "personal liberty" in target["query"]
+
+
+
+def test_unrelated_physical_science_question_excludes_community_rule_gold_star():
+    import gold_star_lessons
+
+    selected = gold_star_lessons.select_lesson_candidates(
+        "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?",
+        limit=4,
+    )
+    assert TARGET_LESSON_ID not in {
+        item["benchmark_id"] for item in selected
+    }
