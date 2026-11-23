@@ -103,17 +103,18 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         normalized_query = str(query or "").casefold()
         if "stewardship" in normalized_query:
             result["generation_authority_protected_docs"].append({
-                "title": "Leadership Foundations",
-                "url": "https://geralddaquila.com/leadership-foundations/",
+                "title": "Applied Stewardship Program",
+                "url": "https://geralddaquila.com/applied-stewardship-program/",
                 "content": (
-                    "Leadership is a behavioral process rooted in integrity, "
-                    "accountability, self-governance, and everyday responsibility. "
-                    "It begins in ordinary life: making decisions when outcomes are "
-                    "uncertain, relating to responsibility, navigating conflict, "
-                    "exercising judgment, and influencing the surrounding environment. "
-                    "The page discusses guiding teams, systems, institutions, and "
-                    "communities; stewardship and governance; systems responsibility; "
-                    "and leadership under complexity and constraint."
+                    "The Applied Stewardship Program is a case-based learning "
+                    "framework for ethical leadership and systems responsibility. "
+                    "It examines how responsibility unfolds through personal ethical "
+                    "decisions, organizational management, institutional governance, "
+                    "and complex social systems. Stewardship appears wherever people "
+                    "make decisions that influence others, shape institutions, or "
+                    "affect shared resources. Its cases examine everyday situations, "
+                    "decision-making, competing responsibilities, communities, and "
+                    "how stewardship principles are practiced under real-world conditions."
                 ),
             })
         return result
@@ -130,8 +131,8 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         if "community" not in normalized_query or "stewardship" not in normalized_query:
             return []
         return [{
-            "title": "Leadership Foundations",
-            "url": "https://geralddaquila.com/leadership-foundations/",
+            "title": "Applied Stewardship Program",
+            "url": "https://geralddaquila.com/applied-stewardship-program/",
             "text": (
                 "Leadership begins in how people respond under pressure, make "
                 "decisions when outcomes are uncertain, and relate to responsibility. "
@@ -569,8 +570,8 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert composer_calls == []
     # The answer remains direct and complete; the separately selected
     # canonical doorway is an optional continuation, not part of composition.
-    assert payload["recommendation"]["title"] == "Leadership Foundations"
-    assert payload["recommendation"]["url"] == "https://geralddaquila.com/leadership-foundations/"
+    assert payload["recommendation"]["title"] == "Applied Stewardship Program"
+    assert payload["recommendation"]["url"] == "https://geralddaquila.com/applied-stewardship-program/"
     assert payload["answer_basis"]["kind"] == "general_knowledge"
     assert payload["processing"] == "basic_inquiry"
 
