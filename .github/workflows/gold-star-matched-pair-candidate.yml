@@ -1,4 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
+# Candidate rerun after source-level recovery and integrity corrections.
 
 on:
   push:
