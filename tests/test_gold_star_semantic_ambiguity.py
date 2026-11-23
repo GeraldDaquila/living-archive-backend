@@ -51,10 +51,10 @@ def test_unrelated_decision_question_does_not_receive_semantic_ambiguity_lesson(
 
 def test_compact_composition_contract_is_question_first_and_subject_adaptive():
     prompt = _GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "QUESTION-FIRST, SUBJECT-ADAPTIVE COMPOSITION CONTRACT" in prompt
-    assert "delivery-quality floor, not a universal content template" in prompt
-    assert "Treat every specialized section below as conditional" in prompt
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
+    assert "not a prescribed answer template and not a mandatory three-paragraph structure" in prompt
+    assert "Specialized guidance is conditional and must remain dormant outside its defined scope." in prompt
     assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in prompt
     assert "Do not replace this task with generic decision, stewardship, or governance advice." in prompt
-    assert "QUESTION-FIRST, SUBJECT-ADAPTIVE COMPOSITION CONTRACT" in _GENERAL_GUIDE_SYSTEM
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in _GENERAL_GUIDE_SYSTEM
     assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in _GENERAL_GUIDE_SYSTEM
