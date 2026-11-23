@@ -133,3 +133,34 @@ def test_new_rule_design_gold_star_exact_match_does_not_grant_exact_answer_autho
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
 
+
+
+
+def test_community_rule_burden_query_keeps_specific_candidates_within_bound():
+    query = (
+        "What makes limits on personal liberty fair when a community must balance "
+        "shared responsibilities, unequal burdens, and the voices of affected members?"
+    )
+    selected = _selected(query)
+    ids = [item["benchmark_id"] for item in selected]
+    assert len(selected) <= 4
+    assert "gs-2026-11-23-community-rule-design-liberty-shared-obligations" in ids
+    assert "gs-2026-11-22-community-freedom-shared-responsibility-decision" in ids
+    assert "gs-2026-11-20-power-responsibility-proportional-accountability" in ids
+    assert "gs-2026-11-20-stewardship-consent-relational-legitimacy" in ids
+    assert "general-guide-ethical-tradeoff-2026-10" not in ids
+
+
+def test_community_rule_burden_query_yields_active_structural_contribution():
+    query = (
+        "What makes limits on personal liberty fair when a community must balance "
+        "shared responsibilities, unequal burdens, and the voices of affected members?"
+    )
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert any(
+        item["benchmark_id"]
+        == "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+        for item in contribution["candidates"]
+    )
