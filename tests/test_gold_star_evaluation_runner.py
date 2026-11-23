@@ -29,8 +29,8 @@ def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidanc
             "provider": "other-provider" if mismatch else context.provider,
             "model": context.model,
             "response": f"Synthetic {arm} output.",
-            "doorway_title": "",
-            "doorway_url": "",
+            "doorway_title": f"Private {arm} doorway",
+            "doorway_url": f"https://example.test/{arm}",
             "_gold_star_evaluation_response_unchanged": not rewrite,
             "_gold_star_evaluation_base_prompt_fingerprint": "c" * 64 if not base_mismatch or arm == "control" else "d" * 64,
             "_gold_star_adjudication_trace": trace,
@@ -39,9 +39,24 @@ def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidanc
     return fake_compose, calls
 
 
-def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch):
+@pytest.mark.parametrize(
+    "generation_order",
+    [("control", "treatment"), ("treatment", "control")],
+)
+def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(
+    monkeypatch, generation_order
+):
     fake_compose, calls = _fake_compose_factory()
     monkeypatch.setattr(runner._composition, "compose", fake_compose)
+
+    class DeterministicRandom:
+        def shuffle(self, values):
+            if values and isinstance(values[0], str):
+                values[:] = generation_order
+            else:
+                values.reverse()
+
+    monkeypatch.setattr(runner.secrets, "SystemRandom", DeterministicRandom)
 
     result = runner.run_synthetic_matched_pair(
         case_id="heldout-practical-trust-001",
@@ -56,7 +71,7 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
     assert result["persisted"] is False
     assert result["visitor_data_used"] is False
     assert result["fresh_provider_generations"] == 2
-    assert [arm for arm, _query in calls] == ["control", "treatment"]
+    assert [arm for arm, _query in calls] == list(generation_order)
     assert calls[0][1] == calls[1][1]
     assert current_evaluation_context() is None
 
@@ -66,7 +81,8 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
         "Synthetic control output.",
         "Synthetic treatment output.",
     }
-    assert all("arm" not in item for item in artifacts)
+    assert all(set(item) == {"case_id", "artifact_ref", "output"} for item in artifacts)
+    assert all("doorway_title" not in item and "doorway_url" not in item for item in artifacts)
     assert artifacts[0]["artifact_ref"] != artifacts[1]["artifact_ref"]
     assert all("control" not in item["artifact_ref"] and "treatment" not in item["artifact_ref"] for item in artifacts)
 
@@ -79,6 +95,10 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
     assert manifest["control"]["adaptation_enabled"] is False
     assert manifest["treatment"]["adaptation_enabled"] is True
     assert manifest["control"]["output_artifact_ref"] != manifest["treatment"]["output_artifact_ref"]
+    assert manifest["control"]["doorway_title"] == "Private control doorway"
+    assert manifest["control"]["doorway_url"] == "https://example.test/control"
+    assert manifest["treatment"]["doorway_title"] == "Private treatment doorway"
+    assert manifest["treatment"]["doorway_url"] == "https://example.test/treatment"
     assert manifest["treatment_guidance_candidate_count"] == 1
     assert manifest["treatment_guidance_exposure"] == "included_in_provider_prompt"
     assert manifest["adaptation_scope"] == "approved_cross_question_structural_guidance_only"
