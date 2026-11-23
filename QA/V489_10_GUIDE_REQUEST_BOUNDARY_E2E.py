@@ -88,6 +88,17 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
                     "Stewardship asks what we are responsible for and how "
                     "we care for what affects more than ourselves."
                 ),
+            },
+            {
+                "title": "Leadership Foundations",
+                "url": "https://geralddaquila.com/leadership-foundations/",
+                "content": (
+                    "Leadership begins in ordinary decisions and responsibilities. "
+                    "It includes self-governance, integrity, accountability, "
+                    "ethical leadership, stewardship, governance, and decision-making "
+                    "under pressure. Leadership is a human systems function shaped "
+                    "by responsibility, consequence, relationships, and institutions."
+                ),
             }
         ],
     }
