@@ -245,6 +245,13 @@ def test_community_rule_design_selects_the_verified_barangay_doorway(monkeypatch
     assert result["recommendation"] == expected
     assert result["canonical_doorway"] == expected
 
+
+def test_community_rule_design_doorway_does_not_capture_generic_community_ledger_queries():
+    query = "How can a community maintain a shared ledger for post-fiat exchange?"
+    assert main._select_verified_doorway_conceptual_family(query) != (
+        "community_rule_design_personal_liberty_shared_obligations"
+    )
+
 def test_exact_gold_star_doorway_survives_terminal_family_selection(monkeypatch):
     standard = {
         "benchmark_id": "fixture-exact-doorway",
