@@ -88,8 +88,21 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
                     "Stewardship asks what we are responsible for and how "
                     "we care for what affects more than ourselves."
                 ),
-            },
-            {
+            }
+        ],
+    }
+    context.update(context_flags or {})
+    def controlled_canonical_context(query):
+        # Only the practical-stewardship boundary case receives this separately
+        # verified canonical page; unrelated test queries retain the original
+        # fixture and cannot acquire an accidental recommendation.
+        result = dict(context)
+        result["generation_authority_protected_docs"] = list(
+            context.get("generation_authority_protected_docs") or []
+        )
+        normalized_query = str(query or "").casefold()
+        if "community" in normalized_query and "stewardship" in normalized_query:
+            result["generation_authority_protected_docs"].append({
                 "title": "Leadership Foundations",
                 "url": "https://geralddaquila.com/leadership-foundations/",
                 "content": (
@@ -99,12 +112,11 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
                     "under pressure. Leadership is a human systems function shaped "
                     "by responsibility, consequence, relationships, and institutions."
                 ),
-            }
-        ],
-    }
-    context.update(context_flags or {})
+            })
+        return result
+
     monkeypatch.setattr(
-        use_main.use_core, "fetch_canonical_context", lambda query: context
+        use_main.use_core, "fetch_canonical_context", controlled_canonical_context
     )
     # Keep existing request-boundary tests deterministic and offline. Dedicated
     # recovery tests inject canonical search results explicitly.
