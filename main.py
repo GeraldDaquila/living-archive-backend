@@ -797,6 +797,8 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     an approved Guide Node with direct lexical grounding. It never invents a
     destination and still returns None when no verifiable continuation exists.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         return community_rule_doorway
@@ -6241,6 +6243,8 @@ def _boundary_canonical_doorway(payload, query):
     context already attached to the visitor payload; it never invents a link or
     searches beyond the request evidence.
     """
+    if _guide_query_explicitly_forbids_handoff(query):
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         return community_rule_doorway
@@ -10300,6 +10304,9 @@ def _general_guide_authoritative_doorway(query, context_data):
         if isinstance(trace, dict):
             trace.update({"status": status, **details})
 
+    if _guide_query_explicitly_forbids_handoff(query):
+        _record_selection_state("AUTHORIZED_OMISSION", reason="visitor_requested_no_handoff")
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         _record_selection_state(
