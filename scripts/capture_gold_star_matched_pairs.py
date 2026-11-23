@@ -381,6 +381,7 @@ async def capture(args) -> dict:
 
     return {
         "schema_version": "1.0",
+        "evaluation_id": suite["evaluation_id"],
         "evaluation_mode": "local_candidate_same_provider_model_paired_generation",
         "semantic_certification": False,
         "runtime_commit": runtime_commit,
