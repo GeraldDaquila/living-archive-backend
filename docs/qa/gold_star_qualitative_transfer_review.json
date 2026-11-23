@@ -1175,6 +1175,15 @@
       "qualifying_context": "Visitors asking how a community or collective should make a fair, workable decision when individual freedom and shared responsibility appear to conflict, including close paraphrases involving shared obligations, collective needs, rights, participation, proportionality, and accountability.",
       "abstention_boundary": "Apply only to substantive community or collective decision questions balancing individual freedom with shared responsibility. Do not treat collective preference as sufficient authority to override rights; assume every proposed restriction is necessary or proportionate; replace jurisdiction-specific legal analysis; or decide a concrete dispute without its facts, governing rules, affected parties, and evidence. Preserve consent, meaningful agency, and genuine appeal or correction. Do not transfer the exact answer, its wording, or any doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
+      "question": "How should a community balance personal liberty with collective obligations when setting a fair rule?",
+      "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+      "transferable_discipline": "For community rules that constrain personal liberty in the name of collective obligations, identify the legitimate shared purpose and demonstrable harm or coordination need; include the people most affected; examine who benefits, who bears costs, and whose freedom is restricted; require necessity, proportionality, and the least restrictive workable means; distribute obligations fairly with reasonable accommodation; explain enforcement and provide appeal; and set observable review criteria. Collective convenience or majority preference alone does not justify controlling private choices.",
+      "qualifying_context": "Visitors asking how to formulate or evaluate a fair community rule when individual liberty and collective obligations appear to conflict, including shared-space rules, resource use, safety, risk, and coordination.",
+      "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
