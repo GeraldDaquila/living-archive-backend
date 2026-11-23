@@ -29,6 +29,50 @@ HELD_OUT_CASE_IDS = frozenset({
 })
 ARM_TIMEOUT_SECONDS = 45
 MAX_PAIRS_PER_PROCESS = 3
+MIRROR_SERVICE_ID = "srv-db2s2bid0e5s73e7gt9g"
+
+
+def evaluation_route_authorized(
+    *,
+    service_id: str,
+    enabled_flag: str,
+    expected_secret: str,
+    supplied_secret: str,
+) -> bool:
+    """Require explicit enablement, the exact Mirror service, and a strong secret."""
+    expected = str(expected_secret or "")
+    supplied = str(supplied_secret or "")
+    if (
+        str(service_id or "").strip() != MIRROR_SERVICE_ID
+        or str(enabled_flag or "").strip().casefold() != "true"
+        or len(expected) < 32
+        or not supplied
+    ):
+        return False
+    return secrets.compare_digest(expected, supplied)
+
+
+def validate_evaluation_request_payload(payload: Any) -> dict[str, str]:
+    """Accept only one allowlisted synthetic case and an exact provider/model pin."""
+    if not isinstance(payload, dict) or set(payload) != {"case_id", "provider", "model"}:
+        raise GoldStarEvaluationRunError("invalid_evaluation_payload")
+    case_id = payload.get("case_id")
+    provider = payload.get("provider")
+    model = payload.get("model")
+    if not all(isinstance(value, str) for value in (case_id, provider, model)):
+        raise GoldStarEvaluationRunError("invalid_evaluation_payload")
+    case_id = case_id.strip()
+    provider = provider.strip()
+    model = model.strip()
+    if (
+        case_id not in HELD_OUT_CASE_IDS
+        or not provider
+        or len(provider) > 128
+        or not model
+        or len(model) > 256
+    ):
+        raise GoldStarEvaluationRunError("invalid_evaluation_payload")
+    return {"case_id": case_id, "provider": provider, "model": model}
 
 
 class GoldStarEvaluationRunError(ValueError):
