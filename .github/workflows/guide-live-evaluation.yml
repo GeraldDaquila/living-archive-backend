@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/guide-live-evaluation.yml"
+      - "provider_bank.py"
       - "scripts/guide_live_evaluation.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/guide_learning_evaluation_set.json"
