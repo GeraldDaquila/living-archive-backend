@@ -12934,10 +12934,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             try:
                 _practical_doorway_context = dict(_doorway_source_context)
                 _practical_doorway_context["_skip_doorway_search_recovery"] = True
+                _practical_selection_trace = {}
+                _practical_doorway_context["_doorway_selection_trace"] = _practical_selection_trace
                 _practical_doorway_candidate = _normalize_authoritative_recommendation(
                     _general_guide_authoritative_doorway(
                         query, _practical_doorway_context
                     )
+                )
+                print(
+                    "The Guide practical doorway recovery: "
+                    f"selected={bool(_practical_doorway_candidate)}, "
+                    f"status={_practical_selection_trace.get('status') or 'unknown'}, "
+                    f"error={_practical_selection_trace.get('error_type') or 'none'}"
                 )
                 if _practical_doorway_candidate:
                     authoritative_doorway = _practical_doorway_candidate
