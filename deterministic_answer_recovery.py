@@ -1053,6 +1053,7 @@ def has_registered_recovery(question):
         or is_orientation_information_contrast_question(question)
         or is_guide_meta_coverage_policy_question(question)
         or is_epistemic_category_distinction_question(question)
+        or bool(compose_task_specific_recovery(question))
     )
 
 
