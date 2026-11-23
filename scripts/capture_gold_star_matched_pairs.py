@@ -104,7 +104,9 @@ def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
     return (
         str(provenance.get("provider") or payload.get("provider") or "").strip(),
         str(provenance.get("model") or payload.get("model") or "").strip(),
-        provenance.get("llm_invoked") is True
+        bool(str(provenance.get("provider") or payload.get("provider") or "").strip())
+        and bool(str(provenance.get("model") or payload.get("model") or "").strip())
+        and provenance.get("llm_invoked") is True
         and str(provenance.get("class") or "").casefold() in {
             "llm", "language_model", "model_generation"
         },
