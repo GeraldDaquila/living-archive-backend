@@ -1040,6 +1040,35 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
 
+def _log_openai_empty_response_shape(data, provider, model):
+    """Log response-shape metadata only; never expose reasoning or answer text."""
+    choices = data.get("choices") if isinstance(data, dict) else None
+    choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
+    message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
+    usage = data.get("usage") if isinstance(data, dict) and isinstance(data.get("usage"), dict) else {}
+    completion_details = usage.get("completion_tokens_details")
+    completion_details = completion_details if isinstance(completion_details, dict) else {}
+    content = message.get("content")
+    reasoning_content = message.get("reasoning_content")
+    reasoning = message.get("reasoning")
+    print(
+        "USE provider empty response shape: "
+        f"provider={provider}, model={model}, "
+        f"response_keys={','.join(sorted(str(key) for key in data.keys())) if isinstance(data, dict) else 'none'}, "
+        f"choice_count={len(choices) if isinstance(choices, list) else 0}, "
+        f"finish_reason={choice.get('finish_reason') or 'missing'}, "
+        f"message_keys={','.join(sorted(str(key) for key in message.keys())) or 'none'}, "
+        f"content_type={type(content).__name__}, "
+        f"content_chars={len(content) if isinstance(content, str) else 0}, "
+        f"reasoning_content_present={bool(reasoning_content)}, "
+        f"reasoning_content_chars={len(reasoning_content) if isinstance(reasoning_content, str) else 0}, "
+        f"reasoning_present={bool(reasoning)}, "
+        f"reasoning_chars={len(reasoning) if isinstance(reasoning, str) else 0}, "
+        f"completion_tokens={usage.get('completion_tokens') or 0}, "
+        f"reasoning_tokens={completion_details.get('reasoning_tokens') or 0}"
+    )
+
+
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
@@ -1053,6 +1082,12 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
         "nvidia/nemotron-3.5-super-vl-120b-a12b",
     }:
         payload["chat_template_kwargs"] = {"enable_thinking": False}
+    if provider == "nvidia" and model == "nvidia/nemotron-3.5-super-vl-120b-a12b":
+        # NVIDIA's hosted Super-VL API documents reasoning_effort="none" as
+        # the preferred direct-answer control. Keep chat_template_kwargs as a
+        # compatible explicit setting, but do not rely on it alone for this
+        # endpoint: a reasoning-only completion has no visitor-facing content.
+        payload["reasoning_effort"] = "none"
     json_mode = not _text_mode(schema)
     # OpenRouter may dynamically route to free models that reject the OpenAI
     # response_format extension or return an empty transport envelope. Keep the
@@ -1080,14 +1115,20 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
                 provider, model, category="invalid_provider_response"
             ) from exc
         try:
-            content = data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError, TypeError) as exc:
+            choice = data["choices"][0]
+            message = choice["message"]
+            content = message.get("content")
+        except (KeyError, IndexError, TypeError, AttributeError) as exc:
+            if provider == "nvidia":
+                _log_openai_empty_response_shape(data, provider, model)
             raise ProviderCallError(
                 provider + " returned no text", provider, model,
                 category="invalid_provider_response"
             ) from exc
         content = str(content or "").strip()
         if not content:
+            if provider == "nvidia":
+                _log_openai_empty_response_shape(data, provider, model)
             raise ProviderCallError(
                 provider + " returned empty message content", provider, model,
                 category="invalid_provider_response"
@@ -1584,9 +1625,20 @@ def select(use_core, operation="generic", schema=None):
                 telemetry_ready = attempts >= 3
                 prediction_penalty = ((shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)) if telemetry_ready else 0.0
                 last_success = float(item.get("last_success", 0) or 0)
+                # NVIDIA's Super-VL endpoint exposes a documented
+                # reasoning_effort="none" control. Within the same health tier
+                # and prior-success class, prefer that direct-answer lane before
+                # stale transport counters; empty content still fails contract.
+                nvidia_direct_answer_priority = (
+                    0
+                    if str(item.get("provider") or "") == "nvidia"
+                    and str(item.get("model") or "") == "nvidia/nemotron-3.5-super-vl-120b-a12b"
+                    else 1
+                )
                 return (
                     0 if item.get("health_state") == "healthy" else 1,
                     0 if last_success > 0 else 1,
+                    nvidia_direct_answer_priority,
                     int(item.get("transport_failures", 0) or 0),
                     int(item.get("consecutive_failures", 0) or 0),
                     -last_success,

@@ -15,6 +15,7 @@ on:
       - "test_provider_bank_capacity_metrics.py"
       - "test_provider_recovery_contract.py"
       - "test_provider_response_preservation.py"
+      - "tests/test_nvidia_reasoning_response_contract.py"
       - "test_server_capacity_contract.py"
       - "test_server_capacity_bridge_contract.py"
       - "test_server_delegation_policy.py"
@@ -46,5 +47,6 @@ jobs:
             test_provider_bank_capacity_metrics.py \
             test_provider_bank_capacity_lifecycle.py \
             test_provider_response_preservation.py \
+            tests/test_nvidia_reasoning_response_contract.py \
             test_provider_recovery_contract.py \
             test_server_capacity_bridge_contract.py
