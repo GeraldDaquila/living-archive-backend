@@ -278,6 +278,8 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    if _guide_query_explicitly_forbids_handoff(text):
+        return None
     from institutional_learning_failure_contract import is_institutional_learning_failure_question
     if is_institutional_learning_failure_question(text):
         return "institutional_learning_failure"
@@ -305,6 +307,18 @@ def _select_verified_doorway_conceptual_family(query):
         return "transformation_rebranding"
     if is_stewardship_consent_relationship_question(text):
         return "stewardship_consent_relational_legitimacy"
+    # Community rule design that constrains personal liberty in the name of
+    # shared obligations needs a specific human-scale governance doorway.
+    # Do not let the broad word "community" route this question to an
+    # unrelated community-ledger or post-fiat trade resource.
+    community_rule_design = (
+        re.search(r"\b(?:community|communities|residents|neighbors)\b", text, re.I)
+        and re.search(r"\b(?:liberty|freedom|rights?|personal choice)\b", text, re.I)
+        and re.search(r"\b(?:obligations?|shared responsibility|collective duties?|common good|shared risks?)\b", text, re.I)
+        and re.search(r"\b(?:rules?|polic(?:y|ies)|restrictions?|limits?|decid\w*|justif\w*)\b", text, re.I)
+    )
+    if community_rule_design:
+        return "community_rule_design_personal_liberty_shared_obligations"
     # Keep this selector self-contained: it is also exercised as an isolated
     # AST-extracted unit. Require the combined leadership, institutional,
     # incentive, and extraction signals before selecting the reviewed doorway.
@@ -513,6 +527,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
+    "community_rule_design_personal_liberty_shared_obligations": {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": (
+            "This Archive essay examines human-scale governance through community decision-making, "
+            "shared responsibilities, local accountability, and collective coordination. It offers "
+            "a grounded next step for considering how community rules can remain connected to the "
+            "people affected by them."
+        ),
+    },
     "stewardship_significance": {
         "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
@@ -642,49 +666,16 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     },
 }
 
-
 def _community_rule_design_canonical_doorway(query):
-    """Return the independently verified human-scale governance doorway for this narrow query family."""
-    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
-    if not (
-        re.search(r"\bcommunity\b", normalized)
-        and re.search(
-            r"\b(?:rule|rules|limit|limits|restriction|restrictions|liberty|freedom|rights?|obligation|obligations|shared responsibility)\b",
-            normalized,
-        )
-        and re.search(
-            r"\b(?:decide|decision|justify|justified|necessary|proportionate|balance|design|set|establish)\b",
-            normalized,
-        )
-    ):
+    """Resolve the Barangay doorway through the shared verified-family registry."""
+    family = _select_verified_doorway_conceptual_family(query)
+    if family != "community_rule_design_personal_liberty_shared_obligations":
         return None
-    return {
-        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
-        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
-        "rationale": (
-            "This Archive essay examines human-scale governance through community decision-making, "
-            "shared responsibilities, local accountability, and collective coordination. It offers "
-            "a grounded next step for considering how community rules can remain connected to the "
-            "people affected by them."
-        ),
-    }
+    candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+    return dict(candidate) if isinstance(candidate, dict) else None
 
 
 
-def _guide_doorway_risk_suppression_is_required(query, profile=None):
-    """Suppress navigation only for acute safety situations, not abstract risk analysis."""
-    profile = profile or _base._inquiry_profile(query)
-    if not (profile.get("risk") or profile.get("action") == "risk"):
-        return False
-    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
-    return bool(
-        re.search(
-            r"\b(?:self[- ]harm|suicid\w*|kill myself|hurt myself|overdose|poison|"
-            r"medical emergency|physical danger|immediate danger|urgent safety|"
-            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\b",
-            normalized,
-        )
-    )
 
 
 def _select_guide_node_fallback_doorway(query):
@@ -697,10 +688,13 @@ def _select_guide_node_fallback_doorway(query):
     """
     if _guide_query_explicitly_forbids_handoff(query):
         return None
-    normalized = str(query or "").casefold()
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         return community_rule_doorway
+    normalized = str(query or "").casefold()
     from deterministic_answer_recovery import (
         is_guide_personal_decision_agency_question,
         registered_recovery_recommendation,
@@ -801,12 +795,12 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     """
     if _guide_query_explicitly_forbids_handoff(query):
         return None
-    community_rule_doorway = _community_rule_design_canonical_doorway(query)
-    if community_rule_doorway:
-        return community_rule_doorway
     profile = profile or _base._inquiry_profile(query)
     if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     try:
         candidate = _canonical_primary_from_docs(docs or [], query, profile)
     except Exception:
@@ -837,6 +831,22 @@ def _guide_query_explicitly_forbids_handoff(query):
         r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
     )
     return any(re.search(pattern, value, re.I) for pattern in patterns)
+
+
+def _guide_doorway_risk_suppression_is_required(query, profile=None):
+    """Suppress navigation only for acute safety situations, not abstract risk analysis."""
+    profile = profile or _base._inquiry_profile(query)
+    if not (profile.get("risk") or profile.get("action") == "risk"):
+        return False
+    normalized = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
+    return bool(
+        re.search(
+            r"\\b(?:self[- ]harm|suicid\\w*|kill myself|hurt myself|overdose|poison|"
+            r"medical emergency|physical danger|immediate danger|urgent safety|"
+            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\\b",
+            normalized,
+        )
+    )
 
 
 def _guide_registered_fact_matches_current_response(query, response, recovery):
@@ -10313,7 +10323,7 @@ def _general_guide_authoritative_doorway(query, context_data):
     if community_rule_doorway:
         _record_selection_state(
             "SELECTED_VERIFIED_FAMILY_DOORWAY",
-            family="community_rule_design",
+            family="community_rule_design_personal_liberty_shared_obligations",
             title=community_rule_doorway["title"],
             url=community_rule_doorway["url"],
         )
