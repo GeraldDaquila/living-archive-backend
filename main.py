@@ -6480,7 +6480,7 @@ def _guide_restore_verified_doorway(payload, query):
         exact_title = str(exact_standard.get("doorway_title") or "").strip()
         exact_url = str(exact_standard.get("doorway_url") or "").strip()
         exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
-        if exact_title and re.match(r"^https://\\S+$", exact_url, re.I):
+        if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
             exact_doorway = {"title": exact_title, "url": exact_url}
             if exact_rationale:
                 exact_doorway["rationale"] = exact_rationale
