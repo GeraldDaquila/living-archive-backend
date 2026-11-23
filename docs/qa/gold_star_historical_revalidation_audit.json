@@ -17,7 +17,11 @@
     "provenance_gap": 1,
     "superseded": 1,
     "approved_gold_standards_in_audited_subset": 27,
-    "superseded_gold_standards_in_audited_subset": 1
+    "superseded_gold_standards_in_audited_subset": 1,
+    "canonical_approved_gold_standards": 134,
+    "canonical_runtime_transfer_approved": 132,
+    "general_purpose_runtime_transfer_records": 128,
+    "general_purpose_transfer_map_entries": 128
   },
   "records": [
     {

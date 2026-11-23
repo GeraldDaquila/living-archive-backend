@@ -1,0 +1,34 @@
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+BENCHMARK_ID = "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+
+
+def test_community_rule_design_gold_star_is_registered_with_bounded_learning_and_verified_doorway():
+    registry = json.loads((ROOT / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    fixture = json.loads((ROOT / "tests/fixtures/gs-2026-11-23-community-rule-design-liberty-shared-obligations.json").read_text(encoding="utf-8"))
+    reviews = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))["entries"]
+    transfer_map = json.loads((ROOT / "docs/qa/gold_star_transferability_map.json").read_text(encoding="utf-8"))
+    record = next(item for item in registry["records"] if item["benchmark_id"] == BENCHMARK_ID)
+    review = next(item for item in reviews if item["benchmark_id"] == BENCHMARK_ID)
+    mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == BENCHMARK_ID)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert len(record["expected_response"].split("\n\n")) == 3
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/"
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert review["activation"] == "active_quality_contributor"
+    assert review["transferable_discipline"] == record["transferable_lesson"]
+    assert mapped["family"] == record["reasoning_family"]
+    assert mapped["structural_lesson"] == record["transferable_lesson"]
+    assert "least restrictive workable means" in mapped["structural_lesson"]

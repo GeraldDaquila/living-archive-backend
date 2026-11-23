@@ -12,8 +12,8 @@
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-guide-coverage-gap-evidence-governance` preserves the exact live answer defining when The Guide may declare an Archive coverage gap. It distinguishes direct coverage, adjacent coverage, verified absence after bounded checks, and retrieval or verification failure. Its meta-policy doorway is intentionally absent; display serial remains `UNASSIGNED`.
 - **Newly elevated 2026-11-20:** `gs-2026-11-20-orientation-vs-information-practical-distinction` preserves the exact live three-paragraph answer to “What does “orientation rather than information” mean in practice?”, its 9.5/10 user approval, and the verified **When Knowledge Is Everywhere** doorway. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
 
-- **Canonical inventory:** 164 registry records; 127 approved-status Gold Star records. Of these, 125 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
-- **Serial inventory:** 39 approved records carry display serials #56–#94. 88 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Canonical inventory (2026-11-23):** 170 registry records; 134 approved Gold Star records. Of these, 132 are active structural-learning contributors with matching qualitative-transfer reviews, one is an approved exact-query-only successor, and one is a superseded historical duplicate retained for provenance. One additional recovered response is pending approval evidence and is excluded from all Gold Star counts.
+- **Serial inventory (2026-11-23):** 39 approved records carry display serials #56–#94. 95 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
 - **Counting rule:** 127 is the canonical approved-status inventory; 125 is the active cross-question structural-learning pool. The exact-query-only successor and superseded historical duplicate remain separately governed. Never use these figures interchangeably.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
@@ -945,4 +945,19 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Adaptive-learning boundary:** Active qualitative contributor only. Transfer the bounded decision discipline to relevant community-governance questions; do not copy the exact answer or imply that collective preference automatically overrides individual rights. Exact-answer authority and deterministic fallback remain disabled.
 - **Production evidence:** The same question previously returned an abstention; after PR #1902 was merged and deployed, the live visitor interface returned this substantive answer.
 - **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star — Fair community rules balancing personal liberty and collective obligations (2026-11-23)
+
+- **Benchmark:** `gs-2026-11-23-community-rule-design-liberty-shared-obligations`.
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; the exact visitor-facing answer is frozen after explicit user elevation.
+- **Question:** “How should a community balance personal liberty with collective obligations when setting a fair rule?”
+- **Answer:** Exact three-paragraph visitor-facing response preserved verbatim in `docs/qa/gold_standard_registry.json` and its dedicated fixture.
+- **Rating:** 9.1/10 (assistant assessment; not represented as a user-supplied numerical rating).
+- **Reasoning discipline:** Establish a legitimate shared purpose and demonstrable harm; include affected people; expose benefits, burdens, and liberty restrictions; require necessity, proportionality, and the least restrictive workable means; distribute obligations fairly; allow accommodation and appeal; and set observable review criteria.
+- **Doorway:** Verified **The Barangay Before the State: Human-Scale Governance in Practice** — https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/ — as a separate continuation, not evidence for the answer.
+- **Adaptive-learning boundary:** Active qualitative contributor only. Transfer the bounded rule-design discipline to relevant community-rule questions; do not copy the answer or doorway, assume restrictions are justified, or replace jurisdiction-specific legal analysis. Exact-answer authority and deterministic fallback remain disabled.
+- **Production evidence boundary:** The supplied screenshot confirms the visitor-facing response and doorway. It does not establish the serving commit or request-correlated Gold Star retrieval, selection, application, or outcome trace.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.

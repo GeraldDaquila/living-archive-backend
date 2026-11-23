@@ -492,11 +492,12 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
         "rationale": (
-            "Burnout can follow prolonged strain and overextension. "
-            "Burnout is not a personal failure; it is a signal that capacity "
-            "and demands have become mismatched."
+            "This resource offers a related perspective on the question you have raised, "
+            "and a useful next step if you would like to explore the topic further in the Living Archive."
         ),
     }
+    assert "Burnout can follow prolonged strain" not in doorway["rationale"]
+    assert "Meta Description" not in doorway["rationale"]
 
 
 def test_deterministic_only_stewardship_disagreement_answers_the_actual_question(monkeypatch):

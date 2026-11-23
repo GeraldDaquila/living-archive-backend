@@ -80,30 +80,56 @@ def test_active_contribution_carries_selected_disciplines_and_boundaries():
     assert all(item["abstention_boundary"].strip() for item in candidates)
 
 
-def test_new_community_freedom_gold_star_transfers_to_a_close_paraphrase():
+def test_community_rule_design_gold_star_transfers_conditionally_to_rule_policy_paraphrase():
     query = (
-        "How should a community balance personal liberty with collective obligations "
-        "when setting a fair rule?"
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
     )
     selected = _selected(query)
     ids = [item["benchmark_id"] for item in selected]
-    target = "gs-2026-11-22-community-freedom-shared-responsibility-decision"
+    target = "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
     assert target in ids
     candidate = next(item for item in selected if item["benchmark_id"] == target)
     assert candidate["exact"] is False
     assert candidate["match_basis"] == "governed_community_tradeoff_policy"
+    assert candidate["role"] == "conditional"
+    assert candidate["activation_condition"]
     assert candidate["transferable_discipline"]
     assert candidate["abstention_boundary"]
 
 
-def test_paraphrase_contribution_includes_new_gold_star_as_structural_guidance_only():
+def test_rule_design_paraphrase_contribution_includes_new_gold_star_as_conditional_structural_guidance():
     query = (
-        "How should a community balance personal liberty with collective obligations "
-        "when setting a fair rule?"
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
     )
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
     assert contribution["authority_mode"] == "structural_guidance_only"
     assert contribution["benchmark_id"] == "gs-2026-11-22-community-freedom-shared-responsibility-decision"
-    assert contribution["exact"] is False
-    assert contribution["abstention_boundary"]
+    candidate = next(item for item in contribution["candidates"] if item["benchmark_id"] == "gs-2026-11-23-community-rule-design-liberty-shared-obligations")
+    assert candidate["exact"] is False
+    assert candidate["role"] == "conditional"
+    assert candidate["discipline"]
+    assert candidate["abstention_boundary"]
+
+def test_new_rule_design_gold_star_exact_match_does_not_grant_exact_answer_authority():
+    query = (
+        "How should a community balance personal liberty with collective obligations "
+        "when setting a fair rule?"
+    )
+    selected = _selected(query)
+    assert len(selected) == 1
+    assert selected[0]["benchmark_id"] == "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+    assert selected[0]["exact"] is True
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["exact"] is True
+    import json
+    from pathlib import Path
+    registry = json.loads((Path(__file__).resolve().parents[1] / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(item for item in registry["records"] if item["benchmark_id"] == selected[0]["benchmark_id"])
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+
