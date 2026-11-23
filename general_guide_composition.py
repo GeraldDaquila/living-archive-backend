@@ -2637,6 +2637,22 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
 
 
 
+def _composition_response_shape_diagnostic(parsed: Dict[str, Any], raw: str) -> str:
+    """Describe a rejected JSON envelope without logging answer text or reasoning."""
+    value = parsed.get("response")
+    raw_value = str(value or "")
+    sanitized = _sanitize_candidate(value)
+    keys = sorted(str(key) for key in parsed.keys())
+    return (
+        "response_key_present=" + str("response" in parsed)
+        + ", response_type=" + type(value).__name__
+        + ", response_raw_chars=" + str(len(raw_value))
+        + ", response_sanitized_chars=" + str(len(sanitized))
+        + ", envelope_chars=" + str(len(str(raw or "")))
+        + ", top_level_keys=" + ",".join(keys[:12])
+    )
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_candidates: Any = None, emit_telemetry: bool = True):
     titles = {item["title"] for item in documents}
     def _parse_strict(raw: str) -> Dict[str, Any]:
@@ -2649,7 +2665,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
 
         response = _sanitize_candidate(parsed.get("response"))
         if not response:
-            raise ValueError("general composition returned an empty response")
+            raise ValueError(
+                "general composition returned an empty response ("
+                + _composition_response_shape_diagnostic(parsed, raw) + ")"
+            )
         if len(response) < 40:
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
@@ -2923,7 +2942,8 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 response = _sanitize_candidate(parsed.get("response"))
                 if not response:
                     raise ValueError(
-                        "provider response failed basic visitor bounds: empty response"
+                        "provider response failed basic visitor bounds: empty response ("
+                        + _composition_response_shape_diagnostic(parsed, raw) + ")"
                     )
                 if len(response) < 40:
                     raise ValueError("provider response too short for basic visitor bounds")
