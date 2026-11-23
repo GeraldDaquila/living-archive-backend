@@ -6490,9 +6490,10 @@ def _guide_restore_verified_doorway(payload, query):
     # let the general conceptual-family selector replace it with an unrelated
     # but otherwise valid resource at the later terminal doorway boundary.
     if exact_standard is not None:
-        exact_title = str(exact_standard.get("doorway_title") or "").strip()
-        exact_url = str(exact_standard.get("doorway_url") or "").strip()
-        exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
+        exact_fields = _gold_star_expected_doorway_fields(exact_standard)
+        exact_title = exact_fields["title"]
+        exact_url = exact_fields["url"]
+        exact_rationale = exact_fields["rationale"]
         if exact_title and re.match(r"^https://\\S+$", exact_url, re.I):
             exact_doorway = {"title": exact_title, "url": exact_url}
             if exact_rationale:
