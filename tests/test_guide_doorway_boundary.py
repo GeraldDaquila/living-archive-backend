@@ -74,3 +74,17 @@ def test_unmapped_risk_query_does_not_receive_a_late_generic_doorway():
     assert main._verified_archive_doorway_fallback(
         query, [candidate], {"risk": True, "action": "risk"}
     ) is None
+
+
+def test_abstract_consequential_uncertainty_keeps_its_verified_doorway():
+    import main
+
+    query = "How should I make responsible choices when consequences matter but the future is uncertain?"
+    doorway = main._verified_archive_doorway_fallback(
+        query, [], main._base._inquiry_profile(query)
+    )
+    assert doorway is not None
+    assert doorway["title"] == "Sovereign Sensemaking Compass"
+    assert doorway["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+
+
