@@ -834,9 +834,6 @@ def _trust_community_stewardship_recovery():
         "accountability makes trust dependable; stewardship is the shared practice that keeps "
         "both alive. Trust is not a substitute for scrutiny or safeguards; it grows stronger "
         "when people can question decisions and see that commitments are honoured. "
-        "For a deeper exploration of how trust supports "
-        "cooperation and what communities can steward, continue with the Living Archive's "
-        "[Trust Architecture cornerstone](https://geralddaquila.com/trust-architecture/)."
     )
 
 
