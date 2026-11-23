@@ -542,6 +542,19 @@ def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(m
 def test_practical_stewardship_request_bypasses_oversized_composition_envelope(monkeypatch):
     query = "How can a community practice stewardship in its everyday decisions and responsibilities?"
     _install_controlled_provider_and_retrieval(monkeypatch)
+    # Verify the canonical selector against the exact evidence supplied to this
+    # request before exercising the full ASGI boundary. The evidence is grounded
+    # in the published Applied Stewardship Program page.
+    selection_context = use_main.use_core.fetch_canonical_context(query)
+    selection_trace = {}
+    selection_context["_doorway_selection_trace"] = selection_trace
+    selected = use_main._general_guide_authoritative_doorway(
+        query, selection_context
+    )
+    assert selected and selected.get("title") == "Applied Stewardship Program", selection_trace
+    monkeypatch.setattr(
+        use_main.use_core, "fetch_canonical_context", lambda _query: selection_context
+    )
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "auto")
     composer_calls = []
 
