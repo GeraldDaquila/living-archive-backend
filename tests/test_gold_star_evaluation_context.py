@@ -114,6 +114,11 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     monkeypatch.setattr(
         composition, "_registered_exact_gold_standard", lambda _question: None
     )
+    monkeypatch.setattr(
+        composition,
+        "_public_live_source_security_instruction",
+        lambda _context: "PUBLIC SOURCE SECURITY MARKER",
+    )
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
 
     question = (
@@ -148,6 +153,8 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     assert candidate["benchmark_id"] in treatment_system
     assert candidate["discipline"] not in control_system
     assert candidate["discipline"] in treatment_system
+    assert "PUBLIC SOURCE SECURITY MARKER" in treatment_system
+    assert treatment_system.index(candidate["discipline"]) < treatment_system.index("PUBLIC SOURCE SECURITY MARKER")
 
 
 def test_evaluation_marks_deterministic_response_rewrite_as_ineligible(monkeypatch):
