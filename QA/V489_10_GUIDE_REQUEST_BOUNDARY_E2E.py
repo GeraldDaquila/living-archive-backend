@@ -101,7 +101,7 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
             context.get("generation_authority_protected_docs") or []
         )
         normalized_query = str(query or "").casefold()
-        if "community" in normalized_query and "stewardship" in normalized_query:
+        if "stewardship" in normalized_query:
             result["generation_authority_protected_docs"].append({
                 "title": "Leadership Foundations",
                 "url": "https://geralddaquila.com/leadership-foundations/",
