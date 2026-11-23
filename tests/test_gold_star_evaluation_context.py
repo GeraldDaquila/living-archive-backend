@@ -124,6 +124,7 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     question = (
         "How can a local clinic explain who is accountable for delayed test results?"
     )
+    base_prompt_fingerprints = []
     for arm in ("control", "treatment", "control"):
         with evaluation_context(
             arm=arm, provider="groq", model="openai/gpt-oss-120b"
@@ -136,7 +137,9 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
         assert result is not None
         assert result["_gold_star_evaluation_response_unchanged"] is True
         assert len(result["_gold_star_evaluation_base_prompt_fingerprint"]) == 64
+        base_prompt_fingerprints.append(result["_gold_star_evaluation_base_prompt_fingerprint"])
 
+    assert len(set(base_prompt_fingerprints)) == 1
     assert len(route_calls) == 3
     assert len(contribution_calls) == 1
     control_system = next(
