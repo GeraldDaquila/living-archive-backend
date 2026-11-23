@@ -4180,8 +4180,14 @@ def _default_gold_standard_evidence_recovery(
                 for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
                 if token.casefold() not in stop
             }
-            overlap = len(terms & words)
-            if overlap >= 1 and 45 <= len(sentence) <= 500:
+            matched_terms = terms & words
+            overlap = len(matched_terms)
+            # One shared word is not evidence that a source answers the visitor's
+            # question. The live spoon/wood temperature probe matched only the
+            # generic verb "feel" and was contaminated with unrelated Archive
+            # excerpts. Require at least two distinct query terms per sentence;
+            # the selected set must also cover a meaningful share of the query.
+            if overlap >= 2 and 45 <= len(sentence) <= 500:
                 candidates.append((overlap / max(1, len(terms)), overlap, sentence, title, url))
 
     if not candidates:
@@ -4198,6 +4204,18 @@ def _default_gold_standard_evidence_recovery(
         if len(selected) == 6:
             break
     if len(selected) < 6:
+        return None
+
+    covered_terms = set()
+    for _, _, sentence, _, _ in selected:
+        sentence_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
+            if token.casefold() not in stop
+        }
+        covered_terms.update(terms & sentence_terms)
+    minimum_query_coverage = max(2, (len(terms) * 35 + 99) // 100)
+    if len(covered_terms) < minimum_query_coverage:
         return None
 
     def render(items):
