@@ -671,6 +671,9 @@ def _community_rule_design_canonical_doorway(query):
     family = _select_verified_doorway_conceptual_family(query)
     if family != "community_rule_design_personal_liberty_shared_obligations":
         return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
     candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     return dict(candidate) if isinstance(candidate, dict) else None
 
@@ -705,7 +708,6 @@ def _select_guide_node_fallback_doorway(query):
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
         return dict(verified_family_doorway)
-    profile = _base._inquiry_profile(query)
     eligible = []
     for index, node in enumerate(_guide_node_registry_snapshot()):
         if not isinstance(node, dict):
@@ -835,7 +837,8 @@ def _guide_query_explicitly_forbids_handoff(query):
 
 def _guide_doorway_risk_suppression_is_required(query, profile=None):
     """Suppress navigation only for acute safety situations, not abstract risk analysis."""
-    profile = profile or _base._inquiry_profile(query)
+    if profile is None:
+        profile = _base._inquiry_profile(query)
     if not (profile.get("risk") or profile.get("action") == "risk"):
         return False
     normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
@@ -6257,6 +6260,9 @@ def _boundary_canonical_doorway(payload, query):
     """
     if _guide_query_explicitly_forbids_handoff(query):
         return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         return community_rule_doorway
@@ -6266,9 +6272,6 @@ def _boundary_canonical_doorway(payload, query):
     if existing:
         return existing
     if not isinstance(payload, dict):
-        return None
-    profile = _base._inquiry_profile(query)
-    if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
     context = str(
         payload.get("canonical_link_context")
@@ -10319,6 +10322,13 @@ def _general_guide_authoritative_doorway(query, context_data):
     if _guide_query_explicitly_forbids_handoff(query):
         _record_selection_state("AUTHORIZED_OMISSION", reason="visitor_requested_no_handoff")
         return None
+    try:
+        profile = _base._inquiry_profile(query)
+    except Exception:
+        profile = {}
+    if _guide_doorway_risk_suppression_is_required(query, profile):
+        _record_selection_state("POLICY_SUPPRESSED", reason="acute_safety_risk_gate")
+        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         _record_selection_state(
@@ -10350,11 +10360,6 @@ def _general_guide_authoritative_doorway(query, context_data):
     else:
         _record_selection_state("EVALUATING")
     try:
-        profile = _base._inquiry_profile(query)
-        if _guide_doorway_risk_suppression_is_required(query, profile):
-            _record_selection_state("POLICY_SUPPRESSED", reason="acute_safety_risk_gate")
-            return None
-
         candidates = []
         protected = (
             context_data.get("generation_authority_protected_docs")
