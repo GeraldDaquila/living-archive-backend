@@ -6528,6 +6528,12 @@ def _guide_restore_verified_doorway(payload, query):
             "final_visitor_boundary_recurring_problem_explanation",
             "bounded_practical_stewardship_recovery",
         }
+        or bool(re.search(
+            r"\\b(?:same|repeated|recurring)\\s+problems?\\b|"
+            r"\\bproblems?\\s+keep\\s+(?:returning|recurring)\\b",
+            str(query or ""),
+            re.I,
+        ))
     )
     has_selection_evidence = any(
         safe.get(key)
