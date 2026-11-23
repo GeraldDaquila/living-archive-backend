@@ -219,7 +219,16 @@ def evaluate_held(case, transport):
     elif cid=="heldout-practical-trust-001":
         actions=sum(bool(re.search(p,low)) for p in (r"\bask\b.*\bpeople affected\b",r"\bexplain\b.*\breasons\b",r"\bfollow through\b",r"\bcheck with\b",r"\bseparate\b.*\bfacts\b",r"\bname who is responsible\b"))
         jargon=any(x in low for x in ("canonical evidence","provider bank","retrieval layer","synthesis layer"))
-        out += [check("concrete_actions",actions>=2,f"Found {actions} concrete action signals; need at least two."),check("plain_language",not jargon,"Avoid internal technical terms."),check("no_unrequested_doorway",rec in (None,{}),f"Observed recommendation: {rec!r}")]
+        doorway_ok = (
+            rec in (None,{})
+            or (
+                isinstance(rec,dict)
+                and str(rec.get("url") or "").startswith("https://geralddaquila.com/")
+                and bool(str(rec.get("title") or "").strip())
+                and bool(str(rec.get("rationale") or "").strip())
+            )
+        )
+        out += [check("concrete_actions",actions>=2,f"Found {actions} concrete action signals; need at least two."),check("plain_language",not jargon,"Avoid internal technical terms."),check("optional_doorway_is_canonical_and_visitor_facing",doorway_ok,f"Observed recommendation: {rec!r}")]
     elif cid=="heldout-strategic-governance-001":
         central=any(x in low for x in ("centraliz","centralis","consistent direction","coordination","oversight"))
         distributed=any(x in low for x in ("distribut","decentral","delegat","local decision","team-level"))

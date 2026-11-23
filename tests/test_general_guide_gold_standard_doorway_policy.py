@@ -222,3 +222,48 @@ def test_unapproved_legacy_doorway_metadata_does_not_change_other_gold_star_fall
     unrelated = main._resolve_exact_guide_gold_standard("What is governance, beyond administration?")
     assert unrelated is not None
     assert unrelated["forbids_doorway"] is False
+
+
+def test_exact_gold_star_doorway_survives_terminal_family_selection(monkeypatch):
+    standard = {
+        "benchmark_id": "fixture-exact-doorway",
+        "doorway_title": "The Approved Exact Destination",
+        "doorway_url": "https://geralddaquila.com/approved-exact-destination/",
+        "doorway_rationale": "This approved resource directly continues the exact question.",
+        "forbids_doorway": False,
+    }
+    monkeypatch.setattr(
+        main,
+        "_resolve_exact_guide_gold_standard",
+        lambda _query: standard,
+    )
+    monkeypatch.setattr(
+        main,
+        "_select_verified_doorway_conceptual_family",
+        lambda _query: "unrelated-family",
+    )
+    monkeypatch.setattr(
+        main,
+        "_VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS",
+        {
+            "unrelated-family": {
+                "title": "An Unrelated Resource",
+                "url": "https://geralddaquila.com/unrelated-resource/",
+                "rationale": "A different topic.",
+            }
+        },
+    )
+    result = main._guide_restore_verified_doorway(
+        {"response": "The frozen approved answer."},
+        "An exact approved question?",
+    )
+    expected = {
+        "title": "The Approved Exact Destination",
+        "url": "https://geralddaquila.com/approved-exact-destination/",
+        "rationale": "This approved resource directly continues the exact question.",
+    }
+    assert result["recommendation"] == expected
+    assert result["canonical_doorway"] == expected
+    assert result["doorway_title"] == expected["title"]
+    assert result["doorway_url"] == expected["url"]
+    assert result["doorway_selection_source"] == "approved_exact_gold_standard"

@@ -6472,6 +6472,31 @@ def _guide_restore_verified_doorway(payload, query):
         safe["doorway_omission_reason"] = safe["doorway_omission_exception_reason"]
         return safe
 
+    # An exact approved Gold Star owns its complete answer-and-doorway pair.
+    # The exact finalizer has already published the registry destination; do not
+    # let the general conceptual-family selector replace it with an unrelated
+    # but otherwise valid resource at the later terminal doorway boundary.
+    if exact_standard is not None:
+        exact_title = str(exact_standard.get("doorway_title") or "").strip()
+        exact_url = str(exact_standard.get("doorway_url") or "").strip()
+        exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
+        if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
+            exact_doorway = {"title": exact_title, "url": exact_url}
+            if exact_rationale:
+                exact_doorway["rationale"] = exact_rationale
+            safe["recommendation"] = exact_doorway
+            safe["canonical_doorway"] = exact_doorway
+            safe["doorway_title"] = exact_title
+            safe["doorway_url"] = exact_url
+            safe["doorway_rationale"] = exact_rationale or None
+            safe["doorway_decision"] = "selected"
+            safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+            safe["doorway_selection_evaluated"] = True
+            safe["doorway_selection_source"] = "approved_exact_gold_standard"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     # A registered deterministic task recovery may already have selected a
     # canonical destination from the Guide's reviewed task contract. Preserve
     # that validated pair at the shared visitor boundary; do not discard it and
