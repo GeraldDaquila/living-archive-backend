@@ -2,12 +2,8 @@ name: Gold Star candidate-local matched-pair evaluation
 # Candidate rerun after source-level recovery and integrity corrections.
 
 on:
-  push:
-    branches: ["test/gold-star-matched-pair-runner-20261123"]
-    paths:
-      - ".github/workflows/gold-star-matched-pair-candidate.yml"
-      - "scripts/capture_gold_star_matched_pairs.py"
-      - "docs/qa/gold_star_matched_pair_cases.json"
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
@@ -17,7 +13,7 @@ jobs:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
     # Re-triggered after provider-secret updates so the new credentials are exercised.
-    if: ${{ contains(github.event.head_commit.message, '[run-matched-pairs]') }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -37,7 +33,7 @@ jobs:
       - name: Check out the exact candidate commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
