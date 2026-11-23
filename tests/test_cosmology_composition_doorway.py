@@ -23,8 +23,12 @@ def test_cosmology_recovery_establishes_scientific_and_philosophical_domains_fir
 def test_cosmology_lived_question_does_not_receive_unverified_glossary_doorway():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert "No directly relevant canonical cosmology resource has been verified" in source
-    assert "None if _cosmology_doorway_not_verified" in source
-    assert "reviewed_omission or explicit_no_doorway or _cosmology_doorway_not_verified" in source
+    assert "def _gold_star_doorway_omission_is_justified(gold_standard)" in source
+    assert 'gold_standard.get("forbids_doorway")' in source
+    assert "doorway_omission_exception_reason" in source
+    assert "def _apply_registered_gold_standard_doorway(doorway, gold_standard)" in source
+    assert "_gold_star_doorway_omission_is_justified(gold_standard)" in source
+    assert "_gold_star_default_doorway()" in source
 
 
 def test_general_guide_contract_requires_subject_first_domain_distinction():
