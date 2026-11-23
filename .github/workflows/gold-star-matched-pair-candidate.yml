@@ -4,7 +4,6 @@ name: Gold Star candidate-local matched-pair evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-# Replaces the former push-only [run-matched-pairs] opt-in with a visible PR-head run.
 # The capture script reads docs/qa/gold_star_matched_pair_cases.json as its pinned case source.
 
 permissions:
@@ -14,7 +13,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Pin the named OpenRouter Nemotron free model: avoid the rate-limited Groq lane and avoid a dynamically routed model identity.
+    # Pin the known eligible Groq GPT-OSS 20B lane; both arms use this exact provider/model.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -49,8 +48,8 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider=openrouter
-          --model=nvidia/nemotron-3-ultra-550b-a55b:free
+          --provider=groq
+          --model=openai/gpt-oss-20b
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
