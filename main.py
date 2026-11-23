@@ -4991,6 +4991,7 @@ def _has_substantive_topic_intent(query):
     return bool(re.search(
         r"\b(?:i\s+(?:care about|want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
+        r"\\b(?:want to understand|want to know about|would like to understand)\\b|"
         r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
         r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
         r"how\s+to\s+(?:create|build|recognize|improve|understand|support))\b",
