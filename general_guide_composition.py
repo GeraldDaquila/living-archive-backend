@@ -5215,6 +5215,13 @@ def compose(
             candidate["doorway_url"] = doorway.get("doorway_url", "")
             _emit_guide_outcome("authoritative_doorway_attached")
 
+    provider_candidate_response = candidate.pop("_provider_execution_candidate_response", None)
+    if candidate.get("_provider_execution_verified") is True and str(candidate.get("response") or "") != str(provider_candidate_response or ""):
+        # A deterministic quality recovery replaced the provider's text. The
+        # provider did execute, but it did not author the final visitor answer.
+        candidate["_provider_execution_verified"] = False
+        candidate["_provider_execution_modified"] = True
+
     if evaluation is None:
         # Visitor requests retain the normal cache. Evaluation arms bypass both
         # cache reads and writes so each arm must perform a fresh provider call.
@@ -5262,13 +5269,6 @@ def compose(
             while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
                 _COMPOSITION_CACHE.popitem(last=False)
     
-
-    provider_candidate_response = candidate.pop("_provider_execution_candidate_response", None)
-    if candidate.get("_provider_execution_verified") is True and str(candidate.get("response") or "") != str(provider_candidate_response or ""):
-        # A deterministic quality recovery replaced the provider's text. The
-        # provider did execute, but it did not author the final visitor answer.
-        candidate["_provider_execution_verified"] = False
-        candidate["_provider_execution_modified"] = True
 
     return candidate
 
