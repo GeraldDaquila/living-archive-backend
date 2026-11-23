@@ -191,3 +191,20 @@ def test_outer_rewrite_of_cached_provider_answer_is_provider_assisted_recovery()
     assert 'composition_result.get("_provider_execution_origin_verified") is True' in function_source
     assert '_final_response_text != _llm_candidate_text' in function_source
     assert '_response_provenance = "provider_assisted_recovery"' in function_source
+
+
+def test_provider_invocation_id_is_created_only_after_success_and_flows_to_final_provenance():
+    provider_bank = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": True, "_provider_invocation_id": uuid.uuid4().hex' in provider_bank
+
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_invocation_id": str(result.get("_provider_invocation_id") or "")' in composition
+    assert composition.count('cached_result["_provider_execution_origin_invocation_id"] = (') == 2
+    assert 'cached_result.pop("_provider_invocation_id", None)' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_invocation_id")' in function_source
+    assert 'composition_result.get("_provider_execution_origin_invocation_id")' in function_source
+    assert 'provider_invocation_id={_provider_invocation_id or' in function_source
+    assert '"provider_invocation_id": _provider_invocation_id or None' in function_source
