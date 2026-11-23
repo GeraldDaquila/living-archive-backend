@@ -129,7 +129,7 @@ def test_non_provider_composition_recovery_keeps_its_identity_without_claiming_l
     source, function = _basic_inquiry_ast()
     function_source = ast.get_source_segment(source, function)
     assert "_deterministic_composition_recovery = bool(" in function_source
-    assert "elif not _deterministic_composition_recovery:" in function_source
+    assert "elif not _deterministic_composition_recovery and not _cached_provider_composition and not _provider_assisted_recovery:" in function_source
     assert 'elif deterministic_result or _deterministic_composition_recovery:' in function_source
     assert '_response_provenance = "deterministic_recovery"' in function_source
 
