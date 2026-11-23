@@ -342,6 +342,8 @@ def test_guide_doorway_policy_remains_default_across_composition_prompt_layers()
     assert "A doorway is a separate but default part of the Guide's role:" in source
     assert "include one concise, verified, relevant Archive doorway separately by default." in source
     assert "include one concise, canonical Archive doorway by default" in source
+    assert "Never substitute a generic Compass or use a doorway to rescue an off-target answer." not in source
+    assert "use it only when it is itself a verified, honest, useful continuation." in source
     assert "A doorway is optional and follows the completed answer." not in source
     assert "The answer must be complete before any optional doorway appears." not in source
     assert "The answer must be complete before any optional Archive doorway appears." not in source
