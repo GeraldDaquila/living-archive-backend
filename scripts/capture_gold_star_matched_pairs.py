@@ -101,16 +101,23 @@ def _load_cases():
 def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
     provenance = payload.get("response_provenance")
     provenance = provenance if isinstance(provenance, dict) else {}
-    return (
-        str(provenance.get("provider") or payload.get("provider") or "").strip(),
-        str(provenance.get("model") or payload.get("model") or "").strip(),
-        bool(str(provenance.get("provider") or payload.get("provider") or "").strip())
-        and bool(str(provenance.get("model") or payload.get("model") or "").strip())
+    provider = str(provenance.get("provider") or payload.get("provider") or "").strip()
+    model = str(provenance.get("model") or payload.get("model") or "").strip()
+    identity = (provider + " " + model).casefold()
+    deterministic_markers = (
+        "deterministic", "fallback", "recovery", "gold_standard_registry",
+        "extractive", "approved-reference",
+    )
+    attributable = (
+        bool(provider)
+        and bool(model)
         and provenance.get("llm_invoked") is True
         and str(provenance.get("class") or "").casefold() in {
             "llm", "language_model", "model_generation"
-        },
+        }
+        and not any(marker in identity for marker in deterministic_markers)
     )
+    return provider, model, bool(attributable)
 
 
 async def _request_arm(client, evaluation_context, provider, model, query, arm):
