@@ -583,6 +583,14 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert composer_calls == []
     # The answer remains direct and complete; the separately selected
     # canonical doorway is an optional continuation, not part of composition.
+    assert payload["recommendation"] is not None, {
+        key: payload.get(key) for key in (
+            "doorway_decision", "doorway_selection_status",
+            "doorway_selection_evaluated", "doorway_selection_source",
+            "doorway_omission_reason", "doorway_omission_exception_reason",
+            "navigation_suppressed_by_task_contract",
+        )
+    }
     assert payload["recommendation"]["title"] == "Applied Stewardship Program"
     assert payload["recommendation"]["url"] == "https://geralddaquila.com/applied-stewardship-program/"
     assert payload["answer_basis"]["kind"] == "general_knowledge"
