@@ -6330,7 +6330,7 @@ def _guide_restore_verified_doorway(payload, query):
     # just as the Trust pathway does, rather than allowing generic retrieval
     # to replace or erase it when the answer itself is general knowledge.
     if (
-        exact_standard is None
+        not _gold_star_doorway_omission_is_justified(exact_standard)
         and _is_reciprocity_community_purpose_question(query)
     ):
         reciprocity_doorway = _normalize_authoritative_recommendation(
