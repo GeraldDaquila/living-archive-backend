@@ -9,6 +9,7 @@ on:
       - "scripts/capture_gold_star_wp3_pairs.py"
       - "scripts/capture_gold_star_matched_pairs.py"
       - "docs/qa/guide_learning_evaluation_set.json"
+      - "docs/qa/gold_star_matched_pair_cases.json"
 
 permissions:
   contents: read
@@ -50,7 +51,7 @@ jobs:
           retention-days: 90
 
   matched-pair-local:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/test/gold-star-matched-pair-runner-20261123' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/test/gold-star-matched-pair-runner-20261123' && contains(github.event.head_commit.message, '[run-matched-pairs]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -82,11 +83,21 @@ jobs:
           python -m pip install -r requirements.txt httpx
       - name: Run same-provider, same-model control/treatment captures
         run: python scripts/capture_gold_star_matched_pairs.py --output-dir artifacts/gold-star-matched-pairs
-      - name: Upload blinded review package and separate unblinding key
+      - name: Upload blind review package
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gold-star-matched-pairs-${{ github.run_id }}
-          path: artifacts/gold-star-matched-pairs/
+          name: gold-star-blind-review-${{ github.run_id }}
+          path: artifacts/gold-star-matched-pairs/blind-review-package.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Upload evidence and separate unblinding key
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-unblinding-evidence-${{ github.run_id }}
+          path: |
+            artifacts/gold-star-matched-pairs/matched-pair-evidence.json
+            artifacts/gold-star-matched-pairs/unblinding-key.json
           if-no-files-found: warn
           retention-days: 90
