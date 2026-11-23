@@ -2835,6 +2835,13 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
         reservation.settle_output(result)
         outcome = "ok"
         return result
+    except Exception:
+        # A failed transport or invalid provider response has no verified
+        # completion usage to settle. Preserve the conservative input-token
+        # charge, but refund the unused maximum-completion reservation so one
+        # failed lane cannot exhaust local TPM admission for later fallbacks.
+        reservation.settle_output("")
+        raise
     finally:
         elapsed = time.perf_counter() - started
         if outcome == "ok":
