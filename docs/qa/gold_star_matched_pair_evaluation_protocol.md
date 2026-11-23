@@ -5,9 +5,9 @@
 This protocol measures the incremental effect of **approved cross-question structural guidance** on held-out synthetic questions.
 
 - **Control:** ordinary General Guide composition with the baseline Gold Star v2.0 quality contract intact, but with the active approved cross-question lesson contribution suppressed.
-- **Treatment:** the same composition path plus an approved Gold Star lesson when one is actually retrieved and included in the provider prompt.
+- **Treatment:** the same composition path plus an approved Gold Star lesson and its candidate-bound adjudication contract when guidance is actually retrieved and included in the provider prompt.
 
-This does not compare the Guide with all Gold Star functionality disabled. It isolates the incremental lesson-guidance contribution. A treatment pair is invalid unless at least one approved candidate was exposed in the provider prompt.
+This does not compare the Guide with all Gold Star functionality disabled. It isolates the incremental approved lesson-guidance contribution, including its candidate-specific prompt and adjudication contract. A treatment pair is invalid unless at least one approved candidate was exposed in the provider prompt.
 
 ## Runtime gate
 
