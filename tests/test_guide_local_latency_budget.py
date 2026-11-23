@@ -7,11 +7,12 @@ def test_guide_provider_call_timeout_is_bounded():
     assert provider_bank._provider_call_timeout(
         "general_guide_composition",
         {"provider": "groq", "model": "openai/gpt-oss-120b"},
-    ) == 1.25
+    ) == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 5.0
 
 
 def test_guide_fast_failure_budget_is_narrow_and_bounded():
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 2.8
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 1
 
 
