@@ -162,3 +162,45 @@ def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
     assert body["recommendation"].get("rationale")
     assert body["doorway_decision"] == "selected"
     # The outer boundary may restore a registered deterministic orientation when a\n    # payload is structurally incomplete; cleanliness means no internal template\n    # metadata leaks into the visitor response, not that the response is immutable.\n    assert body["response"]\n    assert "processing" not in body\n    assert body["route_source"] == "guide_outer_visitor_boundary"
+
+def test_doorway_introduction_strips_concatenated_cms_metadata():
+    import general_guide_composition
+
+    source_excerpt = (
+        "What precolonial Philippine communities can teach us about governance, "
+        "social cohesion, and decision making at the human scale. "
+        "Meta Description Long before modern nation states emerged, communities "
+        "developed systems of governance rooted in local relationships."
+    )
+    assert general_guide_composition._sanitize_candidate(source_excerpt) == (
+        "What precolonial Philippine communities can teach us about governance, "
+        "social cohesion, and decision making at the human scale."
+    )
+
+
+def test_shared_doorway_contract_sanitizes_all_rationale_sources():
+    source = {
+        "title": "The Barangay Before the State",
+        "url": "https://geralddaquila.com/the-barangay-before-the-state/",
+        "rationale": (
+            "A useful study of human-scale governance. "
+            "Meta Description Long before modern nation states emerged..."
+        ),
+    }
+    normalized = main._normalize_authoritative_recommendation(source)
+    assert normalized["rationale"] == "A useful study of human-scale governance."
+    assert "Meta Description" not in normalized["rationale"]
+
+
+def test_metadata_only_doorway_rationale_is_omitted_not_exposed():
+    source = {
+        "title": "A Canonical Resource",
+        "url": "https://geralddaquila.com/canonical-resource/",
+        "rationale": "Meta Description This is internal search metadata.",
+    }
+    normalized = main._normalize_authoritative_recommendation(source)
+    assert normalized == {
+        "title": "A Canonical Resource",
+        "url": "https://geralddaquila.com/canonical-resource/",
+    }
+
