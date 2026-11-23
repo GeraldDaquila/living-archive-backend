@@ -92,6 +92,20 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
         ],
     }
     context.update(context_flags or {})
+    def controlled_canonical_context(query):
+        # Return the controlled base context for ordinary request-boundary
+        # composition. The practical-stewardship canonical page is injected
+        # separately at the bounded canonical-search recovery seam below.
+        result = dict(context)
+        result["generation_authority_protected_docs"] = list(
+            context.get("generation_authority_protected_docs") or []
+        )
+        return result
+
+    monkeypatch.setattr(
+        use_main.use_core, "fetch_canonical_context", controlled_canonical_context
+    )
+
     # The bounded practical-recovery route does not call fetch_canonical_context.
     # Supply its independently verified canonical search result at the selector's
     # actual recovery seam, and only for this matching inquiry.
