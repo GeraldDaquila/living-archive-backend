@@ -268,11 +268,11 @@ def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(mon
         question, {}, {}, recommendation_available=False
     )
 
-    # The deterministic recovery path must not retrieve provider-path Gold Star
-    # contributions. Its current question-family contract is the bounded
-    # approach template; retrieval alone must not be reported as application.
+    # The provider-exhaustion wrapper may relabel the deterministic approach
+    # template as bounded provider-exhaustion recovery. It must not retrieve
+    # provider-path Gold Star contributions or imply that retrieval was applied.
     assert retrieval_calls == []
-    assert result["provider"] == "deterministic_recovery"
+    assert result["provider"] == "bounded_provider_exhaustion_recovery"
     assert result["response"].startswith(
         "Start by defining the outcome the change must achieve"
     )
