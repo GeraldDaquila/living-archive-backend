@@ -200,6 +200,37 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
         CAPTURE_CONTEXT.reset(token)
 
 
+def _skipped_arm(reason: str) -> dict:
+    return {
+        "http_status": None,
+        "transport_error_type": None,
+        "ok": False,
+        "response": "",
+        "request_id": "",
+        "provider": "",
+        "model": "",
+        "llm_invoked": False,
+        "response_provenance": {},
+        "answer_envelope": None,
+        "retrieved_candidates": [],
+        "provider_adjudication": {
+            "status": "not_observed",
+            "selected_candidate_ids": [],
+            "rejection_reason_codes": [],
+            "application_evidence_present": False,
+            "application_evidence_candidate_ids": [],
+            "application": "not_observed",
+        },
+        "actual_system_prompt_sha256": None,
+        "user_content_sha256": None,
+        "route_operation": None,
+        "max_tokens": None,
+        "route_source": None,
+        "deployment_commit_sha": None,
+        "skipped_reason": reason,
+    }
+
+
 async def capture(args) -> dict:
     import httpx
     import main
@@ -253,12 +284,30 @@ async def capture(args) -> dict:
             transport=transport, base_url="http://gold-star-evaluation.local",
             timeout=httpx.Timeout(args.timeout_seconds),
         ) as client:
+            provider_lane_available = True
+            provider_attempted = False
             for case in cases:
                 arms = {}
                 for arm in ("control", "treatment"):
+                    if not provider_lane_available:
+                        arms[arm] = _skipped_arm("previous_pinned_provider_attempt_unavailable")
+                        continue
+                    if provider_attempted and args.inter_call_delay_seconds:
+                        await asyncio.sleep(args.inter_call_delay_seconds)
                     arms[arm] = await _request_arm(
                         client, evaluation_context, provider, model, case["query"], arm
                     )
+                    provider_attempted = True
+                    result = arms[arm]
+                    if (
+                        not result["llm_invoked"]
+                        or result["provider"] != provider
+                        or result["model"] != model
+                        or result["http_status"] != 200
+                    ):
+                        # A deterministic fallback, 429, timeout, or attribution mismatch
+                        # closes this pinned lane. Do not spend more quota on doomed pairs.
+                        provider_lane_available = False
 
                 control, treatment = arms["control"], arms["treatment"]
                 failures = []
@@ -495,9 +544,15 @@ def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/gold-star-matched-pairs"))
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
+    parser.add_argument(
+        "--inter-call-delay-seconds", type=float, default=65.0,
+        help="Delay between pinned provider calls to respect the 60-second TPM window.",
+    )
     args = parser.parse_args()
     if args.timeout_seconds <= 0:
         parser.error("--timeout-seconds must be greater than zero.")
+    if args.inter_call_delay_seconds < 60:
+        parser.error("--inter-call-delay-seconds must be at least 60 to respect the provider TPM window.")
 
     report = asyncio.run(capture(args))
     output_dir = args.output_dir
