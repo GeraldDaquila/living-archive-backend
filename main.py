@@ -13265,7 +13265,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                 "The Guide general-knowledge boundary: preserved the registered "
                 "concept doorway alongside the general explanation."
             )
-        else:
+        elif not authoritative_doorway:
+            # A registered general-knowledge answer may have no doorway of its
+            # own. That absence does not revoke an independently selected,
+            # relevance-checked canonical continuation for the visitor's full
+            # question.
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
             composition_context.pop("authoritative_doorway_title", None)
