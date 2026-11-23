@@ -14201,6 +14201,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "label": "General knowledge",
             "explanation": "This established fact is answered from general knowledge, not attributed to the Living Archive.",
         }
+    elif (
+        isinstance(deterministic_result, dict)
+        and deterministic_result.get("provider") == "bounded_practical_stewardship_recovery"
+    ):
+        # The separately selected Archive doorway is navigation, not evidence
+        # that the deterministic practical answer was sourced from the Archive.
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This practical response is a bounded general-knowledge recovery. "
+                "The separately selected Archive doorway is a related continuation, "
+                "not evidence for the answer's claims."
+            ),
+        }
     elif direct_attribute_evidence_missing:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
