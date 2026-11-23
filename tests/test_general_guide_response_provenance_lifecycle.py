@@ -230,3 +230,11 @@ def test_post_repair_metric_reports_the_reconciled_provenance_state():
     assert final_metric > repair_call
     assert 'f"llm_invoked={str(_llm_invoked).lower()}, "' in function_source[final_metric:]
     assert 'f"provider_invocation_id={_provider_invocation_id or' in function_source[final_metric:]
+
+
+def test_cached_provider_class_requires_unchanged_final_answer():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert "_final_response_text == _llm_candidate_text" in function_source
+    assert "_post_repair_response_text == _llm_candidate_text" in function_source
+    assert "_provider_assisted_recovery = bool(" in function_source
