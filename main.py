@@ -6518,8 +6518,8 @@ def _guide_restore_verified_doorway(payload, query):
     # prerequisites for offering a separately verified continuation.
     requires_independent_selection = True
     answer_first_general_knowledge = (
-        isinstance(answer_basis, dict)
-        and answer_basis.get("kind") == "general_knowledge"
+        not isinstance(answer_basis, dict)
+        or answer_basis.get("kind") == "general_knowledge"
     )
     has_selection_evidence = any(
         safe.get(key)
