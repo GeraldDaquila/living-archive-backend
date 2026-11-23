@@ -40,7 +40,7 @@ One request generates one pair (two fresh provider generations). The process acc
 
 The response contains:
 
-- `blind_artifacts`: two outputs in randomized order, identified by opaque artifact references and case ID, with no arm labels.
+- `blind_artifacts`: two outputs in randomized order, identified by arm-neutral opaque artifact references and case ID; neither reference encodes control/treatment.
 - `operator_manifest`: private mapping of artifact references to control/treatment, plus provider/runtime/prompt/configuration/registry fingerprints and candidate-exposure metadata.
 
 Share only `blind_artifacts` with the reviewer. Keep `operator_manifest` separate until scoring and reviewer verdict are locked. The runner returns outputs in memory and does not persist them. The operator must preserve the blind artifacts in a separately controlled location and use those opaque references in the final review record.
