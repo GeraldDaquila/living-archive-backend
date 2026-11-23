@@ -12073,7 +12073,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         if isinstance(general_knowledge_recovery, dict)
         else ""
     )
-    if concept_subject and not correction_subject:
+    if (
+        concept_subject
+        and not correction_subject
+        and not _is_practical_stewardship_question(query)
+    ):
+        # A practical how-to question about stewardship is an answer task, not
+        # a request to discover a topic page. Keep its doorway independently
+        # selected without routing it through the stricter discovery-only
+        # selected-body contract.
         discovery_subject = concept_subject
     resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     # Reflexive institutional critique needs retrieval of the Archive's stated
