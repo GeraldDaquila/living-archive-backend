@@ -4234,12 +4234,13 @@ def _default_gold_standard_evidence_recovery(
 
     # Keep exactly three non-empty paragraphs while distributing the available
     # evidence evenly. Three to six sentences are enough; never pad with claims.
-    group_size = max(1, (len(selected) + 2) // 3)
-    groups = [
-        selected[0:group_size],
-        selected[group_size:group_size * 2],
-        selected[group_size * 2:],
-    ]
+    base_size, remainder = divmod(len(selected), 3)
+    groups = []
+    cursor = 0
+    for index in range(3):
+        group_size = base_size + (1 if index < remainder else 0)
+        groups.append(selected[cursor:cursor + group_size])
+        cursor += group_size
     response = "\n\n".join(render(group) for group in groups)
     if is_generic_nonanswer(question, response) or is_meta_answer_failure(response):
         return None
