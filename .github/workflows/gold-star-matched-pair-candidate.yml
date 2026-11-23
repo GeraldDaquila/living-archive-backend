@@ -48,8 +48,8 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider openrouter
-          --model google/gemma-4-31b-it:free
+          --provider groq
+          --model openai/gpt-oss-120b
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
