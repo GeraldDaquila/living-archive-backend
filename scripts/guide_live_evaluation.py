@@ -219,16 +219,17 @@ def evaluate_held(case, transport):
     elif cid=="heldout-practical-trust-001":
         actions=sum(bool(re.search(p,low)) for p in (r"\bask\b.*\bpeople affected\b",r"\bexplain\b.*\breasons\b",r"\bfollow through\b",r"\bcheck with\b",r"\bseparate\b.*\bfacts\b",r"\bname who is responsible\b"))
         jargon=any(x in low for x in ("canonical evidence","provider bank","retrieval layer","synthesis layer"))
-        doorway_ok = (
-            rec in (None,{})
-            or (
-                isinstance(rec,dict)
-                and str(rec.get("url") or "").startswith("https://geralddaquila.com/")
-                and bool(str(rec.get("title") or "").strip())
-                and bool(str(rec.get("rationale") or "").strip())
-            )
-        )
-        out += [check("concrete_actions",actions>=2,f"Found {actions} concrete action signals; need at least two."),check("plain_language",not jargon,"Avoid internal technical terms."),check("optional_doorway_is_canonical_and_visitor_facing",doorway_ok,f"Observed recommendation: {rec!r}")]
+        doorway_title=str(rec.get("title") or "") if isinstance(rec,dict) else ""
+        doorway_url=str(rec.get("url") or "") if isinstance(rec,dict) else ""
+        doorway_label=(doorway_title+" "+doorway_url).casefold()
+        relevant_doorway=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and re.search(r"trust|steward|organization|community",doorway_label))
+        doorway_ok=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and doorway_title.strip() and str(rec.get("rationale") or "").strip())
+        out += [
+            check("concrete_actions",actions>=2,f"Found {actions} concrete action signals; need at least two."),
+            check("plain_language",not jargon,"Avoid internal technical terms."),
+            check("relevant_optional_doorway",relevant_doorway,f"Keep a relevant optional doorway separate from the practical answer; observed {rec!r}."),
+            check("optional_doorway_is_canonical_and_visitor_facing",doorway_ok,f"Observed recommendation: {rec!r}"),
+        ]
     elif cid=="heldout-strategic-governance-001":
         central=any(x in low for x in ("centraliz","centralis","consistent direction","coordination","oversight"))
         distributed=any(x in low for x in ("distribut","decentral","delegat","local decision","team-level"))
@@ -257,6 +258,36 @@ def evaluate_held(case, transport):
         steps=any(x in low for x in ("compare","check","inspect","segment","review","investigate","break down"))
         no_fabrication=not any(x in low for x in ("the cause was definitely","this was caused by","the reason is certainly"))
         out += [check("calibrates_uncertainty",uncertainty,"State that the cause cannot be established from the information provided."),check("names_discriminating_evidence",evidence,"Identify evidence that could distinguish causes."),check("offers_investigation",steps,"Give a practical investigation step."),check("avoids_false_causation",no_fabrication,"Do not assert an unsupported cause.")]
+    elif cid=="heldout-community-rule-design-transfer-001":
+        purpose=any(x in low for x in ("shared purpose","shared need","coordination problem","demonstrable harm","common need"))
+        proportionality=any(x in low for x in ("proportionate","proportionality","necessary","least restrictive","least-restrictive"))
+        burden=any(x in low for x in ("who benefits","who bears","who carries","fairly distributed","fair burden","reciprocal","accommodation"))
+        participation=any(x in low for x in ("people most affected","affected people","shape the decision","participate","meaningful opportunity"))
+        appeal=any(x in low for x in ("appeal","question the rule","challenge its application","review point","review the rule","observable criteria"))
+        majority_only=(
+            bool(re.search(r"\bmajority\b.{0,40}\b(?:can|may|should|is entitled to|has the right to)\b.{0,80}\b(?:restrict|limit|control)\b", low))
+            or any(x in low for x in ("majority preference is enough","majority alone justifies","collective convenience alone justifies"))
+        )
+        doorway_title=str(rec.get("title") or "") if isinstance(rec,dict) else ""
+        doorway_url=str(rec.get("url") or "") if isinstance(rec,dict) else ""
+        doorway_label=(doorway_title+" "+doorway_url).casefold()
+        doorway=bool(isinstance(rec,dict) and doorway_url.startswith("https://geralddaquila.com/") and bool(doorway_title.strip()) and re.search(r"barangay|community|governance|stewardship",doorway_label))
+        rationale=str(rec.get("rationale") or "") if isinstance(rec,dict) else ""
+        clean_rationale=(
+            bool(rationale.strip())
+            and not any(x in rationale.casefold() for x in ("meta description","seo description","table of contents","chapter 1","preface"))
+            and not bool(re.match(r"^\s*(?:foreword|introduction|abstract|contents|chapter\s+\d+)",rationale,re.I))
+        )
+        out += [
+            check("legitimate_shared_purpose",purpose,"Name a legitimate shared purpose and demonstrable shared need."),
+            check("necessity_and_least_restrictive_means",proportionality,"Test necessity, proportionality, and less restrictive workable means."),
+            check("fair_burden_allocation",burden,"Make benefits, costs, reciprocal duties, and accommodation visible."),
+            check("affected_party_participation",participation,"Include people most affected in shaping the rule."),
+            check("appeal_and_review",appeal,"Provide appeal or challenge and observable review criteria."),
+            check("no_majority_or_convenience_shortcut",not majority_only,"Do not treat majority preference or convenience as sufficient justification."),
+            check("relevant_archive_doorway",doorway,"Provide a separate, optional, verified Archive doorway after the answer."),
+            check("visitor_facing_doorway_rationale",clean_rationale,"Do not expose source-page prose or internal CMS metadata in the doorway rationale."),
+        ]
     elif cid=="heldout-explicit-no-handoff-001":
         distinction=any(x in low for x in ("policy sets","policy defines","policy establishes","procedure describes","procedure explains","steps for","what must be done","what should be done"))
         no_links=not bool(re.search(r"https?://|www\.",answer,re.I))
@@ -319,7 +350,7 @@ def main():
         body=transport.get("body")
         body=body if isinstance(body,dict) else None
         checks=evaluate_gold(item,transport) if split=="gold_standard" else evaluate_held(item,transport)
-        report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
+        report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"canonical_doorway":body.get("canonical_doorway") if body else None,"doorway_decision":body.get("doorway_decision") if body else None,"doorway_omission_reason":body.get("doorway_omission_reason") if body else None,"deployment_commit_sha":body.get("deployment_commit_sha") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
     provider_probe_started_at=datetime.now(timezone.utc).isoformat()
     provider_probe_transport=post(base,PROVIDER_PROBE_QUERY)
     provider_probe_completed_at=datetime.now(timezone.utc).isoformat()

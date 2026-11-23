@@ -15,8 +15,8 @@ def test_learning_schema_and_evaluation_suite_are_versioned():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["schema_version"]["const"] == "1.0.0"
-    assert suite["suite_version"] == "1.2.0"
-    assert suite["status"] == "EXPANDED_SEVEN_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING"
+    assert suite["suite_version"] == "1.3.0"
+    assert suite["status"] == "EXPANDED_EIGHT_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING"
 
 
 def test_registry_is_the_authoritative_gold_standard_floor():
@@ -70,11 +70,26 @@ def test_held_out_questions_remain_separate_from_registry_baseline():
     case_ids = [case["case_id"] for case in cases]
     assert len(case_ids) == len(set(case_ids))
     assert cases
+    registry_by_id = {
+        record.get("benchmark_id"): record
+        for record in registry.get("records", [])
+        if record.get("benchmark_id")
+    }
+    expected_sources = {
+        "heldout-community-rule-design-transfer-001": [
+            "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+        ]
+    }
     for case in cases:
         assert case["split"] == "held_out"
         normalized_query = " ".join(case["query"].casefold().split())
         assert normalized_query not in registry_queries
-        assert case["source_benchmark_ids"] == []
+        sources = case["source_benchmark_ids"]
+        assert sources == expected_sources.get(case["case_id"], [])
+        for source_id in sources:
+            assert source_id in registry_by_id
+            source_query = " ".join(registry_by_id[source_id].get("query", "").casefold().split())
+            assert normalized_query != source_query
         assert case["critical_dimensions"]
         assert case["rubric"]
 
@@ -134,7 +149,7 @@ def test_human_review_rubric_never_promotes_proposed_lessons_automatically():
     assert all(lesson["approval"]["human_approved"] is False for lesson in suite["lessons"])
 
 
-def test_heldout_suite_preserves_all_seven_question_classes():
+def test_heldout_suite_preserves_all_eight_question_classes():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
     assert {case["question_type"] for case in suite["cases"]} == {
         "general_fact",
@@ -144,5 +159,6 @@ def test_heldout_suite_preserves_all_seven_question_classes():
         "technical_verification",
         "uncertain_or_insufficient_evidence",
         "explicit_no_handoff",
+        "community_rule_design_transfer",
     }
-    assert len(suite["cases"]) == 7
+    assert len(suite["cases"]) == 8

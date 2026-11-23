@@ -1,7 +1,7 @@
 {
   "suite_id": "living-archive-guide-learning-offline-evaluation",
-  "suite_version": "1.2.0",
-  "status": "EXPANDED_SEVEN_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING",
+  "suite_version": "1.3.0",
+  "status": "EXPANDED_EIGHT_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING",
   "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented. Version 1.2.0 expands held-out coverage to strategic trade-offs, technical verification, uncertainty/insufficient evidence, and explicit no-handoff behavior. Automated checks remain heuristic triage, not semantic approval.",
   "scoring_policy": {
     "scale": "0-2",
@@ -193,7 +193,7 @@
       "rubric": [
         "Offer concrete, observable actions before any follow-up question.",
         "Distinguish observable behavior from intentions or slogans.",
-        "Avoid jargon and an unsolicited page handoff.",
+        "Avoid jargon; keep the answer first and any relevant optional doorway separate from the practical guidance.",
         "Keep length proportionate to the practical question."
       ],
       "source_benchmark_ids": []
@@ -273,6 +273,32 @@
         "Do not manufacture an unnecessary next step."
       ],
       "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-community-rule-design-transfer-001",
+      "split": "held_out",
+      "query": "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?",
+      "question_type": "community_rule_design_transfer",
+      "critical_dimensions": [
+        "answer_directness",
+        "legitimate_shared_purpose",
+        "liberty_proportionality",
+        "fair_burden_allocation",
+        "affected_party_participation",
+        "appeal_and_review",
+        "doorway_relevance"
+      ],
+      "rubric": [
+        "Identify a legitimate shared purpose and a demonstrable harm or coordination need; do not treat collective convenience alone as sufficient.",
+        "Assess whether any restriction is necessary and proportionate and whether a less restrictive workable means exists.",
+        "Make visible who benefits, who carries costs, and whose freedom is restricted; distribute obligations fairly and allow reasonable accommodation.",
+        "Give affected people a meaningful opportunity to shape the decision and a way to question or appeal its application.",
+        "Set observable review criteria and allow the rule to be revised if it fails or creates new harms.",
+        "Offer a relevant optional Living Archive doorway after the substantive answer; its rationale must be visitor-facing and must not expose source-page excerpts or CMS metadata."
+      ],
+      "source_benchmark_ids": [
+        "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+      ]
     }
   ],
   "baseline": {

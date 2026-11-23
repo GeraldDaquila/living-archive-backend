@@ -14,7 +14,7 @@ def _load_json(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_heldout_set_and_paired_template_cover_the_same_seven_case_ids():
+def test_heldout_set_and_paired_template_cover_expected_live_and_paired_case_ids():
     evaluation = _load_json(EVALUATION_SET)
     paired = _load_json(PAIRED_TEMPLATE)
     expected = {
@@ -28,9 +28,10 @@ def test_heldout_set_and_paired_template_cover_the_same_seven_case_ids():
     }
     evaluation_ids = [case["case_id"] for case in evaluation["cases"]]
     paired_ids = [case["case_id"] for case in paired["cases"]]
-    assert len(evaluation_ids) == len(set(evaluation_ids)) == 7
+    live_expected = expected | {"heldout-community-rule-design-transfer-001"}
+    assert len(evaluation_ids) == len(set(evaluation_ids)) == 8
     assert len(paired_ids) == len(set(paired_ids)) == 7
-    assert set(evaluation_ids) == expected
+    assert set(evaluation_ids) == live_expected
     assert set(paired_ids) == expected
 
 
@@ -87,6 +88,13 @@ def test_every_heldout_question_has_a_registered_positive_evaluator_contract():
             "Segment the traffic by landing page and inspect whether the increase came "
             "from search, a campaign, referrals, or bots."
         ),
+        "heldout-community-rule-design-transfer-001": (
+            "A community should identify a legitimate shared purpose and a demonstrable harm or coordination need. "
+            "Any restriction should be necessary and proportionate, using the least restrictive workable means. "
+            "Make clear who benefits, who carries the costs, and whose freedom is limited; distribute burdens fairly "
+            "and allow reasonable accommodation. People most affected should have a meaningful opportunity to shape "
+            "the decision. Provide a way to appeal and set observable criteria to review the rule."
+        ),
         "heldout-explicit-no-handoff-001": (
             "A policy establishes the rule or principle that guides a decision. "
             "A procedure describes the steps for carrying it out. For example, a "
@@ -101,7 +109,20 @@ def test_every_heldout_question_has_a_registered_positive_evaluator_contract():
         checks = evaluate_held(
             {"case_id": case_id, "query": cases[case_id]["query"]},
             {"status": 200, "error": None, "body": {
-                "ok": True, "response": answer, "recommendation": None
+                "ok": True,
+                "response": answer,
+                "recommendation": (
+                    {
+                        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                        "rationale": "This resource offers a visitor-facing perspective on human-scale community governance.",
+                    } if case_id == "heldout-community-rule-design-transfer-001" else
+                    {
+                        "title": "Steward of Organization",
+                        "url": "https://geralddaquila.com/steward-of-organization/",
+                        "rationale": "This resource offers a practical perspective on trust in organizational stewardship.",
+                    } if case_id == "heldout-practical-trust-001" else None
+                ),
             }},
         )
         assert checks and all(item["passed"] for item in checks), {

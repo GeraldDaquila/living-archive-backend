@@ -2177,7 +2177,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
-            f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "
+            "A useful explanation begins by distinguishing the immediate event from the conditions that made it more likely. "
             "A visible incident may be the trigger without being the whole cause.\n\n"
             "Look at the evidence, incentives, constraints, relationships, and decisions involved, and compare more than one plausible explanation. "
             "For example, a repeated failure may reflect unclear responsibilities or conflicting incentives rather than a lack of effort by one person.\n\n"
