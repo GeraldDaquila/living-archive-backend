@@ -2665,9 +2665,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
 
         response = _sanitize_candidate(parsed.get("response"))
         if not response:
+            diagnostic = _composition_response_shape_diagnostic(parsed, raw)
+            print("USE composition response shape: " + diagnostic)
             raise ValueError(
-                "general composition returned an empty response ("
-                + _composition_response_shape_diagnostic(parsed, raw) + ")"
+                "general composition returned an empty response (" + diagnostic + ")"
             )
         if len(response) < 40:
             raise ValueError("general composition response is too short")
@@ -2941,9 +2942,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     )
                 response = _sanitize_candidate(parsed.get("response"))
                 if not response:
+                    diagnostic = _composition_response_shape_diagnostic(parsed, raw)
+                    print("USE composition response shape: " + diagnostic)
                     raise ValueError(
                         "provider response failed basic visitor bounds: empty response ("
-                        + _composition_response_shape_diagnostic(parsed, raw) + ")"
+                        + diagnostic + ")"
                     )
                 if len(response) < 40:
                     raise ValueError("provider response too short for basic visitor bounds")
