@@ -3425,7 +3425,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "This is a general conceptual distinction, not a claim that every institution defines the interpreter-authority relationship in exactly the same way. The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
             "system's contribution should remain inspectable and contestable: people need to be able to ask what evidence "
             "was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty "
-            "remains. Human and institutional responsibility must remain explicit: accountable people and institutions must retain responsibility for the values they uphold and "
+            "remains. This requires human and institutional responsibility to remain explicit: accountable people and institutions must retain responsibility for the values they uphold and "
             "the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly "
             "appropriating the authority to decide."
         )
