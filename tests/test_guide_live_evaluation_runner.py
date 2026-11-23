@@ -55,7 +55,11 @@ def test_practical_trust_heldout_accepts_concrete_actions():
     answer = ("Ask the people affected what they see before deciding. Explain the reasons for the decision, "
               "name who is responsible for the next step, and follow through when promised. Then check with "
               "the people affected whether the action changed their experience.")
-    transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": None}}
+    transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": {
+        "title": "Steward of Organization",
+        "url": "https://geralddaquila.com/steward-of-organization/",
+        "rationale": "This resource offers a related perspective and a useful next step in the Living Archive.",
+    }}}
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
 
