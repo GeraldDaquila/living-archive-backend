@@ -9,7 +9,7 @@
     "general_purpose_runtime_transfer_records": 127,
     "general_purpose_transfer_map_entries": 127,
     "historical_batch_classifications": 23,
-    "historical_batch_runtime_transfer_active": 3
+    "historical_batch_shadow_transfer_role_count": 3
   },
   "classifications": [
     {
