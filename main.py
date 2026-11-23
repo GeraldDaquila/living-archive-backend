@@ -6561,7 +6561,11 @@ def _guide_restore_verified_doorway(payload, query):
                         "source": "upstream_candidate_source_verified",
                     })
                     break
-    if not doorway and not requires_independent_selection:
+    # The approved Guide Node registry remains a valid independent source
+    # after the canonical evidence selector has run. The default-search flag
+    # suppresses only unverified upstream/provider candidates, not this
+    # separately relevance-checked canonical registry fallback.
+    if not doorway:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception as exc:
