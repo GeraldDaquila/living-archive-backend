@@ -128,6 +128,21 @@ def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
         await send({"type": "http.response.body", "body": body, "more_body": False})
 
     monkeypatch.setattr(main, "_use_request_boundary", clean_exit)
+
+    # Keep this outer-ASGI sanitation contract deterministic: canonical
+    # discovery is covered separately and must not depend on live WordPress
+    # availability or search ranking in a unit test.
+    def restore_verified_fixture(payload, query):
+        restored = dict(payload)
+        restored["recommendation"] = {
+            "title": "How Human Systems Spiral: Perception, Action, Feedback, and the Conditions of Human Flourishing",
+            "url": "https://geralddaquila.com/how-human-systems-spiral/",
+            "rationale": "A verified fixture for the question's feedback-loop theme.",
+        }
+        restored["doorway_decision"] = "selected"
+        return restored
+
+    monkeypatch.setattr(main, "_guide_restore_verified_doorway", restore_verified_fixture)
     messages = []
 
     async def receive():
