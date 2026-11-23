@@ -69,6 +69,7 @@ from guide_node_registry import (
 from provider_gateway_service import CONTRACT_VERSION as PROVIDER_GATEWAY_CONTRACT_VERSION, authorize as authorize_provider_gateway, validate_request as validate_provider_gateway_request, execute as execute_provider_gateway
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
+    MODEL_CAPABILITIES as PROVIDER_MODEL_CAPABILITIES,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
     capacity_diagnostics as provider_bank_capacity_diagnostics,
@@ -11829,6 +11830,18 @@ def _is_registered_gold_standard_composition_result(result):
     )
 
 
+def _is_attributable_provider_model(provider, model):
+    """Accept LLM attribution only for an explicitly registered provider/model pair.
+
+    Deterministic recovery functions may return non-empty provider/model labels
+    for diagnostic clarity. Those labels must never be mistaken for an external
+    model invocation or used to claim adaptive transfer.
+    """
+    provider = str(provider or "").strip().lower()
+    model = str(model or "").strip()
+    return bool(provider and model and (provider, model) in PROVIDER_MODEL_CAPABILITIES)
+
+
 def _adjudicate_final_visitor_claims(
     response,
     public_evidence_documents,
@@ -15178,8 +15191,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _llm_invoked = bool(
         composition_result
         and not _registered_gold_standard_composition
-        and _provider_name
-        and _model_name
+        and _is_attributable_provider_model(_provider_name, _model_name)
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
     )
