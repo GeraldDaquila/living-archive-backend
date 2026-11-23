@@ -305,6 +305,18 @@ def _select_verified_doorway_conceptual_family(query):
         return "transformation_rebranding"
     if is_stewardship_consent_relationship_question(text):
         return "stewardship_consent_relational_legitimacy"
+    # Community rule design that constrains personal liberty in the name of
+    # shared obligations needs a specific human-scale governance doorway.
+    # Do not let the broad word "community" route this question to an
+    # unrelated community-ledger or post-fiat trade resource.
+    community_rule_design = (
+        re.search(r"\\b(?:community|communities|residents|neighbors)\\b", text, re.I)
+        and re.search(r"\\b(?:liberty|freedom|rights?|personal choice)\\b", text, re.I)
+        and re.search(r"\\b(?:obligations?|shared responsibility|collective duties?|common good|shared risks?)\\b", text, re.I)
+        and re.search(r"\\b(?:rules?|polic(?:y|ies)|restrictions?|limits?|decid\\w*|justif\\w*)\\b", text, re.I)
+    )
+    if community_rule_design:
+        return "community_rule_design_personal_liberty_shared_obligations"
     # Keep this selector self-contained: it is also exercised as an isolated
     # AST-extracted unit. Require the combined leadership, institutional,
     # incentive, and extraction signals before selecting the reviewed doorway.
@@ -513,6 +525,11 @@ def _select_verified_doorway_conceptual_family(query):
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
+    "community_rule_design_personal_liberty_shared_obligations": {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive.",
+    },
     "stewardship_significance": {
         "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
