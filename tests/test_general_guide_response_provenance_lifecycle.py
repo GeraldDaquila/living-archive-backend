@@ -132,3 +132,19 @@ def test_non_provider_composition_recovery_keeps_its_identity_without_claiming_l
     assert "elif not _deterministic_composition_recovery:" in function_source
     assert 'elif deterministic_result or _deterministic_composition_recovery:' in function_source
     assert '_response_provenance = "deterministic_recovery"' in function_source
+
+
+def test_llm_attribution_requires_verified_provider_execution_not_only_registered_labels():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_execution_verified") is True' in function_source
+    assert "_is_attributable_provider_model(_provider_name, _model_name)" in function_source
+
+    provider_bank = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": True' in provider_bank
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": result.get("_provider_execution_verified") is True' in composition
+
+    # A registered provider/model pair without the execution marker is not
+    # sufficient evidence that an external model actually ran.
+    assert 'and composition_result.get("_provider_execution_verified") is True' in function_source
