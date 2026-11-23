@@ -515,7 +515,10 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert "general practical suggestions" in answer
     assert "could not complete this request" not in answer
     assert composer_calls == []
-    assert payload.get("recommendation") is None
+    # The answer remains direct and complete; the separately selected
+    # canonical doorway is an optional continuation, not part of composition.
+    assert payload["recommendation"]["title"] == "Leadership Foundations"
+    assert payload["recommendation"]["url"] == "https://geralddaquila.com/leadership-foundations/"
     assert payload["answer_basis"]["kind"] == "general_knowledge"
     assert payload["processing"] == "basic_inquiry"
 
