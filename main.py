@@ -6583,7 +6583,10 @@ def _guide_restore_verified_doorway(payload, query):
                 })
                 break
 
-    if not doorway and registered_candidate:
+    if not doorway and registered_candidate and not answer_first_general_knowledge:
+        # A broad registered-recovery doorway must not become a substitute for
+        # the independent canonical selector on answer-first general-knowledge
+        # routes. Query-specific reviewed selectors above remain eligible.
         doorway = registered_candidate
         selection_trace.update({
             "status": "VERIFIED_RELEVANT_DESTINATION",
