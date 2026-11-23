@@ -10456,7 +10456,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         ).strip()
         if not rationale:
             rationale = re.sub(
-                r"\\s+", " ",
+                r"\s+", " ",
                 str(primary.get("text") or primary.get("content") or primary.get("excerpt") or ""),
             ).strip()
             if len(rationale) > 400:
