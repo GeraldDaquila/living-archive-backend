@@ -9761,9 +9761,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "spiritual bypassing": (
                 "In general use, spiritual bypassing describes using spiritual beliefs, "
                 "practices, or language to avoid engaging with difficult emotions, conflicts, "
-                "responsibilities, or realities. The concern is not that spirituality itself is "
-                "a problem, but that a source of meaning can sometimes be used to move around "
-                "something that still needs attention. It matters because the appearance of "
+                "responsibilities, or realities. Spirituality itself is not a problem; the concern is "
+                "that a source of meaning can sometimes be used to move around something that still "
+                "needs attention. It matters because the appearance of "
                 "peace, acceptance, or transcendence can coexist with unresolved harm or "
                 "unacknowledged responsibility."
             ),
