@@ -6420,17 +6420,16 @@ def _guide_restore_verified_doorway(payload, query):
             "source": "reviewed_conceptual_family",
         })
 
-    # Deterministic answer-first routes intentionally have no retrieval context.
-    # That is not a reason to skip navigation evaluation. Run one bounded
-    # canonical selection pass for these general-knowledge answer routes.
-    requires_independent_selection = (
-        isinstance(answer_basis, dict)
-        and answer_basis.get("kind") == "general_knowledge"
-        and safe.get("processing") in {
-            "basic_inquiry",
-            "guide_epistemic_category_distinction_deterministic",
-        }
-    )
+    # The Guide is both an answering system and a doorway into the Living
+    # Archive. Every eligible substantive response receives an independent,
+    # bounded canonical selection pass when no reviewed family doorway has
+    # already been selected. Retrieval context and answer provenance are not
+    # prerequisites for offering a separately verified continuation.
+    #
+    # This flag also prevents an unverified upstream/provider candidate from
+    # re-entering through the weaker registry-overlap fallback after the
+    # independent selector has had its opportunity.
+    requires_independent_selection = True
     has_selection_evidence = any(
         safe.get(key)
         for key in (
