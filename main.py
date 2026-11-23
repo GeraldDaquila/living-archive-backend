@@ -6494,7 +6494,7 @@ def _guide_restore_verified_doorway(payload, query):
         exact_title = exact_fields["title"]
         exact_url = exact_fields["url"]
         exact_rationale = exact_fields["rationale"]
-        if exact_title and re.match(r"^https://\\S+$", exact_url, re.I):
+        if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
             exact_doorway = {"title": exact_title, "url": exact_url}
             if exact_rationale:
                 exact_doorway["rationale"] = exact_rationale
