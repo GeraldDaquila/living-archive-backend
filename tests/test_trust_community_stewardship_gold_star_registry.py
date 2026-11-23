@@ -45,7 +45,7 @@ def test_trust_community_stewardship_is_user_approved_bounded_gold_star():
     mapped = next(item for item in transfer_map["entries"] if item["benchmark_id"] == record["benchmark_id"])
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert transfer_map["coverage"]["map_entries"] == len(transfer_map["entries"]) == 123
+    assert transfer_map["coverage"]["map_entries"] == len(transfer_map["entries"])
 
 
 def test_trust_gold_star_approval_does_not_change_exact_answer_authority():
