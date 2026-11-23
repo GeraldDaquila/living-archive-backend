@@ -303,7 +303,9 @@ async def capture(args) -> dict:
                 if not negative_control_passed:
                     failures.append("community_rule_gold_star_cross_domain_selector_leak")
 
-                case_family = str(case.get("question_type") or case["case_id"])
+                case_family = str(
+                    case.get("case_family") or case.get("question_type") or case["case_id"]
+                )
                 # This is a fingerprint of the shared, non-adaptive request contract.
                 # The actual treatment prompt is intentionally different because it
                 # contains the approved lesson's structural guidance.
@@ -312,7 +314,18 @@ async def capture(args) -> dict:
                     gold_star_quality_instruction="",
                 )
                 base_prompt_fingerprint = _sha256(
-                    base_system_prompt + "\n\nVISITOR_QUESTION\n" + case["query"]
+                    base_system_prompt + "\n\nUSER_CONTENT_SHA256\n"
+                    + str(control["user_content_sha256"] or "")
+                )
+                generation_config = {
+                    "operation": control["route_operation"],
+                    "max_tokens": control["max_tokens"],
+                    "provider": provider,
+                    "model": model,
+                    "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
+                }
+                generation_fingerprint = _sha256(
+                    json.dumps(generation_config, sort_keys=True, separators=(",", ":"))
                 )
 
                 record = {
