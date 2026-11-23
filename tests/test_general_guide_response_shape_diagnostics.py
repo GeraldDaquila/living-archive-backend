@@ -1,4 +1,4 @@
-from general_guide_composition import _composition_response_shape_diagnostic
+from general_guide_composition import _composition_response_shape_diagnostic, _normalize_composition_envelope
 
 
 def test_composition_response_shape_diagnostic_reports_only_safe_metadata():
@@ -50,3 +50,37 @@ def test_composition_response_shape_diagnostic_reports_alternate_envelope_metada
     assert private_answer not in diagnostic
     assert "A private doorway title" not in diagnostic
     assert "https://example.invalid/private" not in diagnostic
+
+
+
+def test_alternate_answer_envelope_normalizes_without_trusting_provider_doorway():
+    answer = "A substantive visitor-facing answer with more than enough content to validate."
+    normalized = _normalize_composition_envelope({
+        "answer": answer,
+        "doorway": "Provider-supplied doorway metadata",
+    })
+
+    assert normalized["response"] == answer
+    assert normalized["response_shape"] == "general"
+    assert "doorway_title" not in normalized
+    assert "doorway" in normalized
+
+
+def test_alternate_answer_envelope_does_not_coerce_non_string_answer():
+    normalized = _normalize_composition_envelope({
+        "answer": {"text": "must not be coerced"},
+    })
+
+    assert "response" not in normalized
+    assert normalized["response_shape"] == "general"
+
+
+def test_explicit_response_takes_precedence_over_alternate_answer():
+    normalized = _normalize_composition_envelope({
+        "response": "Canonical response field wins.",
+        "answer": "Conflicting alternate answer must be ignored.",
+        "response_shape": "direct",
+    })
+
+    assert normalized["response"] == "Canonical response field wins."
+    assert normalized["response_shape"] == "direct"
