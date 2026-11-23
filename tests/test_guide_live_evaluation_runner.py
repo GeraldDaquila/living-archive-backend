@@ -408,3 +408,12 @@ def test_community_rule_design_transfer_heldout_rejects_unjustified_majority_rul
     failed = {item["name"] for item in checks if not item["passed"]}
     assert "no_majority_or_convenience_shortcut" in failed
     assert "visitor_facing_doorway_rationale" in failed
+
+
+def test_provider_probe_query_requires_a_live_provider_not_deterministic_gold_star_recovery():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    from gold_star_lessons import deterministic_fallback_contribution
+
+    query = live_evaluation.PROVIDER_PROBE_QUERY
+    assert resolve_exact_gold_standard(query) is None
+    assert deterministic_fallback_contribution(query) is None
