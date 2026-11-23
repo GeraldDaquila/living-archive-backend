@@ -134,15 +134,13 @@ def _install_controlled_provider_and_retrieval(monkeypatch, context_flags=None):
             "title": "Applied Stewardship Program",
             "url": "https://geralddaquila.com/applied-stewardship-program/",
             "text": (
-                "Leadership begins in how people respond under pressure, make "
-                "decisions when outcomes are uncertain, and relate to responsibility. "
-                "Before leadership becomes institutional or organizational, it is "
-                "behavioral. It is expressed through self-governance, integrity, "
-                "accountability, and responsibility. Relational leadership explores "
-                "relationships, teams, institutions, families, cultures, and social "
-                "environments. Governance and stewardship explores stewardship, "
-                "ethical leadership, governance, systems responsibility, and "
-                "leadership under complexity and constraint."
+                "The Applied Stewardship Program is a case-based learning framework "
+                "for practicing community stewardship through everyday decisions and "
+                "shared responsibilities. It examines how community members care for "
+                "shared resources, make decisions together, and respond to consequences "
+                "that affect other people. Its cases connect personal ethical choices "
+                "with organizational management, institutional governance, and systems "
+                "responsibility under real-world conditions."
             ),
         }]
 
