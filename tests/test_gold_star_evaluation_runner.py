@@ -77,6 +77,7 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
     assert manifest["control"]["output_artifact_ref"] != manifest["treatment"]["output_artifact_ref"]
     assert manifest["treatment_guidance_candidate_count"] == 1
     assert manifest["treatment_guidance_exposure"] == "included_in_provider_prompt"
+    assert manifest["adaptation_scope"] == "approved_cross_question_structural_guidance_only"
     assert "query" not in manifest
     assert "question" not in manifest
     assert "response" not in manifest
