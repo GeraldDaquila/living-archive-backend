@@ -10101,10 +10101,21 @@ def _general_guide_authoritative_doorway(query, context_data):
     if not isinstance(context_data, dict):
         _record_selection_state("NOT_EVALUATED", reason="invalid_selection_context")
         return None
-    if context_data.get("canonical_doorway_search_attempted"):
-        _record_selection_state("PRIOR_SEARCH_ALREADY_ATTEMPTED")
-        return None
-    _record_selection_state("EVALUATING")
+    # A prior bounded search suppresses another network/search fan-out, not
+    # evaluation of canonical evidence already present in the payload. Retrieval
+    # and selection are distinct: the terminal boundary must still rank supplied
+    # protected documents even when an earlier route attempted discovery.
+    prior_search_attempted = bool(
+        context_data.get("canonical_doorway_search_attempted")
+        or context_data.get("_skip_doorway_search_recovery")
+    )
+    if prior_search_attempted:
+        _record_selection_state(
+            "EVALUATING_RETRIEVED_EVIDENCE",
+            canonical_search_attempted=True,
+        )
+    else:
+        _record_selection_state("EVALUATING")
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
@@ -10197,7 +10208,7 @@ def _general_guide_authoritative_doorway(query, context_data):
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
         recovered_from_search = False
-        if not primary and not bool(context_data.get("_skip_doorway_search_recovery")):
+        if not primary and not prior_search_attempted:
             recovered_from_search = True
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
