@@ -380,6 +380,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
     candidates = gold_star_quality.get("candidates") or []
     if not candidates:
         return ""
+    # Keep provider context bounded: adjudication needs reviewed reasoning
+    # metadata, not duplicated exemplar questions/themes or verbose rationales.
+    # Candidate identity and activation conditions preserve traceability.
     candidate_lines = []
     for index, item in enumerate(candidates, start=1):
         score_label = (
@@ -388,14 +391,11 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             else str(item.get("score"))
         )
         candidate_lines.append(
-            f"{index}. ID={item.get('benchmark_id')}; match_basis={item.get('match_basis')}; "
-            f"role={item.get('role') or 'unclassified'}; "
-            f"activation_condition={_compact_gold_star_prompt_field(item.get('activation_condition'), 120) or 'none'}; "
-            f"score={score_label}; subject={_compact_gold_star_prompt_field(item.get('query'), 100)}; "
-            f"theme={_compact_gold_star_prompt_field(item.get('known_theme'), 100)}; "
-            f"reasoning family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 80)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 300)}; "
-            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 240)}"
+            f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
+            f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 72) or 'none'}; "
+            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 56)}; "
+            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 180)}; "
+            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 140)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
