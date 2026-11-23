@@ -355,3 +355,23 @@ def test_community_freedom_shared_responsibility_gold_star_contributes_bounded_g
     assert "meaningful agency" in contribution["discipline"]
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
+
+
+
+def test_heldout_community_rule_query_produces_active_structural_contribution():
+    from gold_star_lessons import active_quality_contribution
+
+    query = (
+        "How should a community decide whether limits on personal liberty "
+        "are justified by shared obligations and risks?"
+    )
+    contribution = active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert any(
+        item["benchmark_id"]
+        == "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+        for item in contribution["candidates"]
+    )
+    assert contribution["discipline"]
+    assert contribution["abstention_boundary"]
