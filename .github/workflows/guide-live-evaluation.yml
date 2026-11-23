@@ -11,6 +11,8 @@ on:
       - "scripts/guide_live_evaluation.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/guide_learning_evaluation_set.json"
+      - "scripts/guide_live_evaluation.py"
+      - ".github/workflows/guide-live-evaluation.yml"
   workflow_dispatch:
     inputs:
       target_service:
