@@ -50,6 +50,8 @@ jobs:
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --inter-call-delay-seconds 65
+          --provider groq
+          --model qwen/qwen3.8-27b
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
         if: always()
