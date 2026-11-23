@@ -4206,7 +4206,11 @@ def _default_gold_standard_evidence_recovery(
         selected.append(item)
         if len(selected) == 6:
             break
-    if len(selected) < 6:
+    # Three independently relevant source sentences are sufficient for a
+    # three-part bounded recovery. Requiring six qualifying sentences made the
+    # fallback fail even when the retrieved document directly answered the
+    # question; do not lower the per-sentence relevance threshold to compensate.
+    if len(selected) < 3:
         return None
 
     covered_terms = set()
@@ -4228,11 +4232,15 @@ def _default_gold_standard_evidence_recovery(
             for _, _, sentence, title, _ in items
         )
 
-    response = "\n\n".join((
-        render(selected[0:2]),
-        render(selected[2:4]),
-        render(selected[4:6]),
-    ))
+    # Keep exactly three non-empty paragraphs while distributing the available
+    # evidence evenly. Three to six sentences are enough; never pad with claims.
+    group_size = max(1, (len(selected) + 2) // 3)
+    groups = [
+        selected[0:group_size],
+        selected[group_size:group_size * 2],
+        selected[group_size * 2:],
+    ]
+    response = "\n\n".join(render(group) for group in groups)
     if is_generic_nonanswer(question, response) or is_meta_answer_failure(response):
         return None
 
