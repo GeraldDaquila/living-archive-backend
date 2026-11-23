@@ -43,6 +43,9 @@ def test_community_rule_design_selects_verified_barangay_governance_doorway_befo
     assert main._general_guide_authoritative_doorway(
         query, {"_doorway_selection_trace": {}}
     )["url"] == expected["url"]
+    assert main._boundary_canonical_doorway(
+        {"recommendation": None}, query
+    )["url"] == expected["url"]
     assert main._verified_archive_doorway_fallback(
         query,
         [{"title": "ARK-004: Post-Fiat Trade — The Community Ledger SOP",
