@@ -7,7 +7,7 @@ import gold_star_evaluation_runner as runner
 from gold_star_evaluation_context import current_evaluation_context
 
 
-def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidance=False):
+def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidance=False, base_mismatch=False):
     calls = []
 
     def fake_compose(**kwargs):
@@ -32,6 +32,7 @@ def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidanc
             "doorway_title": "",
             "doorway_url": "",
             "_gold_star_evaluation_response_unchanged": not rewrite,
+            "_gold_star_evaluation_base_prompt_fingerprint": "c" * 64 if not base_mismatch or arm == "control" else "d" * 64,
             "_gold_star_adjudication_trace": trace,
         }
 
@@ -73,6 +74,7 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
     assert manifest["case_family"] == "practical_application"
     assert manifest["provider"] == "groq"
     assert manifest["model"] == "openai/gpt-oss-120b"
+    assert manifest["base_prompt_fingerprint"] == "c" * 64
     assert manifest["control"]["adaptation_enabled"] is False
     assert manifest["treatment"]["adaptation_enabled"] is True
     assert manifest["control"]["output_artifact_ref"] != manifest["treatment"]["output_artifact_ref"]
@@ -109,6 +111,7 @@ def test_runner_rejects_case_id_outside_fixed_allowlist(monkeypatch):
         ({"mismatch": True}, "provider_model_pin_mismatch"),
         ({"rewrite": True}, "deterministic_rewrite_or_unverified_output"),
         ({"no_treatment_guidance": True}, "treatment_guidance_not_exposed"),
+        ({"base_mismatch": True}, "base_prompt_fingerprint_mismatch"),
     ],
 )
 def test_runner_rejects_unpaired_or_non_adaptive_evidence(
