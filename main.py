@@ -643,6 +643,33 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
 }
 
 
+def _community_rule_design_canonical_doorway(query):
+    """Return the independently verified human-scale governance doorway for this narrow query family."""
+    normalized = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
+    if not (
+        re.search(r"\\bcommunity\\b", normalized)
+        and re.search(
+            r"\\b(?:rule|rules|limit|limits|restriction|restrictions|liberty|freedom|rights?|obligation|obligations|shared responsibility)\\b",
+            normalized,
+        )
+        and re.search(
+            r"\\b(?:decide|decision|justify|justified|necessary|proportionate|balance|design|set|establish)\\b",
+            normalized,
+        )
+    ):
+        return None
+    return {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+        "rationale": (
+            "This Archive essay examines human-scale governance through community decision-making, "
+            "shared responsibilities, local accountability, and collective coordination. It offers "
+            "a grounded next step for considering how community rules can remain connected to the "
+            "people affected by them."
+        ),
+    }
+
+
 def _select_guide_node_fallback_doorway(query):
     """Select a verified canonical doorway when recovery has no retrieval docs.
 
@@ -652,6 +679,9 @@ def _select_guide_node_fallback_doorway(query):
     cannot erase a stronger canonical continuation.
     """
     normalized = str(query or "").casefold()
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     from deterministic_answer_recovery import (
         is_guide_personal_decision_agency_question,
         registered_recovery_recommendation,
@@ -750,6 +780,12 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     an approved Guide Node with direct lexical grounding. It never invents a
     destination and still returns None when no verifiable continuation exists.
     """
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
+    profile = profile or _base._inquiry_profile(query)
+    if profile.get("risk") or profile.get("action") == "risk":
+        return None
     try:
         candidate = _canonical_primary_from_docs(docs or [], query, profile)
     except Exception:
@@ -6188,12 +6224,18 @@ def _boundary_canonical_doorway(payload, query):
     context already attached to the visitor payload; it never invents a link or
     searches beyond the request evidence.
     """
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        return community_rule_doorway
     existing = _normalize_authoritative_recommendation(
         payload.get("recommendation") if isinstance(payload, dict) else None
     )
     if existing:
         return existing
     if not isinstance(payload, dict):
+        return None
+    profile = _base._inquiry_profile(query)
+    if profile.get("risk") or profile.get("action") == "risk":
         return None
     context = str(
         payload.get("canonical_link_context")
@@ -6231,7 +6273,6 @@ def _boundary_canonical_doorway(payload, query):
             except Exception as exc:
                 print(f"The Guide doorway recovery: canonical context unavailable: {exc}")
         
-    profile = _base._inquiry_profile(query)
     primary = _canonical_primary_from_docs(docs, query, profile)
     if primary:
         title = str(primary.get("title") or "").strip()
@@ -10242,6 +10283,15 @@ def _general_guide_authoritative_doorway(query, context_data):
         if isinstance(trace, dict):
             trace.update({"status": status, **details})
 
+    community_rule_doorway = _community_rule_design_canonical_doorway(query)
+    if community_rule_doorway:
+        _record_selection_state(
+            "SELECTED_VERIFIED_FAMILY_DOORWAY",
+            family="community_rule_design",
+            title=community_rule_doorway["title"],
+            url=community_rule_doorway["url"],
+        )
+        return community_rule_doorway
     if is_guide_meta_coverage_policy_question(query):
         _record_selection_state("AUTHORIZED_OMISSION", reason="guide_coverage_policy_question")
         return None
