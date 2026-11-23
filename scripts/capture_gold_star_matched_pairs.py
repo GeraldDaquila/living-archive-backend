@@ -126,17 +126,25 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
     }
     token = CAPTURE_CONTEXT.set(state)
     try:
-        with evaluation_context(arm=arm, provider=provider, model=model):
-            response = await client.post("/api/query", json={"query": query})
         try:
-            payload = response.json()
-        except ValueError:
+            with evaluation_context(arm=arm, provider=provider, model=model):
+                response = await client.post("/api/query", json={"query": query})
+            status_code = response.status_code
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+            error_type = None
+        except httpx.HTTPError as exc:
+            status_code = None
             payload = {}
+            error_type = type(exc).__name__
         if not isinstance(payload, dict):
             payload = {}
         actual_provider, actual_model, llm_invoked = _safe_provider_identity(payload)
         return {
-            "http_status": response.status_code,
+            "http_status": status_code,
+            "transport_error_type": error_type,
             "ok": payload.get("ok") is True,
             "response": str(payload.get("response") or ""),
             "request_id": str(payload.get("request_id") or ""),
