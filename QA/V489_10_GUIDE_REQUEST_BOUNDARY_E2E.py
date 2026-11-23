@@ -491,6 +491,11 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
     assert doorway == {
         "title": "Overwhelm & Burnout",
         "url": "https://geralddaquila.com/overwhelm-burnout/",
+        "rationale": (
+            "Burnout can follow prolonged strain and overextension. "
+            "Burnout is not a personal failure; it is a signal that capacity "
+            "and demands have become mismatched."
+        ),
     }
 
 
