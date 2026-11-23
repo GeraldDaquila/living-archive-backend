@@ -43,11 +43,12 @@ def _git_sha() -> str:
     ).strip()
 
 
-def _install_observers(composition):
-    """Record only approved lesson IDs and adjudication metadata, never hidden reasoning."""
+def _install_observers(composition, main_module):
+    """Observe Gold Star application while isolating unrelated auxiliary provider work."""
     original_contribution = composition._gold_star_active_quality_contribution
     original_normalizer = composition._normalize_gold_star_provider_adjudication
     original_route = composition.route_with_model_bank
+    original_claim_adjudication = main_module._adjudicate_final_visitor_claims
 
     def observe_contribution(query):
         result = original_contribution(query)
@@ -80,6 +81,22 @@ def _install_observers(composition):
             }
         return result
 
+    def suppress_auxiliary_claim_adjudication(*args, **kwargs):
+        state = CAPTURE_CONTEXT.get()
+        if state is None:
+            return original_claim_adjudication(*args, **kwargs)
+        state["auxiliary_claim_adjudication"] = {
+            "status": "not_run",
+            "reason": "isolated_matched_pair_composition_provider_budget",
+        }
+        return {
+            "version": "1.0",
+            "status": "unassessed",
+            "reason": "isolated_matched_pair_composition_provider_budget",
+            "claims": [],
+            "claim_count": 0,
+        }
+
     def observe_route(**kwargs):
         state = CAPTURE_CONTEXT.get()
         if state is not None:
@@ -100,11 +117,13 @@ def _install_observers(composition):
     composition._gold_star_active_quality_contribution = observe_contribution
     composition._normalize_gold_star_provider_adjudication = observe_adjudication
     composition.route_with_model_bank = observe_route
+    main_module._adjudicate_final_visitor_claims = suppress_auxiliary_claim_adjudication
 
     def restore():
         composition._gold_star_active_quality_contribution = original_contribution
         composition._normalize_gold_star_provider_adjudication = original_normalizer
         composition.route_with_model_bank = original_route
+        main_module._adjudicate_final_visitor_claims = original_claim_adjudication
 
     return restore
 
@@ -167,6 +186,7 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
 
     state: dict[str, Any] = {
         "retrieved_candidates": [],
+        "auxiliary_claim_adjudication": None,
         "actual_system_prompt_sha256": None,
         "user_content_sha256": None,
         "route_operation": None,
@@ -211,6 +231,7 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
             "answer_envelope": payload.get("answer_envelope"),
             "retrieved_candidates": state["retrieved_candidates"],
             "provider_adjudication": state["provider_adjudication"],
+            "auxiliary_claim_adjudication": state["auxiliary_claim_adjudication"],
             "actual_system_prompt_sha256": state["actual_system_prompt_sha256"],
             "user_content_sha256": state["user_content_sha256"],
             "route_operation": state["route_operation"],
@@ -235,6 +256,7 @@ def _skipped_arm(reason: str) -> dict:
         "response_provenance": {},
         "answer_envelope": None,
         "retrieved_candidates": [],
+        "auxiliary_claim_adjudication": None,
         "provider_adjudication": {
             "status": "not_observed",
             "selected_candidate_ids": [],
@@ -299,7 +321,7 @@ async def capture(args) -> dict:
     if not provider or not model:
         raise RuntimeError("Provider bank returned an incomplete provider/model identity.")
 
-    restore = _install_observers(composition)
+    restore = _install_observers(composition, main)
     records = []
     blind_cases = []
     unblinding = {}

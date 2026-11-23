@@ -193,3 +193,45 @@ def test_exact_provider_model_pin_requires_both_values():
             "groq",
             "",
         )
+
+
+
+def test_matched_pair_capture_isolates_composition_from_auxiliary_claim_adjudication():
+    from types import SimpleNamespace
+    from scripts.capture_gold_star_matched_pairs import (
+        CAPTURE_CONTEXT,
+        _install_observers,
+    )
+
+    calls = []
+    composition = SimpleNamespace(
+        _gold_star_active_quality_contribution=lambda _query: {"candidates": []},
+        _normalize_gold_star_provider_adjudication=lambda value, **_kwargs: value,
+        route_with_model_bank=lambda **_kwargs: {"ok": True},
+    )
+    main_module = SimpleNamespace(
+        _adjudicate_final_visitor_claims=lambda *args, **kwargs: (
+            calls.append((args, kwargs)) or {"status": "assessed"}
+        )
+    )
+    restore = _install_observers(composition, main_module)
+    token = CAPTURE_CONTEXT.set({})
+    try:
+        result = main_module._adjudicate_final_visitor_claims(
+            "answer", [], llm_invoked=True, use_core=None, request_deadline=0
+        )
+        assert result["status"] == "unassessed"
+        assert result["reason"] == "isolated_matched_pair_composition_provider_budget"
+        assert CAPTURE_CONTEXT.get()["auxiliary_claim_adjudication"] == {
+            "status": "not_run",
+            "reason": "isolated_matched_pair_composition_provider_budget",
+        }
+        assert calls == []
+    finally:
+        CAPTURE_CONTEXT.reset(token)
+        restore()
+
+    assert main_module._adjudicate_final_visitor_claims("answer", []) == {
+        "status": "assessed"
+    }
+    assert len(calls) == 1
