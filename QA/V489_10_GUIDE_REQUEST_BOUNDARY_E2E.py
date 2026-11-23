@@ -593,6 +593,10 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert payload["recommendation"] is not None, _doorway_diagnostics
     assert payload["recommendation"]["title"] == "Applied Stewardship Program"
     assert payload["recommendation"]["url"] == "https://geralddaquila.com/applied-stewardship-program/"
+    assert payload["recommendation"].get("rationale")
+    # A verified doorway is a separate navigation result, not evidence that
+    # the deterministic practical answer itself was sourced from the Archive.
     assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert payload["answer_basis"]["label"] == "General knowledge"
     assert payload["processing"] == "basic_inquiry"
 
