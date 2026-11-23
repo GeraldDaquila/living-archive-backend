@@ -2949,10 +2949,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 parsed_for_comparison = json.loads(str(raw or "").strip())
             except (TypeError, json.JSONDecodeError):
                 parsed_for_comparison = {}
-            candidate_for_comparison = (
-                _sanitize_candidate(parsed_for_comparison.get("response"))
-                if isinstance(parsed_for_comparison, dict) else ""
+            parsed_for_comparison = (
+                _normalize_composition_envelope(parsed_for_comparison)
+                if isinstance(parsed_for_comparison, dict) else {}
             )
+            candidate_for_comparison = _sanitize_candidate(parsed_for_comparison.get("response"))
             if _comparative_traditions_contract.response_requires_quality_repair(
                 query, candidate_for_comparison
             ):
@@ -2968,6 +2969,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError(
                         "provider response failed basic visitor bounds: non-object JSON envelope"
                     )
+                parsed = _normalize_composition_envelope(parsed)
                 response = _sanitize_candidate(parsed.get("response"))
                 if not response:
                     diagnostic = _composition_response_shape_diagnostic(parsed, raw)
