@@ -15190,6 +15190,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     )
     _llm_invoked = bool(
         composition_result
+        and composition_result.get("_provider_execution_verified") is True
         and not _registered_gold_standard_composition
         and _is_attributable_provider_model(_provider_name, _model_name)
         and _llm_candidate_text
