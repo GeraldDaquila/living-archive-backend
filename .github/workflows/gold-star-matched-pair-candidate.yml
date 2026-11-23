@@ -47,8 +47,6 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider groq
-          --model qwen/qwen3.8-27b
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
