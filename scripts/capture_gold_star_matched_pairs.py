@@ -166,6 +166,7 @@ async def capture(args) -> dict:
     import main
     import general_guide_composition as composition
     import provider_bank
+    import gold_star_lessons
     from gold_star_evaluation_context import evaluation_context
     from general_guide_composition import CONTRACT_VERSION as COMPOSITION_CONTRACT_VERSION
 
@@ -175,6 +176,19 @@ async def capture(args) -> dict:
         ROOT / "docs" / "qa" / "gold_standard_registry.json"
     ).read_bytes()
     registry_sha = _sha256(registry_bytes)
+
+    negative_control_query = (
+        "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
+    )
+    negative_control_candidates = gold_star_lessons.select_lesson_candidates(
+        negative_control_query, limit=4
+    )
+    negative_control_ids = [
+        str(item.get("benchmark_id") or "")
+        for item in negative_control_candidates
+        if isinstance(item, dict)
+    ]
+    negative_control_passed = TARGET_LESSON_ID not in negative_control_ids
 
     eligible = provider_bank.select(
         main.use_core, operation="general_guide_composition"
@@ -229,7 +243,6 @@ async def capture(args) -> dict:
                 if control["retrieved_candidates"]:
                     failures.append("control_exposed_gold_star_guidance")
 
-                target_case = case["case_id"] == "heldout-community-rule-design-transfer-001"
                 target_in_treatment = any(
                     item["benchmark_id"] == TARGET_LESSON_ID
                     for item in treatment["retrieved_candidates"]
@@ -240,15 +253,14 @@ async def capture(args) -> dict:
                 target_span = TARGET_LESSON_ID in (
                     treatment["provider_adjudication"]["application_evidence_candidate_ids"]
                 )
-                if target_case:
-                    if not target_in_treatment:
-                        failures.append("community_rule_gold_star_not_retrieved")
-                    if not target_selected:
-                        failures.append("community_rule_gold_star_not_selected_by_provider")
-                    if not target_span:
-                        failures.append("community_rule_application_span_not_observed")
-                elif target_in_treatment:
-                    failures.append("community_rule_gold_star_cross_domain_leak")
+                if not target_in_treatment:
+                    failures.append("community_rule_gold_star_not_retrieved")
+                if not target_selected:
+                    failures.append("community_rule_gold_star_not_selected_by_provider")
+                if not target_span:
+                    failures.append("community_rule_application_span_not_observed")
+                if not negative_control_passed:
+                    failures.append("community_rule_gold_star_cross_domain_selector_leak")
 
                 case_family = str(case.get("question_type") or case["case_id"])
                 # This is a fingerprint of the shared, non-adaptive request contract.
@@ -322,6 +334,12 @@ async def capture(args) -> dict:
         "model": model,
         "composition_contract_version": COMPOSITION_CONTRACT_VERSION,
         "gold_star_registry_sha256": registry_sha,
+        "selector_negative_control": {
+            "query": negative_control_query,
+            "selected_candidate_ids": negative_control_ids,
+            "community_rule_gold_star_excluded": negative_control_passed,
+            "semantic_certification": False,
+        },
         "case_count": len(records),
         "case_family_count": len({item["case_family"] for item in records}),
         "passed_case_count": sum(item["acceptance"]["passed"] for item in records),
