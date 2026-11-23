@@ -187,7 +187,8 @@ def run_synthetic_matched_pair(
     if len(registry_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in registry_sha256):
         raise GoldStarEvaluationRunError("registry_digest_invalid")
 
-    case = _load_held_out_case(str(case_id or "").strip())
+    case_id = str(case_id or "").strip()
+    case = _load_held_out_case(case_id)
     evaluation_id = uuid.uuid4().hex
     control = _run_arm(
         case=case, arm="control", provider=provider, model=model, use_core=use_core
