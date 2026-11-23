@@ -38,6 +38,8 @@ def test_final_provenance_requires_real_llm_invocation_and_provider_model():
         {"class": "llm", "provider": "groq", "model": "model-x", "llm_invoked": False},
         {"class": "extractive-deterministic", "provider": "gold_star_evidence_recovery",
          "model": "extractive-deterministic", "llm_invoked": True},
+        {"class": "llm", "provider": "gold_star_evidence_recovery",
+         "model": "extractive-deterministic", "llm_invoked": True},
     ],
 )
 def test_unattributable_or_deterministic_final_output_is_not_counted(provenance):
