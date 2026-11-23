@@ -150,3 +150,60 @@ def test_runner_requires_runtime_and_registry_identity():
             use_core=object(),
         )
     assert registry_error.value.code == "registry_digest_invalid"
+
+
+def test_evaluation_route_requires_exact_mirror_explicit_enablement_and_secret():
+    secret = "s" * 48
+    assert runner.evaluation_route_authorized(
+        service_id=runner.MIRROR_SERVICE_ID,
+        enabled_flag="true",
+        expected_secret=secret,
+        supplied_secret=secret,
+    )
+    assert not runner.evaluation_route_authorized(
+        service_id="primary-service-id",
+        enabled_flag="true",
+        expected_secret=secret,
+        supplied_secret=secret,
+    )
+    assert not runner.evaluation_route_authorized(
+        service_id=runner.MIRROR_SERVICE_ID,
+        enabled_flag="false",
+        expected_secret=secret,
+        supplied_secret=secret,
+    )
+    assert not runner.evaluation_route_authorized(
+        service_id=runner.MIRROR_SERVICE_ID,
+        enabled_flag="true",
+        expected_secret="short",
+        supplied_secret="short",
+    )
+    assert not runner.evaluation_route_authorized(
+        service_id=runner.MIRROR_SERVICE_ID,
+        enabled_flag="true",
+        expected_secret=secret,
+        supplied_secret="wrong-secret",
+    )
+
+
+def test_evaluation_payload_accepts_only_case_id_and_provider_model_pin():
+    payload = {
+        "case_id": "heldout-practical-trust-001",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+    }
+    assert runner.validate_evaluation_request_payload(payload) == payload
+
+    with pytest.raises(runner.GoldStarEvaluationRunError) as error:
+        runner.validate_evaluation_request_payload({
+            **payload,
+            "query": "arbitrary caller-supplied text",
+        })
+    assert error.value.code == "invalid_evaluation_payload"
+
+    with pytest.raises(runner.GoldStarEvaluationRunError):
+        runner.validate_evaluation_request_payload({
+            "case_id": "visitor-question",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+        })
