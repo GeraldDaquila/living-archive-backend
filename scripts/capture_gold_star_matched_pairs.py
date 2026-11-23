@@ -275,7 +275,7 @@ async def capture(args) -> dict:
                     gold_star_quality_instruction="",
                 )
                 base_prompt_fingerprint = _sha256(
-                    base_system_prompt + "\\n\\nVISITOR_QUESTION\\n" + case["query"]
+                    base_system_prompt + "\n\nVISITOR_QUESTION\n" + case["query"]
                 )
 
                 record = {
