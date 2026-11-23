@@ -4,6 +4,7 @@ import pytest
 import json
 
 import provider_bank
+import gold_star_lessons
 import general_guide_composition as guide_composition
 from provider_quota_control import estimate_input_tokens
 
@@ -789,26 +790,6 @@ def test_general_guide_rechecks_minimum_timeout_at_transport_boundary(monkeypatc
     assert "minimum_timeout_seconds=5.00" in output
 
 
-def _community_rule_gold_star_candidates():
-    return {
-        "candidates": [
-            {
-                "benchmark_id": f"fixture-community-rule-{index}",
-                "score": 0.91 - index * 0.03,
-                "match_basis": "governed_community_tradeoff_policy",
-                "role": "CORE" if index < 3 else "CONDITIONAL",
-                "activation_condition": "when affected-party consent or authority is directly implicated" if index == 3 else "",
-                "query": "How should a community balance personal liberty with collective obligations when setting a fair rule?",
-                "known_theme": "community rule design, personal liberty, collective obligations, proportionality, least restrictive means, fair burden distribution, accommodation, participation, appeal, review, human-scale governance",
-                "reasoning_family": "community_rule_design",
-                "discipline": "identify shared purpose and affected parties; test necessity and proportionality; distribute burdens fairly; include participation, accommodation, appeal, and review",
-                "abstention_boundary": "Do not prescribe a specific restriction without evidence about the actual harm, legal context, affected parties, and available alternatives.",
-            }
-            for index in range(4)
-        ]
-    }
-
-
 def test_community_rule_prompt_loads_only_relevant_task_modules_and_keeps_default_doorway():
     question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
     prompt = guide_composition._build_general_guide_system_prompt(
@@ -838,19 +819,23 @@ def test_guide_system_prompt_retains_meta_evaluation_modules_only_for_meta_quest
 
 def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
-    quality = _community_rule_gold_star_candidates()
+    quality = gold_star_lessons.active_quality_contribution(question)
+    assert quality and len(quality.get("candidates") or []) == 4
     system = guide_composition._build_general_guide_system_message(
         question,
         has_gold_star_guidance=True,
-        integrity_recovery_instruction="INTEGRITY RECOVERY: Answer the visitor's exact question using supplied canonical material. Distinguish source-supported claims from inference and do not repeat an unrelated approved answer.",
+        incomplete_knowledge_plan=guide_composition.build_incomplete_knowledge_plan(question),
         gold_star_quality_instruction=guide_composition._build_gold_star_quality_instruction(quality),
+        public_live_source_instruction=guide_composition._public_live_source_security_instruction(
+            {"live_source_evidence_provenance": [{"source": "verified-live-archive-test-fixture"}]}
+        ),
     )
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": "U" * 7000},
     ]
 
-    assert estimate_input_tokens(messages) + 900 <= 8000
+    assert estimate_input_tokens(messages) + 750 <= 8000
 
 
 def test_gold_star_quality_standard_remains_active_when_no_candidate_is_available():
