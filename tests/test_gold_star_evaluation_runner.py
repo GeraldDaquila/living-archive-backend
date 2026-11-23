@@ -68,6 +68,7 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(monkeypatch
     }
     assert all("arm" not in item for item in artifacts)
     assert artifacts[0]["artifact_ref"] != artifacts[1]["artifact_ref"]
+    assert all("control" not in item["artifact_ref"] and "treatment" not in item["artifact_ref"] for item in artifacts)
 
     manifest = result["operator_manifest"]
     assert manifest["case_id"] == "heldout-practical-trust-001"
