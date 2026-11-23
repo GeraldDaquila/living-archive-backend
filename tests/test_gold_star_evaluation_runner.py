@@ -1,6 +1,7 @@
 """Contracts for synthetic-only Gold Star paired generation."""
 
 import pytest
+from pathlib import Path
 
 import gold_star_evaluation_runner as runner
 from gold_star_evaluation_context import current_evaluation_context
@@ -162,7 +163,7 @@ def test_evaluation_route_requires_exact_mirror_explicit_enablement_and_secret()
         supplied_secret=secret,
     )
     assert not runner.evaluation_route_authorized(
-        service_id="primary-service-id",
+        service_id="srv-da98sm2jnfac73d2ki5g",
         enabled_flag="true",
         expected_secret=secret,
         supplied_secret=secret,
@@ -208,3 +209,17 @@ def test_evaluation_payload_accepts_only_case_id_and_provider_model_pin():
             "provider": "groq",
             "model": "openai/gpt-oss-120b",
         })
+
+
+def test_main_endpoint_authenticates_before_reading_body_and_does_not_log_payload():
+    source = Path("main.py").read_text(encoding="utf-8")
+    start = source.index('@app.post("/api/internal/gold-star-evaluation-pair")')
+    end = source.index('@app.post("/api/active-active-guide-capability")', start)
+    route = source[start:end]
+
+    assert route.index("evaluation_route_authorized") < route.index("await request.body()")
+    assert "X-Gold-Star-Evaluation-Key" in route
+    assert "GOLD_STAR_EVALUATION_SECRET" in route
+    assert "GOLD_STAR_EVALUATION_ENABLED" in route
+    assert "request.json()" not in route
+    assert "print(" not in route
