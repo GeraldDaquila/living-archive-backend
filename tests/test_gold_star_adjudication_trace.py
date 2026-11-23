@@ -554,3 +554,64 @@ def test_provider_log_correlation_is_absent_outside_a_visitor_request():
     import provider_bank
 
     assert provider_bank._gold_star_provider_route_log_fields("claim_adjudication") == ""
+
+
+def test_final_answer_provenance_is_synchronized_after_deterministic_rewrite():
+    from gold_star_adjudication_trace import synchronize_final_response_provenance
+    from gold_star_answer_envelope import build_answer_envelope
+    from gold_star_question_contract import build_question_contract
+
+    payload = {
+        "ok": True,
+        "response": "Deterministic replacement.",
+        "provider": "provider-x",
+        "model": "model-y",
+        "response_provenance": {
+            "class": "llm",
+            "provider": "provider-x",
+            "model": "model-y",
+            "llm_invoked": True,
+        },
+    }
+    result = synchronize_final_response_provenance(
+        payload,
+        final_provenance="deterministic_recovery",
+        provider_candidate_delivered=False,
+        cached_candidate_reused=False,
+    )
+    assert result["response_provenance"]["class"] == "deterministic_recovery"
+    assert result["response_provenance"]["llm_invoked"] is True
+    assert result["response_provenance"]["provider"] == "provider-x"
+    envelope = build_answer_envelope(
+        "A test question?", result, build_question_contract("A test question?")
+    )
+    assert envelope["evidence"]["provenance_class"] == "deterministic_recovery"
+    assert envelope["route"]["provider_present"] is True
+    assert envelope["route"]["model_present"] is True
+
+
+def test_final_answer_provenance_preserves_verified_provider_and_cache_delivery():
+    from gold_star_adjudication_trace import synchronize_final_response_provenance
+
+    for kwargs in (
+        {"provider_candidate_delivered": True, "cached_candidate_reused": False},
+        {"provider_candidate_delivered": False, "cached_candidate_reused": True},
+    ):
+        payload = {"response_provenance": {"class": "llm", "llm_invoked": True}}
+        result = synchronize_final_response_provenance(
+            payload, final_provenance="llm", **kwargs
+        )
+        assert result["response_provenance"]["class"] == "llm"
+
+
+def test_final_answer_provenance_does_not_invent_provider_metadata():
+    from gold_star_adjudication_trace import synchronize_final_response_provenance
+
+    payload = {"response": "Bounded recovery."}
+    result = synchronize_final_response_provenance(
+        payload,
+        final_provenance="deterministic_recovery",
+        provider_candidate_delivered=False,
+        cached_candidate_reused=False,
+    )
+    assert result["response_provenance"] == {"class": "deterministic_recovery"}

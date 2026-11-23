@@ -8166,6 +8166,12 @@ def _guide_finalize_visitor_payload(payload, query):
             else "deterministic_recovery" if final_response
             else "unresolved"
         )
+        _gold_star_ledger.synchronize_final_response_provenance(
+            result,
+            final_provenance=final_provenance,
+            provider_candidate_delivered=delivered,
+            cached_candidate_reused=cached_candidate_reused,
+        )
         trace_for_delivery = adjudication_trace
         if str(trace_for_delivery.get("guidance_exposure") or "not_observed") == "not_observed":
             trace_for_delivery = _mark_gold_star_guidance_exposure(

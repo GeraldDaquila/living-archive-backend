@@ -337,6 +337,34 @@ def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
     return _store_current_trace(result)
 
 
+
+def synchronize_final_response_provenance(
+    payload: Any,
+    *,
+    final_provenance: str,
+    provider_candidate_delivered: bool,
+    cached_candidate_reused: bool,
+) -> Any:
+    """Make public provenance describe the answer that survived final boundaries.
+
+    Provider invocation metadata is retained as historical route evidence, but
+    a deterministic rewrite must not leave the delivered answer labeled as LLM.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    if provider_candidate_delivered or cached_candidate_reused:
+        return payload
+    allowed = {"deterministic_by_design", "deterministic_recovery", "unresolved"}
+    provenance_class = (
+        final_provenance if final_provenance in allowed else "unresolved"
+    )
+    provenance = payload.get("response_provenance")
+    provenance = dict(provenance) if isinstance(provenance, Mapping) else {}
+    provenance["class"] = provenance_class
+    payload["response_provenance"] = provenance
+    return payload
+
+
 def mark_final_delivery(
     trace: Mapping[str, Any], *, provider_candidate_delivered: bool,
     final_provenance: str, cached_candidate_reused: bool = False
