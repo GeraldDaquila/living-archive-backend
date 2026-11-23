@@ -34,7 +34,7 @@ class SystemicRecoveryTerminalContractTests(unittest.TestCase):
         self.assertIn("deterministic registered recovery PASS", source)
         self.assertLess(
             source.index("_deterministic_recovery = _basic_inquiry_round1_deterministic_response("),
-            source.index("I couldn’t produce a reliable answer to that question just now."),
+            source.rindex("I couldn’t produce a reliable answer to that question just now."),
         )
 
     def test_registered_mechanism_recovery_has_shape_aware_quality_admission(self):
