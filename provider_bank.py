@@ -3989,7 +3989,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             _success(provider, model, operation)
             _capacity_end_request(success=True)
             capacity_finished = True
-            return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
+            return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order, "_provider_execution_verified": True})
         except QuotaAdmissionDenied as exc:
             _gold_star_trace.record_provider_candidate_outcome(operation, "admission_denied")
             # Local admission pressure is not evidence that the upstream provider
