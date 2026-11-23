@@ -484,6 +484,18 @@ def _sanitize_candidate(text: Any) -> str:
     if not raw:
         return ""
 
+    # CMS/SEO metadata may be concatenated after a legitimate page summary in
+    # WordPress search excerpts. Preserve the visitor-meaningful prefix while
+    # removing the metadata field and everything that follows it. This shared
+    # sanitizer is used for both composed answers and doorway introductions.
+    raw = re.sub(
+        r"(?is)\b(?:meta\s+description|seo\s+description)\s*:?.*$",
+        "",
+        raw,
+    ).rstrip()
+    if not raw:
+        return ""
+
     # Reject retrieval/catalogue blocks as units before sentence-level cleanup.
     # Metadata labels can occur after otherwise grammatical source excerpts, so
     # stripping only the label leaves fragments that look like an answer.
