@@ -13,7 +13,7 @@ REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
 SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
-PROVIDER_PROBE_QUERY = "Why can a well-designed policy still fail during implementation?"
+PROVIDER_PROBE_QUERY = "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
 
 def file_commit(path):
     try:
