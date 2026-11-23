@@ -5066,6 +5066,14 @@ def compose(
             candidate["doorway_url"] = doorway.get("doorway_url", "")
             _emit_guide_outcome("authoritative_doorway_attached")
 
+    if evaluation is not None:
+        # The evaluator must reject a deterministic rewrite even when a provider
+        # was called successfully. This flag compares the final composer text
+        # with the exact provider candidate before any deterministic recovery.
+        candidate["_gold_star_evaluation_response_unchanged"] = (
+            candidate.get("response") == response
+        )
+
     if evaluation is None:
         # Visitor requests retain the normal cache. Evaluation arms bypass both
         # cache reads and writes so each arm must perform a fresh provider call.
