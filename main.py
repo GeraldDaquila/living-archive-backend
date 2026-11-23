@@ -12911,17 +12911,38 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and not _is_healthy_community_orientation_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
-        and not authoritative_doorway
     ):
-        # A practical recovery must not inherit an incidental doorway. However,
-        # when the independent selector has already verified a materially
-        # relevant canonical page body for this exact inquiry, preserve it as a
-        # separate continuation. Answer recovery and Archive navigation remain
-        # independent responsibilities.
-        archive_evidence_unavailable = True
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
-        composition_context["evidence_sufficiency_unavailable"] = True
+        # The bounded answer path is intentionally independent of composition.
+        # Before declaring that no Archive continuation exists, evaluate the
+        # already-retrieved canonical evidence against the visitor's full query.
+        # Do not repeat WordPress discovery here: this is a selection pass over
+        # evidence already supplied to the request.
+        if not authoritative_doorway:
+            try:
+                _practical_doorway_context = dict(context_data)
+                _practical_doorway_context["_skip_doorway_search_recovery"] = True
+                _practical_doorway_candidate = _normalize_authoritative_recommendation(
+                    _general_guide_authoritative_doorway(
+                        query, _practical_doorway_context
+                    )
+                )
+                if _practical_doorway_candidate:
+                    authoritative_doorway = _practical_doorway_candidate
+                    composition_context["authoritative_doorway"] = authoritative_doorway
+                    composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            except Exception as exc:
+                print(
+                    "The Guide practical doorway selection failed safely: "
+                    f"exception={type(exc).__name__}"
+                )
+        if not authoritative_doorway:
+            # No materially relevant canonical destination passed the same
+            # relevance gate; preserve the complete general answer and report
+            # the Archive evidence limitation honestly.
+            archive_evidence_unavailable = True
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context["evidence_sufficiency_unavailable"] = True
 
     # Subject-discovery prose must be independent of provider availability and generation.
     # Always compose it from the selected canonical page evidence, so primary and mirror
