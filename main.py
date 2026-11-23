@@ -15512,6 +15512,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             provenance_payload["llm_invoked"] = _llm_invoked
             provenance_payload["quality_adjusted_llm_eligible"] = _quality_adjusted_llm_eligible
             provenance_payload["provider_invocation_id"] = _provider_invocation_id or None
+        print(
+            "USE RESPONSE METRIC: "
+            f"stage=post_repair, request_id={request_id}, "
+            f"request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}, "
+            f"provenance={_response_provenance}, "
+            f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
+            f"llm_invoked={str(_llm_invoked).lower()}, "
+            f"provider_invocation_id={_provider_invocation_id or 'unavailable'}, "
+            f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
+        )
     if _repair_outcome.get("status") == "failed":
         print(
             "The Guide bounded repair ended without an accepted candidate: "
