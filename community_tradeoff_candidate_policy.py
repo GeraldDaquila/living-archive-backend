@@ -90,7 +90,7 @@ def select_community_tradeoff_candidates(
         key = {
             "core": "core",
             "conditional": (
-                "conditional:stakeholders"
+                "conditional:ethical_tradeoff"
                 if "ethical-tradeoff" in definition["benchmark_id"]
                 else "conditional:stakeholders"
                 if "stakeholder" in definition["benchmark_id"]
