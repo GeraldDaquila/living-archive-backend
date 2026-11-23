@@ -122,22 +122,6 @@ def _load_held_out_case(case_id: str) -> dict[str, Any]:
     return case
 
 
-def _base_prompt_fingerprint() -> str:
-    material = {
-        "composition_contract_version": _composition.CONTRACT_VERSION,
-        "base_system_prompt": _composition._GENERAL_GUIDE_SYSTEM_COMPACT,
-        "adaptive_intelligence_contract": (
-            _composition._GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT
-        ),
-        "answerability_contract": (
-            _composition._LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT
-        ),
-    }
-    return _sha256(
-        json.dumps(material, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    )
-
-
 def _generation_config_fingerprint(provider: str, model: str) -> str:
     material = {
         "provider": provider,
@@ -185,6 +169,14 @@ def _run_arm(
         raise GoldStarEvaluationRunError("provider_output_missing")
     if result.get("_gold_star_evaluation_response_unchanged") is not True:
         raise GoldStarEvaluationRunError("deterministic_rewrite_or_unverified_output")
+    base_prompt_fingerprint = str(
+        result.get("_gold_star_evaluation_base_prompt_fingerprint") or ""
+    )
+    if (
+        len(base_prompt_fingerprint) != 64
+        or any(ch not in "0123456789abcdef" for ch in base_prompt_fingerprint)
+    ):
+        raise GoldStarEvaluationRunError("base_prompt_fingerprint_missing")
 
     trace = result.get("_gold_star_adjudication_trace")
     if not isinstance(trace, dict) or trace.get("composition") != "provider_candidate_returned":
@@ -206,6 +198,7 @@ def _run_arm(
         "doorway_url": str(result.get("doorway_url") or ""),
         "candidate_count": trace["candidate_count"],
         "candidate_ids": list(trace.get("candidate_ids") or []),
+        "base_prompt_fingerprint": base_prompt_fingerprint,
         "guidance_exposure": trace.get("guidance_exposure", "not_observed"),
         "composition": trace["composition"],
     }
@@ -241,10 +234,12 @@ def run_synthetic_matched_pair(
     treatment = _run_arm(
         case=case, arm="treatment", provider=provider, model=model, use_core=use_core
     )
+    if control["base_prompt_fingerprint"] != treatment["base_prompt_fingerprint"]:
+        raise GoldStarEvaluationRunError("base_prompt_fingerprint_mismatch")
 
     control_ref = f"urn:gold-star-evaluation:{evaluation_id}:control:{secrets.token_hex(8)}"
     treatment_ref = f"urn:gold-star-evaluation:{evaluation_id}:treatment:{secrets.token_hex(8)}"
-    base_fingerprint = _base_prompt_fingerprint()
+    base_fingerprint = control["base_prompt_fingerprint"]
     generation_fingerprint = _generation_config_fingerprint(provider, model)
     contract_version = _composition.CONTRACT_VERSION
 
