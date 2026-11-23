@@ -1,11 +1,15 @@
 {
   "status": "BATCH_AUDIT",
-  "purpose": "Inventory all existing approved Gold Stars for exact-benchmark coverage and staged transferability review.",
+  "purpose": "Historical batch classification snapshot for the original approved tranche. Canonical inventory totals below are computed from the current registry; classifications remain the explicitly scoped 23-record historical batch and must not be interpreted as the full current approved inventory.",
   "generated_from_registry": "docs/qa/gold_standard_registry.json",
   "totals": {
-    "registry_records": 61,
-    "approved_gold_standards": 23,
-    "runtime_transfer_active": 3
+    "canonical_registry_records": 169,
+    "canonical_approved_gold_standards": 133,
+    "canonical_runtime_transfer_approved": 131,
+    "general_purpose_runtime_transfer_records": 127,
+    "general_purpose_transfer_map_entries": 127,
+    "historical_batch_classifications": 23,
+    "historical_batch_runtime_transfer_active": 3
   },
   "classifications": [
     {
@@ -169,5 +173,12 @@
       "transferability_review": "pending_batch_review",
       "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
     }
-  ]
+  ],
+  "scope": {
+    "classification_population": "historical_approved_tranche",
+    "classification_records": 23,
+    "canonical_inventory_source": "docs/qa/gold_standard_registry.json",
+    "transfer_map_source": "docs/qa/gold_star_transferability_map.json",
+    "scope_note": "The historical classifications are not exhaustive of the current registry. Current runtime transfer authority is represented by the canonical registry and the separately scoped transferability map."
+  }
 }
