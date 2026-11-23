@@ -237,7 +237,7 @@ def test_gold_standard_is_the_task_dependent_general_quality_contract():
     assert "Do not impose a fixed number of paragraphs or a universal sequence" in prompt
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
     assert "include one concise, verified Living Archive destination" in prompt
-    assert "do not attach the Compass by default" in prompt
+    assert "Do not substitute the general Compass merely because a narrower destination was not found" in prompt
     assert "choose the response form that makes the answer easiest to understand and use" in prompt
 
 
