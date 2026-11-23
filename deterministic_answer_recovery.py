@@ -1329,6 +1329,37 @@ def compose_task_specific_recovery(question):
     if not q:
         return None
 
+    # Fair-rule questions need a concrete governance test, not a generic
+    # liberty-versus-community slogan. This is bounded general reasoning and
+    # does not claim to state a formal Living Archive doctrine.
+    if (
+        re.search(r"\\b(?:personal\\s+)?libert(?:y|ies)\\b", q)
+        and re.search(r"\\bcollective\\s+(?:obligations?|responsibilit(?:y|ies))\\b", q)
+        and re.search(r"\\b(?:community|communities|group|society)\\b", q)
+        and re.search(r"\\b(?:fair\\s+rule|rule|rules|policy|governance)\\b", q)
+        and re.search(r"\\b(?:balanc(?:e|ing)|reconcil(?:e|ing)|set(?:ting)?|establish(?:ing)?)\\b", q)
+    ):
+        return {
+            "recovery_id": "task_fair_community_rule_liberty_and_collective_obligations",
+            "response": (
+                "A fair community rule should protect a meaningful sphere of personal freedom while addressing responsibilities "
+                "that arise because people share space, resources, risks, and consequences. Neither side should be treated as "
+                "absolute: collective convenience does not by itself justify controlling private choices, and personal liberty "
+                "does not remove responsibility for avoidable harm imposed on others.\\n\\n"
+                "Start by stating the legitimate shared purpose of the rule and the specific harm or coordination problem it is "
+                "meant to address. Ask who benefits, who carries the costs, whose freedom is restricted, and whether the people "
+                "most affected have had a meaningful opportunity to shape the decision. A restriction is more defensible when "
+                "it responds to a demonstrable shared need, is necessary and proportionate to that need, and uses the least "
+                "restrictive workable means. It should not reach further into people's lives than its purpose requires.\\n\\n"
+                "Make the obligations reciprocal and fairly distributed: apply the same principle across status and influence, "
+                "allow reasonable accommodation where circumstances differ, explain how the rule will be enforced, and provide "
+                "a way to question or appeal its application. Set a review point and observable criteria for checking whether it "
+                "actually reduces the problem without creating greater burdens or new harms. The practical test is: can the "
+                "community explain the shared need, justify the limit, show that burdens are fairly allocated, and revise the rule "
+                "when experience shows it is not working? If not, the rule needs redesign rather than stronger enforcement."
+            ),
+        }
+
     # Problem-boundary questions are answerable without model generation or
     # retrieval. Resolve the analytical boundary itself before the provider
     # bank so provider exhaustion cannot turn a complete conceptual question
@@ -1808,6 +1839,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # Route the governed task-recovery catalogue through the shared recovery
+    # composer. This makes query-matched, provider-independent answers available
+    # to every caller of compose_recovery, rather than leaving them as unused
+    # helpers reachable only from selected request paths.
+    task_recovery = compose_task_specific_recovery(q)
+    if isinstance(task_recovery, dict):
+        task_response = _clean(task_recovery.get("response"))
+        if task_response:
+            return task_response
 
     if _is_institutional_legitimacy_question(q):
         return _institutional_legitimacy_recovery()
