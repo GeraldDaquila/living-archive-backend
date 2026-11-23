@@ -13,6 +13,7 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     assert "gold-star-blind-review-" in workflow
     assert "gold-star-unblinding-evidence-" in workflow
     assert "paired-evaluation-template.json" in workflow
+    assert "--inter-call-delay-seconds 65" in workflow
     assert "[run-matched-pairs]" in workflow
     assert ".onrender.com" not in workflow
 
