@@ -6260,9 +6260,6 @@ def _boundary_canonical_doorway(payload, query):
     """
     if _guide_query_explicitly_forbids_handoff(query):
         return None
-    profile = _base._inquiry_profile(query)
-    if _guide_doorway_risk_suppression_is_required(query, profile):
-        return None
     community_rule_doorway = _community_rule_design_canonical_doorway(query)
     if community_rule_doorway:
         return community_rule_doorway
@@ -6272,6 +6269,9 @@ def _boundary_canonical_doorway(payload, query):
     if existing:
         return existing
     if not isinstance(payload, dict):
+        return None
+    profile = _base._inquiry_profile(query)
+    if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
     context = str(
         payload.get("canonical_link_context")
