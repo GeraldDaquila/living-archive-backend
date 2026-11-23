@@ -32,6 +32,14 @@ MAX_PAIRS_PER_PROCESS = 3
 MIRROR_SERVICE_ID = "srv-db2s2bid0e5s73e7gt9g"
 
 
+class GoldStarEvaluationRunError(ValueError):
+    """Safe, content-free evaluation failure with a stable reason code."""
+
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__(code)
+
+
 def evaluation_route_authorized(
     *,
     service_id: str,
@@ -73,14 +81,6 @@ def validate_evaluation_request_payload(payload: Any) -> dict[str, str]:
     ):
         raise GoldStarEvaluationRunError("invalid_evaluation_payload")
     return {"case_id": case_id, "provider": provider, "model": model}
-
-
-class GoldStarEvaluationRunError(ValueError):
-    """Safe, content-free evaluation failure with a stable reason code."""
-
-    def __init__(self, code: str):
-        self.code = code
-        super().__init__(code)
 
 
 def _sha256(value: bytes) -> str:
@@ -205,6 +205,7 @@ def _run_arm(
         "doorway_title": str(result.get("doorway_title") or ""),
         "doorway_url": str(result.get("doorway_url") or ""),
         "candidate_count": trace["candidate_count"],
+        "candidate_ids": list(trace.get("candidate_ids") or []),
         "guidance_exposure": trace.get("guidance_exposure", "not_observed"),
         "composition": trace["composition"],
     }
@@ -259,6 +260,7 @@ def run_synthetic_matched_pair(
         "generation_config_fingerprint": generation_fingerprint,
         "gold_star_registry_sha256": registry_sha256,
         "critical_dimensions": list(case.get("critical_dimensions") or []),
+        "adaptation_scope": "approved_cross_question_structural_guidance_only",
         "control": {
             "adaptation_enabled": False,
             "output_artifact_ref": control_ref,
@@ -282,6 +284,7 @@ def run_synthetic_matched_pair(
             "gold_star_registry_sha256": registry_sha256,
         },
         "treatment_guidance_candidate_count": treatment["candidate_count"],
+        "treatment_guidance_candidate_ids": treatment["candidate_ids"],
         "treatment_guidance_exposure": treatment["guidance_exposure"],
         "control_guidance_candidate_count": control["candidate_count"],
         "control_guidance_exposure": control["guidance_exposure"],
