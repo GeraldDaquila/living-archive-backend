@@ -15,6 +15,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
+    # Re-triggered after provider-secret updates so the new credentials are exercised.
     if: ${{ contains(github.event.head_commit.message, '[run-matched-pairs]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
