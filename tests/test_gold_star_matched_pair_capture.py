@@ -83,3 +83,37 @@ def test_unrelated_physical_science_question_excludes_community_rule_gold_star()
     assert TARGET_LESSON_ID not in {
         item["benchmark_id"] for item in selected
     }
+
+
+
+def test_review_template_matches_governed_paired_evaluation_schema_without_answer_content():
+    from scripts.capture_gold_star_matched_pairs import _build_evaluation_template
+
+    shared = {
+        "runtime_commit": "abc123",
+        "composition_contract_version": "v1",
+        "provider": "groq",
+        "model": "model-x",
+        "base_prompt_fingerprint": "base-hash",
+        "generation_config_fingerprint": "config-hash",
+        "gold_star_registry_sha256": "registry-hash",
+    }
+    template = _build_evaluation_template({
+        "evaluation_id": "test-evaluation",
+        "cases": [{
+            "case_id": "case-1",
+            "case_family": "community_rule_design",
+            "critical_dimensions": ["legitimate_shared_purpose"],
+            **shared,
+        }],
+    })
+    record = template["records"][0]
+    assert record["blind_review"] is False
+    assert record["control"]["adaptation_enabled"] is False
+    assert record["treatment"]["adaptation_enabled"] is True
+    assert record["control"]["output_artifact_ref"] != record["treatment"]["output_artifact_ref"]
+    assert set(record["control"]["scores"]) == set(record["treatment"]["scores"])
+    assert set(record["control"]["hard_gates"]) == {
+        "safety", "evidence_integrity", "epistemic_calibration"
+    }
+    assert "question" not in record and "response" not in record
