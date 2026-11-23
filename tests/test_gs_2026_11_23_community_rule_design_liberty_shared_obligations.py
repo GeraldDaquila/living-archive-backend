@@ -19,7 +19,7 @@ def test_community_rule_design_gold_star_is_registered_with_bounded_learning_and
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"] == fixture["expected_doorway"]
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/"
     assert record["runtime_transfer"] is True
