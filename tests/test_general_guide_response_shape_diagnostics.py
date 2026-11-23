@@ -1,4 +1,10 @@
-from general_guide_composition import _composition_response_shape_diagnostic, _normalize_composition_envelope
+import json
+
+from general_guide_composition import (
+    _composition_response_shape_diagnostic,
+    _normalize_composition_envelope,
+    _parse_factory,
+)
 
 
 def test_composition_response_shape_diagnostic_reports_only_safe_metadata():
@@ -84,3 +90,33 @@ def test_explicit_response_takes_precedence_over_alternate_answer():
 
     assert normalized["response"] == "Canonical response field wins."
     assert normalized["response_shape"] == "direct"
+
+
+
+def test_full_composition_parser_accepts_answer_alias_and_keeps_canonical_doorway_separate():
+    answer = (
+        "Stewardship is the practice of caring responsibly for something entrusted to you. "
+        "It includes maintaining what others rely on and recognizing the limits of your role."
+    )
+    parse = _parse_factory([], query="", emit_telemetry=False)
+
+    result = parse(json.dumps({"answer": answer, "doorway": "untrusted provider doorway"}))
+
+    assert result["response"] == answer
+    assert result["response_shape"] == "general"
+    assert result["doorway_title"] == ""
+
+
+def test_full_composition_parser_hard_integrity_lane_normalizes_answer_alias():
+    answer = (
+        "Stewardship is the practice of caring responsibly for something entrusted to you. "
+        "It includes maintaining what others rely on and recognizing the limits of your role."
+    )
+    parse = _parse_factory([], query="What is stewardship?", emit_telemetry=False)
+
+    result = parse(json.dumps({"answer": answer, "doorway": "untrusted provider doorway"}))
+
+    assert result["response"] == answer
+    assert result["response_shape"] == "general"
+    assert result["doorway_title"] == ""
+    assert result["quality_lane"] == "provider_hard_integrity"
