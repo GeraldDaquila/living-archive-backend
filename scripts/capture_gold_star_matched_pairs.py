@@ -310,9 +310,9 @@ async def capture(args) -> dict:
                 # through the same route. Pairing also includes the exact shared user
                 # message hash; treatment's adaptive system prompt hash is retained per arm.
                 base_prompt_fingerprint = _sha256(
-                    "CONTROL_SYSTEM_PROMPT_SHA256\\n"
+                    "CONTROL_SYSTEM_PROMPT_SHA256\n"
                     + str(control["actual_system_prompt_sha256"] or "")
-                    + "\\nUSER_CONTENT_SHA256\\n"
+                    + "\nUSER_CONTENT_SHA256\n"
                     + str(control["user_content_sha256"] or "")
                 )
                 generation_config = {
