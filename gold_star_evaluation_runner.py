@@ -124,6 +124,7 @@ def _load_held_out_case(case_id: str) -> dict[str, Any]:
 
 def _generation_config_fingerprint(provider: str, model: str) -> str:
     material = {
+        "fingerprint_version": _composition.GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION,
         "provider": provider,
         "model": model,
         "operation": _composition.OPERATION,
