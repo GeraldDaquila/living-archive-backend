@@ -220,3 +220,13 @@ def test_final_bounded_repair_reconciles_provider_provenance_after_rewrite():
     assert '_response_provenance = "provider_assisted_recovery"' in function_source
     assert 'provenance_payload["llm_invoked"] = _llm_invoked' in function_source
     assert 'provenance_payload["class"] = _response_provenance' in function_source
+
+
+def test_post_repair_metric_reports_the_reconciled_provenance_state():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    repair_call = function_source.index("payload, _repair_outcome = _run_gold_star_bounded_repair(")
+    final_metric = function_source.index('stage=post_repair, request_id={request_id}')
+    assert final_metric > repair_call
+    assert 'f"llm_invoked={str(_llm_invoked).lower()}, "' in function_source[final_metric:]
+    assert 'f"provider_invocation_id={_provider_invocation_id or' in function_source[final_metric:]
