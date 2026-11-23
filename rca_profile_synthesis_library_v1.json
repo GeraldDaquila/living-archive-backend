@@ -131,7 +131,7 @@
     "P_R": {
       "headline": "We may test our conclusions carefully—but are we noticing the right things?",
       "individual": "You may be careful about checking assumptions and weighing evidence. Yet careful reasoning can only work with what reaches your attention. Important experiences, changes, or consequences may still be missing from the picture you are testing.",
-      "collective": "The group may examine the information it has with care while hearing from a limited range of people or experiences. A well-run review can still miss what never entered the room or the data being considered.",
+      "collective": "The group may examine the information it has with care while hearing from a limited range of people or experiences. It should ask whose experience is missing from the picture. A well-run review can still miss what never entered the room or the data being considered.",
       "so_what_individual": "You can reach a sound conclusion from incomplete information and still misunderstand the situation. Before refining the analysis, it may be worth asking what or whom you have not considered.",
       "so_what_collective": "The group may make defensible decisions based on an incomplete field of information. People closest to an effect, quieter voices, or early signs of change may be absent from the shared picture.",
       "doorway_individual": "Think of a decision you felt confident about. Whose perspective or what consequence did you not consider at first? What helped you notice it later?",
@@ -170,7 +170,7 @@
     ],
     "overall_indicator": "Show the arithmetic average and its public band as a secondary descriptor. Do not use it to override the four-dimensional pattern.",
     "selection": "Use first qualifying relationship in the canonical precedence order; include profile shape as context; use strongest and lowest capacities as supporting evidence.",
-    "anti_genericity": "A generated synthesis must name at least two actual dimension scores and explain their relationship. If no relationship threshold qualifies, use the balanced/shape narrative and strongest/lowest capacity context.",
+    "anti_genericity": "A generated synthesis must name at least two actual dimension scores and explain their relationship. Do not use a generic paragraph repeated regardless of score vector. If no relational pattern qualifies, use the balanced/shape narrative and strongest/lowest capacity context.",
     "forbidden": "diagnostic labels, rankings, causal claims not supported by responses, generic paragraph repeated regardless of score vector",
     "profile_shape_paragraph_rule": "When a profile shape is dominant, use the perspective-specific so-what and doorway fields for that shape. Do not substitute the generic lowest-capacity paragraph when the profile is balanced or high-balanced."
   },
@@ -197,7 +197,7 @@
     "boundary_cases": [
       {
         "gap": 0.79,
-        "expected": "does not qualify on threshold alone"
+        "expected": "No relational pattern qualifies on threshold alone at a 0.79 gap."
       },
       {
         "gap": 0.8,
