@@ -34,6 +34,9 @@ def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monk
         "abstention_boundary": "Do not manufacture certainty.",
         "variants": ["How do I regain my bearings amid uncertain change?"],
     }]
+    fixture[0]["signature_terms"] = lessons._lesson_signature(fixture[0])
+    fixture[0]["variant_terms"] = lessons._concept_terms(" ".join(fixture[0]["variants"]))
+    fixture[0]["reasoning_terms"] = lessons._concept_terms(fixture[0]["reasoning_family"])
     monkeypatch.setattr(lessons, "_LESSONS", fixture)
     selected = lessons.select_lesson("How can I orient myself while things remain uncertain and unresolved?")
     assert selected is not None
@@ -54,6 +57,9 @@ def test_structural_signature_still_abstains_on_unrelated_topic(monkeypatch):
         "abstention_boundary": "Do not manufacture certainty.",
         "variants": [],
     }]
+    fixture[0]["signature_terms"] = lessons._lesson_signature(fixture[0])
+    fixture[0]["variant_terms"] = lessons._concept_terms(" ".join(fixture[0]["variants"]))
+    fixture[0]["reasoning_terms"] = lessons._concept_terms(fixture[0]["reasoning_family"])
     monkeypatch.setattr(lessons, "_LESSONS", fixture)
     assert lessons.select_lesson("What is the boiling point of water at sea level?") is None
 
