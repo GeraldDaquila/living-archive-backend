@@ -268,8 +268,13 @@ def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(mon
         question, {}, {}, recommendation_available=False
     )
 
-    # The deterministic template has no safe mechanism to apply this lesson.
-    # It must not suppress its normal question-preserving opening on retrieval
-    # alone, and it must not invoke the provider-path selector.
+    # The deterministic recovery path must not retrieve provider-path Gold Star
+    # contributions. Its current question-family contract is the bounded
+    # approach template; retrieval alone must not be reported as application.
     assert retrieval_calls == []
-    assert result["response"].startswith("The question raises a real issue:")
+    assert result["provider"] == "deterministic_recovery"
+    assert result["response"].startswith(
+        "Start by defining the outcome the change must achieve"
+    )
+    assert "Separate observations from interpretations." not in result["response"]
+    assert "Do not infer causes without evidence." not in result["response"]
