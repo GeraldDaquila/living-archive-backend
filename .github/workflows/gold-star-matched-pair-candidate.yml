@@ -14,6 +14,7 @@ permissions:
 jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
+    # The embedding model is prewarmed only after the runner memory-headroom guard.
     if: ${{ contains(github.event.head_commit.message, '[run-matched-pairs]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
