@@ -92,6 +92,7 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(
     assert manifest["provider"] == "groq"
     assert manifest["model"] == "openai/gpt-oss-120b"
     assert manifest["base_prompt_fingerprint"] == "c" * 64
+    assert manifest["generation_order"] == list(generation_order)
     assert manifest["control"]["adaptation_enabled"] is False
     assert manifest["treatment"]["adaptation_enabled"] is True
     assert manifest["control"]["output_artifact_ref"] != manifest["treatment"]["output_artifact_ref"]
