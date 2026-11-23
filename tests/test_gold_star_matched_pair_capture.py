@@ -126,3 +126,17 @@ def test_skipped_arm_cannot_be_counted_as_provider_output():
     provider, model, attributable = _safe_provider_identity(skipped)
     assert skipped["skipped_reason"] == "provider_lane_unavailable"
     assert (provider, model, attributable) == ("", "", False)
+
+
+
+def test_all_heldout_community_rule_subfamilies_retrieve_the_target_lesson():
+    import json
+    from scripts.capture_gold_star_matched_pairs import CASE_SET_PATH
+    import gold_star_lessons
+
+    cases = json.loads(CASE_SET_PATH.read_text(encoding="utf-8"))["cases"]
+    for case in cases:
+        selected = gold_star_lessons.select_lesson_candidates(case["query"], limit=4)
+        assert TARGET_LESSON_ID in {
+            item["benchmark_id"] for item in selected
+        }, case["case_id"]
