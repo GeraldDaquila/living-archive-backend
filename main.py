@@ -670,6 +670,23 @@ def _community_rule_design_canonical_doorway(query):
     }
 
 
+
+def _guide_doorway_risk_suppression_is_required(query, profile=None):
+    """Suppress navigation only for acute safety situations, not abstract risk analysis."""
+    profile = profile or _base._inquiry_profile(query)
+    if not (profile.get("risk") or profile.get("action") == "risk"):
+        return False
+    normalized = re.sub(r"\\s+", " ", str(query or "").casefold()).strip()
+    return bool(
+        re.search(
+            r"\\b(?:self[- ]harm|suicid\\w*|kill myself|hurt myself|overdose|poison|"
+            r"medical emergency|physical danger|immediate danger|urgent safety|"
+            r"violence|abuse|serious injury|threat to life|cannot stay safe|can't stay safe)\\b",
+            normalized,
+        )
+    )
+
+
 def _select_guide_node_fallback_doorway(query):
     """Select a verified canonical doorway when recovery has no retrieval docs.
 
@@ -784,7 +801,7 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     if community_rule_doorway:
         return community_rule_doorway
     profile = profile or _base._inquiry_profile(query)
-    if profile.get("risk") or profile.get("action") == "risk":
+    if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
     try:
         candidate = _canonical_primary_from_docs(docs or [], query, profile)
@@ -6235,7 +6252,7 @@ def _boundary_canonical_doorway(payload, query):
     if not isinstance(payload, dict):
         return None
     profile = _base._inquiry_profile(query)
-    if profile.get("risk") or profile.get("action") == "risk":
+    if _guide_doorway_risk_suppression_is_required(query, profile):
         return None
     context = str(
         payload.get("canonical_link_context")
@@ -10315,8 +10332,8 @@ def _general_guide_authoritative_doorway(query, context_data):
         _record_selection_state("EVALUATING")
     try:
         profile = _base._inquiry_profile(query)
-        if profile.get("risk") or profile.get("action") == "risk":
-            _record_selection_state("POLICY_SUPPRESSED", reason="risk_gate")
+        if _guide_doorway_risk_suppression_is_required(query, profile):
+            _record_selection_state("POLICY_SUPPRESSED", reason="acute_safety_risk_gate")
             return None
 
         candidates = []
