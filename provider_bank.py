@@ -3128,6 +3128,17 @@ def _track_gold_star_provider_route(function):
     return wrapped
 
 
+def _filter_evaluation_candidate_pool(pool, evaluation):
+    """Keep only the exact pinned lane; never widen an evaluation candidate set."""
+    if evaluation is None:
+        return list(pool or [])
+    return [
+        candidate for candidate in (pool or [])
+        if str(candidate.get("provider") or "") == evaluation.provider
+        and str(candidate.get("model") or "") == evaluation.model
+    ]
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
     # Hard-wired 70/30 workload split for Guide composition. The secondary receives
     # its assigned share through the authenticated capability boundary; if that lane
@@ -3180,11 +3191,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     if evaluation is not None:
         # Fail closed: only the exact eligible provider/model may be attempted.
         # No sibling, alternate provider, or remote counterpart is admissible.
-        pool = [
-            candidate for candidate in pool
-            if str(candidate.get("provider") or "") == evaluation.provider
-            and str(candidate.get("model") or "") == evaluation.model
-        ]
+        pool = _filter_evaluation_candidate_pool(pool, evaluation)
     if operation == "general_guide_composition" and pool:
         # A provider-account TPM limit smaller than the input alone is an
         # impossible request, independent of model choice. Filter that provider
