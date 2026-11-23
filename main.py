@@ -6303,6 +6303,31 @@ def _guide_restore_verified_doorway(payload, query):
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
 
+    # A prior canonical selector may already have completed the bounded
+    # evidence/relevance checks and marked its result as verified. Preserve
+    # that server-selected destination across terminal restoration instead of
+    # discarding it and re-running discovery against a thinner payload. Exact
+    # Gold Star authority and explicit/reviewed omissions remain higher priority.
+    if (
+        exact_standard is None
+        and safe.get("doorway_selection_status") == "VERIFIED_RELEVANT_DESTINATION"
+        and safe.get("doorway_selection_evaluated") is True
+        and safe.get("doorway_selection_source") == "final_authoritative_recommendation_contract"
+    ):
+        _preselected_doorway = _normalize_authoritative_recommendation(
+            safe.get("recommendation") or safe.get("canonical_doorway")
+        )
+        if _preselected_doorway is not None:
+            safe["recommendation"] = _preselected_doorway
+            safe["canonical_doorway"] = _preselected_doorway
+            safe["doorway_title"] = _preselected_doorway.get("title")
+            safe["doorway_url"] = _preselected_doorway.get("url")
+            safe["doorway_rationale"] = _preselected_doorway.get("rationale")
+            safe["doorway_decision"] = "selected"
+            safe["doorway_omission_reason"] = None
+            safe["doorway_omission_exception_reason"] = None
+            return safe
+
     # Trust-in-community-stewardship has a reviewed, query-specific doorway.
     # Resolve it before generic retrieval/relevance fallbacks: a transient
     # canonical-search failure must not erase a destination already selected
