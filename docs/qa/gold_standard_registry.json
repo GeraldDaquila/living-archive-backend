@@ -8730,21 +8730,21 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-22",
-    "approved_gold_star_count": 133,
-    "registry_record_count": 169,
-    "review_reconciliation": "Canonical approved inventory is 133 records: 131 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-22 live review remains pending.",
+    "last_audit_date": "2026-11-23",
+    "approved_gold_star_count": 134,
+    "registry_record_count": 170,
+    "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-22: 133 approved Gold Stars; 39 assigned display serials #56–#94; 94 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 94,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-23: 134 approved Gold Stars; 39 assigned display serials #56–#94; 95 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 95,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 131,
+    "active_quality_contributor_count": 132,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "gs-2026-11-22-community-freedom-shared-responsibility-decision approved by user 2026-11-22"
+    "last_approval": "gs-2026-11-23-community-rule-design-liberty-shared-obligations approved by user 2026-11-23"
   },
   "last_reconciled": "2026-11-23"
 }
