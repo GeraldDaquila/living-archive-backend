@@ -12,6 +12,7 @@ import re
 import json
 import os
 import secrets
+import threading
 import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
@@ -76,6 +77,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import gold_star_evaluation_runner as _gold_star_eval_runner
 
 # The outer visitor boundary and shared finalizer must emit through the same
 # privacy-minimized lifecycle logger used by the composer.
@@ -17259,6 +17261,94 @@ async def _provider_capability_route(request: Request):
             "contract_version": PROVIDER_GATEWAY_CONTRACT_VERSION,
             "error": "provider_gateway_failure",
         })
+
+
+GOLD_STAR_EVALUATION_MAX_REQUEST_BYTES = 1024
+_GOLD_STAR_EVAL_PAIR_LOCK = threading.Lock()
+_GOLD_STAR_EVAL_PAIR_CASES_USED = set()
+_GOLD_STAR_EVAL_PAIR_CASES_RESERVED = set()
+
+
+@app.post("/api/internal/gold-star-evaluation-pair")
+async def _gold_star_evaluation_pair_route(request: Request):
+    """Mirror-only, authenticated generation of one fixed synthetic control/treatment pair."""
+    authorized = _gold_star_eval_runner.evaluation_route_authorized(
+        service_id=os.getenv("RENDER_SERVICE_ID", ""),
+        enabled_flag=os.getenv("GOLD_STAR_EVALUATION_ENABLED", ""),
+        expected_secret=os.getenv("GOLD_STAR_EVALUATION_SECRET", ""),
+        supplied_secret=request.headers.get("X-Gold-Star-Evaluation-Key", ""),
+    )
+    if not authorized:
+        return JSONResponse(status_code=404, content={"ok": False, "error": "not_found"})
+
+    max_body_bytes = GOLD_STAR_EVALUATION_MAX_REQUEST_BYTES
+    declared_length = request.headers.get("content-length")
+    if declared_length:
+        try:
+            if int(declared_length) > max_body_bytes:
+                return JSONResponse(status_code=413, content={"ok": False, "error": "payload_too_large"})
+        except (TypeError, ValueError):
+            return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_content_length"})
+
+    raw_body = await request.body()
+    if len(raw_body) > max_body_bytes:
+        return JSONResponse(status_code=413, content={"ok": False, "error": "payload_too_large"})
+    try:
+        body = json.loads(raw_body)
+    except Exception:
+        return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_json"})
+
+    try:
+        payload = _gold_star_eval_runner.validate_evaluation_request_payload(body)
+    except _gold_star_eval_runner.GoldStarEvaluationRunError as exc:
+        return JSONResponse(status_code=422, content={"ok": False, "error": exc.code})
+
+    case_id = payload["case_id"]
+    with _GOLD_STAR_EVAL_PAIR_LOCK:
+        if case_id in _GOLD_STAR_EVAL_PAIR_CASES_USED or case_id in _GOLD_STAR_EVAL_PAIR_CASES_RESERVED:
+            return JSONResponse(status_code=409, content={"ok": False, "error": "case_already_used"})
+        if (
+            len(_GOLD_STAR_EVAL_PAIR_CASES_USED)
+            + len(_GOLD_STAR_EVAL_PAIR_CASES_RESERVED)
+            >= _gold_star_eval_runner.MAX_PAIRS_PER_PROCESS
+        ):
+            return JSONResponse(status_code=429, content={"ok": False, "error": "evaluation_pair_cap_reached"})
+        _GOLD_STAR_EVAL_PAIR_CASES_RESERVED.add(case_id)
+
+    try:
+        runtime_commit = str(_DEPLOYED_SOURCE_COMMIT or "").strip()
+        if not runtime_commit or runtime_commit == "source-commit-unavailable":
+            raise _gold_star_eval_runner.GoldStarEvaluationRunError("runtime_commit_unavailable")
+        registry_path = (
+            Path(__file__).resolve().parent
+            / "docs"
+            / "qa"
+            / "gold_standard_registry.json"
+        )
+        registry_sha256 = hashlib.sha256(registry_path.read_bytes()).hexdigest()
+        result = await asyncio.to_thread(
+            _gold_star_eval_runner.run_synthetic_matched_pair,
+            case_id=case_id,
+            provider=payload["provider"],
+            model=payload["model"],
+            runtime_commit=runtime_commit,
+            registry_sha256=registry_sha256,
+            use_core=use_core,
+        )
+    except _gold_star_eval_runner.GoldStarEvaluationRunError as exc:
+        with _GOLD_STAR_EVAL_PAIR_LOCK:
+            _GOLD_STAR_EVAL_PAIR_CASES_RESERVED.discard(case_id)
+        status = 422 if exc.code in {"case_not_allowlisted", "held_out_case_invalid"} else 503
+        return JSONResponse(status_code=status, content={"ok": False, "error": exc.code})
+    except Exception:
+        with _GOLD_STAR_EVAL_PAIR_LOCK:
+            _GOLD_STAR_EVAL_PAIR_CASES_RESERVED.discard(case_id)
+        return JSONResponse(status_code=503, content={"ok": False, "error": "evaluation_pair_failed"})
+
+    with _GOLD_STAR_EVAL_PAIR_LOCK:
+        _GOLD_STAR_EVAL_PAIR_CASES_RESERVED.discard(case_id)
+        _GOLD_STAR_EVAL_PAIR_CASES_USED.add(case_id)
+    return JSONResponse(status_code=200, content=result)
 
 
 @app.post("/api/active-active-guide-capability")

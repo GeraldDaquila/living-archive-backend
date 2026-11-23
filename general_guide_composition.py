@@ -48,6 +48,8 @@ from provider_bank import (
 )
 
 CONTRACT_VERSION = "v1.54"
+GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v1"
+GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v1"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -4715,24 +4717,63 @@ def compose(
                     return cached_result
                 del _COMPOSITION_CACHE[cache_key]
 
+    base_system_prefix = (
+        _GENERAL_GUIDE_SYSTEM_COMPACT
+        + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT
+        + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT
+        + (
+            "\n\n" + incomplete_knowledge_plan["architectural_contract"]
+            if incomplete_knowledge_plan else ""
+        )
+        + (
+            "\n\n" + integrity_recovery_instruction.strip()
+            if integrity_recovery_instruction else ""
+        )
+    )
+    base_system_content = base_system_prefix + (
+        "\n\n" + public_live_source_instruction
+        if public_live_source_instruction else ""
+    )
+    # Preserve the established prompt order: treatment-only Gold Star guidance
+    # precedes the public-source instruction exactly as in visitor composition.
+    system_content = (
+        base_system_prefix
+        + (
+            "\n\n" + gold_star_quality_instruction.strip()
+            if gold_star_quality_instruction else ""
+        )
+        + (
+            "\n\n" + public_live_source_instruction
+            if public_live_source_instruction else ""
+        )
+    )
+    evaluation_base_prompt_fingerprint = ""
+    if evaluation is not None:
+        base_prompt_material = {
+            "fingerprint_version": GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION,
+            "operation": OPERATION,
+            "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
+            "max_tokens": 900,
+            "messages": [
+                {"role": "system", "content": base_system_content},
+                {"role": "user", "content": user_content[:7000]},
+            ],
+        }
+        evaluation_base_prompt_fingerprint = hashlib.sha256(
+            json.dumps(
+                base_prompt_material,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
     try:
         result = route_with_model_bank(
             use_core=use_core,
             operation=OPERATION,
             messages=[
-                {"role": "system", "content": _GENERAL_GUIDE_SYSTEM_COMPACT + "\n\n" + _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT + "\n\n" + _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT + (
-                    "\n\n" + incomplete_knowledge_plan["architectural_contract"]
-                    if incomplete_knowledge_plan else ""
-                ) + (
-                    "\n\n" + integrity_recovery_instruction.strip()
-                    if integrity_recovery_instruction else ""
-                ) + (
-                    "\n\n" + gold_star_quality_instruction.strip()
-                    if gold_star_quality_instruction else ""
-                ) + (
-                    "\n\n" + public_live_source_instruction
-                    if public_live_source_instruction else ""
-                )},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": user_content[:7000]},
             ],
             max_tokens=900,
@@ -5065,6 +5106,17 @@ def compose(
             candidate["doorway_title"] = doorway["doorway_title"]
             candidate["doorway_url"] = doorway.get("doorway_url", "")
             _emit_guide_outcome("authoritative_doorway_attached")
+
+    if evaluation is not None:
+        # The evaluator must reject a deterministic rewrite even when a provider
+        # was called successfully. This flag compares the final composer text
+        # with the exact provider candidate before any deterministic recovery.
+        candidate["_gold_star_evaluation_response_unchanged"] = (
+            candidate.get("response") == response
+        )
+        candidate["_gold_star_evaluation_base_prompt_fingerprint"] = (
+            evaluation_base_prompt_fingerprint
+        )
 
     if evaluation is None:
         # Visitor requests retain the normal cache. Evaluation arms bypass both

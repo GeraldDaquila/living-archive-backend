@@ -114,11 +114,17 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     monkeypatch.setattr(
         composition, "_registered_exact_gold_standard", lambda _question: None
     )
+    monkeypatch.setattr(
+        composition,
+        "_public_live_source_security_instruction",
+        lambda _context: "PUBLIC SOURCE SECURITY MARKER",
+    )
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
 
     question = (
         "How can a local clinic explain who is accountable for delayed test results?"
     )
+    base_prompt_fingerprints = []
     for arm in ("control", "treatment", "control"):
         with evaluation_context(
             arm=arm, provider="groq", model="openai/gpt-oss-120b"
@@ -129,7 +135,11 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
                 context_data={},
             )
         assert result is not None
+        assert result["_gold_star_evaluation_response_unchanged"] is True
+        assert len(result["_gold_star_evaluation_base_prompt_fingerprint"]) == 64
+        base_prompt_fingerprints.append(result["_gold_star_evaluation_base_prompt_fingerprint"])
 
+    assert len(set(base_prompt_fingerprints)) == 1
     assert len(route_calls) == 3
     assert len(contribution_calls) == 1
     control_system = next(
@@ -146,3 +156,44 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     assert candidate["benchmark_id"] in treatment_system
     assert candidate["discipline"] not in control_system
     assert candidate["discipline"] in treatment_system
+    assert "PUBLIC SOURCE SECURITY MARKER" in treatment_system
+    assert treatment_system.index(candidate["discipline"]) < treatment_system.index("PUBLIC SOURCE SECURITY MARKER")
+
+
+def test_evaluation_marks_deterministic_response_rewrite_as_ineligible(monkeypatch):
+    monkeypatch.setattr(
+        composition, "_registered_exact_gold_standard", lambda _question: None
+    )
+    monkeypatch.setattr(
+        composition,
+        "_orientation_anchor_violation",
+        lambda _question, _response: True,
+    )
+    monkeypatch.setattr(
+        composition,
+        "_orientation_anchor_recovery",
+        lambda: "A deterministic recovery replaced the provider answer.",
+    )
+    monkeypatch.setattr(
+        composition,
+        "route_with_model_bank",
+        lambda **_kwargs: {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "parsed": {"response": "The original provider answer."},
+        },
+    )
+
+    with evaluation_context(
+        arm="control", provider="groq", model="openai/gpt-oss-120b"
+    ):
+        result = composition.compose(
+            use_core=object(),
+            query="Explain a practical organizational distinction in plain language.",
+            context_data={},
+        )
+
+    assert result is not None
+    assert result["response"] == "A deterministic recovery replaced the provider answer."
+    assert result["_gold_star_evaluation_response_unchanged"] is False
+    assert len(result["_gold_star_evaluation_base_prompt_fingerprint"]) == 64
