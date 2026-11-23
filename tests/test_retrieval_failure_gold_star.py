@@ -345,6 +345,7 @@ def test_guide_doorway_policy_remains_default_across_composition_prompt_layers()
     assert "Never substitute a generic Compass or use a doorway to rescue an off-target answer." not in source
     assert "use it only when it is itself a verified, honest, useful continuation." in source
     assert "A doorway is optional and follows the completed answer." not in source
+    assert "optional, verified Living Archive" not in source
     assert "The answer must be complete before any optional doorway appears." not in source
     assert "The answer must be complete before any optional Archive doorway appears." not in source
     assert "offer a verified relevant doorway only when it materially advances the inquiry." not in source
