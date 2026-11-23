@@ -1,6 +1,7 @@
 from deterministic_answer_recovery import (
     compose_recovery,
     compose_task_specific_recovery,
+    has_registered_recovery,
 )
 
 
@@ -44,3 +45,11 @@ def test_fair_rule_recovery_does_not_claim_archive_doctrine():
     )
     result = compose_task_specific_recovery(question)
     assert "Living Archive doctrine" in result["response"] or "Living Archive" not in result["response"]
+
+
+def test_task_specific_recovery_is_registered_for_outer_visitor_boundary():
+    question = (
+        "How should a community balance personal liberty with collective "
+        "obligations when setting a fair rule?"
+    )
+    assert has_registered_recovery(question)
