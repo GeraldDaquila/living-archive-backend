@@ -3312,7 +3312,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     asks_developmental_comparison = bool(
         all(re.search(r"\b" + term + r"\b", normalized) for term in developmental_capacities)
         and re.search(
-            r"\b(?:difference|distinction|differ|distinguish|compare|comparison|relationship|relate|connected|connection|between)\\b",
+            r"\b(?:difference|distinction|differ|distinguish|compare|comparison|relationship|relate|connected|connection|between)\b",
             normalized,
         )
     )
