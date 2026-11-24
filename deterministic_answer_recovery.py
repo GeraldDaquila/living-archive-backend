@@ -1836,13 +1836,13 @@ def _institutional_legitimacy_recovery():
 def _is_public_commons_civic_renewal_question(question):
     """Recognize a general conceptual question about commons and civic renewal."""
     q = _clean(question).casefold()
-    commons = bool(re.search(r"\\b(?:public\\s+)?commons\\b", q))
-    civic_renewal = bool(re.search(r"\\bcivic\\s+renewal\\b", q))
+    commons = bool(re.search(r"\b(?:public\s+)?commons\b", q))
+    civic_renewal = bool(re.search(r"\bcivic\s+renewal\b", q))
     asks_role = bool(re.search(
-        r"\\b(?:role|purpose|function|contribution|importance|significance)\\b", q
+        r"\b(?:role|purpose|function|contribution|importance|significance)\b", q
     ))
     asks_explanation = bool(re.search(
-        r"\\b(?:what|how|why|explain|describe)\\b", q
+        r"\b(?:what|how|why|explain|describe)\b", q
     ))
     return commons and civic_renewal and asks_role and asks_explanation
 
@@ -1854,13 +1854,13 @@ def _public_commons_civic_renewal_recovery():
         "can access and help care for together. They can include parks, libraries, public "
         "knowledge, community facilities, and civic infrastructure. Their value is not only "
         "that they are publicly available; it also depends on fair access, responsible use, "
-        "and governance that remains answerable to the people affected.\\n\\n"
+        "and governance that remains answerable to the people affected.\n\n"
         "Their role in civic renewal is to create practical settings in which people can "
         "participate in common life. Shared spaces and services bring people into contact, "
         "make cooperation possible, and give communities opportunities to identify needs, "
         "deliberate, solve problems, and take part in decisions. When people have a meaningful "
         "voice in how shared resources are managed, civic participation can become an everyday "
-        "practice rather than something limited to elections or formal consultation.\\n\\n"
+        "practice rather than something limited to elections or formal consultation.\n\n"
         "Commons do not renew civic life automatically. Access can be unequal, resources can "
         "be neglected or captured by powerful interests, and participation can become tokenistic. "
         "Renewal therefore depends on transparent rules, inclusive decision-making, clear "
