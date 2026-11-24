@@ -11832,11 +11832,11 @@ def _established_general_knowledge_recovery(query):
         }
 
     metal_spoon_thermal_conductivity_question = bool(
-        re.search(r"\\bmetal\\b", normalized)
-        and re.search(r"\\bspoon\\b", normalized)
-        and re.search(r"\\bwood(?:en)?\\b", normalized)
-        and re.search(r"\\bcolder\\b", normalized)
-        and re.search(r"\\b(?:same|equal)\\s+(?:room\\s+)?temperature\\b", normalized)
+        re.search(r"\bmetal\\b", normalized)
+        and re.search(r"\bspoon\\b", normalized)
+        and re.search(r"\bwood(?:en)?\\b", normalized)
+        and re.search(r"\bcolder\\b", normalized)
+        and re.search(r"\b(?:same|equal)\s+(?:room\s+)?temperature\\b", normalized)
     )
     if metal_spoon_thermal_conductivity_question:
         return {
