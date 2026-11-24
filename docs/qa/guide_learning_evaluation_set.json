@@ -1,6 +1,6 @@
 {
   "suite_id": "living-archive-guide-learning-offline-evaluation",
-  "suite_version": "1.3.0",
+  "suite_version": "1.4.0",
   "status": "EXPANDED_EIGHT_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING",
   "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented. Version 1.2.0 expands held-out coverage to strategic trade-offs, technical verification, uncertainty/insufficient evidence, and explicit no-handoff behavior. Automated checks remain heuristic triage, not semantic approval.",
   "scoring_policy": {
@@ -298,6 +298,21 @@
       ],
       "source_benchmark_ids": [
         "gs-2026-11-23-community-rule-design-liberty-shared-obligations"
+      ]
+    },
+    {
+      "case_id": "heldout-transparency-trust-relational-synthesis-001",
+      "query": "What is the relationship between transparency and trust?",
+      "source_benchmark_ids": [
+        "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+      ],
+      "critical_dimensions": [
+        "attributable_llm",
+        "distinct_concept_roles",
+        "relationship_mechanism",
+        "reciprocal_but_not_identical",
+        "legitimate_disclosure_limits",
+        "not_retrieval_fragment"
       ]
     }
   ],
