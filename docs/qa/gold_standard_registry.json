@@ -1489,8 +1489,8 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false,
       "known_theme": "community trust, stewardship, shared responsibility, mutual reliance, cooperation, accountability, shared resources, community care",
-      "rating_out_of_10": 9.5,
-      "review_assessment": "Assistant assessment: 9.5/10 for directness, accessible community-level framing, a concrete shared-garden analogy, clear distinction between trust and stewardship, and a verified relevant continuation. The answer is intentionally concise; its transfer boundary prevents overgeneralizing this exemplar to unrelated trust questions."
+      "review_assessment": "Assistant assessment: 9.5/10 for directness, accessible community-level framing, a concrete shared-garden analogy, clear distinction between trust and stewardship, and a verified relevant continuation. The answer is intentionally concise; its transfer boundary prevents overgeneralizing this exemplar to unrelated trust questions.",
+      "assistant_assessment_out_of_10": 9.5
     },
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
@@ -9082,15 +9082,15 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-24",
-    "approved_gold_star_count": 136,
-    "registry_record_count": 177,
-    "review_reconciliation": "Canonical approved inventory now contains 136 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical duplicate. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
+    "approved_gold_star_count": 139,
+    "registry_record_count": 178,
+    "review_reconciliation": "Canonical approved inventory contains 139 USER_APPROVED_GOLD_STANDARD records: 136 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 136 approved Gold Stars; 39 assigned display serials #56–#94; 97 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 97,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 139 approved Gold Stars; 39 assigned display serials #56–#94; 100 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 100,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 133,
+    "active_quality_contributor_count": 136,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
