@@ -178,7 +178,7 @@ MODEL_CAPABILITIES = {
     ("openrouter", "openrouter/free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
     ("openrouter", "google/gemma-4-31b-it:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
-    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
+    ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
     # NVIDIA-hosted endpoints are admitted only for the three reviewed model IDs.
     # Capability claims are conservative and every result still passes the same
