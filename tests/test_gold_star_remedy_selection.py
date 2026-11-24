@@ -118,3 +118,7 @@ def test_competing_values_contract_is_not_a_query_specific_answer_patch():
     assert marker in first and marker in second
     assert "CANDIDATE_PENDING_USER_REVIEW" not in first
     assert "general-guide-governance-balance-structural-candidate" not in second
+    factual = composition._build_general_guide_system_message(
+        "What is the boiling point of water at sea level?"
+    )
+    assert marker not in factual
