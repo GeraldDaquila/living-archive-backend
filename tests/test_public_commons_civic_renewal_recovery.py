@@ -11,7 +11,7 @@ def test_public_commons_civic_renewal_gets_substantive_answer_during_provider_ex
     assert "inclusive decision-making" in normalized
     assert "formal living archive definition" in normalized
     assert "i can't define" not in normalized
-    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert len([part for part in answer.split(chr(10) + chr(10)) if part.strip()]) == 3
 
 
 def test_public_commons_recovery_is_not_misrepresented_as_archive_doctrine():
