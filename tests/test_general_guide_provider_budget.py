@@ -989,5 +989,5 @@ def test_provider_parser_rejects_question_narration_before_archive_orientation()
         "The Archive material available here offers this starting point."
     )
 
-    with pytest.raises(ValueError, match="answer-first opening"):
+    with pytest.raises(ValueError, match="hard answer-first visitor boundary"):
         parse(json.dumps({"response": response}))
