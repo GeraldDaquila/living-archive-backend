@@ -82,14 +82,13 @@ def test_parallel_gold_star_inventory_reconciles_across_registry_and_transfer_re
     unassigned = [r for r in approved if r.get("numbering_status") == "UNASSIGNED"]
     review_ids = [e["benchmark_id"] for e in review["entries"] if e.get("activation") == "active_quality_contributor"]
     active_ids = {r["benchmark_id"] for r in active}
-    assert len(registry["records"]) == 140
-    assert "103 approved Gold Stars" in registry["last_reconciliation_note"]
-    assert "101 active quality contributors" in registry["last_reconciliation_note"]
-    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 103
-    assert len(active) == len(review_ids) == 101
+    audit = registry["integrity_audit"]
+    assert len(registry["records"]) == audit["registry_record_count"] == 172
+    assert len(approved) == audit["approved_gold_star_count"] == 134
+    assert len(active) == len(review_ids) == audit["active_quality_contributor_count"] == 132
     assert set(review_ids) == active_ids
-    assert len(assigned) == registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
-    assert len(unassigned) == registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 65
+    assert len(assigned) == audit["numbered_gold_star_record_count"] == 39
+    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 95
     assert len(assigned) + len(unassigned) == len(approved)
     assert len({r["benchmark_id"] for r in approved}) == len(approved)
     assert any(r["benchmark_id"] == BENCHMARK_ID for r in approved)

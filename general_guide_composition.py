@@ -216,6 +216,9 @@ _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of 
 
 Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. Choose the response form that best performs the visitor's actual task. the response form remains task-dependent; the Gold Star is a quality floor, not a fixed template. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
 
+COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING:
+For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
+
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
 When a visitor asks what would demonstrate that the Guide or another AI system is genuinely autonomous, adaptive, resilient, or improving rather than merely continuing to produce responses, recognize an evidence-evaluation task. Answer with an explicit evaluation framework; do not turn it into a reflective discussion of organizational responsibility or ask the visitor to choose an organizational issue. State the governing distinction immediately: continued operation and response volume demonstrate activity or continuity, not by themselves autonomy, adaptation, resilience, or improved answer quality.
 
@@ -304,6 +307,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         ("Explain how to make the evidence credible:", evidence_evaluation),
         ("SUBJECT-FIRST CONCEPTUAL EXPLANATION", has(r"\b(?:what is|what does|define|definition|meaning of|conceptual explanation)\b")),
         ("ORIENTATION AND INFORMATION", has(r"\b(?:orientation|information)\b")),
+        ("COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING", has(r"\b(?:balance|balancing|reconcile|reconciling|competing values?|trade[- ]?offs?|shared obligations|personal liberty)\b")),
         ("GOLD STAR SCOPE GOVERNANCE", gold_star_meta and has(r"\b(?:scope|transfer|boundary|domain)\b")),
         ("GOLD STAR REMEDY SELECTION", gold_star_meta and has(r"\b(?:remedy|engineering|repair|failure|new lesson|new gold star)\b")),
         ("SEMANTIC AMBIGUITY BEFORE ANSWERING", has(r"\b(?:ambiguous|ambiguity|same term|different meaning|used differently)\b")),
@@ -2637,6 +2641,49 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
 
 
 
+def _composition_response_shape_diagnostic(parsed: Dict[str, Any], raw: str) -> str:
+    """Describe a rejected JSON envelope without logging answer text or reasoning."""
+    value = parsed.get("response")
+    answer = parsed.get("answer")
+    doorway = parsed.get("doorway")
+    raw_value = str(value or "")
+    raw_answer = str(answer or "")
+    sanitized = _sanitize_candidate(value)
+    sanitized_answer = _sanitize_candidate(answer)
+    keys = sorted(str(key) for key in parsed.keys())
+    doorway_keys = sorted(str(key) for key in doorway.keys()) if isinstance(doorway, dict) else []
+    return (
+        "response_key_present=" + str("response" in parsed)
+        + ", response_type=" + type(value).__name__
+        + ", response_raw_chars=" + str(len(raw_value))
+        + ", answer_key_present=" + str("answer" in parsed)
+        + ", answer_type=" + type(answer).__name__
+        + ", answer_raw_chars=" + str(len(raw_answer))
+        + ", answer_sanitized_chars=" + str(len(sanitized_answer))
+        + ", doorway_type=" + type(doorway).__name__
+        + ", doorway_keys=" + ",".join(doorway_keys[:8])
+        + ", response_sanitized_chars=" + str(len(sanitized))
+        + ", envelope_chars=" + str(len(str(raw or "")))
+        + ", top_level_keys=" + ",".join(keys[:12])
+    )
+
+
+def _normalize_composition_envelope(parsed: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize the observed answer/doorway envelope into the visitor contract.
+
+    Only a string-valued legacy/alternate answer field is accepted. All existing
+    strict visitor, grounding, and quality checks still run after normalization.
+    Provider-supplied doorway metadata is deliberately ignored; canonical
+    navigation is selected independently by the Guide.
+    """
+    normalized = dict(parsed)
+    if not normalized.get("response") and isinstance(normalized.get("answer"), str):
+        normalized["response"] = normalized["answer"]
+    if not normalized.get("response_shape"):
+        normalized["response_shape"] = "general"
+    return normalized
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_candidates: Any = None, emit_telemetry: bool = True):
     titles = {item["title"] for item in documents}
     def _parse_strict(raw: str) -> Dict[str, Any]:
@@ -2647,9 +2694,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
         if not isinstance(parsed, dict):
             raise ValueError("general composition response was not an object")
 
+        parsed = _normalize_composition_envelope(parsed)
         response = _sanitize_candidate(parsed.get("response"))
         if not response:
-            raise ValueError("general composition returned an empty response")
+            diagnostic = _composition_response_shape_diagnostic(parsed, raw)
+            print("USE composition response shape: " + diagnostic)
+            raise ValueError(
+                "general composition returned an empty response (" + diagnostic + ")"
+            )
         if len(response) < 40:
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
@@ -2744,7 +2796,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             if re.search(r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b", response, re.I):
                 raise ValueError("method-comparison answer must not be replaced by generic problem-solving advice")
 
-        if _requires_concrete_concept_explanation(query):
+        if _requires_concrete_concept_explanation(query) or _requires_archive_scoped_meaning(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
@@ -2787,7 +2839,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     )
                 if not re.search(r"\b(?:Living Archive|Archive)\b", opening, re.I):
                     raise ValueError("Archive-scoped meaning answer must answer in the named institutional context")
-                if not re.search(r"\b(?:pattern|change|transition|conditions|relationships|institutions|capacities|judgment|agency|development|systems?)\b", opening, re.I):
+                if not re.search(r"\b(?:pattern|change|transition|conditions|relationships|institutions|capacities|judgment|agency|development|systems?|responsibilit\w*|care)\b", opening, re.I):
                     raise ValueError(
                         "Archive-scoped meaning answer must give substantive conceptual content in the opening paragraph"
                     )
@@ -2901,10 +2953,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 parsed_for_comparison = json.loads(str(raw or "").strip())
             except (TypeError, json.JSONDecodeError):
                 parsed_for_comparison = {}
-            candidate_for_comparison = (
-                _sanitize_candidate(parsed_for_comparison.get("response"))
-                if isinstance(parsed_for_comparison, dict) else ""
+            parsed_for_comparison = (
+                _normalize_composition_envelope(parsed_for_comparison)
+                if isinstance(parsed_for_comparison, dict) else {}
             )
+            candidate_for_comparison = _sanitize_candidate(parsed_for_comparison.get("response"))
             if _comparative_traditions_contract.response_requires_quality_repair(
                 query, candidate_for_comparison
             ):
@@ -2920,10 +2973,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError(
                         "provider response failed basic visitor bounds: non-object JSON envelope"
                     )
+                parsed = _normalize_composition_envelope(parsed)
                 response = _sanitize_candidate(parsed.get("response"))
                 if not response:
+                    diagnostic = _composition_response_shape_diagnostic(parsed, raw)
+                    print("USE composition response shape: " + diagnostic)
                     raise ValueError(
-                        "provider response failed basic visitor bounds: empty response"
+                        "provider response failed basic visitor bounds: empty response ("
+                        + diagnostic + ")"
                     )
                 if len(response) < 40:
                     raise ValueError("provider response too short for basic visitor bounds")
@@ -3004,7 +3061,7 @@ _PRACTICAL_ACTION_MARKERS = (
 
 _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
-    r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
+    r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|strengthen|support|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
@@ -3024,6 +3081,7 @@ def _conceptual_relationship_terms(query: str) -> List[str]:
     question = _normalize_space(query)
     patterns = (
         r"\brelationship between\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
+        r"\bhow\s+(?:do|does|can|could|might)\s+(.+?)\s+and\s+(.+?)\s+(?:relate to|connect with|reinforce|strengthen|support|shape)\s+(?:one another|each other)(?:[?.!]|$)",
         r"\bwhat does\s+(.+?)\s+have to do with\s+(.+?)(?:[?.!]|$)",
         r"\b(?:what(?:'s| is) the connection between)\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
         r"\bwhy does\s+(.+?)\s+matter (?:for|to)\s+(.+?)(?:[?.!]|$)",
@@ -3282,6 +3340,18 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "that could support other important work."
         )
 
+    if (
+        re.search(r"\baccountability\b", normalized)
+        and re.search(r"\btrust\b", normalized)
+        and re.search(r"\brepair(?:ing)?\s+harm\b|\bability to repair harm\b", normalized)
+        and re.search(r"\b(?:reinforce|strengthen|support|relationship|connect)\b", normalized)
+    ):
+        return (
+            "Accountability, trust, and the ability to repair harm reinforce one another because people can judge whether commitments are kept and whether concerns are addressed honestly. Trust makes it safer to raise a problem before it becomes entrenched; accountability makes the response answerable to the people affected. Without trust, people may stay silent. Without accountability, trust can become an expectation that others should simply overlook what went wrong.\n\n"
+            "Repair turns accountability into action. It requires naming what happened, hearing its effects, correcting what can be corrected, and changing the conditions that allowed the harm to occur. A sincere apology may matter, but it is not enough if the same conduct or system remains untouched. When repair is visible and proportionate, people have reason to believe that speaking up can lead to change rather than retaliation or empty reassurance.\n\n"
+            "These relationships are reciprocal, not automatic. Trust supports honest accountability; accountability gives trust a dependable basis; and repair shows that both can survive a failure without denying it. In a community, the useful question is whether people can raise harm, receive a fair hearing, and see meaningful correction. What helps make that possible in your community?"
+        )
+
     _open_question_recovery = _open_question_orientation_recovery(question)
     if _open_question_recovery:
         return _open_question_recovery
@@ -3411,7 +3481,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     ))
     if names_ai and names_interpretation and names_authority and (asks_role_meaning or contrasts_roles):
         return (
-            "For an AI to act as an interpreter rather than an authority is for it to help people understand information "
+            "For an AI to act as an interpreter rather than an authority is for it to help people make sense of information "
             "without claiming the final right to decide what that information means or what should be done. It can organize "
             "evidence, compare perspectives, identify patterns, explain relationships, and make uncertainty easier to see. "
             "Those are interpretive contributions: they improve the material available for judgment, but they do not settle "
@@ -3422,10 +3492,10 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "or accountability required to decide for people. For example, an AI might compare policy options and expose "
             "who could be affected; the accountable people or institution must still weigh the evidence, values, rights, "
             "and consequences before making the decision.\n\n"
-            "The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
+            "This is a general conceptual distinction, not a claim that every institution defines the interpreter-authority relationship in exactly the same way. The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
             "system's contribution should remain inspectable and contestable: people need to be able to ask what evidence "
             "was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty "
-            "remains. The human or institutional decision-maker must retain responsibility for the values applied and "
+            "remains. This requires human and institutional responsibility to remain explicit: accountable people and institutions must retain responsibility for the values they uphold and "
             "the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly "
             "appropriating the authority to decide."
         )
@@ -3480,7 +3550,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         ):
             return (
                 f"In {context}, {subject} is best understood as a means rather than the thing that sets the direction. "
-                f"Its role should be judged by whether it strengthens the purposes, relationships, and responsibilities that {context} is meant to sustain—not only by how efficiently it performs a task.\n\n"
+                f"Its role should be judged by whether it strengthens the purposes and relationships that {context} is meant to sustain—and whether it supports long-term responsibility for the consequences of its use—not only by how efficiently it performs a task.\n\n"
                 f"That means asking what {subject} makes easier or harder to see, decide, and care for over time. "
                 "A useful role can extend human and institutional capacity, reduce unnecessary burdens, improve coordination, or reveal patterns that deserve attention. "
                 "But capability does not determine what ought to be valued, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
