@@ -83,5 +83,42 @@ def test_remedy_selection_approved_record_has_unique_identity_and_reconciled_inv
     assert record["runtime_transfer"] is True
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
     assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 134
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 170
+    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 172
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
+
+
+def test_competing_values_balance_contract_is_architectural_and_domain_general():
+    system = composition._build_general_guide_system_message(
+        "How should an organization balance speed, due process, and transparency?"
+    )
+    assert "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING" in system
+    for marker in (
+        "mechanisms that make the balance work",
+        "decision rights",
+        "is accountable",
+        "challenge or appeal",
+        "observable review or escalation triggers",
+        "stability becoming rigidity",
+        "participation becoming ceremonial",
+        "responsiveness becoming arbitrary",
+    ):
+        assert marker in system
+
+
+def test_competing_values_contract_is_not_a_query_specific_answer_patch():
+    # The same architecture is available for different domains; no exact-query
+    # answer or governance-specific Gold Star registry entry is required.
+    first = composition._build_general_guide_system_message(
+        "How should a hospital balance patient autonomy, safety, and timely care?"
+    )
+    second = composition._build_general_guide_system_message(
+        "How should a public institution balance continuity, public participation, and adaptation?"
+    )
+    marker = "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING"
+    assert marker in first and marker in second
+    assert "CANDIDATE_PENDING_USER_REVIEW" not in first
+    assert "general-guide-governance-balance-structural-candidate" not in second
+    factual = composition._build_general_guide_system_message(
+        "What is the boiling point of water at sea level?"
+    )
+    assert marker not in factual
