@@ -979,3 +979,15 @@ def test_answer_first_boundary_accepts_a_substantive_comparative_opening():
     )
 
     assert guide_composition._has_direct_answer_opening(question, response)
+
+
+def test_provider_parser_rejects_question_narration_before_archive_orientation():
+    question = "What is the difference between growth, adaptation, maturity, and integration?"
+    parse = guide_composition._parse_factory([], query=question, emit_telemetry=False)
+    response = (
+        "Your question asks: what is the difference between growth, adaptation, maturity, and integration? "
+        "The Archive material available here offers this starting point."
+    )
+
+    with pytest.raises(ValueError, match="answer-first opening"):
+        parse(json.dumps({"response": response}))
