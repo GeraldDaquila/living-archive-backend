@@ -1193,6 +1193,15 @@
       "qualifying_context": "Visitors asking how an institution, organization, or community can balance continuity, meaningful participation, and adaptation in governance; especially questions about decision rights, constitutional safeguards, representation, delegated authority, review, and institutional change.",
       "abstention_boundary": "Do not infer or invent a canonical doorway or destination when the evidence does not establish one. The doorway state remains NOT_EVALUATED because the screenshot does not establish a canonical destination URL. Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Do not claim legal validity or interpret a particular institution's constitution without the governing text and facts. Do not treat consultation as consent, majority preference as sufficient authority to override rights, or responsiveness as permission for arbitrary rule. Do not transfer the exact answer or any doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-governance-balance-consequence-aware-2026-11-24",
+      "question": "How should governance balance stability, participation, and responsiveness?",
+      "reasoning_family": "consequence_aware_governance_tradeoff_and_accountability",
+      "transferable_discipline": "For consequential governance questions, begin with the outcome sought, non-negotiable responsibilities, and the people who will bear the consequences. Compare realistic alternatives rather than presuming one course; examine benefits, harms, cost-bearers, affected-party knowledge, and evidence that would justify changing direction. Make reasoning and limits visible, preserve accountability, and keep AI in an advisory role rather than transferring decision authority to it.",
+      "qualifying_context": "Visitors asking how to approach consequential governance changes, compare options, include affected parties, preserve institutional responsibilities, and remain accountable for outcomes.",
+      "abstention_boundary": "Apply to governance and institutional decision-making questions involving consequential change, trade-offs, affected parties, and accountability. Do not treat this as a universal decision procedure or substitute it for institution-specific constitutional, legal, or factual analysis. Do not infer that participation alone confers consent or authority. Do not transfer the exact answer to unrelated questions, and do not grant deterministic fallback eligibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
