@@ -1220,7 +1220,12 @@
           "validation_state": "IMPLEMENTED_PENDING_CI_AND_LIVE_HELD_OUT_VALIDATION",
           "linked_near_miss_benchmark_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
           "linked_code_pr": 1954,
-          "does_not_create_new_gold_star": true
+          "does_not_create_new_gold_star": true,
+          "verified_doorway": {
+            "title": "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others",
+            "url": "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/",
+            "rationale": "A directly relevant continuation on how people recognize, trust, and reject institutional authority."
+          }
         }
       ]
     }
