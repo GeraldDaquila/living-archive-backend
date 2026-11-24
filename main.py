@@ -11905,13 +11905,9 @@ def _basic_inquiry_has_internal_implementation_language(response):
 # composition discipline, but their claims, prose, examples, and doorways are
 # never transferred across questions.
 try:
-    from gold_star_lessons import (
-        shadow_observation as _gold_star_shadow_observation,
-        active_quality_contribution as _gold_star_active_quality_contribution,
-    )
+    from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
 except Exception:
     _gold_star_shadow_observation = None
-    _gold_star_active_quality_contribution = None
 
 def _is_registered_gold_standard_composition_result(result):
     """Identify the frozen exact-answer registry as deterministic, not an LLM."""
