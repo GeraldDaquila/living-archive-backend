@@ -24,7 +24,9 @@ def test_practical_next_step_rule_preserves_distress_pacing_exception():
     system = composition._GENERAL_GUIDE_SYSTEM
     practical_rule = system.index("For practical questions asking for a constructive next step")
     distress_rule = system.index("When a visitor discloses grief or significant distress")
-    assert practical_rule < distress_rule
+    # The distress-specific instruction precedes the general practical rule;
+    # the practical rule also explicitly preserves that higher-priority pacing.
+    assert distress_rule < practical_rule
     assert "does not override safety boundaries" in system
     assert "special pacing required for grief and significant distress" in system
 
@@ -36,6 +38,17 @@ def test_practical_next_step_question_is_detected():
         "about what to do first, what would be a constructive next step?"
     )
     assert composition._requires_actionable_next_step(query)
+
+
+def test_distress_pacing_preempts_practical_next_step_contract():
+    query = (
+        "I'm grieving and barely able to cope, and our group disagrees about "
+        "what to do first. What would be a constructive next step?"
+    )
+    assert composition._requires_distress_sensitive_pacing(query)
+    assert not composition._requires_actionable_next_step(query)
+    response = "We can slow down and stay with what feels hardest right now."
+    assert composition.enforce_actionable_next_step(query, response) == response
 
 
 def test_analysis_only_response_is_rejected_for_practical_next_step_question():
