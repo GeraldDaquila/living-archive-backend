@@ -63,7 +63,11 @@ def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_ge
     boundary_start = source.index(marker)
     boundary = source[boundary_start:boundary_start + 4000]
     assert "_compose_provider_exhaustion_recovery(query)" in boundary
-    assert "if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:" in boundary
+    assert "if (" in boundary
+    assert "_systemwide_recovery" in boundary
+    assert "not _systemwide_is_meta" in boundary
+    assert "not _systemwide_nonanswer" in boundary
+    assert "_has_direct_answer_opening(query, _systemwide_recovery)" in boundary
     assert "task-appropriate recovery" in boundary
     assert "len(_systemwide_paragraphs)" not in boundary
     assert "Preserve an already verified doorway" in boundary
