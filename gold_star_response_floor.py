@@ -30,6 +30,7 @@ NON_ANSWER_MARKERS = (
     "i'm unable to answer",
     "the guide could not complete this question",
     "i couldn't produce a reliable answer to that question just now",
+    "i couldn’t produce a reliable answer to that question just now",
     "i could not produce a reliable answer to that question just now",
     "please rephrase your question",
 )
