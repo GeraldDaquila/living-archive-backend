@@ -3303,8 +3303,8 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     # is general conceptual knowledge, not an Archive-doctrine claim and not a
     # substitute for attributable provider composition in adaptive-transfer QA.
     if (
-        re.search(r"\btransparency\\b", normalized)
-        and re.search(r"\btrust\\b", normalized)
+        re.search(r"\btransparency\b", normalized)
+        and re.search(r"\btrust\b", normalized)
         and is_conceptual_relationship_question(question)
     ):
         return (
