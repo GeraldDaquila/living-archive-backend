@@ -1,4 +1,7 @@
 """Contracts for provider-independent, governed Gold Star structural application."""
+import json
+from pathlib import Path
+
 import main
 import gold_star_lessons
 from gold_star_deterministic_composition import compose_deterministic_gold_star_response
@@ -66,3 +69,47 @@ def test_provider_exhaustion_community_tradeoff_path_survives_early_branch_final
     import general_guide_composition
     assert not general_guide_composition.is_generic_nonanswer(query, result["response"])
     assert not general_guide_composition.is_meta_answer_failure(result["response"])
+
+
+def test_unseen_tradeoff_question_retrieves_and_applies_registered_deterministic_gold_star():
+    query = (
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
+    )
+    contribution = gold_star_lessons.deterministic_fallback_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    assert contribution["reasoning_family"] == "ethical_tradeoff_and_conflicting_harms"
+    assert contribution["authority_mode"] == "deterministic_structural_guidance_only"
+
+    result = compose_deterministic_gold_star_response(query, contribution)
+    assert result is not None
+    assert result["plan_id"] == "ethical_tradeoff_v1"
+    assert result["abstention_boundary_applied"] is True
+    assert len(result["application_evidence_spans"]) == 2
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
+
+
+def test_deterministic_eligible_registry_and_transfer_review_families_are_consistent():
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    review_by_id = {entry["benchmark_id"]: entry for entry in review["entries"]}
+
+    mismatches = []
+    for record in registry["records"]:
+        capabilities = record.get("gold_star_capabilities") or {}
+        if not capabilities.get("deterministic_fallback_eligible"):
+            continue
+        entry = review_by_id.get(record["benchmark_id"])
+        if entry is None:
+            continue
+        registry_family = str(capabilities.get("reasoning_family") or "").strip()
+        review_family = str(entry.get("reasoning_family") or "").strip()
+        if registry_family and review_family and registry_family != review_family:
+            mismatches.append((record["benchmark_id"], registry_family, review_family))
+
+    assert mismatches == []
+
+

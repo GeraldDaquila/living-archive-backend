@@ -411,7 +411,7 @@
     {
       "benchmark_id": "gs-2026-11-15-ecological-systems-extractive-economics",
       "question": "How do ecological systems challenge extractive economic assumptions?",
-      "reasoning_family": "ecological-interdependence-extraction-maintenance-resilience",
+      "reasoning_family": "ecological_interdependence_extraction_maintenance_resilience",
       "transferable_discipline": "For broad systems questions, begin with the governing relationship, make the central distinction explicit, and carry the reasoning into institutional or economic consequences without reducing the system to a slogan.",
       "qualifying_context": "Broad conceptual questions connecting ecological interdependence, economic extraction, maintenance, resilience, regeneration, and ecosystem services.",
       "abstention_boundary": "Do not present the exemplar as a sourced Archive doctrine beyond what the approved response establishes; do not invent canonical source provenance or doorway URLs.",
@@ -420,7 +420,7 @@
     {
       "benchmark_id": "gs-2026-11-15-accountable-retrieval",
       "question": "What does accountable retrieval look like?",
-      "reasoning_family": "accountable-retrieval-evidence-interpretation-uncertainty",
+      "reasoning_family": "accountable_retrieval_evidence_interpretation_uncertainty",
       "transferable_discipline": "Answer broad conceptual retrieval questions directly, then distinguish source grounding, evidentiary support, interpretation, and uncertainty; do not let a lack of case-specific context displace a useful bounded orientation.",
       "qualifying_context": "Broad conceptual questions about responsible retrieval, evidence, provenance, interpretation, uncertainty, traceability, and answerability.",
       "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction.",
@@ -429,7 +429,7 @@
     {
       "benchmark_id": "gs-2026-11-15-confident-synthesis-fabricated-coherence",
       "question": "How should the Guide prevent confident synthesis from becoming fabricated coherence?",
-      "reasoning_family": "confident-synthesis-uncertainty-alternatives-accountability",
+      "reasoning_family": "confident_synthesis_uncertainty_alternatives_accountability",
       "transferable_discipline": "For questions about synthesis, coherence, or confident interpretation, expose uncertainty, plausible alternatives, evidentiary limits, consequences, and accountable decision-makers before treating an explanation as settled; distinguish clarification from the authority to decide.",
       "qualifying_context": "Conceptual and governance questions where a persuasive synthesis could conceal unresolved alternatives, evidentiary limits, consequences, or authority boundaries.",
       "abstention_boundary": "Do not confuse persuasive completeness with established coherence; do not manufacture certainty or displace accountable decision-makers.",
@@ -468,7 +468,7 @@
       "qualifying_context": "Questions about competing values, conflicting harms, dignity, adaptability, rules, power, and decisions where protecting one important good may place another at risk.",
       "transferable_discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
       "abstention_boundary": "Do not force false consensus, conceal sacrifice, shift burdens unfairly onto people with least power, or invent an unverified doorway URL.",
-      "reasoning_family": "ethical_tradeoff"
+      "reasoning_family": "ethical_tradeoff_and_conflicting_harms"
     },
     {
       "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
