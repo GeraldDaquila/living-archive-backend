@@ -3297,6 +3297,23 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
 
+    # Transparency and trust are a well-established concept pair. When provider
+    # composition is unavailable, do not let a relevant-but-incomplete Archive
+    # excerpt replace the requested relational explanation. This bounded recovery
+    # is general conceptual knowledge, not an Archive-doctrine claim and not a
+    # substitute for attributable provider composition in adaptive-transfer QA.
+    if (
+        re.search(r"\btransparency\b", normalized)
+        and re.search(r"\btrust\b", normalized)
+        and is_conceptual_relationship_question(question)
+    ):
+        return (
+            "Transparency and trust are related, but they are not the same thing. Transparency means making relevant decisions, reasons, evidence, and processes visible enough to be examined; trust is the confidence that a person or institution will act with sufficient honesty, competence, consistency, and regard for those affected. "
+            "Transparency can support justified trust because people are better able to understand what is being done, assess whether explanations match conduct, and identify mistakes or conflicts of interest. Visibility creates the possibility of scrutiny; trustworthy conduct is what gives that scrutiny a reason to build confidence.\n\n"
+            "The relationship can also work in the other direction. Where people have reasonable trust, they may be more willing to share information, raise concerns, and engage openly; where institutions respond to that openness with candour and correction, trust can deepen. But neither side guarantees the other. Disclosure without context can confuse or mislead, and an institution can be transparent about a poor decision without making the decision trustworthy. Trust built on secrecy, meanwhile, may be fragile because people cannot independently assess what they are being asked to rely on.\n\n"
+            "The practical test is whether transparency makes conduct meaningfully answerable: are the reasons clear, can affected people question them safely, are errors acknowledged, and does behaviour change when evidence warrants it? Transparency should not mean exposing private or sensitive information indiscriminately; legitimate confidentiality must be protected while decisions and uses of power remain accountable. In short, transparency gives people grounds to evaluate trust, while trustworthy conduct gives transparency credibility. This is a general conceptual explanation, not a claim that the Living Archive states a formal definition of either term."
+        )
+
     # A direct, visitor-facing recovery for the common three-way distinction.
     # This must remain answer-first even when the Basic Inquiry route bypasses
     # provider composition: state the roles, explain their overlap, then give

@@ -489,3 +489,27 @@ def test_transparency_trust_live_answer_requires_relationship_and_limits():
     }
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
+
+
+def test_critical_live_acceptance_case_is_separate_from_fixed_calibration_suite():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    calibration = json.loads((root / "docs/qa/guide_learning_evaluation_set.json").read_text())
+    critical = json.loads((root / "docs/qa/guide_live_critical_evaluation_cases.json").read_text())
+    calibration_ids = {item["case_id"] for item in calibration["cases"]}
+    critical_ids = {item["case_id"] for item in critical["cases"]}
+
+    assert len(calibration["cases"]) == 8
+    assert critical_ids == {"heldout-transparency-trust-relational-synthesis-001"}
+    assert calibration_ids.isdisjoint(critical_ids)
+    assert critical["cases"][0]["query"] == "What is the relationship between transparency and trust?"
+
+
+def test_critical_live_suite_is_included_in_runner_workload():
+    import inspect
+
+    source = inspect.getsource(live_evaluation.main)
+    assert "critical_cases=critical_suite.get(\"cases\",[])" in source
+    assert 'workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in heldout_cases]' in source
