@@ -55,14 +55,10 @@ def test_held_out_evaluation_is_not_a_composition_path():
 
 
 def test_public_commons_gold_star_transfers_to_unseen_civic_renewal_question():
-    query = "How should public commons and shared civic infrastructure be stewarded to renew public life?"
-    candidates = lessons.select_lesson_candidates(query, limit=4)
-    selected = next(
-        (item for item in candidates
-         if item["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"),
-        None,
-    )
-    assert selected is not None, candidates
+    query = "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?"
+    selected = lessons.select_lesson(query)
+    assert selected is not None
+    assert selected["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
     assert selected["exact"] is False
     assert selected["runtime_transfer"] is True
 
@@ -74,16 +70,11 @@ def test_public_commons_gold_star_does_not_capture_unrelated_public_service_ques
 
 
 def test_public_commons_gold_star_contributes_discipline_not_exemplar_answer():
-    query = "How should public commons and shared civic infrastructure be stewarded to renew public life?"
+    query = "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?"
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
-    candidate = next(
-        (item for item in contribution["candidates"]
-         if item["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"),
-        None,
-    )
-    assert candidate is not None, contribution
-    assert candidate["discipline"]
-    assert candidate["abstention_boundary"]
-    assert "expected_response" not in candidate
+    assert contribution["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["discipline"]
+    assert contribution["abstention_boundary"]
     assert "expected_response" not in contribution
