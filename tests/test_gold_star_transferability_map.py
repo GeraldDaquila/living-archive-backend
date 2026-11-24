@@ -17,8 +17,8 @@ def test_transferability_map_covers_all_runtime_transfer_eligible_general_guide_
 
     assert len(ids) == len(set(ids))
     assert eligible == set(ids)
-    assert mapped["coverage"]["general_purpose_runtime_transfer_records"] == len(eligible)
-    assert mapped["coverage"]["map_entries"] == len(entries)
+    assert "general_purpose_runtime_transfer_records" not in mapped["coverage"]
+    assert "map_entries" not in mapped["coverage"]
     assert all(
         entry["role"] in {"cross_question_candidate", "review_before_transfer", "exact_benchmark"}
         for entry in entries
