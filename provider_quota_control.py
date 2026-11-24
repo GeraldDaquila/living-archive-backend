@@ -133,11 +133,11 @@ class Reservation:
         self._released = False
         self._settled = False
 
-    def settle_output(self, output: Any) -> None:
-        """Refund only the unused completion reservation after a successful call."""
+    def settle_output(self, output: Any, *, failed: bool = False) -> None:
+        """Refund unused completion reservation; failed calls have no output usage."""
         if self._settled:
             return
-        actual_output_tokens = estimate_output_tokens(output)
+        actual_output_tokens = 0 if failed else estimate_output_tokens(output)
         refund = max(0, self.reserved_output_tokens - actual_output_tokens)
         with _LOCK:
             if refund:
