@@ -103,6 +103,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "tests/test_cross_question_gold_standard_integrity.py"
       - "guide_incomplete_knowledge.py"
       - "tests/test_guide_incomplete_knowledge.py"
       - "guide_runtime.py"
