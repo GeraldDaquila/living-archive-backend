@@ -62,24 +62,43 @@ def _has(text: str, phrases: tuple[str, ...]) -> bool:
 
 
 def _extract_comparison_subjects(query: str) -> list[str]:
-    """Extract the named subjects from a bounded 'difference between' or 'compare' question."""
+    """Extract comparison subjects without absorbing a trailing explanatory clause."""
     normalized = re.sub(r"\s+", " ", str(query or "")).strip()
     match = re.search(
         r"\b(?:difference|distinction)\s+between\s+(.+?)(?:[?!.]|$)",
         normalized,
         re.I,
     )
-    if not match:
+    if match:
+        raw = match.group(1)
+    else:
         match = re.search(r"\bcompare\s+(.+?)(?:[?!.]|$)", normalized, re.I)
-    if not match:
-        return []
+        if not match:
+            return []
+        raw = match.group(1)
+
+    # A comparison can be followed by an instruction about how to explain it.
+    # Keep the noun phrase being compared; do not turn "explain how ..." into
+    # a spurious comparison subject.
+    raw = re.split(
+        r"\s*(?:,\s*)?(?:and\s+)?(?:explain|describe|discuss|show|consider)\s+"
+        r"(?:how|why|whether|what|the|their|its)\b",
+        raw,
+        maxsplit=1,
+        flags=re.I,
+    )[0]
     raw = re.sub(
         r"\b(?:in terms of|with regard to|in relation to|when it comes to)\b.*$",
         "",
-        match.group(1),
+        raw,
         flags=re.I,
     )
-    raw = re.sub(r"\s*,?\s+(?:and|or|versus|vs\.?)\s+", ",", raw, flags=re.I)
+    raw = re.sub(
+        r"\s*,?\s+(?:and|or|with|to|versus|vs\.?)\s+",
+        ",",
+        raw,
+        flags=re.I,
+    )
     subjects = [
         re.sub(r"^(?:the|a|an)\s+", "", part.strip(" ,;:.!?")).strip().casefold()
         for part in raw.split(",")
