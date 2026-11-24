@@ -56,6 +56,3 @@ jobs:
           tests/test_gold_star_adaptive_intelligence_v2.py
           tests/test_gold_star_qualitative_transfer_review.py
           tests/test_gold_star_remedy_selection.py
-      - name: Run full repository regression suite (diagnostic)
-        continue-on-error: true
-        run: pytest -q --ignore=tests/test_answer_doorway_mobile_presentation.py
