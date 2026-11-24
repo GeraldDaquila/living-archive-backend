@@ -10,7 +10,7 @@ def _legacy_select_lesson(query):
     normalized = lessons._normalized_phrase(query)
 
     def eligible(item):
-        return True
+        return bool(item.get("runtime_transfer")) or bool(item.get("exact_answer_authority"))
 
     exact = [
         item for item in lessons._LESSONS

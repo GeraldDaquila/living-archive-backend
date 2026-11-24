@@ -57,6 +57,11 @@ def main() -> int:
         item for item in approved_gold_stars
         if item.get("runtime_transfer") is False
         and not item.get("superseded_by_benchmark_id")
+        and (item.get("gold_star_capabilities") or {}).get("generation_class") != "user_approved_response_quality_exemplar"
+    ]
+    response_quality_exemplars = [
+        item for item in approved_gold_stars
+        if (item.get("gold_star_capabilities") or {}).get("generation_class") == "user_approved_response_quality_exemplar"
     ]
     superseded_historical_references = [
         item for item in approved_gold_stars
@@ -94,6 +99,7 @@ def main() -> int:
         "active_runtime_gold_star_count": len(active_runtime_gold_stars),
         "exact_query_only_successor_count": len(exact_query_only_successors),
         "superseded_historical_reference_count": len(superseded_historical_references),
+        "approved_response_quality_exemplar_count": len(response_quality_exemplars),
         "pending_approval_evidence_count": len(pending_approval_evidence),
         "counting_note": "Approved-status inventory includes exact-query-only successors and superseded historical references; active_runtime_gold_star_count counts cross-question structural-learning contributors. Pending approval evidence is excluded.",
         "numbered_gold_star_count": len(numbered_gold_stars),

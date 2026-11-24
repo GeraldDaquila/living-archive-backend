@@ -136,6 +136,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
     post_snapshot_approvals = {
         "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
         "general-guide-governance-balance-structural-candidate-2026-11-24",
+        "general-guide-governance-balance-consequence-aware-2026-11-24",
     }
     active_at_snapshot = sorted(
         (

@@ -63,9 +63,16 @@ def validate_exact_only_successors(approved_records, active_records):
     active_by_id = {item.get("benchmark_id"): item for item in active_records}
     exact_only = []
     for record in approved_records:
-        if record.get("runtime_transfer") is True or record.get("superseded_by_benchmark_id"):
-            continue
         capabilities = record.get("gold_star_capabilities")
+        if (
+            record.get("runtime_transfer") is True
+            or record.get("superseded_by_benchmark_id")
+            or (
+                isinstance(capabilities, dict)
+                and capabilities.get("generation_class") == "user_approved_response_quality_exemplar"
+            )
+        ):
+            continue
         successor_of = str(record.get("replaces_exact_query_runtime_authority_of") or "").strip()
         predecessor = active_by_id.get(successor_of)
         valid = (
@@ -127,6 +134,36 @@ def validate_superseded_references(approved_records, active_records):
             )
         superseded.append(record)
     return superseded
+
+
+
+def validate_response_quality_exemplars(approved_records, active_records):
+    """Allow approved answer-quality exemplars to remain frozen without competing as runtime lessons."""
+    active_by_id = {item.get("benchmark_id"): item for item in active_records}
+    quality_only = []
+    for record in approved_records:
+        if record.get("runtime_transfer") is True or record.get("superseded_by_benchmark_id") or record.get("replaces_exact_query_runtime_authority_of"):
+            continue
+        capabilities = record.get("gold_star_capabilities")
+        paired_id = str(record.get("paired_active_benchmark_id") or "").strip()
+        paired = active_by_id.get(paired_id)
+        valid = (
+            record.get("runtime_transfer") is False
+            and isinstance(capabilities, dict)
+            and capabilities.get("generation_class") == "user_approved_response_quality_exemplar"
+            and capabilities.get("exact_answer_authority") is False
+            and capabilities.get("active_quality_contributor") is False
+            and capabilities.get("deterministic_fallback_eligible") is False
+            and isinstance(paired, dict)
+            and normalize_exact_question(paired.get("query")) == normalize_exact_question(record.get("query"))
+            and record.get("user_reviewed_response") is True
+            and record.get("explicit_user_elevation_approval") is True
+            and bool(str(record.get("elevation_approval_evidence") or "").strip())
+        )
+        if not valid:
+            fail(f"{record.get('benchmark_id')} is not a valid approved response-quality exemplar")
+        quality_only.append(record)
+    return quality_only
 
 
 def validate_numbering_metadata(registry, records):
@@ -618,6 +655,7 @@ def main():
     active = [r for r in approved if r.get("runtime_transfer") is True]
     exact_only = validate_exact_only_successors(approved, active)
     superseded = validate_superseded_references(approved, active)
+    quality_only = validate_response_quality_exemplars(approved, active)
     authority_records = active + exact_only
 
     for record in active:
@@ -800,7 +838,7 @@ def main():
             "answer": answer,
         }
 
-    if len(active) + len(exact_only) + len(superseded) != len(approved):
+    if len(active) + len(exact_only) + len(superseded) + len(quality_only) != len(approved):
         fail("approved Gold Star inventory contains an unclassified runtime authority state")
 
     validate_numbering_metadata(registry, records)
@@ -819,6 +857,7 @@ def main():
         "active_quality_contributor_count": len(active),
         "exact_query_only_successor_count": len(exact_only),
         "superseded_historical_reference_count": len(superseded),
+        "approved_response_quality_exemplar_count": len(quality_only),
         "pending_approval_evidence_count": len(pending_approval),
         "numbered_gold_star_record_count": len(current_numbers),
         "highest_assigned_gold_star_number": max(current_numbers.values(), default=0),
@@ -833,7 +872,7 @@ def main():
     print(
         "GOLD STAR INTEGRITY PASS: "
         f"{len(approved)} approved ({len(active)} learning contributors, "
-        f"{len(exact_only)} exact-query-only successors, {len(superseded)} superseded historical references), {len(records)} total records, "
+        f"{len(exact_only)} exact-query-only successors, {len(superseded)} superseded historical references, {len(quality_only)} response-quality exemplars), {len(records)} total records, "
         f"{len(current_numbers)} numbered, max #{max(current_numbers.values(), default=0)}, "
         f"{len(entries)} reviews, {len(exact_authority)} exact-answer authorities; "
         "canonical-main assignment immutability PASS"

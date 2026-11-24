@@ -246,6 +246,13 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
             assert capabilities.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+        elif record.get("runtime_transfer") is False and capabilities.get("generation_class") == "user_approved_response_quality_exemplar":
+            # Frozen response-quality exemplars are approved evaluation references,
+            # not runtime answer authority or adaptive contributors.
+            assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
+            assert capabilities.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+            assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False:
             # An approved exact-query successor may own the answer without
             # becoming a second adaptive-learning contributor or fallback.
