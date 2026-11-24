@@ -1466,22 +1466,13 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Do not claim legal validity or interpret a particular institution's constitution without the governing text and facts. Do not treat consultation as consent, majority preference as sufficient authority to override rights, or responsiveness as permission for arbitrary rule. Do not transfer the exact answer or any doorway to unrelated questions."
-    },
-    {
-      "benchmark_id": "general-guide-governance-balance-consequence-aware-2026-11-24",
-      "question": "How should governance balance stability, participation, and responsiveness?",
-      "family": "consequence_aware_governance_tradeoff_and_accountability",
-      "structural_lesson": "For consequential governance questions, begin with the outcome sought, non-negotiable responsibilities, and the people who will bear the consequences. Compare realistic alternatives rather than presuming one course; examine benefits, harms, cost-bearers, affected-party knowledge, and evidence that would justify changing direction. Make reasoning and limits visible, preserve accountability, and keep AI in an advisory role rather than transferring decision authority to it.",
-      "role": "cross_question_candidate",
-      "transferability_status": "cross_question_candidate",
-      "abstention_boundary": "The doorway state remains NOT_EVALUATED because the screenshot does not establish a canonical destination URL. Do not infer or invent a canonical doorway or destination. Apply to governance and institutional decision-making questions involving consequential change, trade-offs, affected parties, and accountability. Do not treat this as a universal decision procedure or substitute it for institution-specific constitutional, legal, or factual analysis. Do not infer that participation alone confers consent or authority. Do not transfer the exact answer to unrelated questions, and do not grant deterministic fallback eligibility."
     }
   ],
   "coverage": {
     "basis": "All general-purpose-guide USER_APPROVED_GOLD_STANDARD records with runtime_transfer=true; excludes approved exact-answer-only and superseded historical records.",
-    "registry_content_sha": "456c5edf77f34ccdec20b862fe85e3733fc05d42",
-    "qualitative_transfer_review_entries": 134,
-    "general_purpose_runtime_transfer_records": 130,
-    "map_entries": 130
+    "registry_content_sha": "b6d472b07054e3a10ef9646f414ab85aa1646da2",
+    "qualitative_transfer_review_entries": 133,
+    "general_purpose_runtime_transfer_records": 129,
+    "map_entries": 129
   }
 }
