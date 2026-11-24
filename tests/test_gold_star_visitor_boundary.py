@@ -306,6 +306,7 @@ def test_basic_inquiry_final_boundary_uses_archive_developmental_recovery_after_
 def test_public_api_asgi_path_applies_real_unseen_gold_star_fallback(monkeypatch):
     import json
     from fastapi.testclient import TestClient
+    import main
 
     query = (
         "How should a group decide what to protect when one person's priorities mean "
