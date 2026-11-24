@@ -15260,7 +15260,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _comparison_needs_recovery = bool(
                 not _current_comparison_response
                 or _comparison_semantic_failure
-                or answer_basis.get("kind") == "answer_integrity_failure"
+                or (
+                    isinstance(answer_basis, dict)
+                    and answer_basis.get("kind") == "answer_integrity_failure"
+                )
                 or general_guide_composition.is_generic_nonanswer(
                     query, _current_comparison_response
                 )
