@@ -939,3 +939,14 @@ def test_failed_provider_call_refunds_unused_output_quota_for_fallback(monkeypat
 
     assert str(fallback) == "A valid fallback response."
     assert attempts == ["test-model", "test-model"]
+
+
+def test_competing_values_balance_contract_fits_groq_budget_without_gold_star_candidate():
+    question = "How should an organization balance stability, participation, and responsiveness?"
+    system = guide_composition._build_general_guide_system_message(question)
+    assert "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING" in system
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": "U" * 7000},
+    ]
+    assert estimate_input_tokens(messages) + 750 <= 8000
