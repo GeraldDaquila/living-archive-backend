@@ -258,6 +258,30 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
         steps=any(x in low for x in ("compare","check","inspect","segment","review","investigate","break down"))
         no_fabrication=not any(x in low for x in ("the cause was definitely","this was caused by","the reason is certainly"))
         out += [check("calibrates_uncertainty",uncertainty,"State that the cause cannot be established from the information provided."),check("names_discriminating_evidence",evidence,"Identify evidence that could distinguish causes."),check("offers_investigation",steps,"Give a practical investigation step."),check("avoids_false_causation",no_fabrication,"Do not assert an unsupported cause.")]
+    elif cid=="heldout-transparency-trust-relational-synthesis-001":
+        attributable, provenance = classify_llm_payload(body)
+        distinct_roles = (
+            ("transparency" in low and any(term in low for term in ("visible", "visibility", "disclosure", "inspectable", "scrutiny")))
+            and ("trust" in low and any(term in low for term in ("rely", "confidence", "dependable", "reliance")))
+        )
+        mechanism = any(term in low for term in ("because", "enables", "allows", "makes it possible", "basis for scrutiny"))
+        reciprocal = any(term in low for term in ("reinforce one another", "reinforce each other", "reciprocal", "in turn", "also makes"))
+        boundary = any(term in low for term in ("neither guarantees", "does not guarantee", "not guarantee", "not the same", "not equivalent"))
+        limits = any(term in low for term in ("privacy", "confidential", "context", "mislead", "accountability"))
+        retrieval_only = (
+            len(low.split()) < 65
+            or low.startswith("the archive material available here offers")
+            or low.startswith("a useful starting point")
+        )
+        out += [
+            check("attributable_llm", attributable, f"Relational synthesis must be attributable to an invoked model; observed {provenance!r}."),
+            check("distinct_concept_roles", distinct_roles, "Distinguish transparency as inspectability/disclosure from trust as justified reliance."),
+            check("relationship_mechanism", mechanism, "Explain how transparency enables scrutiny and correction that can support justified trust."),
+            check("reciprocal_but_not_identical", reciprocal and boundary, "Explain reciprocal reinforcement without equating the concepts or treating either as a guarantee."),
+            check("legitimate_disclosure_limits", limits, "Preserve context, accountability, privacy, and legitimate confidentiality limits."),
+            check("not_retrieval_fragment", not retrieval_only, "A source excerpt or short retrieval fragment is not an answer to a relational question."),
+            check("no_unapproved_doorway", rec in (None, {}), f"This benchmark has no approved doorway; observed {rec!r}."),
+        ]
     elif cid=="heldout-community-rule-design-transfer-001":
         if require_attributable_llm:
             attributable, provenance = classify_llm_payload(body)
