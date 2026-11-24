@@ -5268,7 +5268,12 @@ def compose(
                 doorway = _select_verified_recovery_doorway(question, documents)
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
-                recovery="conceptual_relationship",
+                recovery=(
+                    "developmental_capacities_comparison"
+                    if all(re.search(r"\\b" + term + r"\\b", _normalize_space(question).casefold())
+                           for term in ("growth", "adaptation", "maturity", "integration"))
+                    else "conceptual_relationship"
+                ),
                 doorway=bool(doorway["doorway_title"]),
             )
             return {
