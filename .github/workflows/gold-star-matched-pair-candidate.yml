@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Retry the pinned Groq lane after the candidate parser learned its answer/doorway envelope.
+# Pin the registered Groq GPT-OSS 120B lane; both arms use this exact provider/model.
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "openrouter,gemini,groq"
+      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq,openrouter,gemini"
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -49,6 +49,8 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
+          --provider groq
+          --model openai/gpt-oss-120b
           --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
