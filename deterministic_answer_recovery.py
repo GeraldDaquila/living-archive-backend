@@ -1032,14 +1032,14 @@ _HUMAN_DEVELOPMENT_SOURCE_EXCERPT = (
 
 def is_human_development_comparison_question(question):
     """Recognize comparisons among the four concepts treated together in the human-development cornerstone."""
-    q = re.sub(r"\\s+", " ", _clean(question)).casefold()
+    q = re.sub(r"\s+", " ", _clean(question)).casefold()
     comparison_frame = bool(re.search(
-        r"\\b(?:difference|distinction)\\s+between\\b|\\bcompare\\b|"
-        r"\\brelationship\\s+between\\b|\\bhow\\s+(?:do|are)\\b.{0,100}\\brelated\\b",
+        r"\b(?:difference|distinction)\s+between\b|\bcompare\b|"
+        r"\brelationship\s+between\b|\bhow\s+(?:do|are)\b.{0,100}\brelated\b",
         q,
     ))
     return comparison_frame and all(
-        re.search(r"\\b" + re.escape(term) + r"\\b", q)
+        re.search(r"\b" + re.escape(term) + r"\b", q)
         for term in _HUMAN_DEVELOPMENT_COMPARISON_TERMS
     )
 
@@ -1050,17 +1050,17 @@ def compose_human_development_comparison_recovery(question):
         return None
     return (
         "Growth, adaptation, maturity, and integration are four related but distinct movements within human development. "
-        "The Living Archive's systems view treats them as interacting parts of a developmental process, not as a fixed four-step ladder.\\n\\n"
+        "The Living Archive's systems view treats them as interacting parts of a developmental process, not as a fixed four-step ladder.\n\n"
         "Growth is the development of capacity across domains, not merely the accumulation of knowledge, credentials, wealth, or experience. "
-        "The essay emphasizes that growth in one domain influences the others, and asks whether a person is becoming more capable of responding wisely to increasing complexity.\\n\\n"
+        "The essay emphasizes that growth in one domain influences the others, and asks whether a person is becoming more capable of responding wisely to increasing complexity.\n\n"
         "Adaptation is the response to changing conditions. The essay describes development through recurring cycles of challenge, feedback, "
         "reflection, adaptation, and renewed participation. The point is not to change at any cost, but to adapt without losing coherence. "
         "Maturity is not simply age, perfection, or freedom from failure; it is a growing ability to remain responsive, grounded, and adaptive "
-        "as life becomes more complex, with increasingly sophisticated meaning-making, judgment, and responsibility.\\n\\n"
+        "as life becomes more complex, with increasingly sophisticated meaning-making, judgment, and responsibility.\n\n"
         "Integration brings distinct capacities into relationship: biological, psychological, relational, ethical, systemic, and existential. "
         "It helps experience become understanding rather than remain fragmented. Growth concerns the development of capacity, whereas adaptation "
         "concerns the response to conditions. Maturity concerns the judgment and responsibility guiding that response; by contrast, integration "
-        "concerns how different capacities work together as a coherent whole.\\n\\n"
+        "concerns how different capacities work together as a coherent whole.\n\n"
         "They reinforce one another rather than occur in a single sequence. A person can acquire skills without becoming more mature, adapt to a "
         "situation without integrating what it teaches, or develop one capacity while another remains underdeveloped. Challenge and feedback can "
         "prompt adaptation; maturity shapes how change is handled; integration determines whether new experience becomes part of a more coherent life."
