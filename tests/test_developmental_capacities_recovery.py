@@ -3,6 +3,11 @@
 import general_guide_composition as composition
 
 
+def test_difference_between_prompt_enters_conceptual_relationship_recovery_path():
+    question = "What is the difference between growth, adaptation, maturity, and integration?"
+    assert composition.is_conceptual_relationship_question(question)
+
+
 def test_developmental_capacities_comparison_recovers_distinctions_and_relationship():
     answer = composition._conceptual_relationship_recovery(
         "What is the difference between growth, adaptation, maturity, and integration?"
