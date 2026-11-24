@@ -16017,57 +16017,57 @@ async def _use_send_json(send, payload, status_code=200):
             payload, _floor_query, "guide_json_orchestration_boundary"
         )
 
-    # Terminal answer-first enforcement runs after every route, rewrite, and
-    # doorway enrichment, immediately before the shared response-integrity floor.
-    # Empty answers remain the floor's responsibility; explicit glossary handoffs,
-    # exact approved answers, and safety interventions keep their own contracts.
-    if (
-        isinstance(payload, dict)
-        and payload.get("ok", True) is True
-        and _boundary_query
-        and _boundary_standard is None
-        and not _boundary_safety
-        and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
-        and not bool(payload.get("handoff_pending"))
-        and general_guide_composition._requires_substantive_answer_contract(_boundary_query)
-    ):
-        _terminal_response = _sanitize_basic_inquiry_response(
-            str(payload.get("response") or payload.get("answer") or "")
-        )
+        # Terminal answer-first enforcement runs after every route, rewrite, and
+        # doorway enrichment, immediately before the shared response-integrity floor.
+        # Empty answers remain the floor's responsibility; explicit glossary handoffs,
+        # exact approved answers, and safety interventions keep their own contracts.
         if (
-            _terminal_response
-            and not general_guide_composition._has_direct_answer_opening(
-                _boundary_query, _terminal_response
-            )
+            isinstance(payload, dict)
+            and payload.get("ok", True) is True
+            and _boundary_query
+            and _boundary_standard is None
+            and not _boundary_safety
+            and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
+            and not bool(payload.get("handoff_pending"))
+            and general_guide_composition._requires_substantive_answer_contract(_boundary_query)
         ):
-            payload = dict(payload)
-            payload.update({
-                "ok": False,
-                "response": (
-                    "I couldn’t produce a reliable, direct answer to that question just now. "
-                    "The response did not meet the Guide’s answer-integrity requirements; "
-                    "please try again shortly."
-                ),
-                "error_type": "answer_first_integrity_failure",
-                "recommendation": None,
-                "canonical_doorway": None,
-                "doorway_title": None,
-                "doorway_url": None,
-                "doorway_decision": "omit",
-                "answer_basis": {
-                    "kind": "answer_integrity_failure",
-                    "label": "Answer needs recovery",
-                    "explanation": (
-                        "The terminal visitor boundary rejected a response that did not "
-                        "begin with a substantive answer to the visitor’s question."
-                    ),
-                },
-            })
-            status_code = 503
-            print(
-                "The Guide terminal answer-first boundary withheld a non-answer: "
-                "reason=opening_contract_failure."
+            _terminal_response = _sanitize_basic_inquiry_response(
+                str(payload.get("response") or payload.get("answer") or "")
             )
+            if (
+                _terminal_response
+                and not general_guide_composition._has_direct_answer_opening(
+                    _boundary_query, _terminal_response
+                )
+            ):
+                payload = dict(payload)
+                payload.update({
+                    "ok": False,
+                    "response": (
+                        "I couldn’t produce a reliable, direct answer to that question just now. "
+                        "The response did not meet the Guide’s answer-integrity requirements; "
+                        "please try again shortly."
+                    ),
+                    "error_type": "answer_first_integrity_failure",
+                    "recommendation": None,
+                    "canonical_doorway": None,
+                    "doorway_title": None,
+                    "doorway_url": None,
+                    "doorway_decision": "omit",
+                    "answer_basis": {
+                        "kind": "answer_integrity_failure",
+                        "label": "Answer needs recovery",
+                        "explanation": (
+                            "The terminal visitor boundary rejected a response that did not "
+                            "begin with a substantive answer to the visitor’s question."
+                        ),
+                    },
+                })
+                status_code = 503
+                print(
+                    "The Guide terminal answer-first boundary withheld a non-answer: "
+                    "reason=opening_contract_failure."
+                )
 
         from gold_star_response_floor import apply_response_floor_boundary
         _previous_status = int(status_code)
