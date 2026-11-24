@@ -1,4 +1,7 @@
 """Contracts for provider-independent, governed Gold Star structural application."""
+import json
+from pathlib import Path
+
 import main
 import gold_star_lessons
 from gold_star_deterministic_composition import compose_deterministic_gold_star_response
@@ -86,3 +89,27 @@ def test_unseen_tradeoff_question_retrieves_and_applies_registered_deterministic
     assert len(result["application_evidence_spans"]) == 2
     assert "false consensus" in result["response"]
     assert "least power" in result["response"]
+
+
+def test_deterministic_eligible_registry_and_transfer_review_families_are_consistent():
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    review_by_id = {entry["benchmark_id"]: entry for entry in review["entries"]}
+
+    mismatches = []
+    for record in registry["records"]:
+        capabilities = record.get("gold_star_capabilities") or {}
+        if not capabilities.get("deterministic_fallback_eligible"):
+            continue
+        entry = review_by_id.get(record["benchmark_id"])
+        if entry is None:
+            continue
+        registry_family = str(capabilities.get("reasoning_family") or "").strip()
+        review_family = str(entry.get("reasoning_family") or "").strip()
+        if registry_family and review_family and registry_family != review_family:
+            mismatches.append((record["benchmark_id"], registry_family, review_family))
+
+    assert mismatches == []
+
+
