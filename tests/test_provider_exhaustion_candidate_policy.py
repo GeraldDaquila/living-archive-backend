@@ -69,3 +69,23 @@ def test_provider_exhaustion_civic_commons_recovery_does_not_capture_unrelated_q
     )
     assert "shared resources, spaces, institutions" not in answer
     assert "official Living Archive position" not in answer
+
+
+def test_existing_public_commons_gold_star_transfers_answerability_rule_and_domain_specificity():
+    from gold_star_lessons import active_quality_contribution
+
+    query = (
+        "When search services are unavailable, how should a guide answer a general question "
+        "about civic commons without claiming official doctrine?"
+    )
+    contribution = active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    discipline = contribution["discipline"].casefold()
+    assert "stable general knowledge" in discipline
+    assert "domain-specific explanation" in discipline
+    assert "generic process framework" in discipline
+    assert "institution-specific doctrine" in discipline
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
