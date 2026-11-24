@@ -12,7 +12,7 @@ from institutional_learning_failure_contract import (
     is_institutional_learning_failure_question,
 )
 
-VERSION = "1.3"
+VERSION = "1.4"
 _PATTERNS = {
     "explicit_no_handoff": re.compile(r"\b(?:do not|don't|without|no)\b.{0,80}\b(?:links?|resources?|recommendations?|follow[- ]?up|next steps?|doorways?)\b", re.I),
     "epistemic_category_distinction": re.compile(
