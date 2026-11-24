@@ -293,7 +293,7 @@ def test_basic_inquiry_final_boundary_uses_archive_developmental_recovery_after_
 
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_response(")
-    end = source.index("\\ndef ", start + 5)
+    end = source.index("\ndef ", start + 5)
     function = source[start:end]
 
     assert "human_development_comparison_final_contract" in function
