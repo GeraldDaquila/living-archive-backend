@@ -6,12 +6,14 @@ on:
       - "main.py"
       - "tests/test_guide_resource_discovery_evidence.py"
       - "tests/test_guide_discovery_source_cleanup.py"
+      - "tests/test_retrieval_failure_gold_star.py"
       - ".github/workflows/guide-resource-discovery-evidence.yml"
   push:
     branches: [main]
     paths:
       - "main.py"
       - "tests/test_guide_resource_discovery_evidence.py"
+      - "tests/test_retrieval_failure_gold_star.py"
       - ".github/workflows/guide-resource-discovery-evidence.yml"
 
 permissions:
