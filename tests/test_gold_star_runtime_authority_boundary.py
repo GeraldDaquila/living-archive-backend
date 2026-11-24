@@ -86,16 +86,24 @@ def test_composer_keeps_active_quality_and_exact_answer_authority_as_separate_bo
     assert "registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)" in source
 
 
-def test_basic_inquiry_deterministic_recovery_does_not_claim_gold_star_application():
+def test_basic_inquiry_deterministic_recovery_uses_only_closed_eligible_gold_star_plans():
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_round1_deterministic_response(")
     end = source.index("\ndef _guide_html_to_source_text(", start)
     function_source = source[start:end]
-    assert "_gold_star_active_quality_contribution(query)" not in function_source
-    assert "_direct_answer_baseline = bool(_matched_orientation)" in function_source
-    assert "must therefore never change the answer's framing" in function_source
-    # The deterministic prose is pre-authored and has no composition mechanism
-    # for applying cross-question discipline. It must not append lesson text.
+    assert "_deterministic_gold_star_contribution(query)" in function_source
+    assert "_compose_deterministic_gold_star(" in function_source
+    assert "if not _matched_orientation:" in function_source
+    assert '"gold_star_deterministic_structural_fallback"' in function_source
+    assert "gold_star_deterministic_application" in function_source
+    # Raw lesson prose remains non-mutating. Transfer is performed only by the
+    # closed plan renderer, never by appending discipline text to an answer.
     lessons = Path("gold_star_lessons.py").read_text(encoding="utf-8")
+    assert "def deterministic_fallback_contribution(query: str)" in lessons
     assert "def apply_deterministic_fallback_guidance(query: str, response: str) -> str:" in lessons
     assert 'return str(response or "").strip()' in lessons
+    renderer = Path("gold_star_deterministic_composition.py").read_text(encoding="utf-8")
+    assert "_PLANS = {" in renderer
+    assert "if plan is None:" in renderer
+    assert 'if not all(term in discipline for term in plan["discipline_terms"]):' in renderer
+    assert 'if not all(term in boundary for term in plan["boundary_terms"]):' in renderer

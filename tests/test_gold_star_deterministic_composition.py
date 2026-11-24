@@ -1,0 +1,54 @@
+"""Contracts for provider-independent, governed Gold Star structural application."""
+import main
+import gold_star_lessons
+from gold_star_deterministic_composition import compose_deterministic_gold_star_response
+
+
+ETHICAL = {
+    "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
+    "reasoning_family": "ethical_tradeoff_and_conflicting_harms",
+    "discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
+    "abstention_boundary": "Do not force false consensus, conceal sacrifice, shift burdens unfairly onto people with least power, or invent an unverified doorway URL.",
+    "authority_mode": "deterministic_structural_guidance_only",
+}
+
+
+def test_deterministic_plan_applies_discipline_and_abstention_boundary_without_copying_lesson():
+    result = compose_deterministic_gold_star_response(
+        "A neighborhood group must choose between two options that protect different interests. How should it decide?",
+        ETHICAL,
+    )
+    assert result is not None
+    assert result["plan_id"] == "ethical_tradeoff_v1"
+    assert result["abstention_boundary_applied"] is True
+    assert len(result["application_evidence_spans"]) == 2
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
+    assert ETHICAL["discipline"] not in result["response"]
+    assert ETHICAL["abstention_boundary"] not in result["response"]
+
+
+def test_unknown_or_incompatible_lesson_fails_closed():
+    unrelated = dict(ETHICAL, reasoning_family="unregistered_family")
+    assert compose_deterministic_gold_star_response("How should we decide?", unrelated) is None
+    incompatible = dict(ETHICAL, abstention_boundary="Do not overgeneralize.")
+    assert compose_deterministic_gold_star_response("How should we decide?", incompatible) is None
+
+
+def test_main_deterministic_fallback_consumes_eligible_gold_star(monkeypatch):
+    monkeypatch.setattr(
+        gold_star_lessons,
+        "deterministic_fallback_contribution",
+        lambda _query: dict(ETHICAL),
+    )
+    query = "How should a neighborhood group choose between two plans when each protects an important interest but creates a different loss?"
+    result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
+    assert result["provider"] == "gold_star_deterministic_structural_fallback"
+    assert "competing interests and possible losses" in result["response"]
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
+
+
+def test_community_rule_gold_stars_remain_excluded_from_deterministic_fallback():
+    query = "How should a community balance personal liberty with collective obligations when setting a fair rule?"
+    assert gold_star_lessons.deterministic_fallback_contribution(query) is None

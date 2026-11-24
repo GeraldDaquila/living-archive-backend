@@ -9816,11 +9816,40 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 None,
             )
         )
-        # This deterministic fallback has no composition mechanism capable of
-        # applying a retrieved Gold Star discipline and its abstention boundary.
-        # Retrieval alone must therefore never change the answer's framing or be
-        # reported as adaptive application. Reviewed Gold Star guidance remains
-        # available to the provider-adjudicated composition path.
+        # Apply only a lesson explicitly approved for deterministic fallback.
+        # The renderer uses a closed, reviewed plan registry; it never executes
+        # lesson prose, transfers exemplar content, or overrides exact-answer
+        # and specialist recovery paths handled above.
+        _deterministic_gold_star_application = None
+        if not _matched_orientation:
+            try:
+                from gold_star_lessons import (
+                    deterministic_fallback_contribution as _deterministic_gold_star_contribution,
+                )
+                from gold_star_deterministic_composition import (
+                    compose_deterministic_gold_star_response as _compose_deterministic_gold_star,
+                )
+                _deterministic_contribution = _deterministic_gold_star_contribution(query)
+                _deterministic_gold_star_application = _compose_deterministic_gold_star(
+                    query, _deterministic_contribution
+                )
+                if _deterministic_gold_star_application:
+                    _matched_orientation = _deterministic_gold_star_application["response"]
+                    print(
+                        "gold_star_deterministic_application "
+                        f"candidate={_deterministic_gold_star_application['benchmark_id']} "
+                        f"family={_deterministic_gold_star_application['reasoning_family']} "
+                        f"plan={_deterministic_gold_star_application['plan_id']} "
+                        "applied=true abstention_boundary_applied=true "
+                        f"application_span_count={len(_deterministic_gold_star_application['application_evidence_spans'])}",
+                        flush=True,
+                    )
+            except Exception as _deterministic_gold_star_exc:
+                print(
+                    "gold_star_deterministic_application unavailable; preserving baseline: "
+                    f"{type(_deterministic_gold_star_exc).__name__}.",
+                    flush=True,
+                )
         _direct_answer_baseline = bool(_matched_orientation)
         opening = (
             ""
@@ -9882,6 +9911,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         if any(marker in _normalized_query for marker in _conceptual_relationship_markers)
         else "deterministic_question_preserving_recovery"
     )
+    if _deterministic_gold_star_application:
+        _final_provider = "gold_star_deterministic_structural_fallback"
     # Keep this helper self-contained: isolated recovery tests may not load the
     # higher-level doorway normalization helpers.
     _raw_doorway = context_data.get("authoritative_doorway") if isinstance(context_data, dict) else None
