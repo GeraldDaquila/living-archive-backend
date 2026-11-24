@@ -541,7 +541,7 @@ def test_inventory_counts_grow_from_records_without_editing_stored_totals():
     assert after["qualitative_review_orphan_ids"] == []
     assert after["transferability_map_missing_ids"] == []
     assert after["transferability_map_orphan_ids"] == []
-    assert after["legacy_audit_metadata_drift"]["approved_gold_star_count"]["derived"] == (
+    assert after["legacy_audit_metadata_drift"]["integrity_audit.approved_gold_star_count"]["derived"] == (
         before["approved_gold_star_count"] + 1
     )
 
