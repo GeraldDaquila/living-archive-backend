@@ -234,6 +234,8 @@ def test_actual_outer_visitor_boundary_rejects_question_and_archive_prefaces(mon
     assert result["error_type"] == "answer_first_integrity_failure"
     assert result["answer_basis"]["kind"] == "answer_integrity_failure"
     assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_decision"] == "omit"
     assert "reliable, direct answer" in result["response"]
 
 
