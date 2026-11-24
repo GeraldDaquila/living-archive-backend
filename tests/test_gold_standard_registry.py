@@ -2424,7 +2424,9 @@ def test_trust_community_stewardship_candidate_matches_reviewable_fixture_withou
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"] == fixture["expected_doorway"]
     assert len(record["expected_response"].split(chr(10) * 2)) == 2
-    assert record["rating_out_of_10"] == 9.5
+    assert record.get("rating") is None
+    assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is True
     assert record["numbering_status"] == "UNASSIGNED"
@@ -2553,3 +2555,12 @@ def test_transparency_trust_original_visitor_response_is_preserved_as_diagnostic
         "general-guide-relational-synthesis-concept-pairs-2026-11-24"
     )
     assert "offers this starting point" in diagnostic["expected_response"]
+
+def test_assistant_assessment_is_not_duplicated_as_user_rating():
+    registry = _registry()
+    for record in registry["records"]:
+        assistant_assessment = record.get("assistant_assessment_out_of_10")
+        if assistant_assessment is None or record.get("rating") is not None:
+            continue
+        assert record.get("rating_out_of_10") != assistant_assessment, record["benchmark_id"]
+
