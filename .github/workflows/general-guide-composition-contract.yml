@@ -6,8 +6,9 @@ on:
     branches: [main]
     paths:
       - "main.py"
-      - "tests/test_cross_question_gold_standard_integrity.py tests/test_institutional_learning_failure_contract.py"
+      - "tests/test_cross_question_gold_standard_integrity.py tests/test_institutional_learning_failure_contract.py test_registered_conceptual_recovery_precedence.py"
       - "tests/test_institutional_learning_failure_contract.py"
+      - "test_registered_conceptual_recovery_precedence.py"
       - "provider_bank.py"
       - "tests/test_general_guide_provider_budget.py"
       - "guide_incomplete_knowledge.py"
@@ -104,6 +105,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "test_registered_conceptual_recovery_precedence.py"
       - "tests/test_cross_question_gold_standard_integrity.py"
       - "guide_incomplete_knowledge.py"
       - "tests/test_guide_incomplete_knowledge.py"
