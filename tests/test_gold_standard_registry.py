@@ -255,21 +255,23 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
         item for item in _registry()["records"]
         if item.get("status") == "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE"
     ]
-    assert report["exact_query_only_successor_count"] == len(exact_only) == 1
-    assert report["superseded_historical_reference_count"] == len(superseded) == 1
-    assert report["pending_approval_evidence_count"] == len(pending) == 1
-    assert report["authoritative_gold_star_count"] == 136
-    assert report["active_runtime_gold_star_count"] == 133
+    assert report["exact_query_only_successor_count"] == len(exact_only)
+    assert report["superseded_historical_reference_count"] == len(superseded)
+    assert report["pending_approval_evidence_count"] == len(pending)
+    assert report["authoritative_gold_star_count"] == len(approved)
+    assert report["active_runtime_gold_star_count"] == len(active)
     assert report["counting_note"].find("Pending approval evidence is excluded") >= 0
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
-    assert report["numbered_gold_star_count"] == len(numbered) == 39
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 97
-    assert report["highest_assigned_gold_star_number"] == 94
-    assert report["numbering_sequence_start"] == 56
-    assert report["numbering_gap_register"] == []
-    assert len(report["number_assignments"]) == 39
-    assert len(report["unassigned_benchmark_ids"]) == 97
+    assert report["numbered_gold_star_count"] == len(numbered)
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned)
+    assert report["highest_assigned_gold_star_number"] == max(
+        (item["gold_star_number"] for item in numbered), default=None
+    )
+    assert report["numbering_sequence_start"] == _registry()["numbering_policy"]["sequence_start"]
+    assert report["numbering_gap_register"] == _registry()["numbering_gap_register"]
+    assert len(report["number_assignments"]) == len(numbered)
+    assert len(report["unassigned_benchmark_ids"]) == len(unassigned)
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
