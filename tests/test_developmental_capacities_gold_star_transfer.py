@@ -65,7 +65,8 @@ def test_held_out_guidance_reaches_trusted_system_prompt_without_exemplar_conten
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" in system_message
     assert BENCHMARK_ID in system_message
     assert contribution["discipline"][:100] in system_message
-    assert contribution["abstention_boundary"][:100] in system_message
+    assert contribution["abstention_boundary"][:60] in system_message
+    assert contribution["abstention_boundary"][-30:] in system_message
     assert "water scarcity" not in system_message.casefold()
     assert "water scarcity" not in user_message.casefold()
     assert BENCHMARK_ID not in user_message
