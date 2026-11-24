@@ -60,6 +60,40 @@ def remove_question_echo(query: str, answer: str) -> str:
 def _has(text: str, phrases: tuple[str, ...]) -> bool:
     return any(p in text for p in phrases)
 
+
+def _extract_comparison_subjects(query: str) -> list[str]:
+    """Extract the named subjects from a bounded 'difference between' or 'compare' question."""
+    normalized = re.sub(r"\s+", " ", str(query or "")).strip()
+    match = re.search(
+        r"\b(?:difference|distinction)\s+between\s+(.+?)(?:[?!.]|$)",
+        normalized,
+        re.I,
+    )
+    if not match:
+        match = re.search(r"\bcompare\s+(.+?)(?:[?!.]|$)", normalized, re.I)
+    if not match:
+        return []
+    raw = re.sub(
+        r"\b(?:in terms of|with regard to|in relation to|when it comes to)\b.*$",
+        "",
+        match.group(1),
+        flags=re.I,
+    )
+    raw = re.sub(r"\s*,?\s+(?:and|or|versus|vs\.?)\s+", ",", raw, flags=re.I)
+    subjects = [
+        re.sub(r"^(?:the|a|an)\s+", "", part.strip(" ,;:.!?")).strip().casefold()
+        for part in raw.split(",")
+    ]
+    subjects = [subject for subject in subjects if subject]
+    return subjects if 2 <= len(subjects) <= 5 else []
+
+
+def _comparison_subject_is_explained(subject: str, answer: str) -> bool:
+    cue = r"(?:is|means|refers to|concerns|describes|brings|connects|represents|involves|denotes)"
+    pattern = r"\b" + re.escape(subject) + r"\b.{0,240}\b" + cue + r"\b"
+    return bool(re.search(pattern, answer, re.I))
+
+
 def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
     """Reject detectable task-contract violations; never rewrite an answer."""
     if not isinstance(payload, dict):
@@ -136,7 +170,38 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         add("tradeoffs_visible", _has(low, ("trade-off", "tradeoff", "risks", "risk", "costs", "cost", "benefits", "benefit", "advantages", "advantage", "disadvantages", "disadvantage")), "Make material costs and benefits visible.")
         add("conditional_judgment", _has(low, ("depends on", "when decisions", "when a decision", "if the decision", "routine local decisions", "strategic decisions", "recommend", "hybrid", "retain", "delegate")), "Give conditional reasoning rather than a universal slogan.")
     elif kind == "comparison":
-        add("comparative_structure", _has(low, ("whereas", "while", "by contrast", "unlike", "both", "difference", "compared with")), "Make the distinction explicit.")
+        subjects = _extract_comparison_subjects(query)
+        if subjects:
+            add(
+                "compared_subjects_covered",
+                all(re.search(r"\\b" + re.escape(subject) + r"\\b", low) for subject in subjects),
+                "Address every subject explicitly named in the comparison.",
+                hard=True,
+            )
+            add(
+                "compared_subjects_explained",
+                all(_comparison_subject_is_explained(subject, low) for subject in subjects),
+                "Explain what each named subject means or does; naming alone is not a comparison.",
+                hard=True,
+            )
+        add(
+            "comparative_structure",
+            _has(low, (
+                "whereas", "while", "by contrast", "in contrast", "unlike", "both",
+                "difference", "compared with", "distinct", "not interchangeable",
+                "not the same", "different from", "rather than", "separate from",
+            )),
+            "Make the distinction explicit rather than listing terms.",
+            hard=True,
+        )
+        add(
+            "relationship_explained",
+            _has(low, (
+                "interact", "interacting", "reinforce one another", "work together",
+                "coherent whole", "interdependent", "not a fixed", "not a single sequence",
+            )),
+            "Where relevant, explain how the compared concepts relate without collapsing them.",
+        )
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
     elif kind == "conceptual_explanation":
