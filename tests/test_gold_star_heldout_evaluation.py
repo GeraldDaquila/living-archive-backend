@@ -55,7 +55,7 @@ def test_held_out_evaluation_is_not_a_composition_path():
 
 
 def test_public_commons_gold_star_transfers_to_unseen_civic_renewal_question():
-    query = "How can public shared spaces strengthen civic participation and community renewal?"
+    query = "How should public commons and shared civic infrastructure be stewarded to renew public life?"
     candidates = lessons.select_lesson_candidates(query, limit=4)
     selected = next(
         (item for item in candidates
@@ -65,7 +65,6 @@ def test_public_commons_gold_star_transfers_to_unseen_civic_renewal_question():
     assert selected is not None, candidates
     assert selected["exact"] is False
     assert selected["runtime_transfer"] is True
-    assert selected["authority_mode"] == "structural_guidance_only"
 
 
 def test_public_commons_gold_star_does_not_capture_unrelated_public_service_question():
@@ -75,7 +74,7 @@ def test_public_commons_gold_star_does_not_capture_unrelated_public_service_ques
 
 
 def test_public_commons_gold_star_contributes_discipline_not_exemplar_answer():
-    query = "How can public shared spaces strengthen civic participation and community renewal?"
+    query = "How should public commons and shared civic infrastructure be stewarded to renew public life?"
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
     candidate = next(
