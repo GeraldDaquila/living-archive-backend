@@ -836,6 +836,24 @@ def _guide_query_explicitly_forbids_handoff(query):
     return any(re.search(pattern, value, re.I) for pattern in patterns)
 
 
+def _is_transparency_trust_relational_synthesis_question(query):
+    """Recognize the general transparency/trust relation that has no approved doorway."""
+    value = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
+    asks_relationship = bool(re.search(
+        r"\b(?:relationship|relation|relate|interplay|interaction|connection|interdependence)\b",
+        value,
+    ))
+    names_both_concepts = (
+        bool(re.search(r"\btransparency\b", value))
+        and bool(re.search(r"\btrust\b", value))
+    )
+    has_specific_community_scope = bool(re.search(
+        r"\b(?:community|communities|stewardship|trust architecture|accountability systems)\b",
+        value,
+    ))
+    return asks_relationship and names_both_concepts and not has_specific_community_scope
+
+
 def _guide_doorway_risk_suppression_is_required(query, profile=None):
     """Suppress navigation only for acute safety situations, not abstract risk analysis."""
     if profile is None:
@@ -929,12 +947,16 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     exact_standard = _resolve_exact_guide_gold_standard(query)
     explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
+    unmapped_relational_synthesis = (
+        exact_standard is None
+        and _is_transparency_trust_relational_synthesis_question(query)
+    )
     # Provider/recovery omission text is advisory, not a terminal routing decision.
     # The shared boundary must still attempt canonical retrieval and the approved
     # Guide Node registry before deciding that no relevant continuation exists.
-    # Only a reviewed Gold Standard or an explicit visitor request may short-circuit
-    # that selection process here.
-    if reviewed_omission or explicit_no_doorway:
+    # Reviewed standards, explicit visitor requests, and the bounded no-doorway
+    # relational-synthesis contract are terminal exceptions.
+    if reviewed_omission or explicit_no_doorway or unmapped_relational_synthesis:
         # Clear every public doorway alias together. Leaving even one populated
         # field allows a frontend renderer or compatibility path to resurrect
         # the same recommendation under a different field name.
@@ -965,14 +987,19 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         safe["doorway_selection_evaluated"] = False
         safe["doorway_selection_source"] = (
             "reviewed_gold_star_exception" if reviewed_omission
-            else "explicit_visitor_refusal"
+            else "explicit_visitor_refusal" if explicit_no_doorway
+            else "unmapped_transparency_trust_relational_synthesis"
         )
         if not str(safe.get("doorway_omission_reason") or "").strip():
             safe["doorway_omission_reason"] = (
                 str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
                 if reviewed_omission and isinstance(exact_standard, dict)
                 else "The visitor explicitly requested no navigation handoff."
+                if explicit_no_doorway
+                else "This general transparency-and-trust relationship has no reviewed canonical doorway; the answer stands on its own."
             )
+        if unmapped_relational_synthesis:
+            safe["navigation_suppressed_by_task_contract"] = True
         return safe
 
     return _guide_restore_verified_doorway(safe, query)

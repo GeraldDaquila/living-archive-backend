@@ -159,3 +159,18 @@ No production runtime, WordPress integration, HRN adapter, provider configuratio
 | Disposition | All 61 failures remain **UNRESOLVED** pending contract-level review. No tests were retired by this diagnostic. |
 
 The focused PR #1964 acceptance gates passed, including the production source-identity smoke test and the real WordPress visitor-browser acceptance for the previously missed community-governance wording. Those passes do not erase the 61 full-suite diagnostic failures or establish Gold Star provider attribution. The diagnostic remains non-blocking by design and preserves every failure for individual review.
+## 2026-11-24 post-reconciliation mainline diagnostic
+
+| Field | Value |
+|---|---|
+| Workflow | [Historical test failure inventory run 45380983770](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/45380983770) |
+| Tested main commit | `2265732f637864044dad688947bf1b995161dfbf` |
+| Artifact | `historical-test-failure-inventory` (artifact ID `14913153773`) |
+| Recorded test cases | 2,664 |
+| JUnit total | 2,928, including 264 passing subtests |
+| Failures | **58** |
+| Errors | 0 |
+| Skipped | 25 |
+| Disposition | All 58 failures remain **UNRESOLVED** pending contract-level review. No tests were retired by this diagnostic. |
+
+Compared with the immediately preceding mainline diagnostic (61 failures), three previously failing inventory-reconciliation tests now pass: the two historical audit scope/count tests and the parallel Gold Star registry/review inventory reconciliation test. The 58 remaining failure nodes are unchanged; no new failure nodes were introduced by PR #1965. The full-suite diagnostic remains non-blocking by design.
