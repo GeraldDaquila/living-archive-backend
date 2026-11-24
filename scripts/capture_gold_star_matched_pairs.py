@@ -321,7 +321,27 @@ async def capture(args) -> dict:
     if not provider or not model:
         raise RuntimeError("Provider bank returned an incomplete provider/model identity.")
 
-    restore = _install_observers(composition, main)
+    # The matched-pair harness may use a narrowly bounded provider timeout
+    # override for the exact pinned lane. This does not change application defaults,
+    # production configuration, or the shared request deadline.
+    original_provider_call_timeout = provider_bank._provider_call_timeout
+
+    def evaluation_provider_call_timeout(operation, item=None, attempt_index=1):
+        timeout = original_provider_call_timeout(operation, item, attempt_index)
+        if (
+            operation == "general_guide_composition"
+            and str((item or {}).get("provider") or "") == provider
+            and str((item or {}).get("model") or "") == model
+        ):
+            return max(float(timeout or 0), float(args.provider_timeout_seconds))
+        return timeout
+
+    provider_bank._provider_call_timeout = evaluation_provider_call_timeout
+    restore_observers = _install_observers(composition, main)
+    def restore():
+        restore_observers()
+        provider_bank._provider_call_timeout = original_provider_call_timeout
+
     records = []
     blind_cases = []
     unblinding = {}
@@ -486,6 +506,7 @@ async def capture(args) -> dict:
         "provider": provider,
         "model": model,
         "provider_call_spacing_seconds": args.inter_call_delay_seconds,
+        "provider_call_timeout_seconds": args.provider_timeout_seconds,
         "composition_contract_version": COMPOSITION_CONTRACT_VERSION,
         "gold_star_registry_sha256": registry_sha,
         "selector_negative_control": {
@@ -598,6 +619,10 @@ def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/gold-star-matched-pairs"))
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
+    parser.add_argument(
+        "--provider-timeout-seconds", type=float, default=8.0,
+        help="Evaluation-only timeout for the exact pinned lane; bounded to 5-8 seconds.",
+    )
     parser.add_argument("--provider", default="", help="Optional exact provider pin.")
     parser.add_argument("--model", default="", help="Optional exact model pin.")
     parser.add_argument(
@@ -607,6 +632,8 @@ def main_cli() -> int:
     args = parser.parse_args()
     if args.timeout_seconds <= 0:
         parser.error("--timeout-seconds must be greater than zero.")
+    if not 5.0 <= args.provider_timeout_seconds <= 8.0:
+        parser.error("--provider-timeout-seconds must be between 5 and 8.")
     if args.inter_call_delay_seconds < 60:
         parser.error("--inter-call-delay-seconds must be at least 60 to respect the provider TPM window.")
 
