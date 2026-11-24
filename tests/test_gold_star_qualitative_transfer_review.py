@@ -437,7 +437,7 @@ def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bo
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
     assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 133
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 128
+    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 129
 
 
 def test_community_freedom_shared_responsibility_is_mapped_with_its_boundary():
