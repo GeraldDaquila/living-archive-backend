@@ -436,7 +436,7 @@ def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bo
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 132
+    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 133
     assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 128
 
 
