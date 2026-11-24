@@ -820,7 +820,12 @@ def test_shared_json_sender_does_not_rewrite_unrelated_questions(monkeypatch):
     body = next(item["body"] for item in sent if item["type"] == "http.response.body")
     result = json.loads(body.decode("utf-8"))
 
-    assert result["response"] == "An ordinary answer."
+    # This is an unrelated comparison family, not the registered four-concept
+    # recovery. Its deliberately non-comparative answer must be withheld by the
+    # shared semantic floor rather than passed through as a successful 200.
+    assert result["response"] == ""
+    assert result["error_type"] == "gold_star_v2_quality_floor_rejected"
+    assert result["gold_star_v2_quality_floor"]["semantic_enforcement"]["question_type"] == "comparison"
     assert result.get("processing") != "sender_boundary_personal_decision_agency"
 
 def test_exact_gold_star_delivery_accepts_canonical_expected_doorway_object(monkeypatch):
