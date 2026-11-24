@@ -113,7 +113,7 @@ def test_safety_interventions_are_excluded_from_generic_doorway_restoration():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     start = source.index("def _guide_finalize_visitor_payload")
     guard = source.index('in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}', start)
-    exact = source.index("_resolve_exact_guide_gold_standard(query)", start)
+    exact = source.index("_final_exact_gold_standard_authority(query)", start)
     assert guard < exact
     assert source.count('"SAFETY_CONVERSATION", "SAFETY_INTERRUPT"') >= 3
 
