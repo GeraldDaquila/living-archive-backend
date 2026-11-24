@@ -8955,6 +8955,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     interpretation = interpretation or {}
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
+    # Shared finalization reads this on every branch, including early specialized paths.
+    _deterministic_gold_star_application = None
 
     # Superseded reciprocity definitions must not be recovered from the older
     # Archive glossary path. Route the community-purpose query and the earlier

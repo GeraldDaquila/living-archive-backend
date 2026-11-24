@@ -52,3 +52,17 @@ def test_main_deterministic_fallback_consumes_eligible_gold_star(monkeypatch):
 def test_community_rule_gold_stars_remain_excluded_from_deterministic_fallback():
     query = "How should a community balance personal liberty with collective obligations when setting a fair rule?"
     assert gold_star_lessons.deterministic_fallback_contribution(query) is None
+
+
+def test_provider_exhaustion_community_tradeoff_path_survives_early_branch_finalization():
+    query = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both fair and workable?"
+    )
+    # These newer community-rule lessons are provider-only by registry policy.
+    assert gold_star_lessons.deterministic_fallback_contribution(query) is None
+    result = main._basic_inquiry_provider_exhaustion_response(query, {}, {})
+    assert result["response"].strip()
+    import general_guide_composition
+    assert not general_guide_composition.is_generic_nonanswer(query, result["response"])
+    assert not general_guide_composition.is_meta_answer_failure(result["response"])
