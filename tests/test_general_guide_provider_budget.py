@@ -901,7 +901,7 @@ def test_failed_provider_route_never_issues_execution_proof_or_invocation_id(mon
 
 def test_failed_provider_call_refunds_unused_output_quota_for_fallback(monkeypatch):
     provider_quota_control._reset_for_tests()
-    monkeypatch.setenv("USE_QUOTA_TESTPROVIDER_TPM", "140")
+    monkeypatch.setenv("USE_QUOTA_TESTPROVIDER_TPM", "220")
     item = _item("testprovider", "test-model")
     messages = [{"role": "user", "content": "Q" * 100}]
     attempts = []
