@@ -10880,6 +10880,25 @@ def _normalize_authoritative_recommendation(doorway):
     return normalized
 
 
+def _prepare_visitor_doorway(doorway):
+    """Build the complete public doorway contract without changing selector semantics."""
+    normalized = _normalize_authoritative_recommendation(doorway)
+    if normalized is None:
+        return None
+    if not normalized.get("rationale"):
+        # A verified canonical destination must remain renderable even when an
+        # upstream selector supplies only title and URL. This is intentionally
+        # non-attributive: it explains the invitation without claiming that the
+        # resource is the source of every statement in the answer.
+        normalized["rationale"] = (
+            "This related Living Archive resource offers a further point of "
+            "exploration for the subject raised in your question. It is a "
+            "separate reading pathway, not a claim that the page is the source "
+            "of every statement in the answer."
+        )
+    return normalized
+
+
 def _apply_registered_gold_standard_doorway(doorway, gold_standard):
     """Apply only a complete, verified Gold Standard doorway pair.
 
@@ -15303,11 +15322,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         f"selected={bool(authoritative_doorway)}, "
         f"title={(authoritative_doorway or {}).get('title') or 'none'}"
     )
-    _visitor_recommendation = authoritative_doorway
+    _visitor_recommendation = _prepare_visitor_doorway(authoritative_doorway)
     if not _visitor_recommendation:
         try:
-            _visitor_recommendation = _boundary_canonical_doorway(
-                {"recommendation": None}, query
+            _visitor_recommendation = _prepare_visitor_doorway(
+                _boundary_canonical_doorway({"recommendation": None}, query)
             )
         except Exception:
             _visitor_recommendation = None
