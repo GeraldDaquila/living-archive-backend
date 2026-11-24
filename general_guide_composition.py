@@ -3300,6 +3300,35 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
 
+    # Developmental capacities are distinct, interacting dimensions rather than
+    # a fixed ladder. This bounded recovery applies only when the visitor names
+    # all four capacities and asks for their distinction or relationship. The
+    # discipline is distinction-before-synthesis: define each role, explain
+    # reciprocal interaction without asserting a mandatory sequence, then test
+    # the relationship in one concrete setting. It is general conceptual
+    # orientation, not an Archive-doctrine attribution or a claim of live
+    # Gold Star selection/application.
+    developmental_capacities = ("growth", "adaptation", "maturity", "integration")
+    asks_developmental_comparison = bool(
+        all(re.search(r"\\b" + term + r"\\b", normalized) for term in developmental_capacities)
+        and re.search(
+            r"\\b(?:difference|distinction|differ|distinguish|compare|comparison|relationship|relate|connected|connection|between)\\b",
+            normalized,
+        )
+    )
+    if asks_developmental_comparison:
+        return (
+            "Growth, adaptation, maturity, and integration describe four related but distinct dimensions of development. "
+            "Growth expands a person’s or institution’s capacities. Adaptation changes how those capacities are used in response to new conditions. "
+            "Maturity concerns the quality of judgment, responsibility, and self-regulation brought to choices. "
+            "Integration connects different capacities and experiences so they can work together as a coherent whole.\\n\\n"
+            "They influence one another, but they are not a fixed sequence. Growth can create new possibilities that require adaptation; adaptation can expose where judgment needs to mature; maturity can help a person decide which changes to retain; and integration can connect what has been learned so that it becomes usable across different situations. "
+            "The movement is reciprocal: integration may reveal a new area for growth, while changed circumstances may require renewed adaptation. A person can therefore be highly developed in one dimension and still be learning in another.\\n\\n"
+            "Consider a community responding to water scarcity. It may grow by developing new skills and infrastructure; adapt by changing planting schedules and water use as rainfall shifts; demonstrate maturity by sharing constraints fairly, weighing long-term consequences, and accepting responsibility for difficult decisions; and integrate these capacities by coordinating ecological knowledge, household needs, governance, and practical routines into one workable response. "
+            "Building infrastructure alone would be growth, not proof of maturity or integration. A flexible response alone would show adaptation, not necessarily fair judgment. The four dimensions become mutually reinforcing when new capacity, responsive action, responsible judgment, and coordination are all brought to bear.\\n\\n"
+            "The useful question is not which stage comes first, but which capacity is developing, which is under strain, and how well the four are being brought into relationship. This is a general conceptual explanation, not a claim that the Living Archive defines these terms in exactly these words."
+        )
+
     # Transparency and trust are a well-established concept pair. When provider
     # composition is unavailable, do not let a relevant-but-incomplete Archive
     # excerpt replace the requested relational explanation. This bounded recovery
