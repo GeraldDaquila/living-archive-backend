@@ -99,3 +99,18 @@ def test_existing_public_commons_gold_star_transfers_answerability_rule_and_doma
     assert "generic process framework" in instruction
     assert "Public commons are resources" not in instruction
     assert "libraries, parks, public knowledge" not in instruction
+
+
+def test_civic_commons_near_miss_preserves_the_verified_visible_doorway():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text())
+    record = next(
+        item for item in registry["records"]
+        if item.get("benchmark_id") == "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24"
+    )
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["title"] == "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/"
