@@ -8898,6 +8898,58 @@
           "does_not_create_new_gold_star": true
         }
       }
+    },
+    {
+      "benchmark_id": "general-guide-developmental-capacities-distinction-before-synthesis-2026-11-24",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the difference between growth, adaptation, maturity, and integration?",
+      "expected_response": "Growth, adaptation, maturity, and integration describe four related but distinct dimensions of development. Growth expands a person’s or institution’s capacities. Adaptation changes how those capacities are used in response to new conditions. Maturity concerns the quality of judgment, responsibility, and self-regulation brought to choices. Integration connects different capacities and experiences so they can work together as a coherent whole.\n\nThey influence one another, but they are not a fixed sequence. Growth can create new possibilities that require adaptation; adaptation can expose where judgment needs to mature; maturity can help a person decide which changes to retain; and integration can connect what has been learned so that it becomes usable across different situations. The movement is reciprocal: integration may reveal a new area for growth, while changed circumstances may require renewed adaptation. A person can therefore be highly developed in one dimension and still be learning in another.\n\nConsider a community responding to water scarcity. It may grow by developing new skills and infrastructure; adapt by changing planting schedules and water use as rainfall shifts; demonstrate maturity by sharing constraints fairly, weighing long-term consequences, and accepting responsibility for difficult decisions; and integrate these capacities by coordinating ecological knowledge, household needs, governance, and practical routines into one workable response. Building infrastructure alone would be growth, not proof of maturity or integration. A flexible response alone would show adaptation, not necessarily fair judgment. The four dimensions become mutually reinforcing when new capacity, responsive action, responsible judgment, and coordination are all brought to bear.\n\nThe useful question is not which stage comes first, but which capacity is developing, which is under strain, and how well the four are being brought into relationship. This is a general conceptual explanation, not a claim that the Living Archive defines these terms in exactly these words.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answer explicit comparisons of growth, adaptation, maturity, and integration by distinguishing each dimension before synthesizing their relationship.",
+        "Define growth as expansion of capacities; adaptation as changing their use in response to conditions; maturity as judgment, responsibility, and self-regulation; and integration as coherence across capacities and experiences.",
+        "Explain reciprocal influence without imposing a universal, linear, or mandatory developmental sequence.",
+        "Use a concrete example to test the distinctions and show why strength in one dimension does not prove strength in the others.",
+        "Distinguish general conceptual explanation from claims about formal Living Archive doctrine unless an authoritative Archive source is available.",
+        "Do not transfer the exact answer, water-scarcity example, claims, or doorway to unrelated questions.",
+        "Do not infer that this deterministic recovery proves Gold Star selection, semantic application, or held-out adaptive improvement."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response after PR #1959 deployment.",
+        "source_date": "2026-11-24",
+        "implementation_source": "general_guide_composition.py",
+        "implementation_commit": "3968433fe473fee84dbf930c9bfd68a28fbb6fb3",
+        "live_surface": "Guide visitor-facing Search response.",
+        "evidence_boundary": "The screenshot establishes the displayed question, substantive answer, and visible Becoming Fully Human continuation. PR #1959 and its merge establish the bounded deterministic recovery. Neither the screenshot nor merge proves Gold Star selection/application telemetry or held-out adaptive transfer."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "rating": null,
+      "rating_out_of_10": null,
+      "assistant_assessment_out_of_10": 9.4,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — ORIGINAL EXEMPLAR RETAINED; DETERMINISTIC RECOVERY LIVE-SCREENSHOT REVIEWED; HELD-OUT ADAPTIVE TRANSFER NOT YET PROVEN",
+      "runtime_transfer": true,
+      "reasoning_family": "developmental_capacities_distinction_before_synthesis",
+      "transferable_lesson": "For explicit questions comparing multiple developmental capacities, distinguish the function of each capacity before explaining their relationship. Synthesize reciprocal influence without imposing a fixed sequence; test the distinctions in a concrete situation; preserve the possibility that capacities develop unevenly; and state the evidence boundary between general conceptual explanation and institutional doctrine. Transfer the reasoning discipline only, never the exemplar wording, example, claims, or doorway.",
+      "transfer_boundary": "Use only when the visitor explicitly asks to distinguish, compare, or relate multiple developmental capacities. Do not impose a developmental ladder, universal sequence, causal progression, or normative maturity hierarchy without evidence. Do not treat one capacity as proof of another. Do not attribute general definitions to the Living Archive without an authoritative source. Do not transfer the exact answer, water-scarcity example, claims, citations, or doorway. This deterministic recovery and one reviewed live screenshot do not establish provider adjudication, semantic Gold Star application, or held-out adaptive improvement.",
+      "known_theme": "growth adaptation maturity integration; developmental capacities; distinction before synthesis; reciprocal development; non-linear developmental relationship",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_structural_learning",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "developmental_capacities_distinction_before_synthesis",
+        "transferable_discipline": "Distinguish each named developmental capacity, explain reciprocal interaction without a fixed sequence, test distinctions in a concrete example, and preserve uneven development and epistemic boundaries.",
+        "abstention_boundary": "Only for explicit comparisons or relationship questions naming relevant developmental capacities. Do not impose a universal sequence or transfer the exact exemplar, example, claims, or doorway. Do not attribute definitions to the Living Archive without an authoritative source."
+      },
+      "user_approved_at": "2026-11-24",
+      "elevation_approval_evidence": "The user explicitly instructed 'elevate to gold star' after reviewing the live production screenshot and the 9.4/10 assessment. This authorizes preservation of the reviewed response and bounded structural lesson. It does not authorize exact-answer copying, deterministic fallback authority, or a claim that held-out adaptive transfer has been proven.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
     }
   ],
   "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created.",
