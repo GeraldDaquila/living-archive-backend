@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Candidate rerun using Groq Qwen after GPT-OSS model-specific rate limits.
+# Candidate rerun using Groq GPT-OSS 20B after the Qwen lane was rate-limited.
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Pin one eligible Groq Qwen lane; both arms use this exact provider/model.
+    # Pin one eligible Groq GPT-OSS 20B lane; both arms use this exact provider/model.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -49,7 +49,7 @@ jobs:
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --provider=groq
-          --model=qwen/qwen3.8-27b
+          --model=openai/gpt-oss-20b
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
