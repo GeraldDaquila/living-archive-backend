@@ -412,8 +412,19 @@ def test_power_responsibility_gold_star_preserves_live_answer_doorway_and_bounde
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 133
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 129
+    active_ids = {
+        record["benchmark_id"] for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+    }
+    general_active_ids = {
+        record["benchmark_id"] for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+        and record.get("subsystem") == "general-purpose-guide"
+    }
+    assert {entry["benchmark_id"] for entry in review["entries"]} == active_ids
+    assert {entry["benchmark_id"] for entry in transfer_map["entries"]} == general_active_ids
 
 
 def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bounded():
@@ -450,8 +461,19 @@ def test_systemic_explanation_accessibility_gold_star_is_exactly_approved_and_bo
     assert entry["abstention_boundary"] == record["transfer_boundary"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert len(review["entries"]) == registry["integrity_audit"]["active_quality_contributor_count"] == 133
-    assert len(transfer_map["entries"]) == transfer_map["coverage"]["map_entries"] == 129
+    active_ids = {
+        record["benchmark_id"] for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+    }
+    general_active_ids = {
+        record["benchmark_id"] for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+        and record.get("subsystem") == "general-purpose-guide"
+    }
+    assert {entry["benchmark_id"] for entry in review["entries"]} == active_ids
+    assert {entry["benchmark_id"] for entry in transfer_map["entries"]} == general_active_ids
 
 
 def test_community_freedom_shared_responsibility_is_mapped_with_its_boundary():
@@ -464,3 +486,81 @@ def test_community_freedom_shared_responsibility_is_mapped_with_its_boundary():
     assert "meaningful agency" in entry["structural_lesson"]
     assert "automatic authority to override individual rights" in entry["structural_lesson"]
     assert "jurisdiction-specific legal analysis" in entry["abstention_boundary"]
+
+
+def test_inventory_counts_grow_from_records_without_editing_stored_totals():
+    from copy import deepcopy
+    from gold_star_inventory import derive_gold_star_inventory
+
+    registry = _registry()
+    review = json.loads(
+        Path("docs/qa/gold_star_qualitative_transfer_review.json").read_text()
+    )
+    transfer_map = json.loads(
+        Path("docs/qa/gold_star_transferability_map.json").read_text()
+    )
+    before = derive_gold_star_inventory(registry, review, transfer_map)
+
+    active = next(
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+        and record.get("subsystem") == "general-purpose-guide"
+    )
+    new_record = deepcopy(active)
+    new_id = "test-simulated-new-gold-star-inventory-growth"
+    new_record["benchmark_id"] = new_id
+    new_record["query"] = "How does a newly calibrated concept pair interact?"
+    new_record["numbering_status"] = "UNASSIGNED"
+    new_record.pop("gold_star_number", None)
+    registry["records"].append(new_record)
+
+    review_entry = deepcopy(next(
+        entry for entry in review["entries"]
+        if entry["benchmark_id"] == active["benchmark_id"]
+    ))
+    review_entry["benchmark_id"] = new_id
+    review["entries"].append(review_entry)
+
+    map_entry = deepcopy(next(
+        entry for entry in transfer_map["entries"]
+        if entry["benchmark_id"] == active["benchmark_id"]
+    ))
+    map_entry["benchmark_id"] = new_id
+    transfer_map["entries"].append(map_entry)
+
+    # Deliberately leave integrity_audit unchanged: it is a historical snapshot.
+    after = derive_gold_star_inventory(registry, review, transfer_map)
+
+    assert after["approved_gold_star_count"] == before["approved_gold_star_count"] + 1
+    assert after["active_runtime_gold_star_count"] == before["active_runtime_gold_star_count"] + 1
+    assert after["general_purpose_runtime_transfer_count"] == before["general_purpose_runtime_transfer_count"] + 1
+    assert after["qualitative_review_entry_count"] == before["qualitative_review_entry_count"] + 1
+    assert after["transferability_map_entry_count"] == before["transferability_map_entry_count"] + 1
+    assert after["qualitative_review_missing_ids"] == []
+    assert after["qualitative_review_orphan_ids"] == []
+    assert after["transferability_map_missing_ids"] == []
+    assert after["transferability_map_orphan_ids"] == []
+    assert after["legacy_audit_metadata_drift"]["approved_gold_star_count"]["derived"] == (
+        before["approved_gold_star_count"] + 1
+    )
+
+
+def test_diagnostic_record_does_not_increase_approved_or_active_inventory():
+    from copy import deepcopy
+    from gold_star_inventory import derive_gold_star_inventory
+
+    registry = _registry()
+    before = derive_gold_star_inventory(registry)
+    diagnostic = deepcopy(next(
+        record for record in registry["records"]
+        if record.get("status") == "RECOVERED_REGRESSION_SCENARIO"
+    ))
+    diagnostic["benchmark_id"] = "test-simulated-diagnostic-only-record"
+    registry["records"].append(diagnostic)
+    after = derive_gold_star_inventory(registry)
+
+    assert after["benchmark_count"] == before["benchmark_count"] + 1
+    assert after["diagnostic_record_count"] == before["diagnostic_record_count"] + 1
+    assert after["approved_gold_star_count"] == before["approved_gold_star_count"]
+    assert after["active_runtime_gold_star_count"] == before["active_runtime_gold_star_count"]
