@@ -14676,9 +14676,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         _meta_answer = (
             not general_guide_composition._has_direct_answer_opening(query, response)
             or bool(re.search(
-                r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+                r"\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
                 r"i don['’]?t have enough verified context|the inquiry need not stop here|"
-                r"separate established facts from assumptions)\\b",
+                r"separate established facts from assumptions)\b",
                 response,
                 re.I,
             ))
