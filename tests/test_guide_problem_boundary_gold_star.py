@@ -53,7 +53,9 @@ def test_problem_boundary_candidate_is_approved_and_active_learning():
     assert record["expected_doorway"]["title"] == "Boundary Conditions"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/boundary-conditions/"
     assert record["known_theme"]
-    assert registry["integrity_audit"]["registry_record_count"] == len(registry["records"])
+    from gold_star_inventory import derive_gold_star_inventory
+    inventory = derive_gold_star_inventory(registry)
+    assert inventory["benchmark_count"] == len(registry["records"])
     assert registry["audit"]["registry_record_count"] == len(registry["records"])
     assert registry["integrity_audit"]["structural_candidates_pending_live_review"] == 0
     assert len(record["expected_response"].split("\n\n")) == 3
