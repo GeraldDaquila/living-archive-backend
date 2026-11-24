@@ -89,7 +89,7 @@ def test_composer_keeps_active_quality_and_exact_answer_authority_as_separate_bo
 def test_basic_inquiry_deterministic_recovery_uses_only_closed_eligible_gold_star_plans():
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_round1_deterministic_response(")
-    end = source.index("\\ndef _guide_html_to_source_text(", start)
+    end = source.index("\ndef _guide_html_to_source_text(", start)
     function_source = source[start:end]
     assert "_deterministic_gold_star_contribution(query)" in function_source
     assert "_compose_deterministic_gold_star(" in function_source
