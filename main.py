@@ -15230,6 +15230,74 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         _provider_name = str(deterministic_result.get("provider") or "").strip()
         _model_name = str(deterministic_result.get("model") or "").strip()
 
+    # A source-grounded developmental comparison is the terminal recovery when
+    # provider composition or any earlier answer path fails the supported
+    # comparison contract. Keep the answer, source provenance, and doorway as
+    # one explicit contract, but do not overwrite a comparison that already
+    # satisfies the semantic acceptance checks.
+    _archive_developmental_comparison = False
+    _archive_developmental_comparison_document = None
+    try:
+        from deterministic_answer_recovery import (
+            human_development_comparison_final_contract as _human_development_contract,
+        )
+        _human_development_candidate = _human_development_contract(query)
+        if _human_development_candidate:
+            _current_comparison_response = _sanitize_basic_inquiry_response(
+                str(response or "")
+            )
+            try:
+                from gold_star_semantic_contract import evaluate_semantic_contract as _evaluate_comparison_contract
+                _current_comparison_semantics = _evaluate_comparison_contract(
+                    query,
+                    {"ok": True, "response": _current_comparison_response},
+                )
+                _comparison_semantic_failure = (
+                    _current_comparison_semantics.get("status") == "fail"
+                )
+            except Exception:
+                _comparison_semantic_failure = True
+            _comparison_needs_recovery = bool(
+                not _current_comparison_response
+                or _comparison_semantic_failure
+                or (
+                    isinstance(answer_basis, dict)
+                    and answer_basis.get("kind") == "answer_integrity_failure"
+                )
+                or general_guide_composition.is_generic_nonanswer(
+                    query, _current_comparison_response
+                )
+            )
+            if _comparison_needs_recovery:
+                response = _sanitize_basic_inquiry_response(
+                    _human_development_candidate["response"]
+                )
+                answer_basis = dict(_human_development_candidate["answer_basis"])
+                authoritative_doorway = dict(
+                    _human_development_candidate["recommendation"]
+                )
+                _archive_developmental_comparison_document = dict(
+                    _human_development_candidate["evidence_document"]
+                )
+                deterministic_result = {
+                    "response": response,
+                    "provider": _human_development_candidate["provider"],
+                    "model": "",
+                }
+                _provider_name = _human_development_candidate["provider"]
+                _model_name = ""
+                _provider_invocation_id = ""
+                _archive_developmental_comparison = True
+                print(
+                    "The Guide developmental comparison recovery: "
+                    "source-grounded answer restored after semantic rejection."
+                )
+    except Exception as _developmental_recovery_exc:
+        print(
+            "The Guide developmental comparison recovery failed safely: "
+            f"{type(_developmental_recovery_exc).__name__}."
+        )
+
     # Attribution belongs to the final visitor answer, not merely to an earlier
     # successful provider attempt. If a later deterministic boundary changed the
     # answer, do not label that different answer as LLM-generated.
@@ -15241,7 +15309,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         _is_registered_gold_standard_composition_result(composition_result)
     )
     _llm_invoked = bool(
-        composition_result
+        not _archive_developmental_comparison
+        and composition_result
         and composition_result.get("_provider_execution_verified") is True
         and not _registered_gold_standard_composition
         and _is_attributable_provider_model(_provider_name, _model_name)
@@ -15249,7 +15318,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and _final_response_text == _llm_candidate_text
     )
     _provider_assisted_recovery = bool(
-        composition_result
+        not _archive_developmental_comparison
+        and composition_result
         and (
             composition_result.get("_provider_execution_modified") is True
             or composition_result.get("_provider_execution_origin_modified") is True
@@ -15266,7 +15336,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         )
     )
     _cached_provider_composition = bool(
-        composition_result
+        not _archive_developmental_comparison
+        and composition_result
         and composition_result.get("_provider_execution_origin_verified") is True
         and composition_result.get("_provider_execution_origin_modified") is not True
         and composition_result.get("_provider_execution_verified") is not True
@@ -15295,7 +15366,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _model_name = ""
 
     _deterministic_by_design = bool(
-        _registered_gold_standard_composition
+        _archive_developmental_comparison
+        or _registered_gold_standard_composition
         or (
             deterministic_result
             and (
@@ -15376,6 +15448,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _evidence_documents.extend(
                 item for item in _evidence_candidates if isinstance(item, dict)
             )
+    if _archive_developmental_comparison and isinstance(_archive_developmental_comparison_document, dict):
+        _evidence_documents.append(dict(_archive_developmental_comparison_document))
     # Claim adjudication receives only ordinary visitor retrieval context.
     # The protected authority collections added above remain available to the
     # existing evidence/provenance path but are deliberately excluded here.
@@ -15393,6 +15467,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             _visitor_safe_document = dict(_visitor_document)
             _visitor_safe_document["visitor_visible"] = True
             _visitor_public_evidence_documents.append(_visitor_safe_document)
+
+    if _archive_developmental_comparison and isinstance(_archive_developmental_comparison_document, dict):
+        _developmental_public_document = dict(_archive_developmental_comparison_document)
+        _developmental_public_document["visitor_visible"] = True
+        _visitor_public_evidence_documents.append(_developmental_public_document)
 
     _claim_adjudication = _adjudicate_final_visitor_claims(
         response,

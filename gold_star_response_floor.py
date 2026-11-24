@@ -1,13 +1,13 @@
 """Source-independent Gold Star v2.0 response-floor gate.
 
-This is a conservative release boundary, not a semantic grader. It enforces
-machine-verifiable minimums for every visitor answer while leaving question-fit,
-epistemic quality, and substantive adequacy to the route-specific acceptance
-contracts and human-reviewed benchmarks. Frozen exact answers are never edited.
+This is a conservative release boundary, not a universal semantic grader. It
+enforces machine-verifiable minimums for every visitor answer and promotes only
+explicitly supported, task-specific semantic contracts into bounded enforcement.
+Unknown task types remain review-required. Frozen exact answers are never edited.
 
-Gold Star v3 semantic checks run in SHADOW mode inside this existing boundary.
-Their result is reported separately and can never alter the v2 decision, answer,
-HTTP status, recommendation, or visitor-visible composition.
+Semantic observations remain non-certifying. For supported task families, hard
+contract violations can fail the shared answer floor; they never rewrite answer
+text, choose a doorway, or claim semantic certification.
 """
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ from gold_star_answer_envelope import build_answer_envelope, validate_answer_env
 from gold_star_evidence_validation import validate_evidence_payload
 from institutional_learning_failure_contract import is_institutional_learning_failure_question
 
-VERSION = "2.0"
-SEMANTIC_SHADOW_VERSION = "1.0"
-SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure"})
+VERSION = "2.1"
+SEMANTIC_SHADOW_VERSION = "1.1"
+SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure", "comparison"})
 ANSWER_KEYS = ("response", "answer")
 NON_ANSWER_MARKERS = (
     "i cannot answer that question",
@@ -29,6 +29,9 @@ NON_ANSWER_MARKERS = (
     "i am unable to answer",
     "i'm unable to answer",
     "the guide could not complete this question",
+    "i couldn't produce a reliable answer to that question just now",
+    "i couldn’t produce a reliable answer to that question just now",
+    "i could not produce a reliable answer to that question just now",
     "please rephrase your question",
 )
 
