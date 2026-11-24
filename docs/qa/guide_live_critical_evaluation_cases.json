@@ -1,0 +1,22 @@
+{
+  "suite_id": "living-archive-guide-critical-live-acceptance",
+  "suite_version": "1.0.0",
+  "purpose": "Mandatory live acceptance cases for recent production visitor failures. Kept separate from the fixed-size Gold Star calibration suite and never used as simulated learning evidence.",
+  "cases": [
+    {
+      "case_id": "heldout-transparency-trust-relational-synthesis-001",
+      "query": "What is the relationship between transparency and trust?",
+      "source_benchmark_ids": [
+        "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+      ],
+      "critical_dimensions": [
+        "attributable_llm",
+        "distinct_concept_roles",
+        "relationship_mechanism",
+        "reciprocal_but_not_identical",
+        "legitimate_disclosure_limits",
+        "not_retrieval_fragment"
+      ]
+    }
+  ]
+}
