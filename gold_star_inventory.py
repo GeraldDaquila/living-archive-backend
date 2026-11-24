@@ -142,7 +142,8 @@ def derive_gold_star_inventory(
         "legacy_audit_metadata_drift": legacy_drift,
         "counting_note": (
             "All live counts are derived from canonical registry records. "
-            "Pending approval evidence and diagnostic records are reported "
+            "Pending approval evidence is excluded from approved Gold Star totals; "
+            "diagnostic records are reported separately. "
             "separately and are not counted as approved Gold Stars. Historical "
             "integrity_audit counters are non-authoritative snapshots; any "
             "difference is surfaced as legacy_audit_metadata_drift."
