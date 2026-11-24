@@ -10877,6 +10877,18 @@ def _normalize_authoritative_recommendation(doorway):
             if len(rationale) > 600 or re.search(r"<[^>]+>", rationale) or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", rationale):
                 return None
             normalized["rationale"] = rationale
+    # A verified canonical destination must remain renderable even when an
+    # upstream selector supplies only its title and URL. The frontend's shared
+    # doorway component correctly requires a visitor-facing rationale; provide
+    # a deliberately modest, non-attributive explanation rather than silently
+    # dropping the destination or inventing claims about the page's contents.
+    if not normalized.get("rationale"):
+        normalized["rationale"] = (
+            "This related Living Archive resource offers a further point of "
+            "exploration for the subject raised in your question. It is a "
+            "separate reading pathway, not a claim that the page is the source "
+            "of every statement in the answer."
+        )
     return normalized
 
 
