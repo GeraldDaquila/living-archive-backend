@@ -950,3 +950,32 @@ def test_competing_values_balance_contract_fits_groq_budget_without_gold_star_ca
         {"role": "user", "content": "U" * 7000},
     ]
     assert estimate_input_tokens(messages) + 750 <= 8000
+
+
+def test_answer_first_boundary_rejects_question_and_source_prefaces():
+    question = "What is the difference between growth, adaptation, maturity, and integration?"
+
+    assert not guide_composition._has_direct_answer_opening(
+        question,
+        "Your question asks: what is the difference between growth, adaptation, maturity, and integration? "
+        "The Archive material available here offers this starting point.",
+    )
+    assert not guide_composition._has_direct_answer_opening(
+        question,
+        "The question is about the difference between growth, adaptation, maturity, and integration. "
+        "A related Archive resource may help explore it.",
+    )
+    assert not guide_composition._has_direct_answer_opening(
+        question,
+        "The Archive material available here offers this starting point: From Self-Development to the Care of What Endures.",
+    )
+
+
+def test_answer_first_boundary_accepts_a_substantive_comparative_opening():
+    question = "What is the difference between growth, adaptation, maturity, and integration?"
+    response = (
+        "Growth expands a system's capacities, adaptation changes how it responds to conditions, "
+        "maturity develops discernment and stability, and integration brings its parts into coherent relationship."
+    )
+
+    assert guide_composition._has_direct_answer_opening(question, response)
