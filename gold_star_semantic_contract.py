@@ -174,7 +174,7 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         if subjects:
             add(
                 "compared_subjects_covered",
-                all(re.search(r"\\b" + re.escape(subject) + r"\\b", low) for subject in subjects),
+                all(re.search(r"\b" + re.escape(subject) + r"\b", low) for subject in subjects),
                 "Address every subject explicitly named in the comparison.",
                 hard=True,
             )
