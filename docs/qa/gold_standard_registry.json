@@ -8577,7 +8577,11 @@
       "assistant_assessment_out_of_10": 9.5,
       "approval_state": "USER APPROVED GOLD STAR — STRUCTURALLY CORRECTED RESPONSE; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
+      "user_approved_at": "2026-11-24",
+      "reasoning_family": "governance_balance_constitutional_stability_participatory_legitimacy_adaptive_responsiveness",
+      "transferable_lesson": "When asked to balance competing governance values, distinguish what must remain stable, what affected people have a right to shape, and what must remain adaptable. Translate each value into institutional mechanisms: protected principles and rights; meaningful participation, reasons, challenge and appeal; and delegated authority with evidence-based review triggers. Explain the constraints that prevent stability becoming rigidity, participation becoming ceremonial or paralyzing, and responsiveness becoming arbitrary. Compare burdens and benefits, and scale scrutiny to the consequences and reversibility of the decision.",
+      "transfer_boundary": "Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Do not claim legal validity or interpret a particular institution's constitution without the governing text and facts. Do not treat consultation as consent, majority preference as sufficient authority to override rights, or responsiveness as permission for arbitrary rule. Do not transfer the exact answer or any doorway to unrelated questions."
     }
   ],
   "last_reconciliation_note": "Added the user-approved, structurally corrected governance-balance exemplar general-guide-governance-balance-structural-candidate-2026-11-24. The original visitor answer remains preserved as a linked diagnostic near-miss. The new Gold Star contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled. It is unnumbered. Held-out transfer validation remains a separate system-level acceptance activity.",
@@ -8721,7 +8725,7 @@
     "active_quality_contributor_count": 133,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 0,
+    "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-governance-balance-structural-candidate-2026-11-24 approved by user 2026-11-24",
     "calibration_candidates_pending_user_review": 0
@@ -8834,7 +8838,7 @@
     "active_quality_contributor_count": 133,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 2,
+    "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-governance-balance-structural-candidate-2026-11-24 approved by user 2026-11-24",
     "calibration_candidates_pending_user_review": 0
