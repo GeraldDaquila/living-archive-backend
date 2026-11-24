@@ -1184,6 +1184,15 @@
       "qualifying_context": "Visitors asking how to formulate or evaluate a fair community rule when individual liberty and collective obligations appear to conflict, including shared-space rules, resource use, safety, risk, and coordination.",
       "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-governance-balance-structural-candidate-2026-11-24",
+      "question": "How should governance balance stability, participation, and responsiveness?",
+      "reasoning_family": "governance_balance_constitutional_stability_participatory_legitimacy_adaptive_responsiveness",
+      "transferable_discipline": "When asked to balance competing governance values, distinguish what must remain stable, what affected people have a right to shape, and what must remain adaptable. Translate each value into institutional mechanisms: protected principles and rights; meaningful participation, reasons, challenge and appeal; and delegated authority with evidence-based review triggers. Explain the constraints that prevent stability becoming rigidity, participation becoming ceremonial or paralyzing, and responsiveness becoming arbitrary. Compare burdens and benefits, and scale scrutiny to the consequences and reversibility of the decision.",
+      "qualifying_context": "Visitors asking how an institution, organization, or community can balance continuity, meaningful participation, and adaptation in governance; especially questions about decision rights, constitutional safeguards, representation, delegated authority, review, and institutional change.",
+      "abstention_boundary": "Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Do not claim legal validity or interpret a particular institution's constitution without the governing text and facts. Do not treat consultation as consent, majority preference as sufficient authority to override rights, or responsiveness as permission for arbitrary rule. Do not transfer the exact answer or any doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
