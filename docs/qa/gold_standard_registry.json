@@ -8636,9 +8636,95 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false,
       "paired_active_benchmark_id": "general-guide-governance-balance-structural-candidate-2026-11-24"
+    },
+    {
+      "benchmark_id": "general-guide-relational-synthesis-concept-pairs-2026-11-24",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between transparency and trust?",
+      "expected_response": "Transparency and trust reinforce one another, but they are not the same. Transparency makes relevant decisions, reasons, evidence, and limits visible so people can examine how an institution acts. Trust is the justified willingness to rely on that institution, based on whether its conduct proves dependable over time.\n\nThe connection is that transparency gives people a basis for scrutiny and correction: it can expose inconsistencies, reveal who is responsible, and make commitments testable. When an institution responds honestly to what scrutiny reveals and follows through on its responsibilities, that conduct can strengthen trust. Trust can also make transparency useful rather than merely performative, because people are more willing to engage with information when they have reason to believe it is not being selectively manipulated.\n\nNeither guarantees the other. Disclosure without accuracy, context, accessibility, or accountability can overwhelm or mislead; secrecy can sometimes be justified to protect privacy or legitimate safety interests, provided limits are explained and reviewable. Trust should therefore not mean unquestioning confidence, and transparency should not mean indiscriminate exposure. In practice, make consequential decisions and their reasons inspectable, disclose material limits and conflicts, protect legitimately confidential information, and provide ways to question, correct, and review what has been done.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answer the relationship itself rather than returning a source excerpt as a substitute for explanation.",
+        "Distinguish transparency (visibility of relevant decisions, reasons, evidence and limits) from trust (justified willingness to rely on conduct).",
+        "Explain the mechanism: visibility enables scrutiny and correction; honest, accountable response to scrutiny can strengthen justified trust.",
+        "Explain reciprocal reinforcement without claiming either concept guarantees the other.",
+        "Name a meaningful boundary: disclosure can mislead or overwhelm without context and accountability; confidentiality can be legitimate when bounded and reviewable.",
+        "Give a practical implication that preserves privacy, scrutiny, correction and accountability.",
+        "Do not transfer this exact answer or an inferred Archive doorway to unrelated questions."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor response, followed by explicit instruction to fix structurally and elevate to Gold Star.",
+        "source_date": "2026-11-24",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the inadequate visitor response, which is preserved as a diagnostic near-miss. The corrected response and transferable discipline are a structural correction authorized by the user's instruction. No canonical doorway is established by the screenshot; none is inferred.",
+        "linked_diagnostic_benchmark_id": "general-guide-relational-synthesis-transparency-trust-near-miss-2026-11-24",
+        "review_assessment": "Structural assessment: 9.5/10. This rates the corrected relational reasoning discipline, not the original visitor response."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "assistant_assessment_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STANDARD — STRUCTURAL RELATIONAL-SYNTHESIS LEARNING AUTHORIZED; ORIGINAL RESPONSE PRESERVED AS DIAGNOSTIC",
+      "runtime_transfer": true,
+      "reasoning_family": "relational_synthesis_concept_pairs",
+      "transferable_lesson": "For questions asking how two concepts relate, do not substitute retrieval fragments, adjacent definitions, or keyword overlap for an explanation of the relationship. Distinguish each concept's role, identify the mechanism connecting them, explain whether influence is reciprocal, one-way, or conditional, and name a meaningful boundary or tension. Preserve non-equivalence: explain where the concepts reinforce one another and where one does not guarantee the other. Ground Archive-specific claims in verified sources, distinguish synthesis from source claims, and provide a practical implication. Answer the relationship before offering navigation.",
+      "transfer_boundary": "Apply to genuine concept-pair questions asking about a relationship, connection, interaction, or interplay. Do not force this structure onto simple definitions, unrelated topics, or questions that do not request relational analysis. Do not infer causation, reciprocity, guarantees, or universal rules without support. Preserve privacy, confidentiality, uncertainty, and domain-specific limits. Never transfer the exact transparency-and-trust answer, its claims, or an inferred doorway to another question.",
+      "known_theme": "transparency, trust, relational explanation, concept-pair synthesis, scrutiny, accountability, reciprocal reinforcement, disclosure limits, confidentiality, correction",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_structural_learning",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "relational_synthesis_concept_pairs",
+        "transferable_discipline": "For concept-pair questions, distinguish each concept's role; explain the mechanism connecting them; characterize direction or reciprocity; identify a meaningful boundary or tension; preserve non-equivalence; ground source-specific claims; and state a practical implication before navigation.",
+        "abstention_boundary": "Use only when the visitor genuinely asks how concepts relate. Do not impose on definitions or unrelated inquiries, infer unsupported causation or reciprocity, transfer exact wording or claims, or grant deterministic fallback or exact-answer authority. Doorway status is NOT_EVALUATED: do not infer or attach a canonical destination from this benchmark. Do not infer a canonical doorway or destination without verified source evidence."
+      },
+      "user_approved_at": "2026-11-24",
+      "elevation_approval_evidence": "The user explicitly instructed: 'fix structurally and turn this into a gold star' after reviewing the live transparency-and-trust response. This authorizes preservation of the original as diagnostic evidence and elevation of the corrected, bounded relational-synthesis discipline. It does not authorize exact-answer copying or deterministic fallback.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false,
+      "rating": 9.5,
+      "rating_out_of_10": 9.5,
+      "related_question_variants": [
+        "How do transparency and accountability shape public trust?",
+        "How do openness and trust reinforce one another in institutions?",
+        "How does institutional transparency support justified trust?"
+      ]
+    },
+    {
+      "benchmark_id": "general-guide-relational-synthesis-transparency-trust-near-miss-2026-11-24",
+      "status": "RECOVERED_REGRESSION_SCENARIO",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between transparency and trust?",
+      "expected_response": "The Archive material available here offers this starting point: “Why trust may be as important to societal resilience as roads, power grids, and communication networks—and why its erosion creates consequences far beyond politics.”",
+      "implementation_response": null,
+      "assertions": [
+        "Preserve the exact visitor-facing response as a diagnostic near-miss.",
+        "The response identifies a relevant topic but does not explain the relationship between transparency and trust.",
+        "A source excerpt or doorway must not substitute for the requested relational synthesis.",
+        "Do not score deterministic recovery as adaptive transfer."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the Guide visitor-facing response.",
+        "source_date": "2026-11-24",
+        "evidence_boundary": "The screenshot establishes the exact query and displayed response. It does not establish provider provenance, Gold Star application, or a canonical destination URL."
+      },
+      "linked_successor_benchmark_id": "general-guide-relational-synthesis-concept-pairs-2026-11-24",
+      "runtime_transfer": false,
+      "gold_star_capabilities": {
+        "generation_class": "diagnostic_near_miss",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false
+      },
+      "freeze_policy": "immutable_diagnostic_evidence"
     }
   ],
-  "last_reconciliation_note": "Added the user-approved, structurally corrected governance-balance exemplar general-guide-governance-balance-structural-candidate-2026-11-24. The original visitor answer remains preserved as a linked diagnostic near-miss. The new Gold Star contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled. It is unnumbered. Held-out transfer validation remains a separate system-level acceptance activity.",
+  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",

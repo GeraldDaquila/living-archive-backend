@@ -1466,6 +1466,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Do not claim legal validity or interpret a particular institution's constitution without the governing text and facts. Do not treat consultation as consent, majority preference as sufficient authority to override rights, or responsiveness as permission for arbitrary rule. Do not transfer the exact answer or any doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "general-guide-relational-synthesis-concept-pairs-2026-11-24",
+      "question": "What is the relationship between transparency and trust?",
+      "family": "relational_synthesis_concept_pairs",
+      "structural_lesson": "For genuine concept-pair questions, distinguish each concept's role; explain the mechanism connecting them; characterize whether influence is one-way, reciprocal, or conditional; identify a meaningful boundary or tension; preserve non-equivalence; ground Archive-specific claims in verified sources; distinguish synthesis from source claims; and give a usable implication before navigation. Do not substitute retrieval fragments or adjacent definitions for relational explanation.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not force relational synthesis onto simple definitions, unrelated topics, or questions that do not ask how concepts relate. Do not infer unsupported causation, reciprocity, guarantees, or universal rules. Preserve domain-specific evidence limits, privacy, and legitimate confidentiality. Never transfer exact exemplar wording, claims, examples, citations, or doorways; never grant deterministic fallback eligibility."
     }
   ],
   "coverage": {

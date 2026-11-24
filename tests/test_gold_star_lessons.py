@@ -372,3 +372,29 @@ def test_governance_balance_gold_star_is_active_bounded_structural_learning():
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
     assert lessons.deterministic_fallback_contribution(query) is None
+
+
+def test_relational_synthesis_gold_star_loads_reviewed_transfer_discipline():
+    matching = [
+        record for record in lessons._LESSONS
+        if record["id"] == "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+    ]
+    assert len(matching) == 1
+    lesson = matching[0]
+    assert lesson["runtime_transfer"] is True
+    assert lesson["reasoning_family"] == "relational_synthesis_concept_pairs"
+    assert "mechanism connecting them" in lesson["transferable_discipline"]
+    assert "meaningful boundary or tension" in lesson["transferable_discipline"]
+    assert lesson["deterministic_fallback_eligible"] is False
+    assert lesson["exact_answer_authority"] is False
+
+
+def test_relational_synthesis_gold_star_transfers_to_held_out_concept_pair():
+    result = lessons.select_lesson(
+        "How do transparency and accountability shape public trust?"
+    )
+    assert result is not None
+    assert result["benchmark_id"] == (
+        "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+    )
+    assert result["exact"] is False
