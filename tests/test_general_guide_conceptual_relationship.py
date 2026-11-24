@@ -82,3 +82,27 @@ def test_algorithmic_amplification_contract_names_mechanism_before_system_contex
         "Distinguish amplification from sole causation",
     ):
         assert phrase in source
+
+
+TRANSPARENCY_TRUST_QUESTION = "What is the relationship between transparency and trust?"
+
+
+def test_transparency_trust_is_recognized_as_a_conceptual_relationship():
+    assert is_conceptual_relationship_question(TRANSPARENCY_TRUST_QUESTION)
+
+
+def test_transparency_trust_has_a_bounded_answer_when_provider_composition_is_unavailable():
+    from general_guide_composition import is_generic_nonanswer
+
+    response = _conceptual_relationship_recovery(TRANSPARENCY_TRUST_QUESTION)
+    assert response
+    assert has_conceptual_relationship_explanation(response, TRANSPARENCY_TRUST_QUESTION)
+    assert "visibility creates the possibility of scrutiny" in response
+    assert "neither side guarantees the other" in response
+    assert "legitimate confidentiality" in response
+    assert not is_generic_nonanswer(TRANSPARENCY_TRUST_QUESTION, response)
+
+
+def test_transparency_trust_recovery_does_not_claim_archive_doctrine():
+    response = _conceptual_relationship_recovery(TRANSPARENCY_TRUST_QUESTION)
+    assert "not a claim that the Living Archive states a formal definition" in response
