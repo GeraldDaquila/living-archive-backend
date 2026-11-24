@@ -396,6 +396,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
             # general adaptive-learning activation. Deterministic recovery consumes
             # it only through deterministic_fallback_contribution().
             "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")),
+            "exact_answer_authority": bool(capabilities.get("exact_answer_authority")),
             "reasoning_family": str(review.get("reasoning_family") or "").strip(),
             "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
             "qualifying_context": qualifying_context,
@@ -446,8 +447,12 @@ def select_lesson_candidates(
         return []
 
     def eligible(item: Dict[str, Any]) -> bool:
-        return not required_capability or (
-            bool(item.get("runtime_transfer")) and bool(item.get(required_capability))
+        # Approved response-quality exemplars are frozen evaluation references,
+        # not runtime lessons. Exact-query successors remain eligible only
+        # through their separately declared exact-answer authority.
+        has_runtime_authority = bool(item.get("runtime_transfer")) or bool(item.get("exact_answer_authority"))
+        return has_runtime_authority and (
+            not required_capability or bool(item.get(required_capability))
         )
 
     exact = [
