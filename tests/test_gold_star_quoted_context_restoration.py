@@ -83,7 +83,7 @@ def test_parallel_gold_star_inventory_reconciles_across_registry_and_transfer_re
     review_ids = [e["benchmark_id"] for e in review["entries"] if e.get("activation") == "active_quality_contributor"]
     active_ids = {r["benchmark_id"] for r in active}
     audit = registry["integrity_audit"]
-    assert len(registry["records"]) == audit["registry_record_count"] == 170
+    assert len(registry["records"]) == audit["registry_record_count"] == 172
     assert len(approved) == audit["approved_gold_star_count"] == 134
     assert len(active) == len(review_ids) == audit["active_quality_contributor_count"] == 132
     assert set(review_ids) == active_ids
