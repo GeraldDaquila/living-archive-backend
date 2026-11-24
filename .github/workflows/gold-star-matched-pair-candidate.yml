@@ -49,7 +49,7 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider-timeout-seconds 8
+          --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
