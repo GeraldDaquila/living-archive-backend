@@ -1,5 +1,6 @@
 """Regression tests for graceful recovery when canonical retrieval itself fails."""
 from unittest.mock import patch
+from pathlib import Path
 import main
 
 
@@ -278,3 +279,98 @@ def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(mon
     )
     assert "Separate observations from interpretations." not in result["response"]
     assert "Do not infer causes without evidence." not in result["response"]
+
+
+def test_default_evidence_recovery_rejects_single_generic_word_overlap():
+    from general_guide_composition import _default_gold_standard_evidence_recovery
+
+    question = (
+        "Why does a metal spoon feel colder than a wooden spoon "
+        "when both are at the same room temperature?"
+    )
+    unrelated = [
+        "People sometimes feel more confident when a familiar story gives them a sense of direction.",
+        "Some visitors feel uncertain when they encounter a new idea without a clear explanation.",
+        "People may feel pressure to agree when others express a strong preference.",
+        "An individual can feel pressure when outcomes depend on wider institutions and other people.",
+        "People feel a need for belonging when their relationships and daily routines change.",
+        "Someone may feel overwhelmed when several competing expectations arise at once.",
+    ]
+    documents = [{
+        "title": "Unrelated reflections",
+        "url": "https://geralddaquila.com/unrelated-reflections/",
+        "content": " ".join(unrelated),
+    }]
+
+    assert _default_gold_standard_evidence_recovery(question, documents) is None
+
+
+def test_default_evidence_recovery_requires_collective_query_term_coverage():
+    from general_guide_composition import _default_gold_standard_evidence_recovery
+
+    question = "How does stewardship support responsible care for shared resources?"
+    relevant = [
+        "Stewardship turns responsible care into explicit commitments for shared resources.",
+        "Shared resources need stewardship rules that make responsible care observable.",
+        "Responsible care for shared resources depends on stewardship and clear accountability.",
+        "Good stewardship assigns care duties for shared resources to people with authority.",
+        "Care for shared resources requires stewardship, fair participation, and review.",
+        "Stewardship protects shared resources by making responsible care reciprocal.",
+    ]
+    documents = [{
+        "title": "Stewardship and shared resources",
+        "url": "https://geralddaquila.com/stewardship/",
+        "content": " ".join(relevant),
+    }]
+
+    result = _default_gold_standard_evidence_recovery(question, documents)
+
+    assert result is not None
+    assert result["provider"] == "gold_standard_evidence_recovery"
+    assert "Stewardship" in result["response"]
+    assert "shared resources" in result["response"]
+
+
+
+def test_guide_doorway_policy_remains_default_across_composition_prompt_layers():
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+
+    # The constitutional default must survive the general system prompt,
+    # task-quality guidance, recovery guidance, and integrity-repair prompt.
+    assert "A doorway is a separate but default part of the Guide's role:" in source
+    assert "include one concise, verified, relevant Archive doorway separately by default." in source
+    assert "include one concise, canonical Archive doorway by default" in source
+    assert "Never substitute a generic Compass or use a doorway to rescue an off-target answer." not in source
+    assert "use it only when it is itself a verified, honest, useful continuation." in source
+    assert "A doorway is optional and follows the completed answer." not in source
+    assert "optional, verified Living Archive" not in source
+    assert "The answer must be complete before any optional doorway appears." not in source
+    assert "The answer must be complete before any optional Archive doorway appears." not in source
+    assert "offer a verified relevant doorway only when it materially advances the inquiry." not in source
+    assert "offer a canonical Archive doorway only when" not in source
+    assert "A doorway is a separate decision: include one only when a verified resource" not in source
+
+
+def test_community_rule_doorway_fallback_resolves_exact_verified_barangay_resource():
+    query = (
+        "How should community rules and restrictions be justified when they limit "
+        "personal liberty and freedom in the name of shared obligations and collective duties?"
+    )
+    expected_title = "The Barangay Before the State: Human-Scale Governance in Practice"
+    expected_url = (
+        "https://geralddaquila.com/2026/09/21/"
+        "the-barangay-before-the-state-human-scale-governance-in-practice/"
+    )
+
+    selected = main._community_rule_design_canonical_doorway(query)
+    fallback = main._verified_archive_doorway_fallback(query, [], None)
+
+    assert selected is not None
+    assert selected["title"] == expected_title
+    assert selected["url"] == expected_url
+    assert selected["rationale"]
+    assert fallback is not None
+    assert fallback["title"] == expected_title
+    assert fallback["url"] == expected_url

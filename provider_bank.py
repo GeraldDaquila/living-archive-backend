@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, contextvars, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
+import base64, contextvars, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request, uuid
 from urllib.request import Request, urlopen
 from functools import wraps
 
@@ -3989,7 +3989,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             _success(provider, model, operation)
             _capacity_end_request(success=True)
             capacity_finished = True
-            return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
+            return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order, "_provider_execution_verified": True, "_provider_invocation_id": uuid.uuid4().hex})
         except QuotaAdmissionDenied as exc:
             _gold_star_trace.record_provider_candidate_outcome(operation, "admission_denied")
             # Local admission pressure is not evidence that the upstream provider

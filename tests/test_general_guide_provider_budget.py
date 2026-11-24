@@ -799,7 +799,8 @@ def test_community_rule_prompt_loads_only_relevant_task_modules_and_keeps_defaul
     assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
     assert "For consequential action under uncertainty" in prompt
     assert "GOLD STAR INTEGRATION RULE" in prompt
-    assert "The answer must stand on its own and, by default, include one concise, optional, verified Living Archive doorway" in prompt
+    assert "A doorway is a separate but default part of the Guide's role" in prompt
+    assert "include one concise, verified Living Archive destination" in prompt
     assert "AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT" not in prompt
     assert "GOLD STAR REMEDY SELECTION" not in prompt
     assert "QUOTED-PASSAGE CONTEXT RESTORATION" not in prompt
@@ -849,3 +850,48 @@ def test_gold_star_quality_standard_remains_active_when_no_candidate_is_availabl
     assert "ADAPTIVE LEARNING INTEGRITY" in prompt
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" not in prompt
     assert "LAYERED ANSWERABILITY" in prompt
+
+
+def test_successful_provider_route_issues_execution_proof_and_invocation_id(monkeypatch):
+    _isolate(monkeypatch)
+
+    monkeypatch.setattr(
+        provider_bank,
+        "_call",
+        lambda *args, **kwargs: json.dumps(
+            {"response": "A complete answer from the controlled provider."}
+        ),
+    )
+
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["_provider_execution_verified"] is True
+    assert isinstance(result["_provider_invocation_id"], str)
+    assert len(result["_provider_invocation_id"]) == 32
+    assert result["provider"] == "gemini"
+
+
+def test_failed_provider_route_never_issues_execution_proof_or_invocation_id(monkeypatch):
+    _isolate(monkeypatch)
+
+    def fail_provider(*args, **kwargs):
+        raise RuntimeError("controlled provider transport failure")
+
+    monkeypatch.setattr(provider_bank, "_call", fail_provider)
+
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is None

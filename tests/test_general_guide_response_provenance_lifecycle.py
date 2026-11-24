@@ -108,3 +108,133 @@ def test_response_metric_carries_opaque_request_ledger_correlation_without_repla
     assert 'request_id={request_id}' in function_source
     assert "request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}" in function_source
 
+
+
+def test_llm_attribution_requires_a_registered_provider_model_pair():
+    import main
+
+    assert main._is_attributable_provider_model("groq", "openai/gpt-oss-120b")
+    assert main._is_attributable_provider_model("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
+    assert not main._is_attributable_provider_model(
+        "gold_standard_evidence_recovery", "extractive-deterministic"
+    )
+    assert not main._is_attributable_provider_model(
+        "bounded_provider_exhaustion_recovery", "deterministic-contract-recovery"
+    )
+    assert not main._is_attributable_provider_model("gold_standard_registry", "approved-reference")
+    assert not main._is_attributable_provider_model("groq", "unregistered-model")
+
+
+def test_non_provider_composition_recovery_keeps_its_identity_without_claiming_llm():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert "_deterministic_composition_recovery = bool(" in function_source
+    assert "elif not _deterministic_composition_recovery and not _cached_provider_composition and not _provider_assisted_recovery:" in function_source
+    assert 'elif deterministic_result or _deterministic_composition_recovery:' in function_source
+    assert '_response_provenance = "deterministic_recovery"' in function_source
+
+
+def test_llm_attribution_requires_verified_provider_execution_not_only_registered_labels():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_execution_verified") is True' in function_source
+    assert "_is_attributable_provider_model(_provider_name, _model_name)" in function_source
+
+    provider_bank = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": True' in provider_bank
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": result.get("_provider_execution_verified") is True' in composition
+
+    # A registered provider/model pair without the execution marker is not
+    # sufficient evidence that an external model actually ran.
+    assert 'and composition_result.get("_provider_execution_verified") is True' in function_source
+    assert 'and composition_result.get("_provider_execution_verified") is not True' in function_source
+
+
+def test_cached_provider_composition_preserves_origin_without_claiming_fresh_execution():
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert composition.count('cached_result["_provider_execution_origin_verified"] = bool(') == 2
+    assert 'cached_result.pop("_provider_execution_verified", False)' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert '_provider_execution_origin_verified") is True' in function_source
+    assert '_response_provenance = "cached_provider_composition"' in function_source
+    assert '_quality_adjusted_llm_eligible = False' in function_source
+    assert 'not _cached_provider_composition' in function_source
+
+
+def test_provider_rewrite_is_not_attributed_as_the_original_model_answer():
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_candidate_response": str(response)' in composition
+    assert 'candidate["_provider_execution_verified"] = False' in composition
+    assert 'candidate["_provider_execution_modified"] = True' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert '_provider_assisted_recovery = bool(' in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+    assert 'not _provider_assisted_recovery' in function_source
+
+
+def test_outer_final_response_rewrite_cannot_keep_live_provider_attribution():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_execution_verified") is True' in function_source
+    assert '_final_response_text != _llm_candidate_text' in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+
+
+def test_outer_rewrite_of_cached_provider_answer_is_provider_assisted_recovery():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_execution_origin_verified") is True' in function_source
+    assert '_final_response_text != _llm_candidate_text' in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+
+
+def test_provider_invocation_id_is_created_only_after_success_and_flows_to_final_provenance():
+    provider_bank = (Path(__file__).resolve().parents[1] / "provider_bank.py").read_text(encoding="utf-8")
+    assert '"_provider_execution_verified": True, "_provider_invocation_id": uuid.uuid4().hex' in provider_bank
+
+    composition = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert '"_provider_invocation_id": str(result.get("_provider_invocation_id") or "")' in composition
+    assert composition.count('cached_result["_provider_execution_origin_invocation_id"] = (') == 2
+    assert 'cached_result.pop("_provider_invocation_id", None)' in composition
+
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert 'composition_result.get("_provider_invocation_id")' in function_source
+    assert 'composition_result.get("_provider_execution_origin_invocation_id")' in function_source
+    assert 'provider_invocation_id={_provider_invocation_id or' in function_source
+    assert '"provider_invocation_id": _provider_invocation_id or None' in function_source
+
+
+def test_final_bounded_repair_reconciles_provider_provenance_after_rewrite():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    repair_call = function_source.index("payload, _repair_outcome = _run_gold_star_bounded_repair(")
+    post_repair = function_source.index("_post_repair_response_text = _sanitize_basic_inquiry_response(")
+    assert post_repair > repair_call
+    assert "_post_repair_response_text == _llm_candidate_text" in function_source
+    assert '_response_provenance = "provider_assisted_recovery"' in function_source
+    assert 'provenance_payload["llm_invoked"] = _llm_invoked' in function_source
+    assert 'provenance_payload["class"] = _response_provenance' in function_source
+
+
+def test_post_repair_metric_reports_the_reconciled_provenance_state():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    repair_call = function_source.index("payload, _repair_outcome = _run_gold_star_bounded_repair(")
+    final_metric = function_source.index('stage=post_repair, request_id={request_id}')
+    assert final_metric > repair_call
+    assert 'f"llm_invoked={str(_llm_invoked).lower()}, "' in function_source[final_metric:]
+    assert 'f"provider_invocation_id={_provider_invocation_id or' in function_source[final_metric:]
+
+
+def test_cached_provider_class_requires_unchanged_final_answer():
+    source, function = _basic_inquiry_ast()
+    function_source = ast.get_source_segment(source, function)
+    assert "_final_response_text == _llm_candidate_text" in function_source
+    assert "_post_repair_response_text == _llm_candidate_text" in function_source
+    assert "_provider_assisted_recovery = bool(" in function_source

@@ -47,7 +47,7 @@ def test_stewardship_presentation_uses_the_task_dependent_quality_standard():
     assert "every visitor-facing path" in prompt
     assert "choose the response form that makes the answer easiest to understand and use" in prompt
     assert "Do not impose a fixed number of paragraphs or a universal sequence" in prompt
-    assert "answer must be complete before any optional Archive doorway appears" in prompt
+    assert "A doorway is a separate but default part of the Guide's role" in prompt
     assert "ordinary general-purpose questions" in prompt
     assert "simple factual lookup may need one or two sentences" in prompt
     assert "direct navigation request may need a destination" in prompt
@@ -236,8 +236,8 @@ def test_gold_standard_is_the_task_dependent_general_quality_contract():
     assert "Lead with the answer, not a description of what an answer should contain" in prompt
     assert "Do not impose a fixed number of paragraphs or a universal sequence" in prompt
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
-    assert "offer a canonical Archive doorway" in prompt
-    assert "do not attach the Compass by default" in prompt
+    assert "include one concise, verified Living Archive destination" in prompt
+    assert "Do not substitute the general Compass merely because a narrower destination was not found" in prompt
     assert "choose the response form that makes the answer easiest to understand and use" in prompt
 
 

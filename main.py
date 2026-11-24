@@ -69,6 +69,7 @@ from guide_node_registry import (
 from provider_gateway_service import CONTRACT_VERSION as PROVIDER_GATEWAY_CONTRACT_VERSION, authorize as authorize_provider_gateway, validate_request as validate_provider_gateway_request, execute as execute_provider_gateway
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
+    MODEL_CAPABILITIES as PROVIDER_MODEL_CAPABILITIES,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
     capacity_diagnostics as provider_bank_capacity_diagnostics,
@@ -11829,6 +11830,18 @@ def _is_registered_gold_standard_composition_result(result):
     )
 
 
+def _is_attributable_provider_model(provider, model):
+    """Accept LLM attribution only for an explicitly registered provider/model pair.
+
+    Deterministic recovery functions may return non-empty provider/model labels
+    for diagnostic clarity. Those labels must never be mistaken for an external
+    model invocation or used to claim adaptive transfer.
+    """
+    provider = str(provider or "").strip().lower()
+    model = str(model or "").strip()
+    return bool(provider and model and (provider, model) in PROVIDER_MODEL_CAPABILITIES)
+
+
 def _adjudicate_final_visitor_claims(
     response,
     public_evidence_documents,
@@ -15155,12 +15168,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _provider_name = ""
     _model_name = ""
     _llm_candidate_text = ""
+    _provider_invocation_id = ""
     if composition_result:
         _provider_name = str(composition_result.get("provider") or "").strip()
         _model_name = str(composition_result.get("model") or "").strip()
         _llm_candidate_text = _sanitize_basic_inquiry_response(
             str(composition_result.get("response") or "")
         )
+        _provider_invocation_id = str(
+            composition_result.get("_provider_invocation_id")
+            or composition_result.get("_provider_execution_origin_invocation_id")
+            or ""
+        ).strip()
     elif deterministic_result:
         _provider_name = str(deterministic_result.get("provider") or "").strip()
         _model_name = str(deterministic_result.get("model") or "").strip()
@@ -15177,11 +15196,45 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     )
     _llm_invoked = bool(
         composition_result
+        and composition_result.get("_provider_execution_verified") is True
         and not _registered_gold_standard_composition
-        and _provider_name
-        and _model_name
+        and _is_attributable_provider_model(_provider_name, _model_name)
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
+    )
+    _provider_assisted_recovery = bool(
+        composition_result
+        and (
+            composition_result.get("_provider_execution_modified") is True
+            or composition_result.get("_provider_execution_origin_modified") is True
+            or (
+                composition_result.get("_provider_execution_verified") is True
+                and _llm_candidate_text
+                and _final_response_text != _llm_candidate_text
+            )
+            or (
+                composition_result.get("_provider_execution_origin_verified") is True
+                and _llm_candidate_text
+                and _final_response_text != _llm_candidate_text
+            )
+        )
+    )
+    _cached_provider_composition = bool(
+        composition_result
+        and composition_result.get("_provider_execution_origin_verified") is True
+        and composition_result.get("_provider_execution_origin_modified") is not True
+        and composition_result.get("_provider_execution_verified") is not True
+        and _final_response_text == _llm_candidate_text
+    )
+    _deterministic_composition_recovery = bool(
+        composition_result
+        and not _registered_gold_standard_composition
+        and not _llm_invoked
+        and not _cached_provider_composition
+        and not _provider_assisted_recovery
+        and _provider_name
+        and _model_name
+        and composition_result.get("_provider_execution_verified") is not True
     )
     if (
         composition_result
@@ -15191,7 +15244,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         if deterministic_result:
             _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
             _model_name = str(deterministic_result.get("model") or "").strip()
-        else:
+        elif not _deterministic_composition_recovery and not _cached_provider_composition and not _provider_assisted_recovery:
             _provider_name = "deterministic_final_boundary"
             _model_name = ""
 
@@ -15214,7 +15267,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     elif _deterministic_by_design:
         _response_provenance = "deterministic_by_design"
         _quality_adjusted_llm_eligible = False
-    elif deterministic_result:
+    elif _cached_provider_composition:
+        _response_provenance = "cached_provider_composition"
+        _quality_adjusted_llm_eligible = False
+    elif _provider_assisted_recovery:
+        _response_provenance = "provider_assisted_recovery"
+        _quality_adjusted_llm_eligible = False
+    elif deterministic_result or _deterministic_composition_recovery:
         _response_provenance = "deterministic_recovery"
         _quality_adjusted_llm_eligible = True
     else:
@@ -15232,6 +15291,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         f"provenance={_response_provenance}, "
         f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
         f"llm_invoked={str(_llm_invoked).lower()}, "
+        f"provider_invocation_id={_provider_invocation_id or 'unavailable'}, "
         f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
     )
 
@@ -15342,6 +15402,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             "model": _model_name or None,
             "quality_adjusted_llm_eligible": _quality_adjusted_llm_eligible,
             "llm_invoked": _llm_invoked,
+            "provider_invocation_id": _provider_invocation_id or None,
         },
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
@@ -15397,6 +15458,72 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         composition_repair_attempted = True
     if _repair_outcome.get("status") == "repaired":
         response = str(payload.get("response") or response)
+        # The bounded repair runs after the first provenance decision. Reconcile
+        # attribution again against the actual post-repair visitor answer so a
+        # late deterministic rewrite cannot retain an earlier provider label.
+        _post_repair_response_text = _sanitize_basic_inquiry_response(
+            str(payload.get("response") or "")
+        )
+        _has_provider_origin = bool(
+            composition_result
+            and (
+                composition_result.get("_provider_execution_verified") is True
+                or composition_result.get("_provider_execution_origin_verified") is True
+                or composition_result.get("_provider_execution_modified") is True
+                or composition_result.get("_provider_execution_origin_modified") is True
+            )
+        )
+        _llm_invoked = bool(
+            composition_result
+            and composition_result.get("_provider_execution_verified") is True
+            and not _registered_gold_standard_composition
+            and _is_attributable_provider_model(_provider_name, _model_name)
+            and _llm_candidate_text
+            and _post_repair_response_text == _llm_candidate_text
+        )
+        _cached_provider_composition = bool(
+            composition_result
+            and composition_result.get("_provider_execution_origin_verified") is True
+            and composition_result.get("_provider_execution_origin_modified") is not True
+            and composition_result.get("_provider_execution_verified") is not True
+            and _post_repair_response_text == _llm_candidate_text
+        )
+        _provider_assisted_recovery = bool(
+            _has_provider_origin
+            and (
+                composition_result.get("_provider_execution_modified") is True
+                or composition_result.get("_provider_execution_origin_modified") is True
+                or (
+                    _llm_candidate_text
+                    and _post_repair_response_text != _llm_candidate_text
+                )
+            )
+        )
+        if _llm_invoked:
+            _response_provenance = "llm"
+            _quality_adjusted_llm_eligible = True
+        elif _cached_provider_composition:
+            _response_provenance = "cached_provider_composition"
+            _quality_adjusted_llm_eligible = False
+        elif _provider_assisted_recovery:
+            _response_provenance = "provider_assisted_recovery"
+            _quality_adjusted_llm_eligible = False
+        provenance_payload = payload.get("response_provenance")
+        if isinstance(provenance_payload, dict):
+            provenance_payload["class"] = _response_provenance
+            provenance_payload["llm_invoked"] = _llm_invoked
+            provenance_payload["quality_adjusted_llm_eligible"] = _quality_adjusted_llm_eligible
+            provenance_payload["provider_invocation_id"] = _provider_invocation_id or None
+        print(
+            "USE RESPONSE METRIC: "
+            f"stage=post_repair, request_id={request_id}, "
+            f"request_correlation_id={_gold_star_request_correlation_id or 'unavailable'}, "
+            f"provenance={_response_provenance}, "
+            f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
+            f"llm_invoked={str(_llm_invoked).lower()}, "
+            f"provider_invocation_id={_provider_invocation_id or 'unavailable'}, "
+            f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
+        )
     if _repair_outcome.get("status") == "failed":
         print(
             "The Guide bounded repair ended without an accepted candidate: "

@@ -61,7 +61,7 @@ Apply these eight dimensions as quality expectations, not as eight mandatory sec
 4. QUESTION-FIT AND COMPETENCE — identify the visitor's actual task, domain, requested deliverable, and stakes; use suitable subject-specific knowledge and reasoning rather than a neighboring or generic answer.
 5. DISCERNMENT AND EPISTEMIC INTEGRITY — distinguish established facts, source-grounded claims, interpretation, inference, uncertainty, and unknowns; calibrate confidence and disclose material limits.
 6. RESOLUTION AND PRACTICAL UTILITY — deliver the value the question calls for: an explanation, distinction, method, decision framework, practical action, synthesis, or appropriately bounded answer. Resolve the question before optional navigation or follow-up.
-7. CONTINUITY AND DEVELOPMENTAL VALUE — by default, include one concise, optional, verified Living Archive doorway that genuinely relates to this inquiry and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Respect explicit requests for no handoff or follow-up; never manufacture engagement.
+7. CONTINUITY AND DEVELOPMENTAL VALUE — by default, include one concise, verified Living Archive doorway that genuinely relates to this inquiry and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Respect explicit requests for no handoff or follow-up; never manufacture engagement.
 8. ADAPTIVE LEARNING INTEGRITY — use approved evidence only within its recorded capability, qualifying context, and abstention boundary. Transfer reviewed reasoning discipline only; never transfer exemplar-specific wording, answer text, factual claims, examples, citations, or doorways to another question.
 
 Select the smallest response architecture that fully serves the actual question. A factual lookup may be brief; a comparison may need criteria; a practical request may need ordered actions; a strategic question may need trade-offs; an uncertain claim may need evidence boundaries. Do not add sections merely to display the standard. When no approved lesson is relevant, answer competently without forcing a Gold Star analogy.
@@ -214,7 +214,7 @@ def _remove_visitor_meta_commentary(text: str) -> str:
 # common free-provider admission envelope.
 _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. Choose the response form that best performs the visitor's actual task. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. This applies across every question family and fallback path; the response form remains task-dependent. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
+Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. Choose the response form that best performs the visitor's actual task. the response form remains task-dependent; the Gold Star is a quality floor, not a fixed template. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
 
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
 When a visitor asks what would demonstrate that the Guide or another AI system is genuinely autonomous, adaptive, resilient, or improving rather than merely continuing to produce responses, recognize an evidence-evaluation task. Answer with an explicit evaluation framework; do not turn it into a reflective discussion of organizational responsibility or ask the visitor to choose an organizational issue. State the governing distinction immediately: continued operation and response volume demonstrate activity or continuity, not by themselves autonomy, adaptation, resilience, or improved answer quality.
@@ -234,7 +234,8 @@ ORIENTATION AND INFORMATION — PRACTICAL CONCEPTUAL CONTRAST:
 When a visitor asks what it means to provide orientation rather than information, explain the distinction directly. Information supplies facts, data, or details; orientation places relevant information in context by showing relationships, stakes, constraints, options, and responsibilities so a person can judge what matters and navigate what follows. Explain that orientation depends on information rather than rejecting it. Give one concrete everyday example when the visitor asks what this means in practice. Do not turn an ordinary conceptual question into a request for an institutional definition, and do not abstain merely because no formal Living Archive definition was retrieved. Distinguish a general explanation from any specifically attributed Archive doctrine. For this particular contrast, the published Cornerstone “When Knowledge Is Everywhere” is the verified canonical continuation: use its actual claims when available, and do not invent a separate formal glossary definition.
 
 QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE:
-The Gold Star standard is a quality and reasoning-governance standard, not a prescribed answer template and not a mandatory three-paragraph structure. It applies across every visitor-facing path as a floor for directness, completeness, accuracy, grounding, calibration, humane voice, usefulness, and appropriate navigation. It does not dictate paragraph count, sequence, headings, examples, or output format. Before drafting, identify the visitor's requested deliverable, subject, cognitive operation, stakes, and relevant evidence. Then choose the smallest response architecture that fully performs that task. A definition should define; a comparison should use relevant, symmetrical criteria and state the consequential difference; a decision request should give the governing recommendation and its warrant, then address material trade-offs and contingencies; a procedure should give ordered actions and checks; a diagnosis should distinguish observations, hypotheses, evidence tests, and limits; an evidence question should separate source-supported claims, inference, and what remains unknown; a factual lookup should answer concisely. Combine or depart from these examples when the actual question requires it. Do not force every answer through a universal three-part progression or add a paragraph merely to satisfy a template. Paragraphs are a readability tool, not a compliance target. Transfer from a Gold Star only the reasoning discipline that genuinely matches the current task and its qualifying conditions; never transfer its subject matter, answer text, examples, factual claims, or doorway. Specialized guidance is conditional and must remain dormant outside its defined scope. A doorway is a separate but default part of the Guide's role: include one concise, optional, verified Living Archive destination that genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Its relevance must be explainable in terms of the visitor's actual question; shared keywords alone are insufficient. Never attach a generic or mismatched link.
+Do not substitute the general Compass merely because a narrower destination was not found; use it only when it is itself a verified, honest, useful continuation.
+The Gold Star standard is a quality and reasoning-governance standard, not a prescribed answer template and not a mandatory three-paragraph structure. It applies across every visitor-facing path as a floor for directness, completeness, accuracy, grounding, calibration, humane voice, usefulness, and appropriate navigation. It does not dictate paragraph count, sequence, headings, examples, or output format. Before drafting, identify the visitor's requested deliverable, subject, cognitive operation, stakes, and relevant evidence. Then choose the smallest response architecture that fully performs that task. A definition should define; a comparison should use relevant, symmetrical criteria and state the consequential difference; a decision request should give the governing recommendation and its warrant, then address material trade-offs and contingencies; a procedure should give ordered actions and checks; a diagnosis should distinguish observations, hypotheses, evidence tests, and limits; an evidence question should separate source-supported claims, inference, and what remains unknown; a factual lookup should answer concisely. Combine or depart from these examples when the actual question requires it. Do not force every answer through a universal three-part progression or add a paragraph merely to satisfy a template. Paragraphs are a readability tool, not a compliance target. Transfer from a Gold Star only the reasoning discipline that genuinely matches the current task and its qualifying conditions; never transfer its subject matter, answer text, examples, factual claims, or doorway. Specialized guidance is conditional and must remain dormant outside its defined scope. Shared keywords alone are insufficient for doorway selection. Do not substitute the general Compass merely because a narrower destination was not found; use it only when it is itself a verified, honest, useful continuation. A doorway is a separate but default part of the Guide's role: include one concise, verified Living Archive destination that genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Its relevance must be explainable in terms of the visitor's actual question; shared keywords alone are insufficient. Never attach a generic or mismatched link.
 
 GOLD STAR SCOPE GOVERNANCE (META-GOVERNANCE TASKS ONLY):
 When the visitor is explicitly asking how USE should evaluate a Gold Star's scope, distinguish the validity of the local improvement from the safety of transferring it. Require controlled comparison across target-domain cases, adjacent domains, and unrelated negative controls; assess correctness, relevance, completeness, calibration, directness, and doorway fit; and inspect regression severity, repeatability, and mechanism. Narrow when demonstrated benefit is reliable but bounded; revise when the underlying insight is useful and the overreach is correctable; reject when benefit is not reproducible or serious regressions cannot be contained. Preserve benchmark identity and provenance, and require new evidence before scope expands. This is a specialized meta-governance lesson: never impose it on ordinary visitor questions, and never infer applicability from broad keyword overlap.
@@ -267,7 +268,7 @@ When a leader asks how to respond to institutional incentives that reward short-
 
 For practical questions, give a useful, low-risk next step when general guidance is responsible. Explain options and consequences without taking over the visitor's judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. For grief or significant distress, recognize the specific difficulty in plain language and, when the immediate need is unclear, ask one gentle open question rather than rushing into advice. Immediate danger requires the established safety boundary.
 
-The answer must stand on its own and, by default, include one concise, optional, verified Living Archive doorway that genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Shared keywords or a generic desire to add a link are insufficient. Never substitute a generic Compass or use a doorway to rescue an off-target answer.
+The answer must stand on its own and, by default, include one concise, verified Living Archive doorway that genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists or when adding it would distract from, mislead about, or weaken the answer. Shared keywords or a generic desire to add a link are insufficient. Do not substitute the general Compass merely because a narrower destination was not found; use it only when it is itself a verified, honest, useful continuation. Never use a doorway to rescue an off-target answer.
 
 Before returning, silently check: Does the response perform the actual requested task? Is its structure appropriate to the subject and deliverable? Is each part necessary and useful? Are Archive-specific claims supported? Is uncertainty calibrated? Have you avoided internal implementation language?
 
@@ -380,6 +381,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
     candidates = gold_star_quality.get("candidates") or []
     if not candidates:
         return ""
+    # Keep provider context bounded: adjudication needs reviewed reasoning
+    # metadata, not duplicated exemplar questions/themes or verbose rationales.
+    # Candidate identity and activation conditions preserve traceability.
     candidate_lines = []
     for index, item in enumerate(candidates, start=1):
         score_label = (
@@ -388,14 +392,11 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             else str(item.get("score"))
         )
         candidate_lines.append(
-            f"{index}. ID={item.get('benchmark_id')}; match_basis={item.get('match_basis')}; "
-            f"role={item.get('role') or 'unclassified'}; "
-            f"activation_condition={_compact_gold_star_prompt_field(item.get('activation_condition'), 120) or 'none'}; "
-            f"score={score_label}; subject={_compact_gold_star_prompt_field(item.get('query'), 100)}; "
-            f"theme={_compact_gold_star_prompt_field(item.get('known_theme'), 100)}; "
-            f"reasoning family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 80)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 300)}; "
-            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 240)}"
+            f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
+            f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 72) or 'none'}; "
+            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 56)}; "
+            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 180)}; "
+            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 140)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
@@ -449,7 +450,9 @@ REFLECTIVE-CONCEPTUAL QUESTION BOUNDARY:
 For reflective-conceptual questions, including questions phrased as “How can [an abstract quality or principle] be [cultivated, disciplined, sustained, or practiced]?”, answer the conceptual tension before offering any action. Explain what the quality means in this context, what can distort or undermine it, and how its constructive form differs from its nearest counterfeit or excess. Do not convert the question into a generic decision checklist, self-management routine, or sequence of imperatives unless the visitor explicitly asks for a procedure. Keep the explanation anchored to the named subject. Establish what the quality means in this context, explain what can distort it and how its constructive form differs from its nearest counterfeit or excess, then draw out the consequence, limit, or practical meaning when it adds value. Use only the amount and form of explanation the question needs. Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability unless the question itself calls for them. A practical foothold may follow the explanation, but it must arise from the distinction just established rather than replace it.
 
 QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE:
-The Gold Star standard is a quality and reasoning-governance standard, not a prescribed answer template and not a mandatory three-paragraph structure. It applies across every visitor-facing path as a floor for directness, completeness, accuracy, grounding, calibration, humane voice, usefulness, and appropriate navigation. It does not dictate paragraph count, sequence, headings, examples, or output format. Before drafting, identify the visitor's requested deliverable, subject, cognitive operation, stakes, and relevant evidence. Then choose the smallest response architecture that fully performs that task. A definition should define; a comparison should use relevant, symmetrical criteria and state the consequential difference; a decision request should give the governing recommendation and its warrant, then address material trade-offs and contingencies; a procedure should give ordered actions and checks; a diagnosis should distinguish observations, hypotheses, evidence tests, and limits; an evidence question should separate source-supported claims, inference, and what remains unknown; a factual lookup should answer concisely. Combine or depart from these examples when the actual question requires it. Do not force every answer through a universal three-part progression or add a paragraph merely to satisfy a template. Paragraphs are a readability tool, not a compliance target. Transfer from a Gold Star only the reasoning discipline that genuinely matches the current task and its qualifying conditions; never transfer its subject matter, answer text, examples, factual claims, or doorway. Specialized guidance is conditional and must remain dormant outside its defined scope. A doorway is a separate decision: offer one only when a verified destination materially advances the visitor's actual next need; otherwise omit it with a reason rather than attach a generic or mismatched link.
+Its relevance must be explainable in terms of the visitor's actual question; shared keywords alone are insufficient.
+Do not substitute the general Compass merely because a narrower destination was not found; use it only when it is itself a verified, honest, useful continuation.
+The Gold Star standard is a quality and reasoning-governance standard, not a prescribed answer template and not a mandatory three-paragraph structure. It applies across every visitor-facing path as a floor for directness, completeness, accuracy, grounding, calibration, humane voice, usefulness, and appropriate navigation. It does not dictate paragraph count, sequence, headings, examples, or output format. Before drafting, identify the visitor's requested deliverable, subject, cognitive operation, stakes, and relevant evidence. Then choose the smallest response architecture that fully performs that task. A definition should define; a comparison should use relevant, symmetrical criteria and state the consequential difference; a decision request should give the governing recommendation and its warrant, then address material trade-offs and contingencies; a procedure should give ordered actions and checks; a diagnosis should distinguish observations, hypotheses, evidence tests, and limits; an evidence question should separate source-supported claims, inference, and what remains unknown; a factual lookup should answer concisely. Combine or depart from these examples when the actual question requires it. Do not force every answer through a universal three-part progression or add a paragraph merely to satisfy a template. Paragraphs are a readability tool, not a compliance target. Transfer from a Gold Star only the reasoning discipline that genuinely matches the current task and its qualifying conditions; never transfer its subject matter, answer text, examples, factual claims, or doorway. Specialized guidance is conditional and must remain dormant outside its defined scope. A doorway is a separate but default part of the Guide's role: include one concise, verified Living Archive destination that genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or adding it would distract from, mislead about, or weaken the answer. Shared keywords alone are insufficient; never attach a generic or mismatched link.
 
 GOLD STAR SCOPE GOVERNANCE (META-GOVERNANCE TASKS ONLY):
 When the visitor is explicitly asking how USE should evaluate a Gold Star's scope, distinguish the validity of the local improvement from the safety of transferring it. Require controlled comparison across target-domain cases, adjacent domains, and unrelated negative controls; assess correctness, relevance, completeness, calibration, directness, and doorway fit; and inspect regression severity, repeatability, and mechanism. Narrow when demonstrated benefit is reliable but bounded; revise when the underlying insight is useful and the overreach is correctable; reject when benefit is not reproducible or serious regressions cannot be contained. Preserve benchmark identity and provenance, and require new evidence before scope expands. This is a specialized meta-governance lesson: never impose it on ordinary visitor questions, and never infer applicability from broad keyword overlap.
@@ -487,7 +490,7 @@ RETRIEVAL-TO-RESPONSE COMPOSITION BOUNDARY (structural, not query-specific):
 GOLD STAR QUALITY GOVERNANCE (system-wide, all visitor-facing paths):
 The Gold Star standard is a quality and reasoning-governance floor, not a universal answer template. It applies across general questions, specialist tools, retrieval paths, deterministic paths, and recovery/fallback paths, but it does not dictate a fixed paragraph count, sequence, or output format.
 - First identify the visitor's actual deliverable, subject, cognitive operation, stakes, and available evidence. Then choose the response shape that best performs that task: direct answer, explanation, comparison, diagnostic, procedure, evidence assessment, decision recommendation, table, checklist, or another appropriate form.
-- Answer or perform the task directly; supply only the reasoning, evidence, context, qualification, or application needed for completeness; make material uncertainty and limits visible; and offer a verified, relevant Archive doorway separately only when it materially advances the visitor's next need.
+- Answer or perform the task directly; supply only the reasoning, evidence, context, qualification, or application needed for completeness; make material uncertainty and limits visible; and include one concise, verified, relevant Archive doorway separately by default. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or navigation would distract from, mislead about, or weaken the answer.
 - A specialist format is appropriate when the task requires it. Do not force a specialist or general question into a familiar three-part prose pattern merely because it is the established default elsewhere.
 - Do not replace explanation with generic advice, planning frameworks, self-help prompts, or a request for clarification. Clarify only when an essential detail is genuinely missing and cannot reasonably be handled with a stated assumption.
 - This quality floor governs fallbacks too. If a specialist cannot complete its task, give the best honest, bounded answer available in the form suited to the visitor's task—not a lower-quality generic template.
@@ -506,9 +509,9 @@ TASK-DEPENDENT PRESENTATION STANDARD (applies to ordinary general-purpose questi
 - Choose the structure from the task. A factual question may need a concise answer; an explanatory question may need connected prose; a comparison may need matched criteria or a table; a procedure may need ordered steps; a diagnostic question may need signals and tests; and a decision question may need a recommendation, warrant, trade-offs, and contingencies.
 - Do not impose a fixed number of paragraphs or a universal sequence of answer, example, and implication. Use only the sections or paragraphs needed to complete the task clearly and accurately. Do not impose a fixed word count.
 - Do not append a generic clarification prompt merely to prolong the exchange. Ask one focused, optional follow-up only when personal context is genuinely needed to continue well, or when the visitor has explicitly invited dialogue. Never make clarification a substitute for an answer that can already be given.
-- After the answer, offer a canonical Archive doorway only when a verified, directly relevant resource materially advances the visitor's actual question or next need. Omit navigation when no meaningful destination is verified; do not attach the Compass by default.
+- After the answer, include one concise, canonical Archive doorway by default when a verified destination genuinely relates to the visitor's question and offers a useful next step. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or navigation would distract from, mislead about, or weaken the answer. Shared keywords are insufficient; do not attach a generic or mismatched link.
 - Keep the voice humane, concrete, calm, and natural. Do not expose internal process, use machine-facing jargon, or narrate the rubric to the visitor.
-- ANSWER-BASIS DISCIPLINE: When answering from general conceptual knowledge rather than supplied or verified source material, do not introduce precise institutional examples, named standards, statistics, dates, or factual case claims merely to make the answer sound authoritative. do not fabricate an exhaustive doctrine or canonical list. Prefer a simple illustrative example that does not require external verification. If a specific external example is essential, present it only when it is part of verified material available to the answer. The answer must be complete before any optional Archive doorway appears.
+- ANSWER-BASIS DISCIPLINE: When answering from general conceptual knowledge rather than supplied or verified source material, do not introduce precise institutional examples, named standards, statistics, dates, or factual case claims merely to make the answer sound authoritative. do not fabricate an exhaustive doctrine or canonical list. Prefer a simple illustrative example that does not require external verification. If a specific external example is essential, present it only when it is part of verified material available to the answer. The answer must be complete before the separate Archive doorway appears.
 - Do not insert an example into a simple definition or answer when it adds no understanding.
 - Make the example do explanatory work: show the mechanism or distinction the visitor needs to understand, rather than serving as decorative detail.
 - MOBILE ORIENTATION: On small screens, favor concise, scannable answers. Use compact prose, lists, tables, or steps according to the task; do not impose three paragraphs as a mobile default.
@@ -560,7 +563,7 @@ For reflective questions about how to understand, interpret, or respond to a dif
 
 If the question contains a "why now", "why does this matter", "what does this mean", or similar second part, answer that second part rather than silently answering only the first.
 
-A doorway is optional and follows the completed answer. Offer a verified resource only when its specific contribution fits the visitor's actual question or next need; shared keywords are not sufficient. If no verified destination materially advances the inquiry, omit navigation rather than add the Compass as a default. The doorway is presented separately by The Guide after the answer. Never invent a title, URL, quotation, or claim about a source. Its relevance must be explainable in terms of the visitor's actual question; a verified link is not relevant merely because it shares keywords.
+The doorway is presented separately by The Guide after the answer. A doorway is a default, separate element following the completed answer. Include one verified resource that genuinely relates to the visitor's actual question and offers a useful next step; shared keywords alone are not sufficient. Omit the doorway only when no relevant verified destination exists, the visitor explicitly declines a handoff, or adding it would distract from, mislead about, or weaken the answer. Never invent a title, URL, quotation, or claim about a source. Explain its relevance in terms of the visitor's actual question; a verified link is not relevant merely because it shares keywords.
 
 Do not manufacture a follow-up question merely to continue the interaction. If the visitor explicitly requests a closing question, include exactly one natural question that fits the subject and the requested purpose. Otherwise, ask a question only when a genuine next opening would help; end cleanly when it would not.
 
@@ -580,7 +583,7 @@ For a substantive explanatory, conceptual, educational, social, or Archive-relat
 
 Let the task determine the response form. A simple factual lookup may need one or two sentences; a lived or reflective exchange may call for a brief conversational response; a substantive explanatory question may need connected prose; a direct navigation request may need a destination and its specific relevance; a procedural request may need ordered steps; and a decision or diagnostic task may need explicit criteria, tests, and contingencies. Honor explicit format requests when compatible with a complete and accurate answer.
 
-The answer must be complete before any optional doorway appears. Place a verified, directly relevant Archive resource in a distinct section only when it materially advances the visitor's actual question or next need. Do not use the general Compass merely because no narrower destination was found. For Archive-specific claims, distinguish published-source content from general explanation, and answer responsibly when the question permits it.
+The answer must be complete before the separate doorway appears. Place one verified, directly relevant Archive resource in a distinct section by default when it genuinely relates to the visitor's actual question and offers a useful next step. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or navigation would distract from, mislead about, or weaken the answer. Do not use the general Compass merely because no narrower destination was found; use it only when it is itself an honest and useful continuation. For Archive-specific claims, distinguish published-source content from general explanation, and answer responsibly when the question permits it.
 
 COMPOSITION QUALITY GATE — mandatory for every substantive answer, not only named question classes:
 
@@ -590,7 +593,7 @@ Before finalizing, make sure the answer performs the requested task substantivel
 - For a definition question, the opening sentence must actually define the named subject in plain language and distinguish its core function from the nearest likely confusion. Do not say that a concept is "best understood by what it means," announce that a useful explanation would distinguish it, or describe what definitions do; perform the explanation instead.
 - For questions asking what a concept means in the Archive's framework, do not let a general relational explanation stand in for Archive-specific substance. Use retrieved canonical evidence to identify the actual principle, distinction, or role the Archive assigns to the concept, then explain it in ordinary language. If no relevant source was retrieved, clearly frame the answer as a bounded interpretation or general orientation—not as the Archive's established definition—and still give a useful answer rather than a refusal.
 - Make conceptual answers operational: after explaining the idea, show what it changes in how a person would interpret a situation, make a decision, or evaluate consequences. Use a brief, grounded example when it clarifies application; label hypothetical examples honestly and do not invent Archive doctrine to make the example sound canonical.
-- Apply an evidence-to-doorway relevance check before returning the response. The doorway must be a verified canonical resource whose demonstrated contribution fits the question. Shared keywords or a broad landing page are not sufficient when they do not offer a meaningful next step. If a resource's specific relevance cannot be established, do not imply a topic-specific connection; use the approved general Compass as a general continuation. Omit the doorway only when navigation would undermine this response's quality or safety, or the visitor explicitly declines a handoff.
+- Apply an evidence-to-doorway relevance check before returning the response. The doorway must be a verified canonical resource whose demonstrated contribution fits the question. Shared keywords or a broad landing page are not sufficient when they do not offer a meaningful next step. If a narrower resource's specific relevance cannot be established, do not imply a topic-specific connection; use the approved general Compass only when it is itself a verified, honest general continuation. Omit the doorway only when no relevant verified destination exists, the visitor explicitly declines a handoff, or navigation would undermine this response's quality or safety.
 - In framework-specific answers, separate three things explicitly when needed: (1) what the canonical source actually establishes, (2) what follows as a reasoned interpretation, and (3) what remains uncertain. Do not let caveats erase the supported answer; do not let a helpful generalization masquerade as sourced institutional doctrine.
 - For "X beyond Y" questions, explicitly explain both X and Y and state the substantive difference between them. Do not merely repeat the phrase "beyond Y" or discuss how the distinction matters without naming what the distinction is.
 - When an example or applied consequence is useful to the task, it must demonstrate the distinction concretely rather than merely promise an example or repeat the definition. Do not force an example where it adds no understanding.
@@ -4180,8 +4183,14 @@ def _default_gold_standard_evidence_recovery(
                 for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
                 if token.casefold() not in stop
             }
-            overlap = len(terms & words)
-            if overlap >= 1 and 45 <= len(sentence) <= 500:
+            matched_terms = terms & words
+            overlap = len(matched_terms)
+            # One shared word is not evidence that a source answers the visitor's
+            # question. The live spoon/wood temperature probe matched only the
+            # generic verb "feel" and was contaminated with unrelated Archive
+            # excerpts. Require at least two distinct query terms per sentence;
+            # the selected set must also cover a meaningful share of the query.
+            if overlap >= 2 and 45 <= len(sentence) <= 500:
                 candidates.append((overlap / max(1, len(terms)), overlap, sentence, title, url))
 
     if not candidates:
@@ -4197,7 +4206,23 @@ def _default_gold_standard_evidence_recovery(
         selected.append(item)
         if len(selected) == 6:
             break
-    if len(selected) < 6:
+    # Three independently relevant source sentences are sufficient for a
+    # three-part bounded recovery. Requiring six qualifying sentences made the
+    # fallback fail even when the retrieved document directly answered the
+    # question; do not lower the per-sentence relevance threshold to compensate.
+    if len(selected) < 3:
+        return None
+
+    covered_terms = set()
+    for _, _, sentence, _, _ in selected:
+        sentence_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
+            if token.casefold() not in stop
+        }
+        covered_terms.update(terms & sentence_terms)
+    minimum_query_coverage = max(2, (len(terms) * 35 + 99) // 100)
+    if len(covered_terms) < minimum_query_coverage:
         return None
 
     def render(items):
@@ -4207,11 +4232,16 @@ def _default_gold_standard_evidence_recovery(
             for _, _, sentence, title, _ in items
         )
 
-    response = "\n\n".join((
-        render(selected[0:2]),
-        render(selected[2:4]),
-        render(selected[4:6]),
-    ))
+    # Keep exactly three non-empty paragraphs while distributing the available
+    # evidence evenly. Three to six sentences are enough; never pad with claims.
+    base_size, remainder = divmod(len(selected), 3)
+    groups = []
+    cursor = 0
+    for index in range(3):
+        group_size = base_size + (1 if index < remainder else 0)
+        groups.append(selected[cursor:cursor + group_size])
+        cursor += group_size
+    response = "\n\n".join(render(group) for group in groups)
     if is_generic_nonanswer(question, response) or is_meta_answer_failure(response):
         return None
 
@@ -4410,8 +4440,8 @@ def _gold_star_candidate_adjudication_recovery(query: str) -> Optional[Dict[str,
         "into a different question.\n\n"
         "Rejecting all candidates must not stop USE from answering. It should answer the visitor’s "
         "question directly from reliable knowledge and relevant evidence, without Gold Star guidance. "
-        "A doorway is a separate decision: include one only when a verified resource materially advances "
-        "this particular inquiry; otherwise, leave it out. Candidate uncertainty is not a reason to refuse "
+        "A doorway is a separate but default part of the Guide's role: include one concise, verified Archive resource that genuinely relates to "
+        "this particular inquiry and offers a useful next step. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or adding it would distract from, mislead about, or weaken the answer. Candidate uncertainty is not a reason to refuse "
         "an answer that can otherwise be given responsibly."
     )
     return {
@@ -4742,7 +4772,7 @@ def compose(
         "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
         "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
         "For Archive-specific concepts, distinguish what the source explicitly establishes from inference; if evidence is insufficient, give the best bounded explanation without inventing a formal definition. "
-        "Use the task-dependent Guide quality floor: answer directly in the response form that fits the question, and offer a verified relevant doorway only when it materially advances the inquiry.\n\n"
+        "Use the task-dependent Guide quality floor: answer directly in the response form that fits the question, and include one concise, verified, relevant Archive doorway separately by default. Omit it only when no relevant verified destination exists, the visitor explicitly declines a handoff, or navigation would distract from, mislead about, or weaken the answer.\n\n"
         if integrity_recovery
         else ""
     )
@@ -4815,6 +4845,20 @@ def compose(
                     # so prior selected IDs, rejection codes, and span assertions
                     # cannot be attributed to the current request.
                     cached_result = dict(cached_value)
+                    # Cache reuse preserves origin provenance but is not a fresh
+                    # provider invocation for this request.
+                    cached_result["_provider_execution_origin_verified"] = bool(
+                        cached_result.pop("_provider_execution_verified", False)
+                        or cached_result.get("_provider_execution_origin_verified") is True
+                    )
+                    cached_result["_provider_execution_origin_invocation_id"] = (
+                        cached_result.pop("_provider_invocation_id", None)
+                        or cached_result.get("_provider_execution_origin_invocation_id")
+                    )
+                    cached_result["_provider_execution_origin_modified"] = bool(
+                        cached_result.pop("_provider_execution_modified", False)
+                        or cached_result.get("_provider_execution_origin_modified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star cache-reuse trace failed validation.")
@@ -5118,6 +5162,12 @@ def compose(
         "response_shape": parsed.get("response_shape", "explanatory"),
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
+        # This marker is issued only by Provider Bank after a successful,
+        # contract-valid external provider response. Deterministic recovery
+        # candidates never receive it. Keep it internal through final assembly.
+        "_provider_execution_verified": result.get("_provider_execution_verified") is True,
+        "_provider_invocation_id": str(result.get("_provider_invocation_id") or ""),
+        "_provider_execution_candidate_response": str(response),
         # Internal-only evidence travels with the composition candidate. The
         # shared visitor boundary consumes and strips it before public delivery.
         "_gold_star_adjudication_trace": dict(gold_star_adjudication_trace),
@@ -5182,6 +5232,13 @@ def compose(
             candidate["doorway_url"] = doorway.get("doorway_url", "")
             _emit_guide_outcome("authoritative_doorway_attached")
 
+    provider_candidate_response = candidate.pop("_provider_execution_candidate_response", None)
+    if candidate.get("_provider_execution_verified") is True and str(candidate.get("response") or "") != str(provider_candidate_response or ""):
+        # A deterministic quality recovery replaced the provider's text. The
+        # provider did execute, but it did not author the final visitor answer.
+        candidate["_provider_execution_verified"] = False
+        candidate["_provider_execution_modified"] = True
+
     if evaluation is None:
         # Visitor requests retain the normal cache. Evaluation arms bypass both
         # cache reads and writes so each arm must perform a fresh provider call.
@@ -5198,6 +5255,20 @@ def compose(
                     # request's provider candidate is discarded, so its adjudication
                     # must not be attached to the different answer being returned.
                     cached_result = dict(cached_value)
+                    # A concurrent winner's answer is cache reuse for this
+                    # request, even if this request also attempted composition.
+                    cached_result["_provider_execution_origin_verified"] = bool(
+                        cached_result.pop("_provider_execution_verified", False)
+                        or cached_result.get("_provider_execution_origin_verified") is True
+                    )
+                    cached_result["_provider_execution_origin_invocation_id"] = (
+                        cached_result.pop("_provider_invocation_id", None)
+                        or cached_result.get("_provider_execution_origin_invocation_id")
+                    )
+                    cached_result["_provider_execution_origin_modified"] = bool(
+                        cached_result.pop("_provider_execution_modified", False)
+                        or cached_result.get("_provider_execution_origin_modified") is True
+                    )
                     cached_trace = _mark_gold_star_cache_reuse(gold_star_adjudication_trace)
                     if not _validate_gold_star_adjudication_trace(cached_trace).get("valid"):
                         raise RuntimeError("Gold Star concurrent cache-reuse trace failed validation.")
