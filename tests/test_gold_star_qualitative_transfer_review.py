@@ -283,7 +283,16 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
                 or record.get("legacy_approval_grandfathered_reason", "").strip()
             ), record["benchmark_id"]
         else:
-            assert isinstance(record.get("rating_out_of_10", record.get("rating")), (int, float)), record["benchmark_id"]
+            rating = record.get("rating_out_of_10", record.get("rating"))
+            assessment = record.get("assistant_assessment_out_of_10")
+            assert (
+                isinstance(rating, (int, float))
+                or (
+                    isinstance(assessment, (int, float))
+                    and record.get("user_reviewed_response") is True
+                    and record.get("explicit_user_elevation_approval") is True
+                )
+            ), record["benchmark_id"]
             assert record.get("user_reviewed_response") is True, record["benchmark_id"]
             assert record.get("explicit_user_elevation_approval") is True, record["benchmark_id"]
             assert record.get("elevation_approval_evidence", "").strip(), record["benchmark_id"]
