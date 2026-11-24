@@ -44,7 +44,7 @@
     {
       "case_id": "heldout-community-rule-burdens-003",
       "case_family": "community_rule_burden_participation",
-      "query": "What makes limits on personal liberty fair when a community must balance shared responsibilities, unequal burdens, and the voices of affected members?",
+      "query": "When a community proposes a limit on personal liberty to meet shared responsibilities, how can it account for unequal burdens and the voices of affected members?",
       "critical_dimensions": [
         "answer_directness",
         "fair_burden_allocation",
