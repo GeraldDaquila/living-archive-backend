@@ -944,7 +944,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         safe["navigation_suppressed_by_task_contract"] = True
         return safe
 
-    exact_standard = _resolve_exact_guide_gold_standard(query)
+    exact_standard = _final_exact_gold_standard_authority(query)
     explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
     unmapped_relational_synthesis = (
@@ -5105,7 +5105,7 @@ def _guide_route_fallback(query, history=None):
     # deterministic fallback router is used. "System problem" is not, by
     # itself, a request to run the Fractal Systems Diagnostic.
     if (
-        _resolve_exact_guide_gold_standard(query) is None
+        _final_exact_gold_standard_authority(query) is None
         and _compose_task_specific_recovery(query) is not None
     ):
         return {
@@ -6419,7 +6419,7 @@ def _guide_restore_verified_doorway(payload, query):
     before recording an omission. All public aliases remain synchronized.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
-    exact_standard = _resolve_exact_guide_gold_standard(query)
+    exact_standard = _final_exact_gold_standard_authority(query)
 
     # A prior canonical selector may already have completed the bounded
     # evidence/relevance checks and marked its result as verified. Preserve
@@ -6934,7 +6934,7 @@ def _guide_finalize_visitor_payload(payload, query):
     # Frozen exact-query Gold Standards are terminal visitor authority. Resolve
     # them before every broader recovery family so no conceptual contract or
     # deterministic fallback can overwrite an approved calibration exemplar.
-    exact_standard = _resolve_exact_guide_gold_standard(query)
+    exact_standard = _final_exact_gold_standard_authority(query)
     if exact_standard is not None:
         safe = dict(payload)
         exact_answer = str(exact_standard.get("expected_response") or "").strip()
@@ -8547,7 +8547,7 @@ def _guide_finalize_visitor_payload(payload, query):
         "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
     }:
         return _finish_gold_star_delivery_trace(finalized, allow_provider_delivery=False)
-    if _resolve_exact_guide_gold_standard(query) is not None:
+    if _final_exact_gold_standard_authority(query) is not None:
         return _finish_gold_star_delivery_trace(finalized, allow_provider_delivery=False)
     from event_pattern_structure_contract import apply_event_pattern_structure_boundary
     from complicated_complex_distinction_contract import (
@@ -8884,7 +8884,7 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
     # Provider-exhaustion responses must carry the same verified doorway
     # contract as successful provider responses. Preserve explicit no-doorway
     # safety/repair boundaries and the foundation answer's intentional restraint.
-    _recovery_standard = _resolve_exact_guide_gold_standard(query)
+    _recovery_standard = _final_exact_gold_standard_authority(query)
     if (
         isinstance(result, dict)
         and result.get("provider") not in {
@@ -11938,13 +11938,9 @@ def _basic_inquiry_has_internal_implementation_language(response):
 # composition discipline, but their claims, prose, examples, and doorways are
 # never transferred across questions.
 try:
-    from gold_star_lessons import (
-        shadow_observation as _gold_star_shadow_observation,
-        active_quality_contribution as _gold_star_active_quality_contribution,
-    )
+    from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
 except Exception:
     _gold_star_shadow_observation = None
-    _gold_star_active_quality_contribution = None
 
 def _is_registered_gold_standard_composition_result(result):
     """Identify the frozen exact-answer registry as deterministic, not an LLM."""
@@ -12193,7 +12189,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # provider. Resolve them before the provider bank so outages cannot replace
     # the requested evaluation framework with generic continuity prose.
     _autonomy_evidence = (
-        None if _resolve_exact_guide_gold_standard(query) is not None
+        None if _final_exact_gold_standard_authority(query) is not None
         else general_guide_composition._autonomy_evidence_evaluation_recovery(query)
     )
     if _autonomy_evidence is not None:
@@ -12422,7 +12418,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _task_recovery = (
         task_recovery if isinstance(task_recovery, dict)
         else (
-            None if _resolve_exact_guide_gold_standard(query) is not None
+            None if _final_exact_gold_standard_authority(query) is not None
             else _compose_task_specific_recovery(query)
         )
     )
@@ -15871,7 +15867,7 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
     if not isinstance(payload, dict):
         return payload
     query = str(payload.get("query") or "").strip()
-    standard = _resolve_exact_guide_gold_standard(query)
+    standard = _final_exact_gold_standard_authority(query)
     if standard is None:
         return payload
     answer = str(standard.get("expected_response") or "").strip()
@@ -15995,7 +15991,7 @@ async def _use_send_json(send, payload, status_code=200):
         }
         _boundary_standard = (
             None if _boundary_safety
-            else _resolve_exact_guide_gold_standard(_boundary_query)
+            else _final_exact_gold_standard_authority(_boundary_query)
         )
         # Exact approved Gold Stars remain terminal. Otherwise, enforce this
         # registered answer-and-doorway pair at the shared JSON sender so
@@ -17102,7 +17098,7 @@ async def _use_request_boundary(scope, receive, send):
     # turn a scope-framing question into an FSD handoff). Approved exact Gold
     # Star standards retain their existing precedence.
     _early_task_recovery = (
-        None if _resolve_exact_guide_gold_standard(query) is not None
+        None if _final_exact_gold_standard_authority(query) is not None
         else _compose_task_specific_recovery(query)
     )
     if isinstance(_early_task_recovery, dict):
@@ -18020,7 +18016,7 @@ async def _use_request_boundary(scope, receive, send):
                     safe_payload,
                     _final_status,
                     exact_standard=(
-                        _resolve_exact_guide_gold_standard(query) is not None
+                        _final_exact_gold_standard_authority(query) is not None
                         if str(safe_payload.get("intent") or "").upper()
                         not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
                         else False
@@ -18765,7 +18761,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     safe_payload,
                     _outer_status,
                     exact_standard=(
-                        _resolve_exact_guide_gold_standard(query) is not None
+                        _final_exact_gold_standard_authority(query) is not None
                         if str(safe_payload.get("intent") or "").upper()
                         not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
                         else False
@@ -18792,7 +18788,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     }
                     _outer_exact_standard = (
                         None if _outer_safety
-                        else _resolve_exact_guide_gold_standard(query)
+                        else _final_exact_gold_standard_authority(query)
                     )
                     if safe_payload.get("error_type") == "answer_first_integrity_failure":
                         _outer_answer_first_failed = True

@@ -19,7 +19,10 @@ def test_institutional_definition_is_not_reused_for_constitutional_reasoning():
         if item["benchmark_id"] == "general-guide-living-archive-definition-gold-standard-2026-10-25"
     )
     query = "What is constitutional reasoning in the Archive’s sense?"
-    assert resolve_exact_gold_standard(query) is None
+    resolved = resolve_exact_gold_standard(query)
+    assert resolved is not None
+    assert resolved["benchmark_id"] == "gs-2026-11-15-constitutional-reasoning-archives-sense"
+    assert resolved["expected_response"] != record["expected_response"]
     leaked = find_cross_question_standard_response(query, record["expected_response"])
     assert leaked is not None
     assert leaked["benchmark_id"] == record["benchmark_id"]
@@ -53,27 +56,35 @@ def test_composer_has_general_constitutional_grounding_contract():
 
 
 def test_guide_provider_budget_allows_real_inference_before_failing_closed():
-    import ast
-
-    source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    constants = {}
-    for node in tree.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id in {
-                    "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS",
-                    "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES",
-                    "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS",
-                }:
-                    constants[target.id] = ast.literal_eval(node.value)
-
-    assert constants["GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS"] >= 5.0
-    assert constants["GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS"] >= (
-        constants["GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS"]
-        * (1 + constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"])
+    import provider_bank
+    from guide_request_budget import (
+        REQUEST_BUDGET_SECONDS,
+        REPAIR_RESERVE_SECONDS,
+        bounded_provider_timeout,
+        can_attempt_repair,
     )
-    assert constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"] <= 2
+
+    # The 18-second arbitration window is a shared deadline, not a promise
+    # that every candidate receives its full timeout sequentially.
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
+    assert 1 <= provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES <= 6
+    assert provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS == 5.0
+    assert provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS == 8.0
+    assert 5.0 <= provider_bank._provider_call_timeout("general_guide_composition", {}) <= 8.0
+    assert REQUEST_BUDGET_SECONDS == 24.0
+    assert REPAIR_RESERVE_SECONDS == 6.0
+    assert (
+        provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+        + REPAIR_RESERVE_SECONDS
+        == REQUEST_BUDGET_SECONDS
+    )
+
+    # A candidate may use the remaining time, but cannot exceed it; once
+    # less than the minimum viable transport window remains, fail closed.
+    assert bounded_provider_timeout(7.0, 105.0, now=100.0) == 5.0
+    assert bounded_provider_timeout(7.0, 100.5, now=100.0) == 0.0
+    assert can_attempt_repair(106.0, now=100.0)
+    assert not can_attempt_repair(105.99, now=100.0)
 
 
 def test_main_has_one_frozen_gold_star_answer_gateway():

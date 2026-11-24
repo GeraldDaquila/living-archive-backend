@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "tests/test_cross_question_gold_standard_integrity.py"
+      - "tests/test_institutional_learning_failure_contract.py"
+      - "test_registered_conceptual_recovery_precedence.py"
       - "provider_bank.py"
       - "tests/test_general_guide_provider_budget.py"
       - "guide_incomplete_knowledge.py"
@@ -72,7 +75,6 @@ on:
       - "docs/qa/gold_standard_registry.json"
       - "scripts/qa/report_gold_standard_registry.py"
       - "tests/test_gold_standard_registry.py"
-      - "tests/test_guide_terminal_doorway_omission.py tests/test_guide_power_responsibility_synthesis.py"
       - "tests/test_regeneration_invitation_discernment_gold_star.py"
       - "tests/test_gold_star_structural_change_direct_answer.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
@@ -102,6 +104,8 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "test_registered_conceptual_recovery_precedence.py"
+      - "tests/test_cross_question_gold_standard_integrity.py"
       - "guide_incomplete_knowledge.py"
       - "tests/test_guide_incomplete_knowledge.py"
       - "guide_runtime.py"

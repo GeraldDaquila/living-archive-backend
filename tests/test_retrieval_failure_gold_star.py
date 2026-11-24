@@ -264,8 +264,10 @@ def test_terminal_fallback_does_not_treat_gold_star_retrieval_as_application(mon
             "abstention_boundary": "Do not infer causes without evidence.",
         }
 
+    import general_guide_composition
+
     monkeypatch.setattr(
-        main,
+        general_guide_composition,
         "_gold_star_active_quality_contribution",
         retrieved_but_not_applied,
     )

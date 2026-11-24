@@ -15,11 +15,20 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("not _guide_composition.is_meta_answer_failure(_conceptual_recovery)", MAIN)
 
     def test_gold_star_baseline_is_wired_into_live_composition(self):
-        self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", MAIN)
-        self.assertIn("_gold_star_quality = _gold_star_active_quality_contribution(query)", MAIN)
-        self.assertIn("Gold Star structural baseline: answer the recognized question first.", MAIN)
-        self.assertIn("if _direct_answer_baseline", MAIN)
-        self.assertIn("_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)", MAIN)
+        composition = Path(__file__).with_name("general_guide_composition.py").read_text(encoding="utf-8")
+        self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", composition)
+        self.assertIn("else _gold_star_active_quality_contribution(question)", composition)
+        self.assertIn("GOLD STAR MULTI-CANDIDATE ADJUDICATION", composition)
+        self.assertIn("discipline=", composition)
+        self.assertIn("boundary=", composition)
+        self.assertIn("Never transfer exemplar answers, claims, examples, citations, or doorways.", composition)
+        self.assertIn("authority_mode", composition)
+        self.assertIn('gold_star_quality.get("authority_mode") != "structural_guidance_only"', composition)
+        self.assertIn('reasoning_discipline_ids=gold_star_adjudication_trace["reasoning_discipline_ids"]', composition)
+        self.assertIn("gold_star_quality_instruction=gold_star_quality_instruction", composition)
+        self.assertIn("included_in_provider_prompt=bool(gold_star_quality_instruction)", composition)
+        self.assertIn('parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None)', composition)
+        self.assertIn('candidates=gold_star_quality.get("candidates") if gold_star_quality else None', composition)
 
     def test_gold_star_baseline_uses_application_closing_not_context_fallback(self):
         self.assertIn("Gold Star closing discipline", MAIN)
