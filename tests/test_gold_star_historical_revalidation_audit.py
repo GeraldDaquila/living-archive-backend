@@ -52,8 +52,13 @@ def test_historical_batch_audit_distinguishes_snapshot_from_current_registry():
     assert batch["totals"]["canonical_registry_records"] == len(registry["records"])
     assert batch["totals"]["canonical_approved_gold_standards"] == len(approved)
     assert batch["totals"]["canonical_runtime_transfer_approved"] == len(runtime_transfer)
-    assert batch["totals"]["general_purpose_runtime_transfer_records"] == (
-        transfer_map["coverage"]["general_purpose_runtime_transfer_records"]
+    general_purpose_runtime_transfer = [
+        record for record in approved
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("runtime_transfer") is True
+    ]
+    assert batch["totals"]["general_purpose_runtime_transfer_records"] == len(
+        general_purpose_runtime_transfer
     )
     assert batch["totals"]["general_purpose_transfer_map_entries"] == len(
         transfer_map["entries"]
