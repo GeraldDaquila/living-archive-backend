@@ -302,3 +302,55 @@ def test_basic_inquiry_final_boundary_uses_archive_developmental_recovery_after_
     assert "_archive_developmental_comparison_document" in function
     assert "_evidence_documents.append(dict(_archive_developmental_comparison_document))" in function
     assert "_archive_developmental_comparison" in function
+
+def test_public_api_asgi_path_applies_real_unseen_gold_star_fallback(monkeypatch):
+    import json
+    from fastapi.testclient import TestClient
+    import main
+
+    query = (
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
+    )
+
+    # Keep the inner request adapter deterministic, but do not mock the lesson
+    # selector, deterministic composer, finalizer, outer visitor boundary, or
+    # response-floor contract.
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda value: None)
+    monkeypatch.setattr(main, "_apply_exact_gold_standard_authority_to_payload", lambda value: value)
+    monkeypatch.setattr(main, "_apply_registered_personal_decision_agency_contract", lambda value, question: value)
+    monkeypatch.setattr(main, "is_ai_workforce_restructuring_question", lambda value: False)
+    monkeypatch.setattr(main, "_guide_enforce_terminal_doorway_policy", lambda value, question: value)
+    monkeypatch.setattr(main, "_gold_star_doorway_omission_is_justified", lambda standard: False)
+
+    async def deterministic_inner_request(scope, receive, send):
+        raw = await main._use_request_body(receive)
+        request_payload = json.loads(raw.decode("utf-8")) if raw else {}
+        actual_query = str(request_payload.get("query") or "")
+        recovery = main._basic_inquiry_round1_deterministic_response(
+            actual_query, {}, {}
+        )
+        await main._use_send_json(send, {
+            "ok": True,
+            "query": actual_query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": recovery["response"],
+            "route_source": "guide_basic_inquiry_recovery",
+            "response_provenance": {"class": "deterministic_recovery"},
+        })
+
+    monkeypatch.setattr(main, "_use_request_boundary", deterministic_inner_request)
+
+    response = TestClient(main.app).post("/api/query", json={"query": query})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["route_source"] == "guide_basic_inquiry_recovery"
+    assert "competing interests and possible losses" in body["response"]
+    assert "false consensus" in body["response"]
+    assert "least power" in body["response"]
+    assert body["gold_star_v2_quality_floor"]["status"] == "pass"
+    assert body["gold_star_v2_quality_floor"]["answer_envelope"]["route"]["source"] == (
+        "guide_basic_inquiry_recovery"
+    )

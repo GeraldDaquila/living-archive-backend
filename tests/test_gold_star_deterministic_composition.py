@@ -112,4 +112,37 @@ def test_deterministic_eligible_registry_and_transfer_review_families_are_consis
 
     assert mismatches == []
 
+def test_unseen_tradeoff_question_reaches_real_deterministic_response_boundary_without_mocks():
+    query = (
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
+    )
 
+    # This is the same production selector used by the deterministic fallback;
+    # no injected contribution or mocked selector is permitted in this test.
+    contribution = gold_star_lessons.deterministic_fallback_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    assert contribution["authority_mode"] == "deterministic_structural_guidance_only"
+
+    result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
+
+    assert result["provider"] == "gold_star_deterministic_structural_fallback"
+    assert "competing interests and possible losses" in result["response"]
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
+    assert result["model"] == ""
+
+
+def test_unrelated_physical_science_question_does_not_receive_ethical_tradeoff_plan():
+    query = "Why does a metal spoon feel colder than a wooden spoon in the same room?"
+
+    contribution = gold_star_lessons.deterministic_fallback_contribution(query)
+    assert contribution is None or contribution.get("reasoning_family") != (
+        "ethical_tradeoff_and_conflicting_harms"
+    )
+
+    result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
+
+    assert result["provider"] != "gold_star_deterministic_structural_fallback"
+    assert "competing interests and possible losses" not in result["response"]
