@@ -1393,7 +1393,6 @@
         }
       },
       "rating": null,
-      "rating_out_of_10": 9.5,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "assistant_assessment_out_of_10": 9.5,
@@ -8453,7 +8452,6 @@
         "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
         "runtime_transfer": true
       },
-      "rating_out_of_10": 9.1,
       "review_assessment": "Assistant assessment: 9.1/10 for directness, proportionality, fair burden allocation, meaningful participation, appeal, review, and a relevant separate Archive continuation; not a user-assigned numerical rating.",
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
@@ -8486,7 +8484,9 @@
       "user_approved_at": "2026-11-23",
       "approval_date": "2026-11-23",
       "approval_evidence": "User explicitly instructed “elevate to gold star first” on 2026-11-23 after reviewing the exact live visitor-facing response and doorway.",
-      "legacy_approval_grandfathered": false
+      "legacy_approval_grandfathered": false,
+      "assistant_assessment_out_of_10": 9.1,
+      "rating": null
     },
     {
       "subsystem": "general-purpose-guide",
@@ -8534,7 +8534,6 @@
       "expected_doorway": null,
       "doorway_status": "NOT_EVALUATED",
       "rating": null,
-      "rating_out_of_10": 9.5,
       "known_theme": "governance_balance_stability_participation_responsiveness",
       "runtime_transfer": true,
       "gold_star_candidate_state": "APPROVED_FROZEN_ACTIVE_STRUCTURAL_LEARNING",
@@ -8608,7 +8607,6 @@
         "review_assessment": "Assistant assessment: 9/10 (4.5/5). This is an assistant assessment, not a user-assigned numerical rating."
       },
       "rating": null,
-      "rating_out_of_10": 9,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "NOT_EVALUATED",
       "assistant_assessment_out_of_10": 9,
@@ -8751,7 +8749,6 @@
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "NOT_EVALUATED",
       "rating": null,
-      "rating_out_of_10": 9,
       "assistant_assessment_out_of_10": 9,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
