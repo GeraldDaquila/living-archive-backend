@@ -16016,24 +16016,11 @@ async def _use_send_json(send, payload, status_code=200):
         payload = _gold_star_attach_route_context(
             payload, _floor_query, "guide_json_orchestration_boundary"
         )
-        from gold_star_response_floor import apply_response_floor_boundary
-        _previous_status = int(status_code)
-        payload, status_code = apply_response_floor_boundary(
-            _floor_query,
-            payload,
-            status_code,
-            exact_standard=_boundary_standard is not None,
-        )
-        _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
-        if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
-            print(
-                "Gold Star v2 orchestration response-floor gate withheld response: "
-                + str(_floor_result.get("reason") or "unknown")
-            )
 
-    # This is the terminal delivery check: run after the response floor and all
-    # doorway/context enrichment so no later adapter can reintroduce a rejected
-    # opening or attach a resource to an answer that has been withheld.
+    # Terminal answer-first enforcement runs after every route, rewrite, and
+    # doorway enrichment, immediately before the shared response-integrity floor.
+    # Empty answers remain the floor's responsibility; explicit glossary handoffs,
+    # exact approved answers, and safety interventions keep their own contracts.
     if (
         isinstance(payload, dict)
         and payload.get("ok", True) is True
@@ -16081,6 +16068,22 @@ async def _use_send_json(send, payload, status_code=200):
                 "The Guide terminal answer-first boundary withheld a non-answer: "
                 "reason=opening_contract_failure."
             )
+
+        from gold_star_response_floor import apply_response_floor_boundary
+        _previous_status = int(status_code)
+        payload, status_code = apply_response_floor_boundary(
+            _floor_query,
+            payload,
+            status_code,
+            exact_standard=_boundary_standard is not None,
+        )
+        _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
+        if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
+            print(
+                "Gold Star v2 orchestration response-floor gate withheld response: "
+                + str(_floor_result.get("reason") or "unknown")
+            )
+
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
