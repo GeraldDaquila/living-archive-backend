@@ -1072,7 +1072,6 @@ def human_development_comparison_doorway():
     return {
         "title": _HUMAN_DEVELOPMENT_SOURCE_TITLE,
         "url": _HUMAN_DEVELOPMENT_SOURCE_URL,
-        "kind": "archive_resource",
         "rationale": (
             "This published Cornerstone essay presents the Living Archive's systems view of human development, "
             "including growth, adaptation, maturity, and integration across biological, psychological, relational, "
