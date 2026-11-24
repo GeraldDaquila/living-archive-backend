@@ -33,3 +33,84 @@ def test_provider_exhaustion_policy_requires_active_runtime_transfer_record():
         "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?",
         [inactive],
     ) == []
+
+
+def test_provider_exhaustion_civic_commons_meta_question_gets_a_substantive_bounded_answer():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = (
+        "When search services are unavailable, how should a guide answer a general question "
+        "about civic commons without claiming official doctrine?"
+    )
+    answer = compose_recovery(query)
+    normalized = answer.casefold()
+    assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
+    for required in (
+        "lack of retrieved sources",
+        "stable general knowledge",
+        "shared resources",
+        "fair access",
+        "meaningful participation",
+        "archive-specific definition or doctrine",
+        "authoritative text",
+    ):
+        assert required in normalized
+    assert "start by defining the outcome" not in normalized
+    assert "ai may inform that work" not in normalized
+    assert "official living archive position" in normalized
+    assert "geralddaquila.com" not in normalized
+
+
+def test_provider_exhaustion_civic_commons_recovery_does_not_capture_unrelated_questions():
+    from deterministic_answer_recovery import compose_recovery
+
+    answer = compose_recovery(
+        "How should a guide explain the opening hours of a public library?"
+    )
+    assert "shared resources, spaces, institutions" not in answer
+    assert "official Living Archive position" not in answer
+
+
+def test_existing_public_commons_gold_star_transfers_answerability_rule_and_domain_specificity():
+    from gold_star_lessons import active_quality_contribution
+
+    query = (
+        "When search services are unavailable, how should a guide answer a general question "
+        "about civic commons without claiming official doctrine?"
+    )
+    contribution = active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    discipline = contribution["discipline"].casefold()
+    assert "stable general knowledge" in discipline
+    assert "domain-specific explanation" in discipline
+    assert "generic process framework" in discipline
+    assert "institution-specific doctrine" in discipline
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
+
+    # Verify the selected discipline reaches the actual provider composition
+    # contract, while the exemplar's answer content remains excluded.
+    import general_guide_composition as composition
+
+    instruction = composition._build_gold_star_quality_instruction(contribution)
+    assert "domain-specific explanation" in instruction
+    assert "generic process framework" in instruction
+    assert "Public commons are resources" not in instruction
+    assert "libraries, parks, public knowledge" not in instruction
+
+
+def test_civic_commons_near_miss_preserves_the_verified_visible_doorway():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text())
+    record = next(
+        item for item in registry["records"]
+        if item.get("benchmark_id") == "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24"
+    )
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["title"] == "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/"

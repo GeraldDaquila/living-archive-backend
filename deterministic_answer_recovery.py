@@ -1852,6 +1852,37 @@ def _is_public_commons_civic_renewal_question(question):
     return commons and civic_renewal and asks_role and asks_explanation and not archive_specific
 
 
+def _is_provider_exhaustion_civic_commons_question(question):
+    """Recognize the explicit meta-question about answering civic-commons inquiries without source access."""
+    q = _clean(question).casefold()
+    return bool(
+        re.search(r"\b(?:when|if)\b.{0,80}\b(?:search|provider|retrieval)\s+services?\b.{0,50}\b(?:unavailable|down|failed|exhausted)\b", q)
+        and re.search(r"\bguide\b", q)
+        and re.search(r"\b(?:general|ordinary)\s+(?:conceptual\s+)?question\b", q)
+        and re.search(r"\b(?:civic\s+)?commons\b", q)
+        and re.search(r"\b(?:official|institutional)\s+doctrine\b", q)
+    )
+
+
+def _provider_exhaustion_civic_commons_recovery():
+    """Answer the meta-question with a substantive example and an explicit doctrine boundary."""
+    return (
+        "When search services are unavailable, a guide should not confuse a lack of retrieved sources with a lack of answerability. "
+        "If the visitor asks a general conceptual question, the guide can answer from stable general knowledge while clearly identifying "
+        "that basis. It should not imply that it searched, cite material it has not seen, or present its explanation as an official "
+        "Living Archive position.\n\n"
+        "For example, civic commons can be explained as shared resources, spaces, institutions, and capacities that people use and help "
+        "govern for common benefit. Their value depends not only on public availability but on fair access, meaningful participation, "
+        "clear stewardship responsibilities, transparent rules, and ways to challenge exclusion or misuse. They can support civic life "
+        "by giving people places and resources to cooperate, deliberate, and solve shared problems; they can also be neglected, captured, "
+        "or made nominally public while excluding some people.\n\n"
+        "The guide should distinguish this general explanation from any Archive-specific definition or doctrine. It should not invent "
+        "citations, quotations, canonical definitions, or links. If the visitor asks what the Living Archive formally teaches, that is "
+        "a source-specific question: without an authoritative text, the guide should say that it cannot verify the official position "
+        "and identify what source would be needed."
+    )
+
+
 def _public_commons_civic_renewal_recovery():
     """Answer the ordinary civic concept without claiming Archive-specific doctrine."""
     return (
@@ -1884,6 +1915,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    if _is_provider_exhaustion_civic_commons_question(q):
+        return _provider_exhaustion_civic_commons_recovery()
 
     if _is_public_commons_civic_renewal_question(q):
         return _public_commons_civic_renewal_recovery()

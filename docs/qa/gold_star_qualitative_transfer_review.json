@@ -1207,10 +1207,27 @@
       "benchmark_id": "general-guide-public-commons-civic-renewal-2026-11-24",
       "question": "What is the role of public commons in civic renewal?",
       "reasoning_family": "provider_exhaustion_answerability_preserving_recovery",
-      "transferable_discipline": "When provider routes are exhausted, do not equate provider unavailability with intellectual unanswerability. For ordinary conceptual questions, recover the answerable general-knowledge portion directly and substantively; distinguish general explanation from institution-specific doctrine; state genuine limits only for the unsupported portion; and preserve a separately warranted continuation. Do not copy the exemplar's exact wording or treat deterministic recovery as proof of adaptive transfer.",
-      "qualifying_context": "Ordinary conceptual questions for which a general explanation is answerable from stable knowledge but the Guide's provider routes are unavailable or exhausted.",
-      "abstention_boundary": "Apply only when a general conceptual or explanatory question is responsibly answerable from stable general knowledge but provider routes are unavailable or exhausted. Do not use to answer source-only questions, claim institutional doctrine without an authoritative source, invent current or specific facts, bypass material ambiguity, or cross safety and high-stakes boundaries. Do not treat provider failure as proof that a question is unanswerable, but do not manufacture an answer where evidence or context is genuinely required. The doorway is NOT_EVALUATED: do not infer or attach a canonical URL from the visible title alone. Do not transfer this exact answer, examples, claims, or doorway to unrelated questions. This record does not by itself establish held-out adaptive transfer.",
-      "activation": "active_quality_contributor"
+      "transferable_discipline": "Answer directly from stable general knowledge; when asked how the Guide should answer, give a domain-specific explanation, distinguish it from institution-specific doctrine, and avoid a generic process framework. When search/retrieval or provider routes are unavailable, state limits only for unsupported claims and do not imply a search was performed or cite unseen material. Do not invent canonical definitions or links, copy exemplar wording, or treat deterministic recovery as proof of adaptive transfer.",
+      "qualifying_context": "Ordinary conceptual questions answerable from stable knowledge when external search/retrieval or provider routes are unavailable; includes meta-questions about how the Guide should answer under those conditions.",
+      "abstention_boundary": "Apply only when a general conceptual or explanatory question is responsibly answerable from stable general knowledge despite unavailable search/retrieval or provider routes. Do not use this lesson to answer source-only questions, claim institutional doctrine without an authoritative source, invent current or specific facts, bypass material ambiguity, or cross safety and high-stakes boundaries. Do not imply that a search was performed or cite unseen material. Do not manufacture an answer where evidence or context is genuinely required. The doorway remains NOT_EVALUATED: do not infer or attach a canonical URL from a visible title alone. Do not transfer exact answer text, examples, claims, or doorways to unrelated questions. Deterministic recovery and retrieval exposure alone do not establish held-out adaptive transfer.",
+      "activation": "active_quality_contributor",
+      "additional_case_evidence": [
+        {
+          "case_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
+          "classification": "STRUCTURAL_NEAR_MISS_WITH_PAIRED_CORRECTION",
+          "source_date": "2026-11-24",
+          "corrected_response": "Search unavailability should not be treated as knowledge unavailability. A guide can answer an ordinary conceptual question from stable general knowledge, but must label that basis and must not imply that it retrieved or verified Archive sources.\n\nCivic commons are shared resources, spaces, institutions, and capacities used and cared for collectively, such as libraries, parks, public knowledge, and shared infrastructure. Their civic value lies in enabling people to meet, cooperate, deliberate, solve shared problems, and participate in decisions about resources they depend on. They are not automatically equitable: access can be unequal, stewardship neglected, control captured, and participation tokenistic. Fair rules, transparent responsibilities, meaningful participation, and ways to challenge exclusion help keep them genuinely common.\n\nThis is a general conceptual explanation, not an official Living Archive definition or doctrine. A guide should not invent Archive citations, quotations, or links. If a visitor asks what the Archive formally teaches, the guide needs an authoritative Archive source and should say that position cannot be verified while the source is unavailable.",
+          "validation_state": "IMPLEMENTED_PENDING_CI_AND_LIVE_HELD_OUT_VALIDATION",
+          "linked_near_miss_benchmark_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
+          "linked_code_pr": 1954,
+          "does_not_create_new_gold_star": true,
+          "verified_doorway": {
+            "title": "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others",
+            "url": "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/",
+            "rationale": "A directly relevant continuation on how people recognize, trust, and reject institutional authority."
+          }
+        }
+      ]
     }
   ]
 }
