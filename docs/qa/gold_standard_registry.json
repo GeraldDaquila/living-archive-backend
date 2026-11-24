@@ -8775,9 +8775,52 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
+    },
+    {
+      "subsystem": "general-purpose-guide",
+      "expected_doorway": null,
+      "doorway_status": "NOT_EVALUATED",
+      "rating": null,
+      "rating_out_of_10": null,
+      "known_theme": "civic_commons_provider_exhaustion_general_knowledge_doctrine_boundary",
+      "runtime_transfer": false,
+      "gold_star_candidate_state": "LINKED_TO_EXISTING_APPROVED_GOLD_STAR_PENDING_APPLICATION_VALIDATION",
+      "numbering_status": "UNASSIGNED",
+      "freeze_policy": "Preserve the exact original visitor-facing response as immutable near-miss evidence. Do not count it as a Gold Star or activate it as a runtime lesson. The structural correction is evaluated against the already-approved public-commons civic-renewal Gold Star; do not create a duplicate lesson.",
+      "benchmark_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
+      "status": "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
+      "query": "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?",
+      "expected_response": "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, and the people who will live with its consequences. Then compare realistic options against those requirements rather than assuming the proposed course is the only one.\n\nExamine what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. Include the knowledge of people affected by the decision, especially where they will carry consequences they did not choose.\n\nChoose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "assertions": [
+        "Preserve the exact original visitor-facing question and answer as immutable near-miss evidence.",
+        "Classify as a structural near-miss: the answer is coherent but substitutes generic governance advice for the requested answerability and civic-commons explanation.",
+        "A corrected answer must explain how to answer from stable general knowledge when search is unavailable, provide a substantive civic-commons explanation, and distinguish general explanation from official Living Archive doctrine.",
+        "Do not imply that unavailable search services make an ordinary conceptual question unanswerable.",
+        "Do not invent Archive citations, quotations, canonical definitions, or links.",
+        "Use the existing approved civic-commons Gold Star as the source of bounded reasoning discipline; do not create a duplicate Gold Star record."
+      ],
+      "provenance": {
+        "source": "User-provided visitor-facing Search UI screenshot",
+        "source_path": "conversation attachment image(20261124-065601).png",
+        "source_date": "2026-11-24",
+        "evidence_boundary": "The screenshot establishes the displayed question and exact answer text. The 8/10 rating and structural near-miss classification are evaluator judgments, not a user-assigned rating.",
+        "linked_existing_gold_star_id": "general-guide-public-commons-civic-renewal-2026-11-24"
+      },
+      "calibration_assessment": {
+        "evaluator_rating_out_of_10": 8,
+        "classification": "STRUCTURAL_NEAR_MISS",
+        "strengths": [
+          "Coherent prose",
+          "Affected-party awareness",
+          "Trade-off awareness",
+          "Accountability",
+          "Appropriate human decision-authority boundary"
+        ],
+        "deficiency": "The answer substitutes a generic governance decision framework for the requested account of answerability under unavailable search services. It does not explain civic commons or distinguish a general-knowledge explanation from official institutional doctrine."
+      }
     }
   ],
-  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records.",
+  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8908,8 +8951,8 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-24",
     "approved_gold_star_count": 136,
-    "registry_record_count": 173,
-    "review_reconciliation": "Canonical approved inventory now contains 136 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical duplicate. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance.",
+    "registry_record_count": 177,
+    "review_reconciliation": "Canonical approved inventory now contains 136 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical duplicate. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 136 approved Gold Stars; 39 assigned display serials #56–#94; 97 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
