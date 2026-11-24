@@ -246,7 +246,9 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["active_runtime_gold_star_count"] == len(active)
     exact_only = [
         item for item in approved
-        if item.get("runtime_transfer") is False and not item.get("superseded_by_benchmark_id")
+        if item.get("runtime_transfer") is False
+        and not item.get("superseded_by_benchmark_id")
+        and (item.get("gold_star_capabilities") or {}).get("generation_class") != "user_approved_response_quality_exemplar"
     ]
     superseded = [item for item in approved if item.get("superseded_by_benchmark_id")]
     pending = [
@@ -712,6 +714,11 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
             assert capability.get("exact_answer_authority") is False
             assert capability.get("active_quality_contributor") is False
             assert capability.get("deterministic_fallback_eligible") is False
+        elif record.get("runtime_transfer") is False and capability.get("generation_class") == "user_approved_response_quality_exemplar":
+            assert capability.get("exact_answer_authority") is False
+            assert capability.get("active_quality_contributor") is False
+            assert capability.get("deterministic_fallback_eligible") is False
+            assert record.get("paired_active_benchmark_id")
         elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True
             assert capability.get("active_quality_contributor") is False
@@ -909,6 +916,11 @@ def test_gold_star_has_one_strict_canonical_definition():
             assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+        elif record.get("runtime_transfer") is False and capability.get("generation_class") == "user_approved_response_quality_exemplar":
+            assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
+            assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+            assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
@@ -1790,9 +1802,9 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
     assert len(assigned) == audit["numbered_gold_star_record_count"] == 39
     assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 97
     assert len(assigned) + len(unassigned) == len(approved)
-    assert "135 approved Gold Stars" in narrative
+    assert "136 approved Gold Stars" in narrative
     assert "39 assigned display serials" in narrative
-    assert "96 approved records explicitly UNASSIGNED" in narrative
+    assert "97 approved records explicitly UNASSIGNED" in narrative
     assert "99 approved Gold Stars" not in narrative
     assert "61 approved records explicitly UNASSIGNED" not in narrative
 
@@ -2446,7 +2458,7 @@ def test_governance_balance_near_miss_and_corrected_candidate_are_preserved_as_a
 
 
 def test_user_approved_governance_response_quality_exemplar_is_registered_without_runtime_authority():
-    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    registry = _registry()
     record = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-governance-balance-consequence-aware-2026-11-24"
