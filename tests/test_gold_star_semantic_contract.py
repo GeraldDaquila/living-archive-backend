@@ -204,3 +204,23 @@ def test_comparison_contract_rejects_subject_listing_without_explanations():
 
     assert result["status"] == "fail"
     assert "compared_subjects_explained" in result["hard_failures"]
+
+
+def test_compare_subject_extraction_stops_before_trailing_explanation_clause():
+    from gold_star_semantic_contract import _extract_comparison_subjects
+
+    query = (
+        "Can you compare integration with growth, and explain how maturity and adaptation "
+        "fit into the relationship?"
+    )
+    assert classify_question(query)["type"] == "comparison"
+    assert _extract_comparison_subjects(query) == ["integration", "growth"]
+
+    answer = (
+        "Integration connects distinct capacities into a coherent whole, whereas growth "
+        "is the development of capacity. Maturity guides judgment, while adaptation "
+        "responds to changing conditions."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    assert result["status"] == "review_required"
+    assert result["hard_failures"] == []
