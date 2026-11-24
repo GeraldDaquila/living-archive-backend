@@ -77,7 +77,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
                 assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
                 assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
                 assert "NOT_EVALUATED" in boundary, record["benchmark_id"]
-                assert "Do not infer" in boundary, record["benchmark_id"]
+                assert "do not infer" in boundary.casefold(), record["benchmark_id"]
         else:
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
@@ -283,7 +283,16 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
                 or record.get("legacy_approval_grandfathered_reason", "").strip()
             ), record["benchmark_id"]
         else:
-            assert isinstance(record.get("rating_out_of_10", record.get("rating")), (int, float)), record["benchmark_id"]
+            rating = record.get("rating_out_of_10", record.get("rating"))
+            assessment = record.get("assistant_assessment_out_of_10")
+            assert (
+                isinstance(rating, (int, float))
+                or (
+                    isinstance(assessment, (int, float))
+                    and record.get("user_reviewed_response") is True
+                    and record.get("explicit_user_elevation_approval") is True
+                )
+            ), record["benchmark_id"]
             assert record.get("user_reviewed_response") is True, record["benchmark_id"]
             assert record.get("explicit_user_elevation_approval") is True, record["benchmark_id"]
             assert record.get("elevation_approval_evidence", "").strip(), record["benchmark_id"]

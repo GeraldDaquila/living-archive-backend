@@ -10118,8 +10118,35 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
 
 
 def _comparative_subject_terms(query):
-    """Extract compared concepts from common comparison questions."""
+    """Extract two-way or enumerated multi-concept comparison subjects."""
     normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+
+    # Multi-concept questions often enumerate a list before the comparison
+    # verb, then add a second relational clause ("and how do they interact?").
+    # Capture only the list-bearing clause so the follow-on clause cannot be
+    # mistaken for another subject.
+    list_patterns = (
+        r"\bhow do (.+?) differ\b",
+        r"\bhow are (.+?) different\b",
+        r"\bcompare (.+?)(?:[?.!]|$)",
+        r"\bcomparison of (.+?)(?:[?.!]|$)",
+    )
+    for pattern in list_patterns:
+        match = re.search(pattern, normalized)
+        if not match:
+            continue
+        raw_subjects = re.split(r"\s*,\s*|\s+and\s+|\s*&\s*", match.group(1))
+        terms = []
+        for value in raw_subjects:
+            value = re.sub(r"^\s*and\s+", "", value).strip()
+            words = [w for w in re.findall(r"[a-z0-9]+", value)
+                     if w not in {"the", "a", "an", "is", "are", "does", "do", "how", "what"}]
+            if words:
+                terms.append(" ".join(words[-4:]))
+        if len(terms) >= 2:
+            return terms
+
+    # Retain established pairwise phrasings and their existing normalization.
     patterns = (
         r"\bdifference between (.+?) and (.+?)[?.!]*$",
         r"\brelationship between (.+?) and (.+?)[?.!]*$",
@@ -14672,7 +14699,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         and not _final_discovery_only
         and (
             general_guide_composition._requires_substantive_answer_contract(query)
-            or len(_final_comparative_subjects) == 2
+            or len(_final_comparative_subjects) >= 2
         )
     )
     print(
