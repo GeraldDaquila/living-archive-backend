@@ -16009,25 +16009,43 @@ async def _use_send_json(send, payload, status_code=200):
                 _boundary_query, payload
             )
 
-    # Terminal answer-first integrity is enforced after every composer, specialist,
-    # recovery, and doorway rewrite. Provider-parser validation alone is insufficient:
-    # alternate and deterministic routes can bypass that parser. Exact approved
-    # answers and safety interventions retain their separate authorities.
+    # Deterministic, safety, specialist, and provider routes share one
+    # question/capability context and one integrity-floor implementation.
+    if isinstance(payload, dict):
+        _floor_query = str(payload.get("query") or "").strip()
+        payload = _gold_star_attach_route_context(
+            payload, _floor_query, "guide_json_orchestration_boundary"
+        )
+        from gold_star_response_floor import apply_response_floor_boundary
+        _previous_status = int(status_code)
+        payload, status_code = apply_response_floor_boundary(
+            _floor_query,
+            payload,
+            status_code,
+            exact_standard=_boundary_standard is not None,
+        )
+
+    # This is the terminal delivery check: run after the response floor and all
+    # doorway/context enrichment so no later adapter can reintroduce a rejected
+    # opening or attach a resource to an answer that has been withheld.
     if (
         isinstance(payload, dict)
         and payload.get("ok", True) is True
-        and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
-        and not bool(payload.get("handoff_pending"))
         and _boundary_query
         and _boundary_standard is None
         and not _boundary_safety
+        and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
+        and not bool(payload.get("handoff_pending"))
         and general_guide_composition._requires_substantive_answer_contract(_boundary_query)
     ):
         _terminal_response = _sanitize_basic_inquiry_response(
             str(payload.get("response") or payload.get("answer") or "")
         )
-        if not general_guide_composition._has_direct_answer_opening(
-            _boundary_query, _terminal_response
+        if (
+            _terminal_response
+            and not general_guide_composition._has_direct_answer_opening(
+                _boundary_query, _terminal_response
+            )
         ):
             payload = dict(payload)
             payload.update({
@@ -16057,22 +16075,6 @@ async def _use_send_json(send, payload, status_code=200):
                 "The Guide terminal answer-first boundary withheld a non-answer: "
                 "reason=opening_contract_failure."
             )
-
-    # Deterministic, safety, specialist, and provider routes share one
-    # question/capability context and one integrity-floor implementation.
-    if isinstance(payload, dict):
-        _floor_query = str(payload.get("query") or "").strip()
-        payload = _gold_star_attach_route_context(
-            payload, _floor_query, "guide_json_orchestration_boundary"
-        )
-        from gold_star_response_floor import apply_response_floor_boundary
-        _previous_status = int(status_code)
-        payload, status_code = apply_response_floor_boundary(
-            _floor_query,
-            payload,
-            status_code,
-            exact_standard=_boundary_standard is not None,
-        )
         _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
         if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
             print(
