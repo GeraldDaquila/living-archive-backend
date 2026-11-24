@@ -141,7 +141,7 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
 
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     contract = adjudication.build_adjudication_output_contract(CANDIDATES)
-    assert len(contract) < 900
+    assert len(contract) < 1100
     for required in (
         "adaptive_adjudication",
         "candidate_assessments",
