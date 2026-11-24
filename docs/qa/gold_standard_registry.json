@@ -8580,7 +8580,7 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-community-freedom-shared-responsibility-decision. It contributes bounded community freedom/shared-responsibility decision discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, or display serial is granted. Held-out validation remains a separate system-level acceptance activity. Added a linked governance-balance calibration pair on 2026-11-24: one preserved structural near-miss and one corrected candidate pending user review. Neither is approved, numbered, runtime-active, or included in the Gold Star count.",
+  "last_reconciliation_note": "Added the user-approved, structurally corrected governance-balance exemplar general-guide-governance-balance-structural-candidate-2026-11-24. The original visitor answer remains preserved as a linked diagnostic near-miss. The new Gold Star contributes bounded structural guidance only; exact-answer authority and deterministic fallback remain disabled. It is unnumbered. Held-out transfer validation remains a separate system-level acceptance activity.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8715,13 +8715,13 @@
     "review_reconciliation": "Canonical approved inventory now contains 135 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors with qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. The original governance-balance near-miss remains preserved as diagnostic evidence; its structurally corrected linked record is now explicitly user-approved and active for bounded structural learning.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-23: 134 approved Gold Stars; 39 assigned display serials #56–#94; 95 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 135 approved Gold Stars; 39 assigned display serials #56–#94; 96 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
     "unassigned_approved_gold_star_count": 96,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 133,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
-    "pending_approval_evidence_count": 2,
+    "pending_approval_evidence_count": 0,
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-governance-balance-structural-candidate-2026-11-24 approved by user 2026-11-24",
     "calibration_candidates_pending_user_review": 0
