@@ -2811,6 +2811,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
             if _requires_archive_scoped_meaning(query):
+                if len(paragraphs) != 3:
+                    raise ValueError(
+                        "Archive-scoped meaning answer must follow the three-paragraph Guide Gold Standard"
+                    )
                 # Enforce semantic substance at the final shared composition
                 # boundary. Paragraph count and a mention of "Archive" are not
                 # enough: reject the recurring circular definition/meta-template
