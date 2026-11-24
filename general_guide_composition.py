@@ -5270,7 +5270,7 @@ def compose(
                 "provider_exhaustion_fallback",
                 recovery=(
                     "developmental_capacities_comparison"
-                    if all(re.search(r"\\b" + term + r"\\b", _normalize_space(question).casefold())
+                    if all(re.search(r"\b" + term + r"\b", _normalize_space(question).casefold())
                            for term in ("growth", "adaptation", "maturity", "integration"))
                     else "conceptual_relationship"
                 ),
