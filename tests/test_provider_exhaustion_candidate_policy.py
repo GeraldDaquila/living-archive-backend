@@ -89,3 +89,13 @@ def test_existing_public_commons_gold_star_transfers_answerability_rule_and_doma
     assert "institution-specific doctrine" in discipline
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
+
+    # Verify the selected discipline reaches the actual provider composition
+    # contract, while the exemplar's answer content remains excluded.
+    import general_guide_composition as composition
+
+    instruction = composition._build_gold_star_quality_instruction(contribution)
+    assert "domain-specific explanation" in instruction
+    assert "generic process framework" in instruction
+    assert "Public commons are resources" not in instruction
+    assert "libraries, parks, public knowledge" not in instruction
