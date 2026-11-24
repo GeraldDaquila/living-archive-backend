@@ -138,25 +138,25 @@ def normalize_provider_adjudication(
 
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the bounded JSON field expected from the composing provider."""
+    """Describe the minimal bounded JSON report expected from the provider."""
     index = _candidate_index(candidates)
     if not index:
         return ""
     ids = ", ".join(sorted(index))
     reasons = ", ".join(sorted(REASON_CODES))
+    # Keep this contract compact: it is repeated in every provider prompt and
+    # competes with visitor evidence for finite context/token budgets.
     return (
-        "Return one additional JSON property named adaptive_adjudication. "
-        "It must contain candidate_assessments, with exactly one object for every "
-        "candidate ID (" + ids + "). Each object has candidate_id, decision "
-        "('select' or 'reject'), and reason_code (null for select; one of: " + reasons + " "
-        "for reject). Select only a materially relevant, non-redundant discipline "
-        "whose abstention boundary fits; reject every candidate otherwise. "
-        "Also include application_evidence_spans: an array with exactly one object "
-        "per selected candidate, each containing candidate_id and an exact contiguous "
-        "12–240 character span from your response that demonstrates that candidate's "
-        "distinct contribution; use an empty array when none is selected. Do not "
-        "include hidden reasoning or chain-of-thought. This structured report is "
-        "not visitor-facing and does not certify semantic application or quality. "
-        "The runtime validates IDs, complete dispositions, reason codes, and exact "
-        "span presence; human-reviewed paired evaluation remains the improvement gate."
+        "Add JSON property adaptive_adjudication with exactly two keys: "
+        "candidate_assessments and application_evidence_spans. For every candidate "
+        "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
+        "decision (select/reject), and reason_code (null for select; one of " + reasons +
+        " for reject). Select only a distinct, materially relevant discipline whose "
+        "abstention boundary fits; otherwise reject. For each selected ID, include "
+        "one application_evidence_spans object with candidate_id and an exact "
+        "contiguous 12–240 character span from response showing its contribution; "
+        "use [] when none is selected. No hidden reasoning or chain-of-thought. "
+        "This report is not visitor-facing and is not proof of semantic quality; "
+        "the runtime validates IDs, complete disposition, reason codes, and exact "
+        "span presence. Improvement still requires paired evaluation."
     )

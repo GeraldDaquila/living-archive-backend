@@ -136,3 +136,26 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
     assert final["contribution_retained"] == "not_retained"
     assert final["outcome"] == "not_evaluated"
     assert trace.validate_trace(final)["valid"]
+
+
+
+def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
+    contract = adjudication.build_adjudication_output_contract(CANDIDATES)
+    assert len(contract) < 1100
+    for required in (
+        "adaptive_adjudication",
+        "candidate_assessments",
+        "application_evidence_spans",
+        "lesson-a",
+        "lesson-b",
+        "select/reject",
+        "abstention boundary",
+        "exact contiguous 12–240 character span",
+        "No hidden reasoning or chain-of-thought",
+        "paired evaluation",
+    ):
+        assert required in contract
+
+
+def test_output_contract_is_absent_without_candidates():
+    assert adjudication.build_adjudication_output_contract([]) == ""
