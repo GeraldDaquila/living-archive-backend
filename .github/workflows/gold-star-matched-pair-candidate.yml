@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Candidate rerun using the OpenRouter Gemma free lane after repeated Groq 429 exhaustion.
+# Candidate rerun using the Gemini Flash lane after provider free-tier throttling.
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs paid provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Pin one eligible OpenRouter Gemma lane; both arms use this exact provider/model.
+    # Pin one eligible Gemini Flash lane; both arms use this exact provider/model.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -48,8 +48,8 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider=openrouter
-          --model=google/gemma-4-31b-it:free
+          --provider=gemini
+          --model=gemini-3.8-flash
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
