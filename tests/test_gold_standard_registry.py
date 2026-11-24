@@ -439,7 +439,9 @@ def test_reciprocity_community_gold_standard_is_approved_bounded_and_supersedes_
     )
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "What is the purpose of reciprocity in a community?"
-    assert record["rating_out_of_10"] == 9.5
+    assert record.get("rating") is None
+    assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
