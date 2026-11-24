@@ -162,6 +162,15 @@ def classify_llm_payload(body):
     }
 
 
+def has_metal_spoon_thermal_explanation(response):
+    """Require the physical-science negative control to answer its actual mechanism."""
+    text = re.sub(r"\s+", " ", str(response or "")).casefold()
+    explains_heat_transfer = "thermal conductivity" in text or "conducts heat" in text
+    connects_hand_and_rate = "hand" in text and bool(re.search(r"\b(?:faster|more quickly|more rapidly)\b", text))
+    preserves_temperature_condition = "same room temperature" in text or "same temperature" in text
+    return explains_heat_transfer and connects_hand_and_rate and preserves_temperature_condition
+
+
 def claim_adjudication_summary(body):
     value = body.get("claim_adjudication") if isinstance(body, dict) else None
     if not isinstance(value, dict):
@@ -420,6 +429,7 @@ def main():
         check("http_200",provider_probe_transport.get("status")==200,f"HTTP status {provider_probe_transport.get('status')}; {provider_probe_transport.get('error') or ''}"),
         check("api_ok",provider_probe_body.get("ok") is True,"API must return ok=true."),
         check("nonempty_answer",bool(str(provider_probe_body.get("response") or "").strip()),"Provider probe must return a non-empty answer."),
+        check("subject_specific_explanation",has_metal_spoon_thermal_explanation(provider_probe_body.get("response")),"The physical-science control must explain faster heat transfer from the hand; a generic systems answer is insufficient."),
         check("attributable_llm",provider_probe_llm,"Final visitor response must carry explicit LLM provenance; provider attempts alone do not count."),
     ]
     report["provider_probe"]={"query":PROVIDER_PROBE_QUERY,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}

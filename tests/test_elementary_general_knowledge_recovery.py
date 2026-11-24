@@ -17,6 +17,21 @@ def test_ice_floats_answer_explains_density():
     assert "less dense than liquid water" in result["response"].lower()
 
 
+def test_metal_spoon_feels_colder_due_to_thermal_conductivity():
+    result = main._established_general_knowledge_recovery(
+        "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
+    )
+    assert result is not None
+    assert result["fact_id"] == "metal_spoon_feels_colder_due_to_thermal_conductivity"
+    response = result["response"].lower()
+    assert "same room temperature" in response
+    assert "conducts heat much more readily than wood" in response
+    assert "draws heat from your hand faster" in response
+    assert "thermal conductor" in response
+    assert "incentives" not in response
+    assert "relationships" not in response
+
+
 def test_elementary_fact_recovery_does_not_match_unrelated_questions():
     assert main._established_general_knowledge_recovery("What is the best way to govern a community?") is None
     assert main._established_general_knowledge_recovery("How many sides does a square have?") is None

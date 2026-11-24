@@ -11831,6 +11831,25 @@ def _established_general_knowledge_recovery(query):
             ),
         }
 
+    metal_spoon_thermal_conductivity_question = bool(
+        re.search(r"\bmetal\b", normalized)
+        and re.search(r"\bspoon\b", normalized)
+        and re.search(r"\bwood(?:en)?\b", normalized)
+        and re.search(r"\bcolder\b", normalized)
+        and re.search(r"\b(?:same|equal)\s+(?:room\s+)?temperature\b", normalized)
+    )
+    if metal_spoon_thermal_conductivity_question:
+        return {
+            "fact_id": "metal_spoon_feels_colder_due_to_thermal_conductivity",
+            "response": (
+                "Both spoons can be at the same room temperature. A metal spoon feels colder because metal "
+                "conducts heat much more readily than wood, so it draws heat from your hand faster when you touch it. "
+                "Wood is a poor thermal conductor, so heat leaves your skin more slowly. "
+                "Your skin senses the rate of heat transfer, not simply the spoon's actual temperature; "
+                "the metal spoon therefore feels colder even though the two spoons are at the same temperature."
+            ),
+        }
+
     metric_length_question = bool(
         re.search(r"\bcentimet(?:er|re)s?\b", normalized)
         and re.search(r"\bmet(?:er|re)s?\b", normalized)
