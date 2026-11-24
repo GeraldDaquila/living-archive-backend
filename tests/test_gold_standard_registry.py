@@ -2388,7 +2388,9 @@ def test_reciprocity_community_gold_star_has_matching_bounded_transfer_review_an
     reviews = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))["entries"]
     review = next(item for item in reviews if item["benchmark_id"] == record["benchmark_id"])
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["rating_out_of_10"] == 9.5
+    assert record.get("rating") is None
+    assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
