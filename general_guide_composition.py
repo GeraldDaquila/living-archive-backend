@@ -5020,7 +5020,7 @@ def compose(
                 gold_star_quality_instruction=gold_star_quality_instruction,
                 public_live_source_instruction=public_live_source_instruction,
             ) + (
-                "\\n\\nANSWERABILITY REPAIR — THIS IS A GENERAL CONCEPTUAL QUESTION. "
+                "\n\nANSWERABILITY REPAIR — THIS IS A GENERAL CONCEPTUAL QUESTION. "
                 "Do not repeat a generic statement that the available response lacks enough "
                 "information. Explain the answerable concept using reliable general knowledge. "
                 "Clearly distinguish ordinary conceptual explanation from any formal Living "
