@@ -20,6 +20,7 @@ from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from guide_answerability import (
     ARCHITECTURAL_CONTRACT as _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
     build_answerability_plan as _build_layered_answerability_plan,
+    is_unjustified_conceptual_abstention as _is_unjustified_conceptual_abstention,
 )
 from gold_star_adjudication_trace import (
     build_adjudication_trace as _build_gold_star_adjudication_trace,
@@ -4991,6 +4992,93 @@ def compose(
         # not initialize BGE/ONNX inside the visitor's request budget. Start the
         # one-time warmup only after provider routing has returned.
         _start_requested_gold_star_semantic_warmup()
+
+    # One bounded repair attempt prevents a generic evidence-limit disclaimer
+    # from being accepted as the answer to an ordinary conceptual question.
+    # Archive authority remains separate: the repair may use general knowledge,
+    # must not invent Archive doctrine, and must state any source-specific limit
+    # narrowly. Source-only and high-stakes requests are excluded by the shared
+    # answerability classifier.
+    if result:
+        _first_payload = result.get("parsed") if isinstance(result, dict) else None
+        if not isinstance(_first_payload, dict):
+            _first_payload = result if isinstance(result, dict) else {}
+        _first_response = str(_first_payload.get("response") or "")
+        if _is_unjustified_conceptual_abstention(question, _first_response):
+            _emit_guide_outcome(
+                "conceptual_answerability_repair",
+                stage="generic_abstention_rejected",
+            )
+            _repair_system_message = _build_general_guide_system_message(
+                question,
+                has_gold_star_guidance=bool(
+                    isinstance(gold_star_quality, dict)
+                    and gold_star_quality.get("candidates")
+                ),
+                incomplete_knowledge_plan=incomplete_knowledge_plan,
+                integrity_recovery_instruction=integrity_recovery_instruction,
+                gold_star_quality_instruction=gold_star_quality_instruction,
+                public_live_source_instruction=public_live_source_instruction,
+            ) + (
+                "\n\nANSWERABILITY REPAIR — THIS IS A GENERAL CONCEPTUAL QUESTION. "
+                "Do not repeat a generic statement that the available response lacks enough "
+                "information. Explain the answerable concept using reliable general knowledge. "
+                "Clearly distinguish ordinary conceptual explanation from any formal Living "
+                "Archive definition or endorsement. If the latter cannot be verified, state "
+                "that limitation in one narrow sentence after answering the general question. "
+                "Do not invent sources, quotations, or institutional doctrine. Answer the "
+                "visitor's actual question, not merely the limits of the retrieved material."
+            )
+            try:
+                _repaired_result = route_with_model_bank(
+                    use_core=use_core,
+                    operation=OPERATION,
+                    messages=[
+                        {"role": "system", "content": _repair_system_message},
+                        {"role": "user", "content": user_content[:7000]},
+                    ],
+                    max_tokens=750,
+                    parse=_parse_factory(
+                        documents,
+                        effective_question,
+                        gold_star_quality.get("candidates") if gold_star_quality else None,
+                    ),
+                    deadline_monotonic=deadline_monotonic,
+                )
+                _repaired_payload = (
+                    _repaired_result.get("parsed")
+                    if isinstance(_repaired_result, dict)
+                    else None
+                )
+                if not isinstance(_repaired_payload, dict):
+                    _repaired_payload = (
+                        _repaired_result if isinstance(_repaired_result, dict) else {}
+                    )
+                _repaired_response = str(_repaired_payload.get("response") or "")
+                if (
+                    _repaired_result
+                    and _repaired_response
+                    and not _is_unjustified_conceptual_abstention(
+                        question, _repaired_response
+                    )
+                ):
+                    result = _repaired_result
+                    _emit_guide_outcome(
+                        "conceptual_answerability_repair",
+                        stage="repaired_answer_accepted",
+                    )
+                else:
+                    _emit_guide_outcome(
+                        "conceptual_answerability_repair",
+                        stage="repair_unavailable_or_still_abstaining",
+                    )
+            except Exception as _repair_error:
+                _emit_guide_outcome(
+                    "conceptual_answerability_repair",
+                    stage="repair_provider_error",
+                    error_type=type(_repair_error).__name__,
+                )
+
     # A provider may technically return a parsed response while still producing
     # the generic verification refusal. For explicitly bounded conceptual
     # questions, that is not a successful synthesis and must enter the recovery

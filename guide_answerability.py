@@ -100,3 +100,38 @@ def has_reality_vs_ideology_explanation(response: str) -> bool:
         and re.search(r"\b(?:change|revise|adapt|correct)\w*\b.{0,180}\b(?:evidence|facts|conditions)\b|\b(?:evidence|facts|conditions)\b.{0,180}\b(?:change|revise|adapt|correct)\w*\b", text)
         and re.search(r"\b(?:for example|imagine|suppose|in practice)\b", text)
     )
+
+
+def is_unjustified_conceptual_abstention(query: str, response: str) -> bool:
+    """Detect a generic evidence-limit refusal to an ordinary conceptual question.
+
+    This is a response-quality signal, not a claim that every concept is
+    answerable. Source-only requests and high-stakes questions are excluded.
+    The caller gets one bounded provider repair attempt; this function never
+    manufactures subject-matter content.
+    """
+    q = re.sub(r"\s+", " ", str(query or "")).strip()
+    answer = re.sub(r"\s+", " ", str(response or "")).strip()
+    if not q or len(answer) < 20:
+        return False
+    if _SOURCE_SPECIFIC_OR_SOURCE_ONLY.search(q) or _HIGH_STAKES_CONTEXT.search(q):
+        return False
+    if not _MEANING_REQUEST.search(q):
+        return False
+    if not re.search(
+        r"\b(?:role|purpose|significance|importance|function|value|meaning|"
+        r"relationship|contribution|impact|effect|nature|concept|principle)\b",
+        q,
+        re.I,
+    ):
+        return False
+    return bool(re.search(
+        r"(?:\b(?:i|we)\s+(?:cannot|can't|can not|am unable to)\b.{0,100}"
+        r"(?:define|explain|establish|determine|answer|identify)|"
+        r"\bnot enough (?:information|evidence|context)\b.{0,100}"
+        r"(?:reliab|available|response|answer)|"
+        r"\binformation available in this response alone\b|"
+        r"\bcannot (?:reliably )?(?:define|explain|answer)\b)",
+        answer,
+        re.I,
+    ))
