@@ -984,7 +984,9 @@ def test_technology_refinement_release_candidate_has_exact_query_review_authorit
     assert record["expected_doorway"]["title"] == "Foundations of Stewardship Governance"
     if record["status"] == "USER_APPROVED_RELEASE_CANDIDATE":
         assert record["runtime_review_authority"] is True
-        assert record["rating_out_of_10"] == 9.5
+        assert record.get("rating") is None
+    assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
         assert "not a Gold Star" in record["freeze_policy"]
     else:
         assert record.get("runtime_transfer") is True
