@@ -85,7 +85,11 @@ def test_cross_question_gold_star_registry_and_review_are_unique_and_reconciled(
     assert records[0]["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert reviews[0]["activation"] == "active_quality_contributor"
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"]
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"]
-    assert sum(1 for r in approved if r.get("numbering_status") == "UNASSIGNED") == registry["integrity_audit"]["unassigned_approved_gold_star_count"]
+    from gold_star_inventory import derive_gold_star_inventory
+    inventory = derive_gold_star_inventory(registry, review)
+    assert inventory["approved_gold_star_count"] == len(approved)
+    assert inventory["benchmark_count"] == len(registry["records"])
+    assert inventory["unassigned_approved_gold_star_count"] == sum(
+        1 for r in approved if r.get("numbering_status") == "UNASSIGNED"
+    )
     assert len({r["benchmark_id"] for r in approved}) == len(approved)
