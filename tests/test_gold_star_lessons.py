@@ -355,3 +355,20 @@ def test_community_freedom_shared_responsibility_gold_star_contributes_bounded_g
     assert "meaningful agency" in contribution["discipline"]
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
+
+
+def test_governance_balance_gold_star_is_active_bounded_structural_learning():
+    query = "How should governance balance stability, participation, and responsiveness?"
+    selected = lessons.select_lesson(query)
+    assert selected is not None
+    assert selected["benchmark_id"] == "general-guide-governance-balance-structural-candidate-2026-11-24"
+    assert selected["exact"] is True
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == selected["benchmark_id"]
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["discipline"]
+    assert contribution["abstention_boundary"]
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
+    assert lessons.deterministic_fallback_contribution(query) is None
