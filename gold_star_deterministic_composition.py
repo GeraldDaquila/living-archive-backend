@@ -75,7 +75,7 @@ def compose_deterministic_gold_star_response(
         "reasoning_family": family,
         "plan_id": plan["plan_id"],
         "application_evidence_spans": [
-            span for span in plan["response"].split("\\n\\n") if span.strip()
+            span for span in plan["response"].split("\n\n") if span.strip()
         ],
         "abstention_boundary_applied": True,
     }
