@@ -164,9 +164,9 @@ def classify_llm_payload(body):
 
 def has_metal_spoon_thermal_explanation(response):
     """Require the physical-science negative control to answer its actual mechanism."""
-    text = re.sub(r"\\s+", " ", str(response or "")).casefold()
+    text = re.sub(r"\s+", " ", str(response or "")).casefold()
     explains_heat_transfer = "thermal conductivity" in text or "conducts heat" in text
-    connects_hand_and_rate = "hand" in text and bool(re.search(r"\\b(?:faster|more quickly|more rapidly)\\b", text))
+    connects_hand_and_rate = "hand" in text and bool(re.search(r"\b(?:faster|more quickly|more rapidly)\b", text))
     preserves_temperature_condition = "same room temperature" in text or "same temperature" in text
     return explains_heat_transfer and connects_hand_and_rate and preserves_temperature_condition
 
