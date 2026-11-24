@@ -8487,9 +8487,94 @@
       "approval_date": "2026-11-23",
       "approval_evidence": "User explicitly instructed “elevate to gold star first” on 2026-11-23 after reviewing the exact live visitor-facing response and doorway.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "subsystem": "general-purpose-guide",
+      "expected_doorway": null,
+      "doorway_status": "NOT_EVALUATED",
+      "rating": null,
+      "rating_out_of_10": null,
+      "known_theme": "governance_balance_stability_participation_responsiveness",
+      "runtime_transfer": false,
+      "gold_star_candidate_state": "NOT_GOLD_STAR_PENDING_USER_REVIEW_AND_VALIDATION",
+      "numbering_status": "UNASSIGNED",
+      "freeze_policy": "Preserve this calibration evidence as a linked pair. Do not promote either entry to the approved Gold Star inventory or runtime learning until the corrected response is reviewed by the user, explicitly approved, frozen, and independently validated. Keep the original near-miss text immutable.",
+      "benchmark_id": "general-guide-governance-balance-near-miss-2026-11-24",
+      "status": "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
+      "query": "How should governance balance stability, participation, and responsiveness?",
+      "expected_response": "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, and the people who will live with its consequences. Then compare realistic options against those requirements rather than assuming the proposed course is the only one.\n\nExamine what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. Include the knowledge of people affected by the decision, especially where they will carry consequences they did not choose.\n\nChoose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "assertions": [
+        "Preserve the exact original visitor-facing answer as the near-miss baseline.",
+        "The answer identifies sound principles and stakeholder concerns but does not specify governance mechanisms that reconcile the three values.",
+        "Classify as a structural near-miss, not as an unsafe or irrelevant answer.",
+        "Do not count as a Gold Star and do not activate it as a runtime lesson."
+      ],
+      "provenance": {
+        "source": "User-provided visitor-facing Search UI screenshot",
+        "source_path": "conversation attachment image(20261124-010526).png",
+        "source_date": "2026-11-24",
+        "evidence_boundary": "The screenshot establishes the displayed question and answer text. The 8/10 assessment and structural near-miss classification are evaluator judgments, not a user-assigned rating.",
+        "linked_candidate_benchmark_id": "general-guide-governance-balance-structural-candidate-2026-11-24"
+      },
+      "calibration_assessment": {
+        "evaluator_rating_out_of_10": 8,
+        "classification": "STRUCTURAL_NEAR_MISS",
+        "strengths": [
+          "Relevant framing",
+          "Affected-party participation",
+          "Trade-off awareness",
+          "Accountability",
+          "Appropriate AI authority boundary"
+        ],
+        "deficiency": "Names desirable principles but does not explain the institutional mechanisms that balance stability, participation, and responsiveness."
+      }
+    },
+    {
+      "subsystem": "general-purpose-guide",
+      "expected_doorway": null,
+      "doorway_status": "NOT_EVALUATED",
+      "rating": null,
+      "rating_out_of_10": null,
+      "known_theme": "governance_balance_stability_participation_responsiveness",
+      "runtime_transfer": false,
+      "gold_star_candidate_state": "NOT_GOLD_STAR_PENDING_USER_REVIEW_AND_VALIDATION",
+      "numbering_status": "UNASSIGNED",
+      "freeze_policy": "Preserve this calibration evidence as a linked pair. Do not promote either entry to the approved Gold Star inventory or runtime learning until the corrected response is reviewed by the user, explicitly approved, frozen, and independently validated. Keep the original near-miss text immutable.",
+      "benchmark_id": "general-guide-governance-balance-structural-candidate-2026-11-24",
+      "status": "CANDIDATE_PENDING_USER_REVIEW",
+      "query": "How should governance balance stability, participation, and responsiveness?",
+      "expected_response": "Governance balances stability, participation, and responsiveness by assigning each a distinct role and defining how they constrain one another. Stability protects the institution's constitutional purpose, essential rights, and responsibilities from short-term pressure. Participation gives people affected by decisions meaningful ways to contribute, question assumptions, and influence choices. Responsiveness allows the institution to adapt when evidence, circumstances, or consequences change.\n\nThe balance must be built into the decision structure. Set constitutional principles and protected responsibilities that ordinary decisions cannot casually override; delegate routine decisions to accountable stewards within clear limits; and require meaningful consultation or representation when decisions materially affect members or communities. Publish the reasons, evidence, trade-offs, and responsibility for consequential decisions. Provide review, appeal, and escalation routes so participation is consequential rather than ceremonial and delegated authority remains answerable.\n\nThen establish observable conditions for reconsidering a decision: changed evidence, unintended harm, unequal burdens, failure to meet the intended outcome, or a material change in circumstances. Use scheduled reviews for continuing policies and faster review when serious harm or urgent change is evident. This preserves continuity without making institutions rigid, gives affected people a genuine voice without requiring every operational choice to become a referendum, and makes adaptation possible without allowing responsiveness to become arbitrary rule.",
+      "assertions": [
+        "Explain how stability, participation, and responsiveness relate rather than merely listing them.",
+        "Translate stability into constitutional purpose, protected rights, and responsibilities.",
+        "Translate participation into meaningful representation, consultation, influence, and challenge.",
+        "Translate responsiveness into delegated authority, evidence-sensitive adaptation, review, appeal, and escalation.",
+        "Explain the constraints that prevent stability from becoming rigidity, participation from becoming ceremonial or operationally paralyzing, and responsiveness from becoming arbitrary.",
+        "Define observable triggers for reconsideration and distinguish routine review from urgent review.",
+        "Do not transfer exact answer text or doorway to unrelated questions."
+      ],
+      "provenance": {
+        "source": "Paired correction of general-guide-governance-balance-near-miss-2026-11-24",
+        "source_date": "2026-11-24",
+        "evidence_boundary": "This is a proposed corrected answer drafted for user review. It has not yet received user approval, a final rating, blind evaluation, or held-out transfer validation.",
+        "linked_near_miss_benchmark_id": "general-guide-governance-balance-near-miss-2026-11-24",
+        "approval_record": "Pending user review of the exact corrected response."
+      },
+      "user_reviewed_response": false,
+      "explicit_user_elevation_approval": false,
+      "elevation_approval_evidence": "",
+      "gold_star_capabilities": {
+        "generation_class": "CANDIDATE_NOT_APPROVED",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "governance_balance_constitutional_stability_participatory_legitimacy_adaptive_responsiveness",
+        "transferable_discipline": "When asked to balance competing governance values, define each value's institutional role, specify the mechanisms that realize it, explain the constraints and accountability between mechanisms, and establish observable review triggers.",
+        "abstention_boundary": "Do not prescribe a universal governance structure without context about the institution, jurisdiction, decision stakes, affected parties, and existing authority. Distinguish general governance design from legal advice or claims about a particular institution's constitution."
+      }
     }
   ],
-  "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-community-freedom-shared-responsibility-decision. It contributes bounded community freedom/shared-responsibility decision discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, or display serial is granted. Held-out validation remains a separate system-level acceptance activity.",
+  "last_reconciliation_note": "Added user-approved live-response exemplar gs-2026-11-22-community-freedom-shared-responsibility-decision. It contributes bounded community freedom/shared-responsibility decision discipline through the qualitative-transfer review; no exact-answer authority, deterministic fallback eligibility, or display serial is granted. Held-out validation remains a separate system-level acceptance activity. Added a linked governance-balance calibration pair on 2026-11-24: one preserved structural near-miss and one corrected candidate pending user review. Neither is approved, numbered, runtime-active, or included in the Gold Star count.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -8620,7 +8705,7 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-23",
     "approved_gold_star_count": 134,
-    "registry_record_count": 170,
+    "registry_record_count": 172,
     "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
@@ -8631,7 +8716,7 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 0,
+    "structural_candidates_pending_live_review": 1,
     "last_approval": "gs-2026-11-23-community-rule-design-liberty-shared-obligations approved by user 2026-11-23"
   },
   "numbering_policy": {
@@ -8730,9 +8815,9 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-23",
+    "last_audit_date": "2026-11-24",
     "approved_gold_star_count": 134,
-    "registry_record_count": 170,
+    "registry_record_count": 172,
     "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
@@ -8746,5 +8831,5 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "gs-2026-11-23-community-rule-design-liberty-shared-obligations approved by user 2026-11-23"
   },
-  "last_reconciled": "2026-11-23"
+  "last_reconciled": "2026-11-24"
 }
