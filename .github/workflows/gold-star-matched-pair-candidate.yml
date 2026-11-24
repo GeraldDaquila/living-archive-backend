@@ -13,7 +13,7 @@ jobs:
     # Explicit opt-in: this tagged commit runs provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
     # Pin one registered Groq model; both arms use this exact provider/model.
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'qa/gold-star-matched-pair-current-main-20261124' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'qa/gold-star-matched-pair-main-1969' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
