@@ -18,10 +18,10 @@
     "superseded": 1,
     "approved_gold_standards_in_audited_subset": 27,
     "superseded_gold_standards_in_audited_subset": 1,
-    "canonical_approved_gold_standards": 134,
-    "canonical_runtime_transfer_approved": 132,
-    "general_purpose_runtime_transfer_records": 128,
-    "general_purpose_transfer_map_entries": 128
+    "canonical_approved_gold_standards": 139,
+    "canonical_runtime_transfer_approved": 136,
+    "general_purpose_runtime_transfer_records": 132,
+    "general_purpose_transfer_map_entries": 132
   },
   "records": [
     {
@@ -455,12 +455,12 @@
   "scope": {
     "audit_population": "selected_historical_tranche",
     "historical_audit_records": 61,
-    "canonical_registry_records": 169,
-    "canonical_registry_unique_ids": 169,
-    "canonical_approved_gold_standards": 133,
-    "canonical_runtime_transfer_approved": 131,
-    "general_purpose_runtime_transfer_records": 127,
-    "general_purpose_transfer_map_entries": 127,
+    "canonical_registry_records": 178,
+    "canonical_registry_unique_ids": 178,
+    "canonical_approved_gold_standards": 139,
+    "canonical_runtime_transfer_approved": 136,
+    "general_purpose_runtime_transfer_records": 132,
+    "general_purpose_transfer_map_entries": 132,
     "coverage_note": "All historical audit IDs must exist in the canonical registry. The 61-record historical audit is not expected to contain every newer registry record.",
     "canonical_approved_gold_standards_in_audited_subset": 27,
     "canonical_superseded_gold_standards_in_audited_subset": 1

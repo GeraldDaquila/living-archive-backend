@@ -33,7 +33,9 @@ def test_trust_community_stewardship_is_user_approved_bounded_gold_star():
     assert capabilities["exact_answer_authority"] is False
     assert capabilities["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
+    assert record.get("rating") is None
     assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
 
     review_entry = next(
         item for item in transfer["entries"]

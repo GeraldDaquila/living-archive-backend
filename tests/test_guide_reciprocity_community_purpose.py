@@ -116,7 +116,9 @@ def test_reciprocity_registry_approval_records_supersession_and_preserves_old_te
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["expected_doorway"]["title"] == DOORWAY_TITLE
     assert record["expected_doorway"]["url"] == DOORWAY_URL
-    assert record["rating_out_of_10"] == 9.5
+    assert record.get("rating") is None
+    assert "rating_out_of_10" not in record
+    assert record["assistant_assessment_out_of_10"] == 9.5
     assert record["supersedes_benchmark_id"] == "general-guide-reciprocity-gold-standard-2026-10-19"
     assert "reviewed" in record["elevation_approval_evidence"].lower()
     frozen_reference = next(

@@ -1393,7 +1393,6 @@
         }
       },
       "rating": null,
-      "rating_out_of_10": 9.5,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "assistant_assessment_out_of_10": 9.5,
@@ -1489,8 +1488,8 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false,
       "known_theme": "community trust, stewardship, shared responsibility, mutual reliance, cooperation, accountability, shared resources, community care",
-      "rating_out_of_10": 9.5,
-      "review_assessment": "Assistant assessment: 9.5/10 for directness, accessible community-level framing, a concrete shared-garden analogy, clear distinction between trust and stewardship, and a verified relevant continuation. The answer is intentionally concise; its transfer boundary prevents overgeneralizing this exemplar to unrelated trust questions."
+      "review_assessment": "Assistant assessment: 9.5/10 for directness, accessible community-level framing, a concrete shared-garden analogy, clear distinction between trust and stewardship, and a verified relevant continuation. The answer is intentionally concise; its transfer boundary prevents overgeneralizing this exemplar to unrelated trust questions.",
+      "assistant_assessment_out_of_10": 9.5
     },
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
@@ -8453,7 +8452,6 @@
         "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced. Do not treat collective convenience, majority preference, or an abstract appeal to shared responsibility as sufficient justification for restricting liberty. Do not determine jurisdiction-specific legality or resolve a concrete dispute without its governing rules, facts, affected parties, and evidence. Do not assume a restriction is necessary or proportionate; test less restrictive workable alternatives, fair burden allocation, accommodation, appeal, and review. Do not transfer the exact answer or doorway to unrelated questions, and do not grant deterministic fallback eligibility.",
         "runtime_transfer": true
       },
-      "rating_out_of_10": 9.1,
       "review_assessment": "Assistant assessment: 9.1/10 for directness, proportionality, fair burden allocation, meaningful participation, appeal, review, and a relevant separate Archive continuation; not a user-assigned numerical rating.",
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
@@ -8486,7 +8484,9 @@
       "user_approved_at": "2026-11-23",
       "approval_date": "2026-11-23",
       "approval_evidence": "User explicitly instructed “elevate to gold star first” on 2026-11-23 after reviewing the exact live visitor-facing response and doorway.",
-      "legacy_approval_grandfathered": false
+      "legacy_approval_grandfathered": false,
+      "assistant_assessment_out_of_10": 9.1,
+      "rating": null
     },
     {
       "subsystem": "general-purpose-guide",
@@ -8534,7 +8534,6 @@
       "expected_doorway": null,
       "doorway_status": "NOT_EVALUATED",
       "rating": null,
-      "rating_out_of_10": 9.5,
       "known_theme": "governance_balance_stability_participation_responsiveness",
       "runtime_transfer": true,
       "gold_star_candidate_state": "APPROVED_FROZEN_ACTIVE_STRUCTURAL_LEARNING",
@@ -8608,7 +8607,6 @@
         "review_assessment": "Assistant assessment: 9/10 (4.5/5). This is an assistant assessment, not a user-assigned numerical rating."
       },
       "rating": null,
-      "rating_out_of_10": 9,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "NOT_EVALUATED",
       "assistant_assessment_out_of_10": 9,
@@ -8751,7 +8749,6 @@
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "NOT_EVALUATED",
       "rating": null,
-      "rating_out_of_10": 9,
       "assistant_assessment_out_of_10": 9,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
@@ -9082,15 +9079,15 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-24",
-    "approved_gold_star_count": 136,
-    "registry_record_count": 177,
-    "review_reconciliation": "Canonical approved inventory now contains 136 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical duplicate. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
+    "approved_gold_star_count": 139,
+    "registry_record_count": 178,
+    "review_reconciliation": "Canonical approved inventory contains 139 USER_APPROVED_GOLD_STANDARD records: 136 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 136 approved Gold Stars; 39 assigned display serials #56–#94; 97 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 97,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 139 approved Gold Stars; 39 assigned display serials #56–#94; 100 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 100,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 133,
+    "active_quality_contributor_count": 136,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
