@@ -11,6 +11,7 @@ from gold_star_semantic_contract import remove_question_echo as _remove_question
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
 SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
+CRITICAL_SUITE = ROOT / "docs/qa/guide_live_critical_evaluation_cases.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
 PROVIDER_PROBE_QUERY = "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
@@ -369,8 +370,15 @@ def main():
     base=args.base_url.rstrip("/")
     if base not in ALLOWED: parser.error("base URL must be the primary or mirror Render service")
     if args.max_gold_standards < 1: parser.error("--max-gold-standards must be at least 1")
-    rb,sb=REGISTRY.read_bytes(),SUITE.read_bytes()
-    registry,suite=json.loads(rb),json.loads(sb)
+    rb,sb,cb=REGISTRY.read_bytes(),SUITE.read_bytes(),CRITICAL_SUITE.read_bytes()
+    registry,suite,critical_suite=json.loads(rb),json.loads(sb),json.loads(cb)
+    core_cases=suite.get("cases",[])
+    critical_cases=critical_suite.get("cases",[])
+    core_ids={str(x.get("case_id")) for x in core_cases if isinstance(x,dict)}
+    critical_ids={str(x.get("case_id")) for x in critical_cases if isinstance(x,dict)}
+    if not critical_cases or core_ids.intersection(critical_ids):
+        raise RuntimeError("Critical live evaluation cases must be non-empty and disjoint from the calibration suite.")
+    heldout_cases=[*core_cases,*critical_cases]
     registry_by_id={
         str(record.get("benchmark_id")): record
         for record in registry.get("records",[])
@@ -380,8 +388,8 @@ def main():
     records=select_gold_standard_sample(eligible_records,args.max_gold_standards)
     expected_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None
     runtime_identity=verify_runtime_identity(base,expected_commit,args.identity_wait_seconds)
-    workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in suite.get("cases",[])]
-    report={"report_schema_version":"1.2.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":expected_commit,"runtime_identity":runtime_identity,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(suite.get("cases",[])),"results":[]}
+    workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in heldout_cases]
+    report={"report_schema_version":"1.2.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"critical_evaluation_suite_id":critical_suite.get("suite_id"),"critical_evaluation_suite_version":critical_suite.get("suite_version"),"critical_evaluation_suite_file_sha256":hashlib.sha256(cb).hexdigest(),"git_commit":expected_commit,"runtime_identity":runtime_identity,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(heldout_cases),"calibration_heldout_count":len(core_cases),"critical_live_case_count":len(critical_cases),"results":[]}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
         question=item["query"]
