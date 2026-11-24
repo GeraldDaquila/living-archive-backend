@@ -3066,6 +3066,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
     r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|strengthen|support|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
+    r"\b(?:difference|distinction) between .{0,180} and .{0,180}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
     r"\bhow (?:can|do|does|might|could) .{0,100} (?:scale|amplify|reinforce|reproduce|worsen|perpetuate) .{0,100}\b",
