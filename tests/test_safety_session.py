@@ -21,7 +21,10 @@ def test_tampered_safety_session_is_rejected(monkeypatch):
         state="acute",
         question="Have you moved away from anything you could use to hurt yourself?",
     )
-    tampered = token[:-2] + "xx"
+    # Mutate the signed payload, not a random nonce/signature suffix that could
+    # coincidentally already equal the replacement value.
+    replacement = "A" if token[4] != "A" else "B"
+    tampered = token[:4] + replacement + token[5:]
     assert safety_session.verify_safety_session(tampered) is None
 
 
