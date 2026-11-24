@@ -16016,6 +16016,8 @@ async def _use_send_json(send, payload, status_code=200):
     if (
         isinstance(payload, dict)
         and payload.get("ok", True) is True
+        and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
+        and not bool(payload.get("handoff_pending"))
         and _boundary_query
         and _boundary_standard is None
         and not _boundary_safety
