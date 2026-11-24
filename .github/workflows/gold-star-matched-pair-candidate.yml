@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Candidate rerun on the registered OpenRouter Gemma 4 free lane after Groq rate limits.
+# Candidate rerun on the registered OpenRouter Nemotron free lane after Gemma and Groq rate limits.
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
   matched-pair-local:
     # Explicit opt-in: this tagged commit runs provider-backed evaluation.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    # Pin one registered OpenRouter Gemma 4 lane; both arms use this exact provider/model.
+    # Pin one registered OpenRouter Nemotron lane; both arms use this exact provider/model.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -49,7 +49,7 @@ jobs:
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --provider=openrouter
-          --model=google/gemma-4-31b-it:free
+          --model=nvidia/nemotron-3-ultra-550b-a55b:free
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
