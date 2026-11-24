@@ -48,10 +48,13 @@ def derive_gold_star_inventory(
     pending = [r for r in records if r.get("status") == PENDING_APPROVAL]
     numbered = [
         r for r in approved
-        if isinstance(r.get("gold_star_number"), int)
+        if r.get("numbering_status") == "ASSIGNED"
+        and isinstance(r.get("gold_star_number"), int)
         and not isinstance(r.get("gold_star_number"), bool)
     ]
-    unassigned = [r for r in approved if r.get("gold_star_number") is None]
+    unassigned = [
+        r for r in approved if r.get("numbering_status") == "UNASSIGNED"
+    ]
 
     review_entries = _records((review or {}).get("entries"))
     review_ids = _ids(review_entries)
