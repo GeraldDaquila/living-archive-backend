@@ -1190,6 +1190,10 @@ def test_85_and_86_are_allocated_and_no_documented_historical_gap_remains():
     assert registry["numbering_policy"]["sequence_start"] == 56
     from gold_star_inventory import derive_gold_star_inventory
     inventory = derive_gold_star_inventory(registry)
+    approved = [
+        item for item in registry["records"]
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
     assert inventory["approved_gold_star_count"] == len(approved)
     assert inventory["numbered_gold_star_count"] == sum(
         record.get("numbering_status") == "ASSIGNED" for record in approved
@@ -2370,7 +2374,7 @@ def test_event_pattern_structure_gold_star_has_reconciled_runtime_and_doorway_co
     assert reviewed["transferable_discipline"] == record["transferable_lesson"]
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
-    assert transfer_map["coverage"]["registry_content_sha"]
+    assert "registry_content_sha" not in transfer_map["coverage"]
     assert transfer_map["coverage"]["general_purpose_runtime_transfer_records"] == len(transfer_map["entries"])
 
 
