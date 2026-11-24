@@ -8703,10 +8703,10 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-23",
+    "last_audit_date": "2026-11-24",
     "approved_gold_star_count": 134,
     "registry_record_count": 172,
-    "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
+    "review_reconciliation": "Canonical approved inventory remains 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. The 2 new governance-balance calibration records are a preserved diagnostic near-miss and a candidate pending user review; neither is an approved Gold Star or runtime contributor.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-23: 134 approved Gold Stars; 39 assigned display serials #56–#94; 95 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
@@ -8818,7 +8818,7 @@
     "last_audit_date": "2026-11-24",
     "approved_gold_star_count": 134,
     "registry_record_count": 172,
-    "review_reconciliation": "Canonical approved inventory is 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. 1 separate recovered response remains pending approval evidence and excluded from the approved Gold Star count. No structural candidate from the 2026-11-23 live review remains pending.",
+    "review_reconciliation": "Canonical approved inventory remains 134 records: 132 active structural-learning contributors with matching qualitative-transfer reviews, 1 approved exact-query-only successor, and 1 superseded historical duplicate. The 2 new governance-balance calibration records are a preserved diagnostic near-miss and a candidate pending user review; neither is an approved Gold Star or runtime contributor.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-23: 134 approved Gold Stars; 39 assigned display serials #56–#94; 95 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
@@ -8828,7 +8828,7 @@
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
-    "structural_candidates_pending_live_review": 0,
+    "structural_candidates_pending_live_review": 1,
     "last_approval": "gs-2026-11-23-community-rule-design-liberty-shared-obligations approved by user 2026-11-23"
   },
   "last_reconciled": "2026-11-24"
