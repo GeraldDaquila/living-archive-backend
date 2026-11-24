@@ -361,7 +361,7 @@ def test_governance_balance_gold_star_is_active_bounded_structural_learning():
     query = "How should governance balance stability, participation, and responsiveness?"
     selected = lessons.select_lesson(query)
     assert selected is not None
-    assert selected["benchmark_id"] == "general-guide-governance-balance-consequence-aware-2026-11-24"
+    assert selected["benchmark_id"] == "general-guide-governance-balance-structural-candidate-2026-11-24"
     assert selected["exact"] is True
     contribution = lessons.active_quality_contribution(query)
     assert contribution is not None
