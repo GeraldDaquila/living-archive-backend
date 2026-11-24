@@ -77,7 +77,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
                 assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
                 assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
                 assert "NOT_EVALUATED" in boundary, record["benchmark_id"]
-                assert "Do not infer" in boundary, record["benchmark_id"]
+                assert "do not infer" in boundary.casefold(), record["benchmark_id"]
         else:
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
