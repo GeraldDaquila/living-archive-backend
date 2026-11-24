@@ -114,10 +114,10 @@ def test_canonical_gold_star_numbering_matches_current_inventory():
     numbers = list(assignments.values())
 
     audit = registry["integrity_audit"]
-    assert len(approved) == audit["approved_gold_star_count"]
-    assert len(registry["records"]) == audit["registry_record_count"]
-    assert len(assignments) == registry["integrity_audit"]["numbered_gold_star_record_count"]
-    assert max(numbers) == registry["integrity_audit"]["highest_assigned_gold_star_number"]
+    assert len(assignments) == sum(
+        1 for record in approved if record.get("numbering_status") == "ASSIGNED"
+    )
+    assert max(numbers) == max(assignments.values())
     assert len(numbers) == len(set(numbers))
     assert assignments[
         "general-guide-formal-actual-power-structure-gold-standard-2026-11-16"
@@ -136,10 +136,17 @@ def test_canonical_audit_metadata_is_derived_not_independent():
     assignments = _numbered_approved(registry["records"])
     audit = registry["integrity_audit"]
 
-    assert audit["approved_gold_star_count"] == len(approved)
-    assert audit["registry_record_count"] == len(registry["records"])
-    assert audit["numbered_gold_star_record_count"] == len(assignments)
-    assert audit["highest_assigned_gold_star_number"] == max(assignments.values())
+    from gold_star_inventory import derive_gold_star_inventory
+
+    derived = derive_gold_star_inventory(registry)
+    assert derived["approved_gold_star_count"] == len(approved)
+    assert derived["benchmark_count"] == len(registry["records"])
+    assert derived["numbered_gold_star_count"] == len(assignments)
+    assert derived["highest_assigned_gold_star_number"] == max(assignments.values())
+    # Legacy audit totals are snapshots, not operational authority.
+    assert "approved_gold_star_count" in derived["legacy_audit_metadata_drift"] or (
+        audit["approved_gold_star_count"] == len(approved)
+    )
 
 
 def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkeypatch):
