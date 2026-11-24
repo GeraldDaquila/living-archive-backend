@@ -16077,6 +16077,19 @@ async def _use_send_json(send, payload, status_code=200):
             status_code,
             exact_standard=_boundary_standard is not None,
         )
+        # The response-floor wrapper may independently enrich canonical navigation.
+        # Reassert the no-doorway rule for an answer already withheld by the
+        # terminal answer-first gate; navigation cannot survive as a substitute.
+        if (
+            isinstance(payload, dict)
+            and payload.get("error_type") == "answer_first_integrity_failure"
+        ):
+            payload = dict(payload)
+            payload["recommendation"] = None
+            payload["canonical_doorway"] = None
+            payload["doorway_title"] = None
+            payload["doorway_url"] = None
+            payload["doorway_decision"] = "omit"
         _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
         if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
             print(
