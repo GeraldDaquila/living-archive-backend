@@ -1272,6 +1272,15 @@
         "production_commit": "1eee5b6453741587b578dee5cfa698eb2c7b99eb",
         "does_not_create_new_gold_star": true
       }
+    },
+    {
+      "benchmark_id": "general-guide-developmental-capacities-distinction-before-synthesis-2026-11-24",
+      "question": "What is the difference between growth, adaptation, maturity, and integration?",
+      "reasoning_family": "developmental_capacities_distinction_before_synthesis",
+      "transferable_discipline": "For explicit comparisons of developmental capacities, first define the distinct function of each named capacity; then explain their reciprocal or conditional relationships without assuming a universal sequence. Test the distinctions in a concrete situation, identify where capacities may be uneven, and distinguish general conceptual synthesis from institution-specific doctrine.",
+      "qualifying_context": "Visitors explicitly asking for the difference, distinction, comparison, relationship, or interaction among growth, adaptation, maturity, integration, or similarly named developmental capacities.",
+      "abstention_boundary": "Do not impose a fixed developmental ladder, mandatory sequence, universal causal progression, or normative hierarchy without evidence. Do not infer that strength in one capacity proves strength in another. Do not force this framework onto unrelated concept comparisons or simple definition requests. Do not attribute general definitions to the Living Archive without an authoritative source. Never transfer exact answer wording, the water-scarcity example, claims, citations, or doorways. A successful deterministic response is not proof of semantic Gold Star application or held-out adaptive transfer.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
