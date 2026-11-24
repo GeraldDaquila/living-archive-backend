@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
-      - "tests/test_cross_question_gold_standard_integrity.py tests/test_institutional_learning_failure_contract.py test_registered_conceptual_recovery_precedence.py"
+      - "tests/test_cross_question_gold_standard_integrity.py"
       - "tests/test_institutional_learning_failure_contract.py"
       - "test_registered_conceptual_recovery_precedence.py"
       - "provider_bank.py"
@@ -20,7 +20,7 @@ on:
       - "guide_direct_attribute_evidence.py"
       - "tests/test_direct_attribute_evidence_boundary.py"
       - "general_guide_composition.py"
-      - "tests/test_general_guide_practical_next_step_contract.py tests/test_cross_question_gold_standard_integrity.py"
+      - "tests/test_general_guide_practical_next_step_contract.py"
       - "gold_star_evaluation_context.py"
       - "tests/test_gold_star_evaluation_context.py"
       - "gold_star_evaluation_context.py"
