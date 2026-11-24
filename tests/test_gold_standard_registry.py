@@ -792,9 +792,9 @@ def test_exact_gold_standard_finalizer_precedence_contract_is_declared():
     finalizer_start = source.index("def _guide_finalize_visitor_payload")
     finalizer_end = source.index("def _apply_exact_gold_standard_authority_to_payload", finalizer_start)
     finalizer = source[finalizer_start:finalizer_end]
-    exact = finalizer.index("exact_standard = _resolve_exact_guide_gold_standard(query)")
+    exact = finalizer.index("exact_standard = _final_exact_gold_standard_authority(query)")
     provenance = finalizer.index("_is_archive_claim_boundary_inquiry(query)")
-    broad = finalizer.index("_requires_broad_conceptual_definition(query)")
+    broad = finalizer.index("general_guide_composition._requires_broad_conceptual_definition(query)")
     terminal = finalizer.index("_outer_registered_recovery")
     assert exact < provenance < broad < terminal
     assert 'safe["processing"] = "final_visitor_boundary_exact_gold_standard"' in finalizer
@@ -1585,7 +1585,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 134
     assert registry["integrity_audit"]["approved_gold_star_count"] == 134
-    assert registry["integrity_audit"]["registry_record_count"] == 170
+    assert registry["integrity_audit"]["registry_record_count"] == 172
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 95
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
@@ -1645,7 +1645,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 134
     assert registry["integrity_audit"]["approved_gold_star_count"] == 134
-    assert registry["integrity_audit"]["registry_record_count"] == 170
+    assert registry["integrity_audit"]["registry_record_count"] == 172
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 95
 
@@ -1716,7 +1716,7 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 134
     assert registry["integrity_audit"]["approved_gold_star_count"] == 134
-    assert registry["integrity_audit"]["registry_record_count"] == 170
+    assert registry["integrity_audit"]["registry_record_count"] == 172
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 95
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
@@ -1841,7 +1841,7 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     assert adjacent["benchmark_id"] != fixture["benchmark_id"]
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 134
     assert registry["integrity_audit"]["approved_gold_star_count"] == 134
-    assert registry["integrity_audit"]["registry_record_count"] == 170
+    assert registry["integrity_audit"]["registry_record_count"] == 172
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 95
 
@@ -2420,3 +2420,26 @@ def test_community_freedom_shared_responsibility_gold_star_is_registered_exactly
     from general_guide_gold_standards import resolve_exact_gold_standard
     assert resolve_exact_gold_standard(record["query"]) is None
     assert "elevate to gold star registry" in record["approval_evidence"]
+
+
+def test_governance_balance_near_miss_and_corrected_candidate_are_preserved_as_a_pair():
+    registry = _registry()
+    records = {item["benchmark_id"]: item for item in registry["records"]}
+    near = records["general-guide-governance-balance-near-miss-2026-11-24"]
+    candidate = records["general-guide-governance-balance-structural-candidate-2026-11-24"]
+
+    assert near["status"] == "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD"
+    assert candidate["status"] == "CANDIDATE_PENDING_USER_REVIEW"
+    assert near["provenance"]["linked_candidate_benchmark_id"] == candidate["benchmark_id"]
+    assert candidate["provenance"]["linked_near_miss_benchmark_id"] == near["benchmark_id"]
+    assert near["query"] == candidate["query"]
+    assert "Start by defining the outcome" in near["expected_response"]
+    assert "The balance must be built into the decision structure" in candidate["expected_response"]
+    assert candidate["user_reviewed_response"] is False
+    assert candidate["explicit_user_elevation_approval"] is False
+    assert candidate["runtime_transfer"] is False
+    assert candidate["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert sum(
+        item["status"] == "USER_APPROVED_GOLD_STANDARD"
+        for item in registry["records"]
+    ) == registry["integrity_audit"]["approved_gold_star_count"] == 134
