@@ -9911,6 +9911,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         if any(marker in _normalized_query for marker in _conceptual_relationship_markers)
         else "deterministic_question_preserving_recovery"
     )
+    if _deterministic_gold_star_application:
+        _final_provider = "gold_star_deterministic_structural_fallback"
     # Keep this helper self-contained: isolated recovery tests may not load the
     # higher-level doorway normalization helpers.
     _raw_doorway = context_data.get("authoritative_doorway") if isinstance(context_data, dict) else None
