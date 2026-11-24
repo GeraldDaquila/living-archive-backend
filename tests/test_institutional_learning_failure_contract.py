@@ -242,7 +242,7 @@ def test_shared_finalizer_invokes_contract_after_inner_routes_and_preserves_exac
     from pathlib import Path
     source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
     assert "apply_institutional_learning_failure_boundary(query, finalized)" in source
-    assert source.index("if _resolve_exact_guide_gold_standard(query) is not None:") < source.index(
+    assert source.index("if _final_exact_gold_standard_authority(query) is not None:") < source.index(
         "apply_institutional_learning_failure_boundary(query, finalized)"
     )
     assert source.index("apply_institutional_learning_failure_boundary(query, finalized)") < source.index(
