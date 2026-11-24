@@ -307,6 +307,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         ("Explain how to make the evidence credible:", evidence_evaluation),
         ("SUBJECT-FIRST CONCEPTUAL EXPLANATION", has(r"\b(?:what is|what does|define|definition|meaning of|conceptual explanation)\b")),
         ("ORIENTATION AND INFORMATION", has(r"\b(?:orientation|information)\b")),
+        ("COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING", has(r"\b(?:balance|balancing|reconcile|reconciling|competing values?|trade[- ]?offs?|shared obligations|personal liberty)\b")),
         ("GOLD STAR SCOPE GOVERNANCE", gold_star_meta and has(r"\b(?:scope|transfer|boundary|domain)\b")),
         ("GOLD STAR REMEDY SELECTION", gold_star_meta and has(r"\b(?:remedy|engineering|repair|failure|new lesson|new gold star)\b")),
         ("SEMANTIC AMBIGUITY BEFORE ANSWERING", has(r"\b(?:ambiguous|ambiguity|same term|different meaning|used differently)\b")),
