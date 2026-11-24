@@ -70,8 +70,8 @@ def test_provider_exhaustion_community_tradeoff_path_survives_early_branch_final
 
 def test_unseen_tradeoff_question_retrieves_and_applies_registered_deterministic_gold_star():
     query = (
-        "A neighborhood group must choose between two options that protect different "
-        "interests. How should it decide?"
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
     )
     contribution = gold_star_lessons.deterministic_fallback_contribution(query)
     assert contribution is not None
