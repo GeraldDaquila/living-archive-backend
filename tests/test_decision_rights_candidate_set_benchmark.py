@@ -138,6 +138,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
         "general-guide-governance-balance-structural-candidate-2026-11-24",
         "general-guide-governance-balance-consequence-aware-2026-11-24",
         "general-guide-relational-synthesis-concept-pairs-2026-11-24",
+        "general-guide-public-commons-civic-renewal-2026-11-24",
     }
     active_at_snapshot = sorted(
         (

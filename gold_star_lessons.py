@@ -464,6 +464,33 @@ def select_lesson_candidates(
 
     candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
 
+    # A tightly scoped provider-exhaustion policy preserves a reviewed
+    # answerability discipline when the visitor explicitly asks for a general
+    # civic-commons explanation while distinguishing it from official doctrine.
+    try:
+        from provider_exhaustion_candidate_policy import (
+            select_provider_exhaustion_candidate,
+        )
+        provider_selection = select_provider_exhaustion_candidate(query, candidates)
+    except Exception as exc:
+        _TELEMETRY_LOG.warning(
+            "provider-exhaustion candidate policy unavailable; preserving ordinary selector: %s",
+            type(exc).__name__,
+        )
+        provider_selection = None
+    if provider_selection is not None:
+        if not provider_selection:
+            return []
+        item = _lesson_candidate_payload(provider_selection["lesson"], None, exact=False)
+        item.update({
+            "match_basis": "governed_provider_exhaustion_policy",
+            "role": provider_selection["role"],
+            "activation_condition": provider_selection["activation_condition"],
+            "role_rationale": provider_selection["role_rationale"],
+        })
+        return [item]
+
+
     # A governed subject-family policy may nominate a complementary candidate
     # set with explicit CORE/CONDITIONAL roles. It is evaluated before broad
     # lexical/semantic ranking, but exact-query authority above remains exclusive.
@@ -660,6 +687,7 @@ def shadow_observation(
         if selected.get("match_basis") in {
             "governed_decision_rights_policy",
             "governed_community_tradeoff_policy",
+            "governed_provider_exhaustion_policy",
         }
         else ("exact" if bool(selected.get("exact")) else "cross_question")
     )
@@ -684,6 +712,7 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     if not any(item.get("match_basis") in {
         "governed_decision_rights_policy",
         "governed_community_tradeoff_policy",
+        "governed_provider_exhaustion_policy",
     } for item in candidates):
         candidates = candidates[:3]
     primary = candidates[0]

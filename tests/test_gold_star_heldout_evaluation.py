@@ -42,7 +42,7 @@ def test_user_approved_developmental_language_gold_star_supports_related_transfe
     # for cross-question quality contribution. A close paraphrase should retrieve
     # structural guidance, not exact-answer authority.
     selected = lessons.select_lesson(
-        "How can language about development make some people seem inferior?"
+        "How can developmental language become dismissive or hierarchical?"
     )
     assert selected is not None
     assert selected["benchmark_id"] == "general-guide-developmental-language-gold-star-2026-11-09"
@@ -52,3 +52,29 @@ def test_user_approved_developmental_language_gold_star_supports_related_transfe
 
 def test_held_out_evaluation_is_not_a_composition_path():
     assert not hasattr(__import__("gold_star_heldout_evaluation"), "compose")
+
+
+def test_public_commons_gold_star_transfers_to_unseen_civic_renewal_question():
+    query = "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?"
+    selected = lessons.select_lesson(query)
+    assert selected is not None
+    assert selected["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
+    assert selected["exact"] is False
+    assert selected["runtime_transfer"] is True
+
+
+def test_public_commons_gold_star_does_not_capture_unrelated_public_service_question():
+    query = "How should public library opening hours be scheduled?"
+    selected = lessons.select_lesson(query)
+    assert selected is None
+
+
+def test_public_commons_gold_star_contributes_discipline_not_exemplar_answer():
+    query = "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?"
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-public-commons-civic-renewal-2026-11-24"
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["discipline"]
+    assert contribution["abstention_boundary"]
+    assert "expected_response" not in contribution
