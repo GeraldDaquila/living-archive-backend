@@ -74,6 +74,7 @@ def derive_gold_star_inventory(
         if not item or count > 1
     })
     audit = registry.get("integrity_audit") or {}
+    secondary_audit = registry.get("audit") or {}
     derived = {
         "approved_gold_star_count": len(approved),
         "registry_record_count": len(records),
@@ -81,11 +82,17 @@ def derive_gold_star_inventory(
         "numbered_gold_star_record_count": len(numbered),
         "unassigned_approved_gold_star_count": len(unassigned),
     }
-    legacy_drift = {
-        key: {"stored": audit[key], "derived": value}
-        for key, value in derived.items()
-        if key in audit and audit[key] != value
-    }
+    legacy_drift = {}
+    for audit_name, audit_snapshot in (
+        ("integrity_audit", audit),
+        ("audit", secondary_audit),
+    ):
+        for key, value in derived.items():
+            if key in audit_snapshot and audit_snapshot[key] != value:
+                legacy_drift[f"{audit_name}.{key}"] = {
+                    "stored": audit_snapshot[key],
+                    "derived": value,
+                }
 
     return {
         "benchmark_count": len(records),
