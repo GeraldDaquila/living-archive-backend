@@ -16,7 +16,9 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     assert "--provider " not in workflow
     assert "--model " not in workflow
     assert "--inter-call-delay-seconds 65" in workflow
-    assert "[run-matched-pairs]" in workflow
+    assert "pull_request:" in workflow
+    assert "github.event_name == 'pull_request'" in workflow
+    assert "github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123'" in workflow
     assert ".onrender.com" not in workflow
 
 
@@ -32,14 +34,12 @@ def test_candidate_local_runner_uses_existing_provider_pins_and_complete_asgi_bo
     assert "unblinding-key.json" in source
 
 
-
 def test_matched_pair_case_file_is_wired_into_the_workflow():
     workflow = (
         Path(__file__).resolve().parents[1]
         / ".github/workflows/gold-star-matched-pair-candidate.yml"
     ).read_text(encoding="utf-8")
     assert "docs/qa/gold_star_matched_pair_cases.json" in workflow
-
 
 
 def test_existing_mirror_capture_workflow_remains_main_only():
