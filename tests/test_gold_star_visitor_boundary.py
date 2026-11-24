@@ -260,3 +260,29 @@ def test_actual_outer_visitor_boundary_preserves_substantive_comparative_opening
     assert result["ok"] is True
     assert result["response"] == payload["response"]
     assert result["gold_star_v2_quality_floor"]["status"] == "pass"
+
+
+
+def test_basic_inquiry_provider_exhaustion_context_is_always_bound():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = source.index("def _basic_inquiry_response(")
+    end = source.index("\ndef ", start + 5)
+    function = source[start:end]
+    query_binding = function.index('query = str(query or "").strip()')
+    interpretation_binding = function.index("interpretation = (", query_binding)
+    first_use = function.index("(interpretation or {}).get(")
+    assert query_binding < interpretation_binding < first_use
+    assert 'task_recovery.get("interpretation")' in function[interpretation_binding:first_use]
+
+
+def test_provider_exhaustion_none_result_is_normalized_before_response_access():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = source.index("recovery = _basic_inquiry_provider_exhaustion_response(")
+    end = source.index("recovery_text = _sanitize_basic_inquiry_response(", start)
+    recovery_setup = source[start:end]
+    assert "recovery = recovery if isinstance(recovery, dict) else {}" in recovery_setup
+    assert "recovery.get(" not in recovery_setup
