@@ -24,7 +24,7 @@ on:
       - "tests/test_gold_star_*"
       - ".github/workflows/gold-star-v2-contract.yml"
   push:
-    branches: [gold-star-v2-complete-architecture]
+    branches: [main, gold-star-v2-complete-architecture]
     paths:
       - "gold_star_question_contract.py"
       - "main.py"
@@ -34,6 +34,7 @@ on:
       - "specialist_adapters.py"
       - "deterministic_answer_recovery.py"
       - "general_guide_composition.py"
+      - "gold_star_deterministic_composition.py"
       - "gold_star_adaptation_evaluation.py"
       - "scripts/gold_star_wp3_simulation.py"
       - "tests/test_gold_star_*"
