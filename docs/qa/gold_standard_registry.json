@@ -8722,6 +8722,59 @@
         "deterministic_fallback_eligible": false
       },
       "freeze_policy": "immutable_diagnostic_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-public-commons-civic-renewal-2026-11-24",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the role of public commons in civic renewal?",
+      "expected_response": "Public commons are resources, spaces, institutions, and shared conditions that people can access and help care for together. They can include parks, libraries, public knowledge, community facilities, and civic infrastructure. Their value is not only that they are publicly available; it also depends on fair access, responsible use, and governance that remains answerable to the people affected.\n\nTheir role in civic renewal is to create practical settings in which people can participate in common life. Shared spaces and services bring people into contact, make cooperation possible, and give communities opportunities to identify needs, deliberate, solve problems, and take part in decisions. When people have a meaningful voice in how shared resources are managed, civic participation can become an everyday practice rather than something limited to elections or formal consultation.\n\nCommons do not renew civic life automatically. Access can be unequal, resources can be neglected or captured by powerful interests, and participation can become tokenistic. Renewal therefore depends on transparent rules, inclusive decision-making, clear responsibilities, protection against exclusion, and ways to challenge or correct mismanagement. In short, public commons can strengthen the relationships and institutions through which people act together, provided that the commons themselves are governed fairly and stewarded accountably. This is a general conceptual explanation, not a claim that it is a formal Living Archive definition.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answer the ordinary conceptual question directly before navigation.",
+        "Define public commons through shared resources, spaces, institutions, and conditions, not only publicly owned assets.",
+        "Explain the civic-renewal mechanism through participation, contact, cooperation, deliberation, problem-solving, and meaningful voice.",
+        "Name failure conditions including unequal access, neglect, capture, and tokenistic participation.",
+        "Identify fair governance, inclusion, accountability, and correction as conditions for renewal.",
+        "Explicitly distinguish this general conceptual explanation from a formal Living Archive definition.",
+        "Preserve the visible Philippine Renewal Framework continuation as a candidate doorway, but do not assert a canonical URL until verified.",
+        "Do not transfer this exact answer or doorway to unrelated questions."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly approved for Gold Star elevation.",
+        "source_date": "2026-11-24",
+        "implementation_source": "deterministic_answer_recovery.py",
+        "implementation_commit": "1f85a6286b5a163a4ca99fcc1d6205ed414fbe46",
+        "live_surface": "The Guide visitor-facing search response after provider-exhaustion recovery deployment.",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, answer, and visible Philippine Renewal Framework doorway title. It does not expose the doorway URL, provider provenance, or a held-out transfer result. The implementation commit and production deployment independently establish the deterministic recovery change, not adaptive transfer."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "rating": null,
+      "rating_out_of_10": 9,
+      "assistant_assessment_out_of_10": 9,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STANDARD — EXACT VISITOR ANSWER REVIEWED; PROVIDER-EXHAUSTION ANSWERABILITY LESSON APPROVED WITH BOUNDED SCOPE",
+      "runtime_transfer": true,
+      "reasoning_family": "provider_exhaustion_answerability_preserving_recovery",
+      "transferable_lesson": "When provider routes are exhausted, do not equate provider unavailability with intellectual unanswerability. For ordinary conceptual questions, recover the answerable general-knowledge portion directly and substantively; distinguish general explanation from institution-specific doctrine; state genuine limits only for the unsupported portion; and preserve a separately warranted continuation. Do not copy the exemplar's exact wording or treat deterministic recovery as proof of adaptive transfer.",
+      "transfer_boundary": "Apply only when a general conceptual or explanatory question is responsibly answerable from stable general knowledge but provider routes are unavailable or exhausted. Do not use to answer source-only questions, claim institutional doctrine without an authoritative source, invent current or specific facts, bypass material ambiguity, or cross safety and high-stakes boundaries. Do not treat provider failure as proof that a question is unanswerable, but do not manufacture an answer where evidence or context is genuinely required. The doorway is NOT_EVALUATED: do not infer or attach a canonical URL from the visible title alone. Do not transfer this exact answer, examples, claims, or doorway to unrelated questions. This record does not by itself establish held-out adaptive transfer.",
+      "known_theme": "public commons, civic renewal, general conceptual answerability, provider exhaustion, deterministic recovery, institutional-doctrine boundary, accountable participation, doorway continuity",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_structural_learning",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "provider_exhaustion_answerability_preserving_recovery",
+        "transferable_discipline": "Do not equate provider exhaustion with intellectual abstention. Answer the responsibly answerable general conceptual portion, distinguish general explanation from institution-specific doctrine, state only the actual evidence boundary, and preserve independently warranted navigation.",
+        "abstention_boundary": "Use only for ordinary conceptual questions answerable from stable general knowledge despite provider unavailability. Preserve source-only, institutional-doctrine, current-fact, ambiguity, safety, high-stakes, and missing-context boundaries. Do not infer a canonical doorway URL from a title; do not transfer exact answer text; do not treat deterministic recovery as proof of held-out adaptive transfer."
+      },
+      "user_approved_at": "2026-11-24",
+      "elevation_approval_evidence": "The user explicitly instructed: 'elevate to gold star' after reviewing the live production screenshot showing the substantive public-commons answer. This authorizes preservation of the exact visitor answer and the bounded provider-exhaustion answerability lesson. It does not authorize exact-answer copying, deterministic fallback authority, or a claim that held-out adaptive transfer has been proven.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a human-facing display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
     }
   ],
   "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records.",
