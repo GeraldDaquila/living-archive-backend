@@ -411,3 +411,48 @@ def test_weekly_stewardship_action_final_boundary_restores_answer_and_doorway():
     assert result["answer_basis"]["kind"] == "practical_application"
     assert result["recommendation"]["title"] == "Stewardship"
     assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
+
+
+def test_human_development_four_concept_comparison_has_a_source_grounded_recovery_contract():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        human_development_comparison_final_contract,
+        is_human_development_comparison_question,
+        registered_recovery_recommendation,
+    )
+
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    assert is_human_development_comparison_question(query)
+    assert has_registered_recovery(query)
+
+    answer = compose_recovery(query)
+    for concept in ("growth", "adaptation", "maturity", "integration"):
+        assert concept in answer.casefold()
+    assert "whereas" in answer.casefold()
+    assert "by contrast" in answer.casefold()
+    assert "not as a fixed four-step ladder" in answer.casefold()
+    assert "challenge, feedback" in answer.casefold()
+    assert "coherent whole" in answer.casefold()
+
+    contract = human_development_comparison_final_contract(query)
+    assert contract["answer_basis"]["kind"] == "archive_supported"
+    assert contract["evidence_document"]["title"] == "Becoming Fully Human"
+    assert contract["evidence_document"]["url"] == "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    assert contract["evidence_document"]["text"]
+    assert registered_recovery_recommendation(query)["url"] == contract["evidence_document"]["url"]
+
+
+def test_human_development_comparison_is_not_an_exact_wording_only_match():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        is_human_development_comparison_question,
+    )
+
+    query = (
+        "Can you compare integration with growth, and explain how maturity and adaptation "
+        "fit into the relationship?"
+    )
+    assert is_human_development_comparison_question(query)
+    answer = compose_recovery(query)
+    assert "Growth, adaptation, maturity, and integration" in answer
