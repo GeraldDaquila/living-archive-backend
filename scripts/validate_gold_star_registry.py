@@ -671,7 +671,20 @@ def main():
         if rating is not None and (not isinstance(rating, (int, float)) or isinstance(rating, bool)):
             fail(f"{record['benchmark_id']} has an invalid rating")
         if not legacy and rating is None:
-            fail(f"{record['benchmark_id']} lacks a numeric rating")
+            # Preserve the distinction between an evaluator's assessment and
+            # a user-supplied rating. An explicitly reviewed and elevated
+            # record may satisfy the quality-evidence contract with its
+            # separately named assistant assessment; never copy that value
+            # into rating/rating_out_of_10.
+            assessment = record.get("assistant_assessment_out_of_10")
+            reviewed_assessment = (
+                isinstance(assessment, (int, float))
+                and not isinstance(assessment, bool)
+                and record.get("user_reviewed_response") is True
+                and record.get("explicit_user_elevation_approval") is True
+            )
+            if not reviewed_assessment:
+                fail(f"{record['benchmark_id']} lacks a numeric rating or explicitly reviewed assistant assessment")
         if not isinstance(record.get("gold_star_capabilities"), dict) or record["gold_star_capabilities"].get("active_quality_contributor") is not True:
             fail(f"{record['benchmark_id']} lacks active quality-contributor authority")
 
