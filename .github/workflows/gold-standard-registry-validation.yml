@@ -9,6 +9,7 @@ on:
       - "tests/test_event_pattern_structure_contract.py"
       - "main.py"
       - "gold_star_lessons.py"
+      - "gold_star_inventory.py"
       - "scripts/validate_gold_star_registry.py"
       - "tests/test_gold_star_lessons.py"
       - "tests/test_gold_star_cross_question_pattern_learning.py"
