@@ -416,6 +416,20 @@ def test_provider_probe_query_does_not_match_an_exact_approved_gold_standard():
     assert resolve_exact_gold_standard(live_evaluation.PROVIDER_PROBE_QUERY) is None
 
 
+def test_provider_probe_requires_subject_specific_thermal_explanation():
+    accurate = (
+        "Both spoons can be at the same room temperature. Metal conducts heat much more readily than wood, "
+        "so it draws heat from your hand faster when you touch it. Wood is a poor thermal conductor, "
+        "so heat leaves your skin more slowly."
+    )
+    generic = (
+        "A useful starting point is to ask how the situation works through particular conditions. "
+        "Repeated signals, incentives, relationships, constraints, and consequences can shape outcomes."
+    )
+    assert live_evaluation.has_metal_spoon_thermal_explanation(accurate)
+    assert not live_evaluation.has_metal_spoon_thermal_explanation(generic)
+
+
 def test_transparency_trust_gold_star_is_retrieved_as_bounded_guidance():
     from gold_star_lessons import active_quality_contribution
 
