@@ -621,7 +621,7 @@ def main_cli() -> int:
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     parser.add_argument(
         "--provider-timeout-seconds", type=float, default=8.0,
-        help="Evaluation-only timeout for the exact pinned lane; bounded to 5-8 seconds.",
+        help="Evaluation-only timeout for the exact pinned lane; bounded to 5-10 seconds.",
     )
     parser.add_argument("--provider", default="", help="Optional exact provider pin.")
     parser.add_argument("--model", default="", help="Optional exact model pin.")
@@ -632,8 +632,8 @@ def main_cli() -> int:
     args = parser.parse_args()
     if args.timeout_seconds <= 0:
         parser.error("--timeout-seconds must be greater than zero.")
-    if not 5.0 <= args.provider_timeout_seconds <= 8.0:
-        parser.error("--provider-timeout-seconds must be between 5 and 8.")
+    if not 5.0 <= args.provider_timeout_seconds <= 10.0:
+        parser.error("--provider-timeout-seconds must be between 5 and 10.")
     if args.inter_call_delay_seconds < 60:
         parser.error("--inter-call-delay-seconds must be at least 60 to respect the provider TPM window.")
 
