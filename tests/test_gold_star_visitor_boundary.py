@@ -207,3 +207,54 @@ def test_actual_outer_visitor_boundary_keeps_safety_ahead_of_exact_answer_and_do
     assert envelope["state"] == "safety_intervention"
     assert envelope["route"]["source"] == "guide_sitewide_safety_boundary"
     assert "guide_outer_visitor_response_boundary" in envelope["route"]["visitor_boundaries"]
+
+
+def test_actual_outer_visitor_boundary_rejects_question_and_archive_prefaces(monkeypatch):
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": (
+            "Your question asks: what is the difference between growth, adaptation, maturity, and integration? "
+            "The Archive material available here offers this starting point: From Self-Development to the Care of What Endures."
+        ),
+        "recommendation": {
+            "title": "Shadow Work & Integration",
+            "url": "https://geralddaquila.com/shadow-work-integration/",
+        },
+        "route_source": "general_guide_composition",
+        "response_provenance": {"class": "llm"},
+    }
+
+    result, status = _run_outer_visitor_boundary(monkeypatch, payload)
+
+    assert status == 503
+    assert result["ok"] is False
+    assert result["error_type"] == "answer_first_integrity_failure"
+    assert result["answer_basis"]["kind"] == "answer_integrity_failure"
+    assert result["recommendation"] is None
+    assert "reliable, direct answer" in result["response"]
+
+
+def test_actual_outer_visitor_boundary_preserves_substantive_comparative_opening(monkeypatch):
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": (
+            "Growth expands a system's capacities; adaptation changes how it responds to conditions; "
+            "maturity develops discernment and stability; integration brings its parts into coherent relationship. "
+            "They are related but not interchangeable."
+        ),
+        "route_source": "general_guide_composition",
+        "response_provenance": {"class": "llm"},
+    }
+
+    result, status = _run_outer_visitor_boundary(monkeypatch, payload)
+
+    assert status == 200
+    assert result["ok"] is True
+    assert result["response"] == payload["response"]
+    assert result["gold_star_v2_quality_floor"]["status"] == "pass"
