@@ -19,6 +19,7 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     assert "--provider " not in workflow
     assert "--model " not in workflow
     assert "--inter-call-delay-seconds 65" in workflow
+    assert "--provider-timeout-seconds 10" in workflow
     assert "pull_request:" in workflow
     assert "github.event_name == 'pull_request'" in workflow
     assert "github.event.pull_request.head.ref == 'test/gold-star-matched-pair-runner-20261123'" in workflow
