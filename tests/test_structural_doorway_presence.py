@@ -37,7 +37,7 @@ def test_systemwide_answer_recovery_does_not_clear_verified_navigation_or_enforc
 
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("# System-wide Gold Standard recovery:")
-    end = source.index("if (\\n                            _systemwide_recovery", start)
+    end = source.index("if (\n                            _systemwide_recovery", start)
     recovery_boundary = source[start:end]
 
     assert "Preserve an already verified doorway" in recovery_boundary
