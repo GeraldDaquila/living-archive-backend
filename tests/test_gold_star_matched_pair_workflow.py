@@ -7,17 +7,17 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
         / ".github/workflows/gold-star-matched-pair-candidate.yml"
     ).read_text(encoding="utf-8")
     assert 'test/gold-star-matched-pair-runner-20261123' in workflow
-    assert 'USE_GUIDE_EVALUATION_PROVIDER_ORDER: "openrouter,gemini,groq"' in workflow
-    assert "--provider=groq" not in workflow
-    assert "--model=openai/gpt-oss-20b" not in workflow
+    assert 'USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq,openrouter,gemini"' in workflow
+    assert "--provider groq" in workflow
+    assert "--model openai/gpt-oss-120b" in workflow
     assert "matched-pair-local:" in workflow
     assert "scripts/capture_gold_star_matched_pairs.py" in workflow
     assert "actions/checkout@v4" in workflow
     assert "gold-star-blind-review-" in workflow
     assert "gold-star-unblinding-evidence-" in workflow
     assert "paired-evaluation-template.json" in workflow
-    assert "--provider " not in workflow
-    assert "--model " not in workflow
+    assert "--provider=openrouter" not in workflow
+    assert "--model=openai/gpt-oss-20b" not in workflow
     assert "--inter-call-delay-seconds 65" in workflow
     assert "--provider-timeout-seconds 10" in workflow
     assert "pull_request:" in workflow
