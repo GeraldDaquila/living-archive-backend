@@ -16024,6 +16024,12 @@ async def _use_send_json(send, payload, status_code=200):
             status_code,
             exact_standard=_boundary_standard is not None,
         )
+        _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
+        if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
+            print(
+                "Gold Star v2 orchestration response-floor gate withheld response: "
+                + str(_floor_result.get("reason") or "unknown")
+            )
 
     # This is the terminal delivery check: run after the response floor and all
     # doorway/context enrichment so no later adapter can reintroduce a rejected
@@ -16074,12 +16080,6 @@ async def _use_send_json(send, payload, status_code=200):
             print(
                 "The Guide terminal answer-first boundary withheld a non-answer: "
                 "reason=opening_contract_failure."
-            )
-        _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
-        if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
-            print(
-                "Gold Star v2 orchestration response-floor gate withheld response: "
-                + str(_floor_result.get("reason") or "unknown")
             )
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
