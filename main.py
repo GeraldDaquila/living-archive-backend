@@ -10144,6 +10144,17 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     return recovered
 
 
+def _is_direct_comparison_query(query):
+    """Distinguish explicit two-sided comparisons from one-sided relationships."""
+    return bool(
+        _comparative_subject_terms(query)
+        and re.search(
+            r"\b(?:difference|compare|comparison|distinguish|differentiate|differ)\b",
+            str(query or "").casefold(),
+        )
+    )
+
+
 def _comparative_subject_terms(query):
     """Extract two-way or enumerated multi-concept comparison subjects."""
     normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
@@ -10470,7 +10481,15 @@ def _general_guide_authoritative_doorway(query, context_data):
         # not require every useful canonical doorway to mention both concepts.
         # Requiring each candidate to independently cover both sides rejects
         # legitimate one-sided gateways before normal relevance ranking runs.
-        relationship_query = general_guide_composition.is_conceptual_relationship_question(query)
+        # A direct comparison requires evidence that covers both subjects.
+        # Although the broad conceptual-relationship detector also recognizes
+        # "difference between" questions, those are not one-sided relationship
+        # inquiries and must not trigger serial per-subject WordPress searches.
+        direct_comparison_query = _is_direct_comparison_query(query)
+        relationship_query = (
+            general_guide_composition.is_conceptual_relationship_question(query)
+            and not direct_comparison_query
+        )
         if comparative_subjects and not relationship_query:
             evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
 

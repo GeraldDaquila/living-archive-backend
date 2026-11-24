@@ -136,6 +136,10 @@ def test_direct_comparison_doorway_search_does_not_fan_out_per_subject():
         return []
 
     assert main._comparative_subject_terms(query) == ["efficiency", "effectiveness"]
+    assert main._is_direct_comparison_query(query)
+    assert not main._is_direct_comparison_query(
+        "What is the relationship between efficiency and effectiveness?"
+    )
     with (
         patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
         patch.object(main, "_wordpress_search_canonical_candidates", side_effect=search),
