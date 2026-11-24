@@ -144,7 +144,7 @@ def test_canonical_audit_metadata_is_derived_not_independent():
     assert derived["numbered_gold_star_count"] == len(assignments)
     assert derived["highest_assigned_gold_star_number"] == max(assignments.values())
     # Legacy audit totals are snapshots, not operational authority.
-    assert "approved_gold_star_count" in derived["legacy_audit_metadata_drift"] or (
+    assert "integrity_audit.approved_gold_star_count" in derived["legacy_audit_metadata_drift"] or (
         audit["approved_gold_star_count"] == len(approved)
     )
 
