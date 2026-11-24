@@ -66,3 +66,22 @@ def test_provider_exhaustion_community_tradeoff_path_survives_early_branch_final
     import general_guide_composition
     assert not general_guide_composition.is_generic_nonanswer(query, result["response"])
     assert not general_guide_composition.is_meta_answer_failure(result["response"])
+
+
+def test_unseen_tradeoff_question_retrieves_and_applies_registered_deterministic_gold_star():
+    query = (
+        "A neighborhood group must choose between two options that protect different "
+        "interests. How should it decide?"
+    )
+    contribution = gold_star_lessons.deterministic_fallback_contribution(query)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    assert contribution["authority_mode"] == "deterministic_structural_guidance_only"
+
+    result = compose_deterministic_gold_star_response(query, contribution)
+    assert result is not None
+    assert result["plan_id"] == "ethical_tradeoff_v1"
+    assert result["abstention_boundary_applied"] is True
+    assert len(result["application_evidence_spans"]) == 2
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
