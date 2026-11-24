@@ -10477,7 +10477,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         direct_comparison_query = bool(
             comparative_subjects
             and re.search(
-                r"\\b(?:difference|compare|comparison|distinguish|differentiate|differ)\\b",
+                r"\b(?:difference|compare|comparison|distinguish|differentiate|differ)\b",
                 str(query or "").casefold(),
             )
         )
