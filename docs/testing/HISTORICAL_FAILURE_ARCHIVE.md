@@ -144,4 +144,18 @@ It now verifies that each is answered natively by The Guide, that no HRN redirec
 The full-suite diagnostic on the PR head completed with **2,326 tests, 77 failures, 0 errors, and 3 skipped**. The six retired nodes no longer appear in the active failure inventory; their replacement native-Guide behavior tests passed. v487 production validation passed 52/52 steps, provider health passed 8/8, and mocked UI continuity passed. The full-suite workflow remains non-blocking and is an inventory generator, not a claim that all tests pass.
 
 No production runtime, WordPress integration, HRN adapter, provider configuration, Pinecone index, Render service, or visitor-facing code changed. Merge remains subject to the standard PR review/verification boundary.
+## 2026-11-24 current mainline diagnostic
 
+| Field | Value |
+|---|---|
+| Workflow | [Historical test failure inventory run 45378315175](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/45378315175) |
+| Tested main commit | `5fd80a427a0059b36a8e661c0468f88d97c2e616` |
+| Artifact | `historical-test-failure-inventory` (artifact ID `14911394049`) |
+| Recorded test cases | 2,663 |
+| JUnit total | 2,927, including 264 passing subtests |
+| Failures | **61** |
+| Errors | 0 |
+| Skipped | 25 |
+| Disposition | All 61 failures remain **UNRESOLVED** pending contract-level review. No tests were retired by this diagnostic. |
+
+The focused PR #1964 acceptance gates passed, including the production source-identity smoke test and the real WordPress visitor-browser acceptance for the previously missed community-governance wording. Those passes do not erase the 61 full-suite diagnostic failures or establish Gold Star provider attribution. The diagnostic remains non-blocking by design and preserves every failure for individual review.
