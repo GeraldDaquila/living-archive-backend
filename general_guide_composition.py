@@ -2612,7 +2612,9 @@ _ANSWER_FIRST_META_OPENING = re.compile(
     r"(?:comparison|answer|explanation|response|approach|framework|way)\s+"
     r"(?:of|for|to|begins?|starts?|would|should)\b"
     r"|(?:to answer (?:this|the question)|in response to (?:this|the question)|"
-    r"the question (?:asks|is asking|calls for)|what (?:a|the) (?:good|useful|sound|clear) "
+    r"(?:your|the) question (?:asks|is asking|calls for|is about|concerns)|"
+    r"the archive material (?:available )?(?:here )?(?:offers|provides|suggests)|"
+    r"what (?:a|the) (?:good|useful|sound|clear) "
     r"(?:answer|comparison|explanation) (?:does|should|would))\b"
     r")",
     re.I,
