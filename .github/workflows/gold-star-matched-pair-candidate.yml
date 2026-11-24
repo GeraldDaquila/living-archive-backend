@@ -50,6 +50,7 @@ jobs:
           python scripts/capture_gold_star_matched_pairs.py
           --provider=gemini
           --model=gemini-3.8-flash
+          --provider-timeout-seconds 8
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
       - name: Upload blind review package
