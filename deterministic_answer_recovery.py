@@ -1844,7 +1844,12 @@ def _is_public_commons_civic_renewal_question(question):
     asks_explanation = bool(re.search(
         r"\b(?:what|how|why|explain|describe)\b", q
     ))
-    return commons and civic_renewal and asks_role and asks_explanation
+    archive_specific = bool(re.search(
+        r"\b(?:according to|in|within)\s+(?:the\s+)?(?:living\s+)?archive\b|"
+        r"\barchive(?:'s|’s)\s+(?:formal\s+)?(?:definition|doctrine|meaning)\b",
+        q,
+    ))
+    return commons and civic_renewal and asks_role and asks_explanation and not archive_specific
 
 
 def _public_commons_civic_renewal_recovery():
