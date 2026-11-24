@@ -2443,3 +2443,26 @@ def test_governance_balance_near_miss_and_corrected_candidate_are_preserved_as_a
         item["status"] == "USER_APPROVED_GOLD_STANDARD"
         for item in registry["records"]
     ) == registry["integrity_audit"]["approved_gold_star_count"] == 136
+
+
+def test_user_approved_governance_response_quality_exemplar_is_registered_without_runtime_authority():
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-governance-balance-consequence-aware-2026-11-24"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["expected_response"].startswith("Start by defining the outcome")
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is False
+    assert record["paired_active_benchmark_id"] == "general-guide-governance-balance-structural-candidate-2026-11-24"
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert "Do not infer" in capabilities["abstention_boundary"]
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 1
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 136
