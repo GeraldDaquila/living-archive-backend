@@ -3066,6 +3066,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
     r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|strengthen|support|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
+    r"\b(?:difference|distinction) between .{0,180} and .{0,180}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
     r"\bhow (?:can|do|does|might|could) .{0,100} (?:scale|amplify|reinforce|reproduce|worsen|perpetuate) .{0,100}\b",
@@ -3299,6 +3300,35 @@ def _open_question_orientation_recovery(question: str) -> Optional[str]:
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
+
+    # Developmental capacities are distinct, interacting dimensions rather than
+    # a fixed ladder. This bounded recovery applies only when the visitor names
+    # all four capacities and asks for their distinction or relationship. The
+    # discipline is distinction-before-synthesis: define each role, explain
+    # reciprocal interaction without asserting a mandatory sequence, then test
+    # the relationship in one concrete setting. It is general conceptual
+    # orientation, not an Archive-doctrine attribution or a claim of live
+    # Gold Star selection/application.
+    developmental_capacities = ("growth", "adaptation", "maturity", "integration")
+    asks_developmental_comparison = bool(
+        all(re.search(r"\b" + term + r"\b", normalized) for term in developmental_capacities)
+        and re.search(
+            r"\b(?:difference|distinction|differ|distinguish|compare|comparison|relationship|relate|connected|connection|between)\b",
+            normalized,
+        )
+    )
+    if asks_developmental_comparison:
+        return (
+            "Growth, adaptation, maturity, and integration describe four related but distinct dimensions of development. "
+            "Growth expands a person’s or institution’s capacities. Adaptation changes how those capacities are used in response to new conditions. "
+            "Maturity concerns the quality of judgment, responsibility, and self-regulation brought to choices. "
+            "Integration connects different capacities and experiences so they can work together as a coherent whole.\n\n"
+            "They influence one another, but they are not a fixed sequence. Growth can create new possibilities that require adaptation; adaptation can expose where judgment needs to mature; maturity can help a person decide which changes to retain; and integration can connect what has been learned so that it becomes usable across different situations. "
+            "The movement is reciprocal: integration may reveal a new area for growth, while changed circumstances may require renewed adaptation. A person can therefore be highly developed in one dimension and still be learning in another.\n\n"
+            "Consider a community responding to water scarcity. It may grow by developing new skills and infrastructure; adapt by changing planting schedules and water use as rainfall shifts; demonstrate maturity by sharing constraints fairly, weighing long-term consequences, and accepting responsibility for difficult decisions; and integrate these capacities by coordinating ecological knowledge, household needs, governance, and practical routines into one workable response. "
+            "Building infrastructure alone would be growth, not proof of maturity or integration. A flexible response alone would show adaptation, not necessarily fair judgment. The four dimensions become mutually reinforcing when new capacity, responsive action, responsible judgment, and coordination are all brought to bear.\n\n"
+            "The useful question is not which stage comes first, but which capacity is developing, which is under strain, and how well the four are being brought into relationship. This is a general conceptual explanation, not a claim that the Living Archive defines these terms in exactly these words."
+        )
 
     # Transparency and trust are a well-established concept pair. When provider
     # composition is unavailable, do not let a relevant-but-incomplete Archive
@@ -5239,7 +5269,12 @@ def compose(
                 doorway = _select_verified_recovery_doorway(question, documents)
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
-                recovery="conceptual_relationship",
+                recovery=(
+                    "developmental_capacities_comparison"
+                    if all(re.search(r"\b" + term + r"\b", _normalize_space(question).casefold())
+                           for term in ("growth", "adaptation", "maturity", "integration"))
+                    else "conceptual_relationship"
+                ),
                 doorway=bool(doorway["doorway_title"]),
             )
             return {
