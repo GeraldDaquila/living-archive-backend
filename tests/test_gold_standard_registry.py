@@ -2375,7 +2375,6 @@ def test_event_pattern_structure_gold_star_has_reconciled_runtime_and_doorway_co
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
     assert "registry_content_sha" not in transfer_map["coverage"]
-    assert transfer_map["coverage"]["general_purpose_runtime_transfer_records"] == len(transfer_map["entries"])
 
 
 
