@@ -161,3 +161,46 @@ def test_meta_coverage_semantic_contract_rejects_compatibility_doorway_aliases()
         if check["name"] == "no_archive_doorway_for_policy_question"
     )
     assert doorway_check["passed"] is False
+
+
+def test_four_concept_comparison_requires_every_subject_and_a_distinct_explanation():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    answer = compose_recovery(query)
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+
+    assert classify_question(query)["type"] == "comparison"
+    assert result["status"] == "review_required"
+    assert result["hard_failures"] == []
+    assert all(
+        check["passed"]
+        for check in result["checks"]
+        if check["name"] in {
+            "compared_subjects_covered",
+            "compared_subjects_explained",
+            "comparative_structure",
+        }
+    )
+
+
+def test_comparison_contract_rejects_a_topic_echo_that_names_no_subjects_or_distinctions():
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    weak = "This is a useful question about human development. The Archive resource offers a place to explore further."
+    result = evaluate_semantic_contract(query, {"ok": True, "response": weak})
+
+    assert result["status"] == "fail"
+    assert "compared_subjects_covered" in result["hard_failures"]
+    assert "comparative_structure" in result["hard_failures"]
+
+
+def test_comparison_contract_rejects_subject_listing_without_explanations():
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    weak = (
+        "Growth, adaptation, maturity, and integration are all important. "
+        "They are different, whereas each matters in development."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": weak})
+
+    assert result["status"] == "fail"
+    assert "compared_subjects_explained" in result["hard_failures"]
