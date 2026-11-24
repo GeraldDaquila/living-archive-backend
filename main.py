@@ -14673,13 +14673,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     if _final_requires_gold_standard:
         # Reject meta-answers that describe what an answer should do instead of
         # answering the subject. Paragraph count alone cannot establish relevance.
-        _meta_answer = bool(re.search(
-            r"\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
-            r"i don['’]?t have enough verified context|the inquiry need not stop here|"
-            r"separate established facts from assumptions)\b",
-            response,
-            re.I,
-        ))
+        _meta_answer = (
+            not general_guide_composition._has_direct_answer_opening(query, response)
+            or bool(re.search(
+                r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+                r"i don['’]?t have enough verified context|the inquiry need not stop here|"
+                r"separate established facts from assumptions)\\b",
+                response,
+                re.I,
+            ))
+        )
         _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
         if _meta_answer or _current_response_nonanswer:
             # A known regression query gets a deterministic, direct answer at
@@ -14736,7 +14739,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                     _last_retry_text
                 )
                 _retry_nonanswer = general_guide_composition.is_generic_nonanswer(query, _last_retry_text)
-                if _last_retry_text and not _retry_is_meta_answer and not _retry_nonanswer:
+                if (
+                    _last_retry_text
+                    and not _retry_is_meta_answer
+                    and not _retry_nonanswer
+                    and general_guide_composition._has_direct_answer_opening(query, _last_retry_text)
+                ):
                     response = _last_retry_text
                     print("The Guide final payload boundary: evidence-grounded task-appropriate recomposition PASS.")
                 else:
@@ -14746,6 +14754,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                         _bounded_recovery_text
                         and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
                         and not general_guide_composition.is_generic_nonanswer(query, _bounded_recovery_text)
+                        and general_guide_composition._has_direct_answer_opening(query, _bounded_recovery_text)
                     )
                     if _bounded_recovery_is_substantive:
                         response = _bounded_recovery_text
@@ -14787,7 +14796,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                                 re.I,
                             ))
                         )
-                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:
+                        if (
+                            _systemwide_recovery
+                            and not _systemwide_is_meta
+                            and not _systemwide_nonanswer
+                            and general_guide_composition._has_direct_answer_opening(query, _systemwide_recovery)
+                        ):
                             # Recovery shape follows the actual question and is not paragraph-count gated;
                             # explicit short, factual, and navigation requests retain the form this question requires.
                             response = _systemwide_recovery
@@ -14854,6 +14868,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                                 _answer_only_text
                                 and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
+                                and general_guide_composition._has_direct_answer_opening(query, _answer_only_text)
                             )
                             # A protected deterministic recovery is an
                             # independent answer path, not another LLM retry.
@@ -14875,11 +14890,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                             _deterministic_quality_valid = bool(
                                 _deterministic_text
                                 and not general_guide_composition.is_meta_answer_failure(_deterministic_text)
+                                and general_guide_composition._has_direct_answer_opening(query, _deterministic_text)
                                 and not general_guide_composition._basic_answer_integrity_failure(query, _deterministic_text)
                             ) if hasattr(general_guide_composition, "_basic_answer_integrity_failure") else bool(
                                 _deterministic_text
                                 and not general_guide_composition.is_meta_answer_failure(_deterministic_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
+                                and general_guide_composition._has_direct_answer_opening(query, _deterministic_text)
                             )
                             _deterministic_valid = bool(
                                 _deterministic_quality_valid
@@ -15990,6 +16007,53 @@ async def _use_send_json(send, payload, status_code=200):
         if is_stewardship_consent_relationship_question(_boundary_query):
             payload = _apply_stewardship_consent_relationship_boundary(
                 _boundary_query, payload
+            )
+
+    # Terminal answer-first integrity is enforced after every composer, specialist,
+    # recovery, and doorway rewrite. Provider-parser validation alone is insufficient:
+    # alternate and deterministic routes can bypass that parser. Exact approved
+    # answers and safety interventions retain their separate authorities.
+    if (
+        isinstance(payload, dict)
+        and payload.get("ok", True) is True
+        and _boundary_query
+        and _boundary_standard is None
+        and not _boundary_safety
+        and general_guide_composition._requires_substantive_answer_contract(_boundary_query)
+    ):
+        _terminal_response = _sanitize_basic_inquiry_response(
+            str(payload.get("response") or payload.get("answer") or "")
+        )
+        if not general_guide_composition._has_direct_answer_opening(
+            _boundary_query, _terminal_response
+        ):
+            payload = dict(payload)
+            payload.update({
+                "ok": False,
+                "response": (
+                    "I couldn’t produce a reliable, direct answer to that question just now. "
+                    "The response did not meet the Guide’s answer-integrity requirements; "
+                    "please try again shortly."
+                ),
+                "error_type": "answer_first_integrity_failure",
+                "recommendation": None,
+                "canonical_doorway": None,
+                "doorway_title": None,
+                "doorway_url": None,
+                "doorway_decision": "omit",
+                "answer_basis": {
+                    "kind": "answer_integrity_failure",
+                    "label": "Answer needs recovery",
+                    "explanation": (
+                        "The terminal visitor boundary rejected a response that did not "
+                        "begin with a substantive answer to the visitor’s question."
+                    ),
+                },
+            })
+            status_code = 503
+            print(
+                "The Guide terminal answer-first boundary withheld a non-answer: "
+                "reason=opening_contract_failure."
             )
 
     # Deterministic, safety, specialist, and provider routes share one
