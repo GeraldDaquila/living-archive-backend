@@ -7,7 +7,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "general_guide_system_vs_separate
 
 
 def _canonical_registry_record(fixture):
-    registry_path = Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_star_registry.json"
+    registry_path = Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json"
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     return next(
         record for record in registry["records"]
