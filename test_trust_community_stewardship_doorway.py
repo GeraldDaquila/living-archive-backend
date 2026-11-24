@@ -77,12 +77,11 @@ class TrustCommunityStewardshipDoorwayTests(unittest.TestCase):
         self.assertTrue(result["recommendation"]["rationale"])
         self.assertIn("accountability makes trust dependable", result["response"])
 
-    def test_answer_contains_a_real_markdown_doorway(self):
+    def test_answer_text_keeps_doorway_in_separate_structured_field(self):
         response = CONTRACT["_trust_community_stewardship_recovery"]()
-        self.assertIn(
-            f"[Trust Architecture cornerstone]({self.EXPECTED_URL})",
-            response,
-        )
+        self.assertNotIn("Trust Architecture cornerstone", response)
+        contract = CONTRACT["_trust_community_stewardship_final_contract"](self.QUERY)
+        self.assertEqual(contract["recommendation"]["url"], self.EXPECTED_URL)
 
     def test_task_recovery_and_provider_exhaustion_recovery_are_identical(self):
         self.assertTrue(deterministic_recovery.has_registered_recovery(self.QUERY))
