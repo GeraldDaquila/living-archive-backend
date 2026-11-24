@@ -6,7 +6,7 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
         Path(__file__).resolve().parents[1]
         / ".github/workflows/gold-star-matched-pair-candidate.yml"
     ).read_text(encoding="utf-8")
-    assert 'qa/gold-star-matched-pair-current-main-20261124' in workflow
+    assert 'qa/gold-star-matched-pair-main-1969' in workflow
     assert 'USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq,openrouter,gemini"' in workflow
     assert "--provider groq" in workflow
     assert "--model openai/gpt-oss-120b" in workflow
@@ -22,7 +22,7 @@ def test_candidate_local_matched_pair_capture_runs_only_in_github_actions():
     assert "--provider-timeout-seconds 10" in workflow
     assert "pull_request:" in workflow
     assert "github.event_name == 'pull_request'" in workflow
-    assert "github.event.pull_request.head.ref == 'qa/gold-star-matched-pair-current-main-20261124'" in workflow
+    assert "github.event.pull_request.head.ref == 'qa/gold-star-matched-pair-main-1969'" in workflow
     assert ".onrender.com" not in workflow
 
 
