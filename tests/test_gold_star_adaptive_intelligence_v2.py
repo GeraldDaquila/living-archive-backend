@@ -66,18 +66,19 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
     ]
     active = [item for item in approved if item.get("runtime_transfer") is True]
-    assert len(approved) == 135
+    assert len(approved) == 136
     assert len(active) == 133
-    # The approved ledger also retains two non-contributing records: one
-    # superseded historical duplicate and one exact-query-only successor.
-    # They remain approved provenance records but are not runtime learners.
-    assert len({item["benchmark_id"] for item in approved}) == 135
+    # The approved ledger retains three non-contributing records: one
+    # superseded historical duplicate, one exact-query-only successor, and
+    # one user-approved response-quality exemplar paired with an active lesson.
+    assert len({item["benchmark_id"] for item in approved}) == 136
     assert len({item["benchmark_id"] for item in active}) == 133
     assert {
         item["benchmark_id"] for item in approved if item.get("runtime_transfer") is not True
     } == {
         "gs-2026-11-13-04-migrated-canonical-ledger",
         "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17",
+        "general-guide-governance-balance-consequence-aware-2026-11-24",
     }
 
 
