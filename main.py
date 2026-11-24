@@ -10138,6 +10138,7 @@ def _comparative_subject_terms(query):
         raw_subjects = re.split(r"\s*,\s*|\s+and\s+|\s*&\s*", match.group(1))
         terms = []
         for value in raw_subjects:
+            value = re.sub(r"^\s*and\s+", "", value).strip()
             words = [w for w in re.findall(r"[a-z0-9]+", value)
                      if w not in {"the", "a", "an", "is", "are", "does", "do", "how", "what"}]
             if words:
