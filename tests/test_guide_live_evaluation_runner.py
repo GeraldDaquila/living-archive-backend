@@ -513,3 +513,43 @@ def test_critical_live_suite_is_included_in_runner_workload():
     source = inspect.getsource(live_evaluation.main)
     assert "critical_cases=critical_suite.get(\"cases\",[])" in source
     assert 'workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in heldout_cases]' in source
+
+
+
+def test_transparency_trust_accepts_clear_reciprocal_paraphrase_but_keeps_provenance_gate():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency and trust are related, but they are not the same thing. "
+        "Transparency means making relevant decisions, reasons, evidence, and processes visible enough to be examined; "
+        "trust is the confidence that a person or institution will act with sufficient honesty, competence, consistency, "
+        "and regard for those affected. Transparency can support justified trust because people are better able to "
+        "understand what is being done, assess whether explanations match conduct, and identify mistakes or conflicts "
+        "of interest. Visibility creates the possibility of scrutiny; trustworthy conduct is what gives that scrutiny "
+        "a reason to build confidence. The relationship can also work in the other direction. Where people have "
+        "reasonable trust, they may be more willing to share information, raise concerns, and engage openly; where "
+        "institutions respond to that openness with candour and correction, trust can deepen. But neither side "
+        "guarantees the other. Disclosure without context can confuse or mislead, and an institution can be transparent "
+        "about a poor decision without making the decision trustworthy. Trust built on secrecy may be fragile because "
+        "people cannot independently assess what they are being asked to rely on. Legitimate privacy and confidentiality "
+        "must still be protected while decisions and uses of power remain accountable."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "bounded_conceptual_relationship_recovery",
+                "model": "deterministic-contract-recovery",
+                "llm_invoked": False,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    reciprocal = next(item for item in checks if item["name"] == "reciprocal_but_not_identical")
+    provenance = next(item for item in checks if item["name"] == "attributable_llm")
+    assert reciprocal["passed"], checks
+    assert provenance["passed"] is False, checks

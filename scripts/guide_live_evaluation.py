@@ -266,7 +266,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             and ("trust" in low and any(term in low for term in ("rely", "confidence", "dependable", "reliance")))
         )
         mechanism = any(term in low for term in ("because", "enables", "allows", "makes it possible", "basis for scrutiny"))
-        reciprocal = any(term in low for term in ("reinforce one another", "reinforce each other", "reciprocal", "in turn", "also makes"))
+        reciprocal = any(term in low for term in ("reinforce one another", "reinforce each other", "mutually reinforce", "strengthen one another", "strengthen each other", "work both ways", "works both ways", "other direction", "reciprocal", "in turn", "also makes"))
         boundary = any(term in low for term in ("neither guarantees", "does not guarantee", "not guarantee", "not the same", "not equivalent"))
         limits = any(term in low for term in ("privacy", "confidential", "context", "mislead", "accountability"))
         retrieval_only = (
