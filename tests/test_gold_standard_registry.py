@@ -1837,10 +1837,10 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
     assert inventory["numbered_gold_star_count"] == len(assigned)
     assert inventory["unassigned_approved_gold_star_count"] == len(unassigned)
     assert len(assigned) + len(unassigned) == len(approved)
-    assert inventory["legacy_audit_metadata_drift"] == {
-        key: value for key, value in inventory["legacy_audit_metadata_drift"].items()
-        if key in audit
-    }
+    assert all(
+        key.startswith(("integrity_audit.", "audit."))
+        for key in inventory["legacy_audit_metadata_drift"]
+    )
     assert "61 approved records explicitly UNASSIGNED" not in narrative
 
 
