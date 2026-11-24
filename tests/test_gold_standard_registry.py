@@ -2518,3 +2518,35 @@ def test_user_approved_governance_response_quality_exemplar_is_registered_withou
         if (item.get("gold_star_capabilities") or {}).get("generation_class")
         == "user_approved_response_quality_exemplar"
     )
+
+
+def test_transparency_trust_relational_synthesis_gold_star_is_bounded_and_active():
+    registry = _registry()
+    lesson = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+    )
+    capabilities = lesson["gold_star_capabilities"]
+    assert lesson["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert lesson["runtime_transfer"] is True
+    assert capabilities["active_quality_contributor"] is True
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert lesson["doorway_status"] == "NOT_EVALUATED"
+    assert "mechanism connecting them" in lesson["transferable_lesson"]
+    assert "meaningful boundary or tension" in lesson["transferable_lesson"]
+    assert lesson["numbering_status"] == "UNASSIGNED"
+
+
+def test_transparency_trust_original_visitor_response_is_preserved_as_diagnostic():
+    registry = _registry()
+    diagnostic = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-relational-synthesis-transparency-trust-near-miss-2026-11-24"
+    )
+    assert diagnostic["status"] == "RECOVERED_REGRESSION_SCENARIO"
+    assert diagnostic["runtime_transfer"] is False
+    assert diagnostic["linked_successor_benchmark_id"] == (
+        "general-guide-relational-synthesis-concept-pairs-2026-11-24"
+    )
+    assert "offers this starting point" in diagnostic["expected_response"]
