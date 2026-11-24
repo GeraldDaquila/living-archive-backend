@@ -18579,6 +18579,72 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     )
                 safe_payload = _guide_sync_power_responsibility_final_metadata(safe_payload)
                 safe_payload = _guide_reconcile_verified_doorway_recovery(safe_payload)
+
+                # Absolute outermost answer-first enforcement. The inner sender and
+                # finalizer can still be followed by route-context and doorway
+                # reconciliation, so the actual visitor payload must be checked
+                # once more immediately before serialization.
+                if isinstance(safe_payload, dict):
+                    _outer_intent = str(safe_payload.get("intent") or "").strip().upper()
+                    _outer_safety = _outer_intent in {
+                        "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
+                    }
+                    _outer_exact_standard = (
+                        None if _outer_safety
+                        else _resolve_exact_guide_gold_standard(query)
+                    )
+                    if safe_payload.get("error_type") == "answer_first_integrity_failure":
+                        _outer_answer_first_failed = True
+                    else:
+                        _outer_answer_first_failed = False
+                    if (
+                        not _outer_answer_first_failed
+                        and safe_payload.get("ok", True) is True
+                        and not _outer_safety
+                        and _outer_exact_standard is None
+                        and _outer_intent != "GLOSSARY_HANDOFF"
+                        and not bool(safe_payload.get("handoff_pending"))
+                        and general_guide_composition._requires_substantive_answer_contract(query)
+                    ):
+                        _outer_response_text = _sanitize_basic_inquiry_response(
+                            str(safe_payload.get("response") or safe_payload.get("answer") or "")
+                        )
+                        _outer_answer_first_failed = bool(
+                            _outer_response_text
+                            and not general_guide_composition._has_direct_answer_opening(
+                                query, _outer_response_text
+                            )
+                        )
+                    if _outer_answer_first_failed:
+                        safe_payload = dict(safe_payload)
+                        safe_payload.update({
+                            "ok": False,
+                            "response": (
+                                "I couldn’t produce a reliable, direct answer to that question just now. "
+                                "The response did not meet the Guide’s answer-integrity requirements; "
+                                "please try again shortly."
+                            ),
+                            "error_type": "answer_first_integrity_failure",
+                            "recommendation": None,
+                            "canonical_doorway": None,
+                            "doorway_title": None,
+                            "doorway_url": None,
+                            "doorway_decision": "omit",
+                            "answer_basis": {
+                                "kind": "answer_integrity_failure",
+                                "label": "Answer needs recovery",
+                                "explanation": (
+                                    "The outermost visitor boundary rejected a response that did not "
+                                    "begin with a substantive answer to the visitor’s question."
+                                ),
+                            },
+                        })
+                        _outer_status = 503
+                        print(
+                            "The Guide outermost answer-first boundary withheld a non-answer: "
+                            "reason=opening_contract_failure."
+                        )
+
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
