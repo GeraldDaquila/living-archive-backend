@@ -15267,9 +15267,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
                 or general_guide_composition.is_generic_nonanswer(
                     query, _current_comparison_response
                 )
-                or general_guide_composition.is_meta_answer_failure(
-                    _current_comparison_response
-                )
             )
             if _comparison_needs_recovery:
                 response = _sanitize_basic_inquiry_response(
