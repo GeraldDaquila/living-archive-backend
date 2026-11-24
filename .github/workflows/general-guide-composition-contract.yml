@@ -106,6 +106,7 @@ on:
       - "tests/test_guide_incomplete_knowledge.py"
       - "guide_runtime.py"
       - "general_guide_composition.py"
+      - "tests/test_general_guide_practical_next_step_contract.py"
       - "tests/test_guide_outcome_telemetry_correlation.py"
       - "guide_answerability.py"
       - "tests/test_guide_layered_answerability.py"
