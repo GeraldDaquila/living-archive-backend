@@ -63,9 +63,16 @@ def validate_exact_only_successors(approved_records, active_records):
     active_by_id = {item.get("benchmark_id"): item for item in active_records}
     exact_only = []
     for record in approved_records:
-        if record.get("runtime_transfer") is True or record.get("superseded_by_benchmark_id"):
-            continue
         capabilities = record.get("gold_star_capabilities")
+        if (
+            record.get("runtime_transfer") is True
+            or record.get("superseded_by_benchmark_id")
+            or (
+                isinstance(capabilities, dict)
+                and capabilities.get("generation_class") == "user_approved_response_quality_exemplar"
+            )
+        ):
+            continue
         successor_of = str(record.get("replaces_exact_query_runtime_authority_of") or "").strip()
         predecessor = active_by_id.get(successor_of)
         valid = (
