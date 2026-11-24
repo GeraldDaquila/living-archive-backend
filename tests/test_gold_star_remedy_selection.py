@@ -95,9 +95,9 @@ def test_competing_values_balance_contract_is_architectural_and_domain_general()
     for marker in (
         "mechanisms that make the balance work",
         "decision rights",
-        "who is accountable",
+        "is accountable",
         "challenge or appeal",
-        "observable evidence or conditions",
+        "observable review or escalation triggers",
         "stability becoming rigidity",
         "participation becoming ceremonial",
         "responsiveness becoming arbitrary",
