@@ -11916,6 +11916,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
     composition_repair_attempted = False
     query = str(query or "").strip()
+    # Basic Inquiry does not receive a separate interpretive payload. Keep the
+    # optional recovery context explicitly typed so late deterministic recovery
+    # cannot reference an unbound local after provider exhaustion. If a future
+    # caller supplies a structured interpretation, preserve only that mapping.
+    interpretation = (
+        task_recovery.get("interpretation")
+        if isinstance(task_recovery, dict)
+        and isinstance(task_recovery.get("interpretation"), dict)
+        else {}
+    )
     # A recognized reflexive critique is an answer task, not a retrieval task.
     # Resolve its methodological deliverable before any discovery, retrieval,
     # provider selection, or resource-availability fallback can suppress it.
@@ -17299,6 +17309,12 @@ async def _use_request_boundary(scope, receive, send):
                         or recovery_context.get("recommendation_canonical_primary")
                     ),
                 )
+                # Provider-independent recovery is allowed to return None when
+                # no bounded answer is registered. Normalize that absence before
+                # reading response/provenance fields; the next recovery stages
+                # must still run instead of raising AttributeError and bypassing
+                # the final answer-integrity boundary.
+                recovery = recovery if isinstance(recovery, dict) else {}
                 recovery_text = _sanitize_basic_inquiry_response(
                     general_guide_composition.enforce_response_contracts(
                         query, str(recovery.get("response") or "")
