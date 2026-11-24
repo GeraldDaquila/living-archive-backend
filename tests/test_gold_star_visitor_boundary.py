@@ -286,3 +286,19 @@ def test_provider_exhaustion_none_result_is_normalized_before_response_access():
     recovery_setup = source[start:end]
     assert "recovery = recovery if isinstance(recovery, dict) else {}" in recovery_setup
     assert "recovery.get(" not in recovery_setup
+
+
+def test_basic_inquiry_final_boundary_uses_archive_developmental_recovery_after_comparison_rejection():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = source.index("def _basic_inquiry_response(")
+    end = source.index("\\ndef ", start + 5)
+    function = source[start:end]
+
+    assert "human_development_comparison_final_contract" in function
+    assert "_comparison_semantic_failure" in function
+    assert 'answer_basis = dict(_human_development_candidate["answer_basis"])' in function
+    assert "_archive_developmental_comparison_document" in function
+    assert "_evidence_documents.append(dict(_archive_developmental_comparison_document))" in function
+    assert "_archive_developmental_comparison" in function
