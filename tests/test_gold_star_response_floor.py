@@ -320,3 +320,43 @@ def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
     assert "public Guide cannot retrieve that source" in result["response"]
     assert "remain correctable" in result["response"].casefold()
     assert compose_teaching_conflict_protocol(query, docs[:-1]) is None
+
+
+def test_comparison_question_is_enforced_and_registered_recovery_passes():
+    from deterministic_answer_recovery import compose_recovery
+
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    answer = compose_recovery(query)
+    result = evaluate_response_floor(
+        query,
+        {
+            "ok": True,
+            "query": query,
+            "response": answer,
+            "answer_basis": {"kind": "general_knowledge", "label": "Test"},
+            "response_provenance": {"class": "deterministic_by_design"},
+        },
+    )
+
+    assert result["status"] == "pass"
+    assert result["semantic_enforcement"]["enforced"] is True
+    assert result["semantic_enforcement"]["question_type"] == "comparison"
+    assert result["semantic_enforcement"]["status"] == "pass"
+
+
+def test_comparison_question_rejects_the_production_generic_refusal():
+    query = "What is the difference between growth, adaptation, maturity, and integration?"
+    result = evaluate_response_floor(
+        query,
+        {
+            "ok": True,
+            "query": query,
+            "response": (
+                "I couldn’t produce a reliable answer to that question just now. "
+                "Please try again shortly."
+            ),
+        },
+    )
+
+    assert result["status"] == "fail"
+    assert result["reason"] == "generic_nonanswer"
