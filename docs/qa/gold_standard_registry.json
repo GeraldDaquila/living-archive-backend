@@ -8778,8 +8778,12 @@
     },
     {
       "subsystem": "general-purpose-guide",
-      "expected_doorway": null,
-      "doorway_status": "NOT_EVALUATED",
+      "expected_doorway": {
+        "title": "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others",
+        "url": "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/",
+        "rationale": "The visible continuation connects the question's distinction between institutional doctrine and general explanation to why people recognize, trust, or reject institutional authority."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "rating": null,
       "rating_out_of_10": null,
       "known_theme": "civic_commons_provider_exhaustion_general_knowledge_doctrine_boundary",
@@ -8797,14 +8801,22 @@
         "A corrected answer must explain how to answer from stable general knowledge when search is unavailable, provide a substantive civic-commons explanation, and distinguish general explanation from official Living Archive doctrine.",
         "Do not imply that unavailable search services make an ordinary conceptual question unanswerable.",
         "Do not invent Archive citations, quotations, canonical definitions, or links.",
-        "Use the existing approved civic-commons Gold Star as the source of bounded reasoning discipline; do not create a duplicate Gold Star record."
+        "Use the existing approved civic-commons Gold Star as the source of bounded reasoning discipline; do not create a duplicate Gold Star record.",
+        "Preserve the visible, verified Symbolic Legitimacy doorway as a relevant continuation; it supplements rather than replaces the answer."
       ],
       "provenance": {
         "source": "User-provided visitor-facing Search UI screenshot",
         "source_path": "conversation attachment image(20261124-065601).png",
         "source_date": "2026-11-24",
         "evidence_boundary": "The screenshot establishes the displayed question and exact answer text. The 8/10 rating and structural near-miss classification are evaluator judgments, not a user-assigned rating.",
-        "linked_existing_gold_star_id": "general-guide-public-commons-civic-renewal-2026-11-24"
+        "linked_existing_gold_star_id": "general-guide-public-commons-civic-renewal-2026-11-24",
+        "doorway_verification": {
+          "title": "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others",
+          "url": "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/",
+          "source_post_id": 58560,
+          "source_status": "publish",
+          "verified_by": "Living Archive WordPress post record"
+        }
       },
       "calibration_assessment": {
         "evaluator_rating_out_of_10": 8,
