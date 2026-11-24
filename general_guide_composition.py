@@ -2485,7 +2485,14 @@ def _requires_actionable_next_step(query: str) -> bool:
         r"\b(?:disagree|disagreement|different views|different priorities|cannot agree|can't agree|conflict|what to do first)\b",
         q,
     ))
-    return asks_next_step and collective_disagreement
+    # Distress-sensitive pacing takes precedence over a practical-action
+    # request. A disclosure of grief or inability to cope must not be forced
+    # through the group's action-planning contract.
+    return (
+        asks_next_step
+        and collective_disagreement
+        and not _requires_distress_sensitive_pacing(q)
+    )
 
 
 def _has_concrete_next_step(response: str) -> bool:
@@ -2995,6 +3002,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 if _requires_substantive_answer_contract(query) and not _has_direct_answer_opening(query, response):
                     raise ValueError(
                         "provider response failed the hard answer-first visitor boundary"
+                    )
+                # Actionability is a visitor contract, not a soft editorial
+                # preference. The strict lane may reject and retry; the
+                # compatibility lane must not admit an analysis-only answer.
+                if _requires_actionable_next_step(query) and not _has_concrete_next_step(response):
+                    raise ValueError(
+                        "provider response failed the hard practical next-step boundary: "
+                        "one concrete action required"
                     )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
