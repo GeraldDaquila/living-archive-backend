@@ -316,7 +316,7 @@ def _select_verified_doorway_conceptual_family(query):
         re.search(r"\b(?:community|communities|residents|neighbors)\b", text, re.I)
         and re.search(r"\b(?:liberty|freedom|rights?|personal choice)\b", text, re.I)
         and re.search(r"\b(?:obligations?|shared responsibility|collective duties?|common good|shared risks?)\b", text, re.I)
-        and re.search(r"\b(?:rules?|polic(?:y|ies)|restrictions?|limits?|decid\w*|justif\w*)\b", text, re.I)
+        and re.search(r"\b(?:rules?|polic(?:y|ies)|restrictions?|limits?|decision(?:s)?|decid\w*|justif\w*)\b", text, re.I)
     )
     if community_rule_design:
         return "community_rule_design_personal_liberty_shared_obligations"

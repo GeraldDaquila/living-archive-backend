@@ -429,8 +429,15 @@ try {
       /the chaos hasn.t fully ended|the losses are still real/i.test(calibrationRationale)) {
     throw new Error("The community-governance doorway exposed source-page prose or internal metadata: " + calibrationRationale);
   }
-  if (!/^this resource offers a related perspective/i.test(calibrationRationale)) {
-    throw new Error("The community-governance doorway introduction is not using the approved visitor-facing fallback contract: " + calibrationRationale);
+  const calibrationDoorway = calibrationResponse.payload?.recommendation || {};
+  if (
+    calibrationDoorway.title !== "The Barangay Before the State: Human-Scale Governance in Practice" ||
+    calibrationDoorway.url !== "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/" ||
+    !/human-scale governance/i.test(calibrationRationale) ||
+    !/people affected/i.test(calibrationRationale)
+  ) {
+    throw new Error("The community-governance doorway did not preserve its verified destination and visitor-facing rationale: " +
+      JSON.stringify({title: calibrationDoorway.title, url: calibrationDoorway.url, rationale: calibrationRationale}));
   }
   await page.waitForFunction(() => {
     const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");

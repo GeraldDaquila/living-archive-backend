@@ -1,4 +1,6 @@
 import json
+
+import main
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,3 +34,15 @@ def test_community_rule_design_gold_star_is_registered_with_bounded_learning_and
     assert mapped["family"] == record["reasoning_family"]
     assert mapped["structural_lesson"] == record["transferable_lesson"]
     assert "least restrictive workable means" in mapped["structural_lesson"]
+
+
+def test_community_rule_design_selector_recognizes_decision_noun_in_unseen_question():
+    query = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both "
+        "fair and workable?"
+    )
+
+    assert main._select_verified_doorway_conceptual_family(query) == (
+        "community_rule_design_personal_liberty_shared_obligations"
+    )
