@@ -1217,7 +1217,7 @@
           "classification": "STRUCTURAL_NEAR_MISS_WITH_PAIRED_CORRECTION",
           "source_date": "2026-11-24",
           "corrected_response": "Search unavailability should not be treated as knowledge unavailability. A guide can answer an ordinary conceptual question from stable general knowledge, but must label that basis and must not imply that it retrieved or verified Archive sources.\n\nCivic commons are shared resources, spaces, institutions, and capacities used and cared for collectively, such as libraries, parks, public knowledge, and shared infrastructure. Their civic value lies in enabling people to meet, cooperate, deliberate, solve shared problems, and participate in decisions about resources they depend on. They are not automatically equitable: access can be unequal, stewardship neglected, control captured, and participation tokenistic. Fair rules, transparent responsibilities, meaningful participation, and ways to challenge exclusion help keep them genuinely common.\n\nThis is a general conceptual explanation, not an official Living Archive definition or doctrine. A guide should not invent Archive citations, quotations, or links. If a visitor asks what the Archive formally teaches, the guide needs an authoritative Archive source and should say that position cannot be verified while the source is unavailable.",
-          "validation_state": "IMPLEMENTED_PENDING_CI_AND_LIVE_HELD_OUT_VALIDATION",
+          "validation_state": "LIVE_PRODUCTION_RETEST_PASSED_SAME_QUERY",
           "linked_near_miss_benchmark_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
           "linked_code_pr": 1954,
           "does_not_create_new_gold_star": true,
@@ -1225,9 +1225,53 @@
             "title": "Symbolic Legitimacy: Why People Follow Some Systems and Reject Others",
             "url": "https://geralddaquila.com/2026/06/11/symbolic-legitimacy-why-people-follow-some-systems-and-reject-others/",
             "rationale": "A directly relevant continuation on how people recognize, trust, and reject institutional authority."
+          },
+          "live_retest": {
+            "case_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
+            "classification": "LIVE_RETEST_PASSED_SAME_QUERY",
+            "validation_state": "LIVE_PRODUCTION_RETEST_PASSED",
+            "source_date": "2026-11-24",
+            "source": "User-provided screenshot of the corrected visitor-facing production Guide response after deployment of PR #1954.",
+            "source_path": "conversation attachment image(20261124-071744).png",
+            "exact_query": "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?",
+            "observed_response": "When search services are unavailable, a guide should not confuse a lack of retrieved sources with a lack of answerability. If the visitor asks a general conceptual question, the guide can answer from stable general knowledge while clearly identifying that basis. It should not imply that it searched, cite material it has not seen, or present its explanation as an official Living Archive position.\n\nFor example, civic commons can be explained as shared resources, spaces, institutions, and capacities that people use and help govern for common benefit. Their value depends not only on public availability but on fair access, meaningful participation, clear stewardship responsibilities, transparent rules, and ways to challenge exclusion or misuse. They can support civic life by giving people places and resources to cooperate, deliberate, and solve shared problems; they can also be neglected, captured, or made nominally public while excluding some people.\n\nThe guide should distinguish this general explanation from any Archive-specific definition or doctrine. It should not invent citations, quotations, canonical definitions, or links. If the visitor asks what the Living Archive formally teaches, that is a source-specific question: without an authoritative text, the guide should say that it cannot verify the official position and identify what source would be needed.",
+            "evaluator_rating_out_of_10": 9.7,
+            "passed_dimensions": [
+              "Direct answer to the actual question",
+              "Substantive civic-commons explanation",
+              "Clear distinction between general knowledge and official Living Archive doctrine",
+              "No invented citations, quotations, or canonical claims",
+              "Relevant Symbolic Legitimacy continuation preserved"
+            ],
+            "remaining_boundary": "This same-query live retest validates the corrected behavior for this case. It is not a held-out adaptive-transfer test and does not prove generalization to unrelated questions.",
+            "linked_code_pr": 1954,
+            "production_commit": "1eee5b6453741587b578dee5cfa698eb2c7b99eb",
+            "does_not_create_new_gold_star": true
           }
         }
-      ]
+      ],
+      "latest_validation": {
+        "case_id": "general-guide-civic-commons-provider-exhaustion-near-miss-2026-11-24",
+        "classification": "LIVE_RETEST_PASSED_SAME_QUERY",
+        "validation_state": "LIVE_PRODUCTION_RETEST_PASSED",
+        "source_date": "2026-11-24",
+        "source": "User-provided screenshot of the corrected visitor-facing production Guide response after deployment of PR #1954.",
+        "source_path": "conversation attachment image(20261124-071744).png",
+        "exact_query": "When search services are unavailable, how should a guide answer a general question about civic commons without claiming official doctrine?",
+        "observed_response": "When search services are unavailable, a guide should not confuse a lack of retrieved sources with a lack of answerability. If the visitor asks a general conceptual question, the guide can answer from stable general knowledge while clearly identifying that basis. It should not imply that it searched, cite material it has not seen, or present its explanation as an official Living Archive position.\n\nFor example, civic commons can be explained as shared resources, spaces, institutions, and capacities that people use and help govern for common benefit. Their value depends not only on public availability but on fair access, meaningful participation, clear stewardship responsibilities, transparent rules, and ways to challenge exclusion or misuse. They can support civic life by giving people places and resources to cooperate, deliberate, and solve shared problems; they can also be neglected, captured, or made nominally public while excluding some people.\n\nThe guide should distinguish this general explanation from any Archive-specific definition or doctrine. It should not invent citations, quotations, canonical definitions, or links. If the visitor asks what the Living Archive formally teaches, that is a source-specific question: without an authoritative text, the guide should say that it cannot verify the official position and identify what source would be needed.",
+        "evaluator_rating_out_of_10": 9.7,
+        "passed_dimensions": [
+          "Direct answer to the actual question",
+          "Substantive civic-commons explanation",
+          "Clear distinction between general knowledge and official Living Archive doctrine",
+          "No invented citations, quotations, or canonical claims",
+          "Relevant Symbolic Legitimacy continuation preserved"
+        ],
+        "remaining_boundary": "This same-query live retest validates the corrected behavior for this case. It is not a held-out adaptive-transfer test and does not prove generalization to unrelated questions.",
+        "linked_code_pr": 1954,
+        "production_commit": "1eee5b6453741587b578dee5cfa698eb2c7b99eb",
+        "does_not_create_new_gold_star": true
+      }
     }
   ]
 }
