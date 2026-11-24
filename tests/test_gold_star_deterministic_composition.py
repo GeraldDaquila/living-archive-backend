@@ -76,6 +76,7 @@ def test_unseen_tradeoff_question_retrieves_and_applies_registered_deterministic
     contribution = gold_star_lessons.deterministic_fallback_contribution(query)
     assert contribution is not None
     assert contribution["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    assert contribution["reasoning_family"] == "ethical_tradeoff_and_conflicting_harms"
     assert contribution["authority_mode"] == "deterministic_structural_guidance_only"
 
     result = compose_deterministic_gold_star_response(query, contribution)
