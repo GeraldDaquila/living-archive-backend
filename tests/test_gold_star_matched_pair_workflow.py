@@ -76,3 +76,17 @@ def test_existing_mirror_capture_workflow_remains_main_only():
     assert "branches: [main]" in workflow
     assert "living-archive-backend-mirror.onrender.com" in workflow
     assert "matched-pair-local:" not in workflow
+
+def test_provider_capture_push_requires_the_dedicated_repository_qa_branch():
+    workflow = _workflow_text()
+    assert "qa/gold-star-matched-pair-candidate-2017-20261125" in workflow
+    assert "github.event_name == 'push'" in workflow
+    assert "github.ref == 'refs/heads/qa/gold-star-matched-pair-candidate-2017-20261125'" in workflow
+    assert "github.event_name == 'pull_request'" not in workflow
+
+def test_candidate_local_capture_publishes_run_reference_for_blind_review():
+    workflow = _workflow_text()
+    assert "issues: write" in workflow
+    assert "Publish capture run reference to PR #2018" in workflow
+    assert "gh pr comment 2018" in workflow
+    assert "actions/runs/" in workflow

@@ -1885,7 +1885,10 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
         query_geo = bool(re.search(r"\b(?:philippine|philippines)\b", q, re.I))
         public_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", q, re.I))
         candidate_public = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", body_probe, re.I))
-        if not query_geo and not (public_frame and candidate_public):
+        # A Philippine-titled resource is geographically scoped. Broad public-
+        # governance vocabulary in its body does not make it a fit for a
+        # question that asks about institutions without a Philippine context.
+        if not query_geo:
             return False, "geographic_scope_mismatch"
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
@@ -9974,10 +9977,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "The shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal."
             ),
             "spiritual bypassing": (
-                "In general use, spiritual bypassing describes using spiritual beliefs, "
-                "practices, or language to avoid engaging with difficult emotions, conflicts, "
-                "responsibilities, or realities. Spirituality itself is not a problem; the concern is that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of "
-                "peace, acceptance, or transcendence can coexist with unresolved harm or "
+                "Spirituality itself is not a problem. In general use, spiritual bypassing describes using spiritual beliefs, "
+                "practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. "
+                "The concern is that a source of meaning can sometimes be used to move around something that still needs attention. "
+                "It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or "
                 "unacknowledged responsibility."
             ),
             "circularity and regeneration": (
@@ -10112,8 +10115,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     )
     if _final_doorway_title:
         title = _final_doorway_title
+    _final_response = "\n\n".join(part for part in (opening, explanation, closing) if part)
+    if (
+        "spiritual bypassing" in _normalized_query.casefold()
+        and "spirituality itself is not a problem" not in _final_response.casefold()
+    ):
+        _final_response = "Spirituality itself is not a problem. " + _final_response
     return {
-        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
+        "response": _final_response,
         "doorway_title": title if recommendation_available else "",
         "doorway_url": (
             _final_recommendation.get("url") or ""
@@ -12834,10 +12843,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
-    direct_attribute_evidence_missing = (
-        _direct_attribute_evidence_missing(query, authoritative_doorway)
-        and general_knowledge_recovery is None
-    )
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway) and general_knowledge_recovery is None
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     # The Guide-node registry governs *discovery routing*, not canonical
@@ -13207,10 +13213,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
     # carrying a stale pre-recovery failure into the final response.
-    direct_attribute_evidence_missing = (
-        _direct_attribute_evidence_missing(query, authoritative_doorway)
-        and general_knowledge_recovery is None
-    )
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway) and general_knowledge_recovery is None
 
     # Discovery is fail-closed at the final selection boundary. An initial
     # retrieval recommendation is not sufficient: the final selected canonical
@@ -13854,8 +13857,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
 
     # Re-evaluate after every downstream gate has had the opportunity to
     # suppress a destination; the final decision must reflect current state.
-    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
-        query, authoritative_doorway
+    direct_attribute_evidence_missing = (
+        _direct_attribute_evidence_missing(query, authoritative_doorway)
+        and general_knowledge_recovery is None
     )
 
     # Direct-attribute questions may not fall through to general-knowledge

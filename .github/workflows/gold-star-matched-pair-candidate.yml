@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [qa/gold-star-matched-pair-mainline-20261125]
+    branches: [qa/gold-star-matched-pair-candidate-2017-20261125]
   workflow_dispatch:
     inputs:
       run_provider_capture:
@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   matched-pair-contract:
@@ -45,10 +46,10 @@ jobs:
 
   matched-pair-local:
     needs: matched-pair-contract
-    # Provider capture is manual, opt-in, and only runs from the protected default branch.
-    # The default-off input prevents PR and push events from consuming provider quota.
-    # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true }}
+    # Provider capture is manual from protected main, or an explicit push to the
+    # dedicated, repository-controlled QA branch. Ordinary PR and push events
+    # cannot consume provider quota. QA execution stays in GitHub Actions.
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true) || (github.event_name == 'push' && github.ref == 'refs/heads/qa/gold-star-matched-pair-candidate-2017-20261125') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -101,3 +102,10 @@ jobs:
             artifacts/gold-star-matched-pairs/paired-evaluation-template.json
           if-no-files-found: warn
           retention-days: 90
+      - name: Publish capture run reference to PR #2018
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          gh pr comment 2018 --repo GeraldDaquila/living-archive-backend --body "Candidate-local matched-pair capture run: https://github.com/GeraldDaquila/living-archive-backend/actions/runs/${{ github.run_id }}. Job status: ${JOB_STATUS}. Blind-review and evidence artifacts are attached to this run."

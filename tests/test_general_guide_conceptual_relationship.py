@@ -1,7 +1,12 @@
-from pathlib import Path
 """Regression tests for conceptual relationship questions in The Guide."""
+import json
+from pathlib import Path
+
+import pytest
 from general_guide_composition import (
     _conceptual_relationship_recovery,
+    _has_transparency_trust_reciprocity,
+    _build_general_guide_system_prompt,
     has_conceptual_relationship_explanation,
     is_conceptual_relationship_question,
 )
@@ -106,3 +111,41 @@ def test_transparency_trust_has_a_bounded_answer_when_provider_composition_is_un
 def test_transparency_trust_recovery_does_not_claim_archive_doctrine():
     response = _conceptual_relationship_recovery(TRANSPARENCY_TRUST_QUESTION)
     assert "not a claim that the Living Archive states a formal definition" in response
+
+
+def test_transparency_trust_provider_answer_must_explain_reciprocity():
+    one_way_answer = (
+        "Transparency makes decisions visible and can support trust because people can inspect "
+        "what an institution does. Trust can exist without transparency, so the relationship is "
+        "one-way. People may rely on others for many reasons, and disclosure alone does not make "
+        "conduct reliable. Institutions should protect confidential information while explaining "
+        "their decisions and making evidence available for review."
+    )
+    reciprocal_answer = _conceptual_relationship_recovery(TRANSPARENCY_TRUST_QUESTION)
+
+    assert not _has_transparency_trust_reciprocity(one_way_answer)
+    assert _has_transparency_trust_reciprocity(reciprocal_answer)
+
+
+def test_transparency_trust_prompt_requires_both_directions_and_non_guarantee():
+    prompt = _build_general_guide_system_prompt(TRANSPARENCY_TRUST_QUESTION)
+
+    assert "TRANSPARENCY AND TRUST RECIPROCITY" in prompt
+    assert "explain both directions of influence" in prompt
+    assert "Do not describe the relationship as one-way" in prompt
+
+
+def test_provider_parser_rejects_one_way_transparency_trust_answer():
+    from general_guide_composition import _parse_factory
+
+    one_way_answer = (
+        "Transparency makes decisions visible and can support trust because people can inspect "
+        "what an institution does. Trust can exist without transparency, so the relationship is "
+        "one-way. People may rely on others for many reasons, and disclosure alone does not make "
+        "conduct reliable. Institutions should protect confidential information while explaining "
+        "their decisions and making evidence available for review."
+    )
+    parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
+
+    with pytest.raises(ValueError, match="transparency-trust answer must explain both directions"):
+        parse(json.dumps({"response": one_way_answer}))

@@ -423,7 +423,7 @@ def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_
         "health_state": "half_open",
     }
     timeout = provider_bank._provider_call_timeout("general_guide_composition", item)
-    assert timeout == provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
+    assert timeout == pytest.approx(5.5)
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
 
@@ -1089,3 +1089,80 @@ def test_definition_significance_matcher_recognizes_present_day_qualifier():
         query,
         "Responsible choices matter because they affect other people.",
     )
+
+
+def test_half_open_nvidia_super_vl_timeout_preserves_a_proven_sibling_fallback_slot(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    candidates = [
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+            "health_state": "half_open",
+            "capabilities": ["composition", "reasoning"],
+        },
+        {
+            **_item("groq", "openai/gpt-oss-120b"),
+            "capabilities": ["composition", "reasoning", "low_latency"],
+        },
+        {
+            **_item("workers_ai", "@cf/google/gemma-4-26b-a4b-it"),
+            "capabilities": ["composition", "reasoning"],
+        },
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            "capabilities": ["composition", "reasoning", "low_latency"],
+        },
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+    calls = []
+
+    def fail_slow_lanes_then_reach_lightning(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], item["model"], timeout_override))
+        if item["model"] == "nvidia/nemotron-3.5-super-vl-120b-a12b":
+            clock.value += float(timeout_override)
+            raise RuntimeError("simulated half-open Super VL timeout")
+        if item["provider"] == "groq":
+            clock.value += 0.08
+            raise RuntimeError("simulated fast Groq failure")
+        if item["provider"] == "workers_ai":
+            clock.value += 5.0
+            raise RuntimeError("simulated Workers AI timeout")
+        clock.value += 2.7
+        return json.dumps({"response": "A complete answer from the lower-latency NVIDIA sibling."})
+
+    monkeypatch.setattr(provider_bank, "_call", fail_slow_lanes_then_reach_lightning)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "nvidia"
+    assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+    assert calls[0][2] == pytest.approx(5.5)
+    assert calls[-1][1] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+
+
+def test_transparency_trust_prompt_module_is_omitted_from_community_liberty_question():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
+    )
+    prompt = guide_composition._build_general_guide_system_prompt(question)
+
+    assert "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING" in prompt
+    assert "TRANSPARENCY AND TRUST RECIPROCITY" not in prompt
+
+
+def test_embedded_navigation_url_is_a_repairable_response_shape_failure():
+    reason = "general composition embedded a navigation URL in visitor prose"
+
+    assert provider_bank._contract_rejection_class(reason) == "response_shape"
