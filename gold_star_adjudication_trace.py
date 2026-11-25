@@ -389,6 +389,17 @@ def synchronize_final_response_provenance(
         return payload
     if provider_candidate_delivered or cached_candidate_reused:
         return payload
+    provenance = payload.get("response_provenance")
+    if (
+        isinstance(provenance, Mapping)
+        and str(provenance.get("class") or "").strip().casefold()
+        == "visitor_failure_recovery"
+        and final_provenance == "deterministic_recovery"
+    ):
+        # Preserve the route-specific visitor classification. The ledger's
+        # final_provenance independently records how the surviving answer
+        # was produced; it must not erase the route that delivered it.
+        return payload
     allowed = {"deterministic_by_design", "deterministic_recovery", "unresolved"}
     provenance_class = (
         final_provenance if final_provenance in allowed else "unresolved"
