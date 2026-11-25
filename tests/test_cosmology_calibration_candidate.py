@@ -12,7 +12,7 @@ def test_cosmology_gold_standard_follows_three_paragraph_stewardship_shape_and_h
         if item.get("benchmark_id") == "general-guide-living-archive-cosmology-gold-standard-2026-10-25"
     )
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["expected_doorway"]["title"] == "The Worldview of a Conscious Human"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/02/07/the-worldview-of-a-conscious-human/"
     assert record["gold_star_capabilities"]["exact_answer_authority"] is True
