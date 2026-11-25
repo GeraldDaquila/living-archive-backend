@@ -14770,17 +14770,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         }
     elif (
         isinstance(deterministic_result, dict)
-        and deterministic_result.get("provider") == "bounded_practical_stewardship_recovery"
+        and deterministic_result.get("provider") in {
+            "bounded_practical_stewardship_recovery",
+            "bounded_general_knowledge_recovery",
+        }
     ):
-        # The separately selected Archive doorway is navigation, not evidence
-        # that the deterministic practical answer was sourced from the Archive.
+        # A deterministic general-knowledge answer and its separately selected
+        # Archive doorway are distinct visitor contracts. Navigation is not
+        # evidence that the answer's claims were sourced from the Archive.
         answer_basis = {
             "kind": "general_knowledge",
             "label": "General knowledge",
             "explanation": (
-                "This practical response is a bounded general-knowledge recovery. "
-                "The separately selected Archive doorway is a related continuation, "
-                "not evidence for the answer's claims."
+                "This is a bounded general-knowledge recovery. The separately "
+                "selected Archive doorway is a related continuation, not evidence "
+                "for the answer's claims."
             ),
         }
     elif direct_attribute_evidence_missing:
