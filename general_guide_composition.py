@@ -319,7 +319,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         ("GOLD STAR REMEDY SELECTION", gold_star_meta and has(r"\b(?:remedy|engineering|repair|failure|new lesson|new gold star)\b")),
         ("SEMANTIC AMBIGUITY BEFORE ANSWERING", has(r"\b(?:ambiguous|ambiguity|same term|different meaning|used differently)\b")),
         ("QUOTED-PASSAGE CONTEXT RESTORATION", has(r"\b(?:quote|quoted|passage|out of context|exact wording)\b")),
-        ("TRANSPARENCY AND TRUST RECIPROCITY", has(r"\btransparency\b") and has(r"\btrust\b") and is_conceptual_relationship_question(question)),
+        ("TRANSPARENCY AND TRUST RECIPROCITY", has(r"\btransparency\b") and has(r"\btrust\b")),
         ("GOLD STAR INTEGRATION RULE", gold_star_guidance),
         ("For consequential action under uncertainty", consequential),
         ("Preserve useful distinctions and calibrate causal claims.", has(r"\b(?:algorithm|automated|bias|inequit|causal|cause|synthesis|coherence|judgment|overconfiden|abstract concept)\b")),
