@@ -126,6 +126,44 @@ def test_gold_star_adjudication_recovery_does_not_capture_unrelated_questions():
 
 
 
+def test_top_ranked_provider_candidate_preserves_complete_discipline_and_boundary():
+    candidate = {
+        "benchmark_id": "gs-2026-11-22-community-freedom-shared-responsibility-decision",
+        "role": "core",
+        "activation_condition": "Community decisions balancing individual freedom and shared responsibility.",
+        "score": 0.86,
+        "reasoning_family": "community_freedom_shared_responsibility_proportionate_decision",
+        "transferable_discipline": (
+            "For community decisions involving tension between individual freedom and shared responsibility, "
+            "protect legitimate rights and meaningful agency while identifying the shared need or harm with evidence. "
+            "Include affected people, especially those with less influence; distinguish necessary shared obligations "
+            "from majority preference; test less restrictive alternatives; require any constraint to be proportionate "
+            "to the harm; distribute burdens fairly; make reasons transparent and rules consistent; and provide "
+            "accountability, appeal, review, and correction. Treat collective responsibility as a reason for careful "
+            "justification, not automatic authority to override individual rights."
+        ),
+        "abstention_boundary": (
+            "Apply only to substantive community or collective decision questions balancing individual freedom with "
+            "shared responsibility. Do not treat collective preference as sufficient authority to override rights; "
+            "assume every proposed restriction is necessary or proportionate; replace jurisdiction-specific legal "
+            "analysis; or decide a concrete dispute without its facts, governing rules, affected parties, and evidence. "
+            "Preserve consent, meaningful agency, and genuine appeal or correction. Do not transfer the exact answer, "
+            "its wording, or any doorway to unrelated questions, and do not grant deterministic fallback eligibility."
+        ),
+    }
+    prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
+    for phrase in (
+        "Include affected people",
+        "test less restrictive alternatives",
+        "distribute burdens fairly",
+        "accountability, appeal, review, and correction",
+        "Do not treat collective preference as sufficient authority",
+        "do not grant deterministic fallback eligibility",
+        "operationalizing its distinct reasoning steps and constraints",
+    ):
+        assert phrase in prompt
+
+
 def test_provider_prompt_uses_registry_transferable_discipline_field():
     candidate = {
         "benchmark_id": "community-rule-design",
