@@ -347,7 +347,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         and "TRANSPARENCY AND TRUST RECIPROCITY" not in rendered
     ):
         rendered += (
-            "\\n\\nTRANSPARENCY AND TRUST RECIPROCITY:\\n"
+            "\n\nTRANSPARENCY AND TRUST RECIPROCITY:\n"
             "When asked about the relationship between transparency and trust, explain both directions of influence. "
             "Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. "
             "Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; "
@@ -5805,7 +5805,7 @@ if is_generic_nonanswer(
 
 try:
     _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}], emit_telemetry=False)(
-        '{"response":"A useful answer.\\n\\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
+        '{"response":"A useful answer.\n\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
     )
 except ValueError:
     pass
