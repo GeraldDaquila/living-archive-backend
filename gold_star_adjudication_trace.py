@@ -1,9 +1,10 @@
 """Privacy-minimized observability contract for runtime Gold Star adjudication.
 
 Retrieval, prompt exposure, provider adjudication, deterministic renderer
-selection/application, final delivery, human review, and improvement are
-distinct evidence states. Retrieval or prompt injection alone never proves
-selection, application, or benefit.
+selection/application, provider contribution retention, deterministic renderer
+span retention, final delivery, human review, and improvement are distinct
+evidence states. Retrieval or prompt injection alone never proves selection,
+application, retention, or benefit.
 
 No visitor question, answer text, user identity, session identity, or content
 hash is retained in this trace.
@@ -559,6 +560,14 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "not_evaluated", "not_applicable", "retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_deterministic_contribution_retention_state"}
+    if "deterministic_contribution_retained" in trace:
+        deterministic_retention = trace["deterministic_contribution_retained"]
+        if deterministic_application and deterministic_retention not in {
+            "retained", "not_retained", "not_verified"
+        }:
+            return {"valid": False, "reason": "deterministic_application_without_retention_disposition"}
+        if not deterministic_application and deterministic_retention != "not_applicable":
+            return {"valid": False, "reason": "deterministic_retention_without_deterministic_application"}
     rejection_ids = [item["candidate_id"] for item in rejections]
     if len(set(rejection_ids)) != len(rejection_ids) or set(selected_ids) & set(rejection_ids):
         return {"valid": False, "reason": "duplicate_or_conflicting_candidate_disposition"}
