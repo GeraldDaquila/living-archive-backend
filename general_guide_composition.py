@@ -421,18 +421,33 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             if item.get("score") is None
             else str(item.get("score"))
         )
-        # The highest-ranked candidate is the most likely to supply the needed
-        # reasoning operation. Preserve its complete reviewed discipline and
-        # abstention boundary; truncating the middle can silently remove the
-        # decisive operation (for example, fair burden allocation).
-        discipline_limit = 700 if index == 1 else 320
-        boundary_limit = 620 if index == 1 else 100
+        # The highest-ranked community freedom/shared-responsibility lesson has
+        # a compact, operation-preserving projection. Ordinary head/tail
+        # truncation cut its middle and removed fair-burden allocation; sending
+        # the entire record exceeded the Groq 8k TPM budget. Keep this prompt
+        # projection bounded without changing the immutable registry record.
+        family = str(item.get("reasoning_family") or "")
+        community_rule_projection = (
+            index == 1
+            and family == "community_freedom_shared_responsibility_proportionate_decision"
+        )
+        discipline_text = item.get("transferable_discipline") or item.get("discipline")
+        boundary_text = item.get("abstention_boundary")
+        if community_rule_projection:
+            discipline_text = (
+                "Protect rights/agency; evidence shared need/harm; include affected, less influential people; "
+                "distinguish duties from majority preference; test least-restrictive, proportionate limits; "
+                "distribute burdens fairly; require transparent, consistent rules, accountability, appeal, review, correction."
+            )
+            boundary_text = (
+                "Collective preference cannot override rights; never assume limits justified or decide without facts."
+            )
         candidate_lines.append(
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 48) or 'none'}; "
-            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('transferable_discipline') or item.get('discipline'), discipline_limit)}; "
-            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), boundary_limit)}"
+            f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 320)}; "
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
