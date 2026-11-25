@@ -1038,3 +1038,40 @@ def test_initial_and_internal_composition_retries_share_the_reserved_deadline():
     assert "from guide_request_budget import composition_provider_deadline" in source
     assert "provider_deadline_monotonic = composition_provider_deadline(" in source
     assert source.count("deadline_monotonic=provider_deadline_monotonic") == 2
+
+
+def test_general_guide_prefers_recent_success_and_lower_failure_streak_over_stale_transport_totals(monkeypatch):
+    candidates = [
+        {
+            **_item("groq", "openai/gpt-oss-120b"),
+            "health_state": "half_open",
+            "last_success": 100.0,
+            "transport_failures": 29,
+            "consecutive_failures": 6,
+            "quality_failures": 47,
+        },
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+            "health_state": "half_open",
+            "last_success": 200.0,
+            "transport_failures": 116,
+            "consecutive_failures": 1,
+            "quality_failures": 1,
+        },
+        {
+            **_item("mistral", "mistral-small-latest"),
+            "health_state": "half_open",
+            "last_success": 0.0,
+            "transport_failures": 609,
+            "consecutive_failures": 18,
+            "quality_failures": 0,
+        },
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "nvidia", "mistral"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+
+    assert [item["provider"] for item in selected[:3]] == ["nvidia", "groq", "mistral"]
