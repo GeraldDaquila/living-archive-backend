@@ -13210,10 +13210,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
     # carrying a stale pre-recovery failure into the final response.
-    direct_attribute_evidence_missing = (
-        _direct_attribute_evidence_missing(query, authoritative_doorway)
-        and general_knowledge_recovery is None
-    )
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway) and general_knowledge_recovery is None
 
     # Discovery is fail-closed at the final selection boundary. An initial
     # retrieval recommendation is not sufficient: the final selected canonical
