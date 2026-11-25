@@ -386,8 +386,9 @@ async def capture(args) -> dict:
         use_core, item, messages, max_tokens, schema=None,
         timeout_override=None, operation=None,
     ):
+        effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()
         if (
-            operation == "general_guide_composition"
+            effective_operation == "general_guide_composition"
             and str((item or {}).get("provider") or "") == provider
             and str((item or {}).get("model") or "") == model
         ):
