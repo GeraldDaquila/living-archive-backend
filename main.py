@@ -10115,8 +10115,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     )
     if _final_doorway_title:
         title = _final_doorway_title
+    _final_response = "\n\n".join(part for part in (opening, explanation, closing) if part)
+    if (
+        "spiritual bypassing" in _normalized_query.casefold()
+        and "spirituality itself is not a problem" not in _final_response.casefold()
+    ):
+        _final_response = "Spirituality itself is not a problem. " + _final_response
     return {
-        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
+        "response": _final_response,
         "doorway_title": title if recommendation_available else "",
         "doorway_url": (
             _final_recommendation.get("url") or ""
@@ -12837,10 +12843,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
-    direct_attribute_evidence_missing = (
-        _direct_attribute_evidence_missing(query, authoritative_doorway)
-        and general_knowledge_recovery is None
-    )
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway) and general_knowledge_recovery is None
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     # The Guide-node registry governs *discovery routing*, not canonical
