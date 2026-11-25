@@ -15,13 +15,24 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("not _guide_composition.is_meta_answer_failure(_conceptual_recovery)", MAIN)
 
     def test_gold_star_baseline_is_wired_into_live_composition(self):
+        composition_module = __import__("general_guide_composition")
         composition = Path(__file__).with_name("general_guide_composition.py").read_text(encoding="utf-8")
         self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", composition)
         self.assertIn("else _gold_star_active_quality_contribution(question)", composition)
         self.assertIn("GOLD STAR MULTI-CANDIDATE ADJUDICATION", composition)
         self.assertIn("discipline=", composition)
         self.assertIn("boundary=", composition)
-        self.assertIn("Never transfer exemplar answers, claims, examples, citations, or doorways.", composition)
+        instruction = composition_module._build_gold_star_quality_instruction({
+            "candidates": [{
+                "benchmark_id": "test-reviewed-lesson",
+                "discipline": "Separate causal mechanism from broad association.",
+                "abstention_boundary": "Do not transfer exemplar-specific claims.",
+            }]
+        })
+        self.assertIn(
+            "Never transfer exemplar answers, claims, examples, citations, or doorways.",
+            instruction,
+        )
         self.assertIn("authority_mode", composition)
         self.assertIn('gold_star_quality.get("authority_mode") != "structural_guidance_only"', composition)
         self.assertIn('reasoning_discipline_ids=gold_star_adjudication_trace["reasoning_discipline_ids"]', composition)
