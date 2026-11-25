@@ -39,3 +39,87 @@ def test_soft_provider_lane_reports_precise_bounded_rejection_reason(raw, reason
 )
 def test_basic_visitor_bound_failures_do_not_become_unknown_quality_failures(reason, expected):
     assert provider_bank._contract_rejection_class(reason) == expected
+
+
+GOLD_STAR_CANDIDATES = [
+    {
+        "benchmark_id": "lesson-a",
+        "reasoning_family": "evidence_discipline",
+        "discipline": "Separate observation from inference.",
+    }
+]
+GOLD_STAR_RESPONSE = (
+    "Separate observed facts from inferred explanations before choosing a "
+    "proportionate response to the situation."
+)
+
+
+def _gold_star_parse(payload):
+    return composition._parse_factory(
+        [],
+        query="",
+        gold_star_candidates=GOLD_STAR_CANDIDATES,
+        emit_telemetry=False,
+    )(json.dumps(payload))
+
+
+@pytest.mark.parametrize(
+    "adjudication",
+    [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
+)
+def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudication(adjudication):
+    payload = {
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+        "adaptive_adjudication": adjudication,
+    }
+    with pytest.raises(ValueError, match="Gold Star adjudication report is missing or incomplete"):
+        _gold_star_parse(payload)
+
+
+def test_provider_selected_candidate_requires_exact_application_span():
+    payload = {
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+        "adaptive_adjudication": {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
+            ],
+            "application_evidence_spans": [],
+        },
+    }
+    with pytest.raises(ValueError, match="exact answer-span application evidence"):
+        _gold_star_parse(payload)
+
+
+def test_provider_may_validly_reject_all_gold_star_candidates():
+    payload = {
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+        "adaptive_adjudication": {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
+            ],
+            "application_evidence_spans": [],
+        },
+    }
+    parsed = _gold_star_parse(payload)
+    assert parsed["adaptive_adjudication"]["candidate_assessments"][0]["decision"] == "reject"
+
+
+def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
+    span = "Separate observed facts from inferred explanations"
+    payload = {
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+        "adaptive_adjudication": {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
+            ],
+            "application_evidence_spans": [
+                {"candidate_id": "lesson-a", "span": span}
+            ],
+        },
+    }
+    parsed = _gold_star_parse(payload)
+    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
