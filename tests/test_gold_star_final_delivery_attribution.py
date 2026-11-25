@@ -171,4 +171,4 @@ def test_no_composition_attempt_does_not_emit_missing_trace_failure(monkeypatch)
         assert events == []
     finally:
         ledger.end_request_context(token)
-\n
+
