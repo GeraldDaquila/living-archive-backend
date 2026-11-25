@@ -107,7 +107,11 @@ def test_non_dict_inner_finalizer_emits_explicit_unavailable_disposition(monkeyp
         assert len(events) == 1
         event, fields = events[0]
         assert event == "gold_star_final_delivery_unavailable"
-        assert fields == {"reason": "finalizer_non_dict", "result_type": "NoneType"}
+        assert fields == {
+            "reason": "finalizer_non_dict",
+            "result_type": "NoneType",
+            "composition_attempt_count": 1,
+        }
         assert not {"query", "question", "answer", "response", "user_id", "session_id"} & fields.keys()
     finally:
         ledger.end_request_context(token)
