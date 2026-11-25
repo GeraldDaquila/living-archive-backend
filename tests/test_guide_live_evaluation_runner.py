@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import scripts.guide_live_evaluation as live_evaluation
 
 from scripts.guide_live_evaluation import (
@@ -574,3 +576,19 @@ def test_transparency_trust_accepts_clear_reciprocal_paraphrase_but_keeps_proven
     provenance = next(item for item in checks if item["name"] == "attributable_llm")
     assert reciprocal["passed"], checks
     assert provenance["passed"] is False, checks
+
+def test_live_evaluation_requires_request_local_correlation_id():
+    valid = {"request_correlation_id": "0123456789abcdef0123456789abcdef"}
+    stable_query_id_only = {"request_id": "basic-0123456789abcdef"}
+    malformed = {"request_correlation_id": "basic-0123456789abcdef"}
+    assert live_evaluation.visitor_request_correlation_id(valid) == "0123456789abcdef0123456789abcdef"
+    assert live_evaluation.visitor_request_correlation_id(stable_query_id_only) is None
+    assert live_evaluation.visitor_request_correlation_id(malformed) is None
+    assert live_evaluation.visitor_request_correlation_id(None) is None
+
+def test_live_evaluation_records_request_local_correlation_ids():
+    source = (Path(__file__).resolve().parents[1] / "scripts" / "guide_live_evaluation.py").read_text(encoding="utf-8")
+    assert 'checks.append(check(' in source
+    assert '"request_correlation_id"' in source
+    assert '"request_correlation_id":request_correlation' in source
+    assert '"request_correlation_id":provider_probe_correlation_id' in source
