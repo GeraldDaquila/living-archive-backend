@@ -18,5 +18,5 @@ def test_cosmology_gold_standard_follows_three_paragraph_stewardship_shape_and_h
     assert record["gold_star_capabilities"]["exact_answer_authority"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert "not labels for judging a person" in record["expected_response"]
-    assert "not a claim that one article exhausts" in record["expected_response"]
+    assert "rather than a claim that one article exhausts" in record["expected_response"]
     assert "follow the stewardship three-paragraph standard" in record["provenance"]["approval_note"]
