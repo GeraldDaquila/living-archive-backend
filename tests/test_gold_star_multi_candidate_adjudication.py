@@ -123,3 +123,25 @@ def test_gold_star_adjudication_recovery_does_not_capture_unrelated_questions():
     assert composition._gold_star_candidate_adjudication_recovery(
         "How should I choose between three leadership approaches?"
     ) is None
+
+
+
+def test_provider_prompt_uses_registry_transferable_discipline_field():
+    candidate = {
+        "benchmark_id": "community-rule-design",
+        "role": "conditional",
+        "activation_condition": "The question asks how to justify a community rule or restriction.",
+        "score": None,
+        "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+        "transferable_discipline": (
+            "Identify the legitimate shared purpose and demonstrable harm; include affected people; "
+            "distribute burdens fairly; preserve accommodation, appeal, and observable review."
+        ),
+        "abstention_boundary": "Do not infer legality or assume a restriction is necessary.",
+    }
+    prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
+
+    assert "Identify the legitimate shared purpose and demonstrable harm" in prompt
+    assert "distribute burdens fairly" in prompt
+    assert "accommodation, appeal, and observable review" in prompt
+    assert "Do not infer legality or assume a restriction is necessary" in prompt
