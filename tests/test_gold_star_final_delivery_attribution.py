@@ -74,6 +74,39 @@ def test_shared_final_boundary_consumes_private_trace_before_early_returns():
     assert "result.pop(\"_gold_star_adjudication_trace\", None)" in source_segment
     assert "result.pop(\"_gold_star_provider_candidate_matches_payload\", None)" in source_segment
     assert "gold_star_adjudication_final_delivery" in source_segment
+    assert "gold_star_final_delivery_unavailable" in source_segment
+    assert 'reason="finalizer_non_dict"' in source_segment
+    assert 'reason="delivery_result_non_dict"' in source_segment
+    assert 'reason="trace_not_initialized"' in source_segment
+    assert "result_type=type(finalized).__name__" in source_segment
+    assert "result_type=type(result).__name__" in source_segment
+
+
+def test_non_dict_inner_finalizer_emits_explicit_unavailable_disposition(monkeypatch):
+    import main
+    import gold_star_adjudication_trace as ledger
+
+    token = ledger.begin_request_context("0123456789abcdef0123456789abcdef")
+    events = []
+    try:
+        monkeypatch.setattr(main, "_guide_finalize_visitor_payload_inner", lambda *_args: None)
+        monkeypatch.setattr(
+            main,
+            "_emit_guide_outcome",
+            lambda event, **fields: events.append((event, fields)),
+        )
+        result = main._guide_finalize_visitor_payload(
+            {"response": "private visitor text is not telemetry"},
+            "A test question?",
+        )
+        assert result is None
+        assert len(events) == 1
+        event, fields = events[0]
+        assert event == "gold_star_final_delivery_unavailable"
+        assert fields == {"reason": "finalizer_non_dict", "result_type": "NoneType"}
+        assert not {"query", "question", "answer", "response", "user_id", "session_id"} & fields.keys()
+    finally:
+        ledger.end_request_context(token)
 
 
 def test_safety_and_exact_gold_star_early_returns_cannot_claim_provider_delivery():
