@@ -456,8 +456,8 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
             "candidate_id": {"type": "string", "enum": candidate_ids},
             "decision": {"type": "string", "enum": ["select", "reject"]},
             "reason_code": {
-                "type": ["string", "null"],
-                "enum": [None, *sorted(_GOLD_STAR_ADJUDICATION_REASON_CODES)],
+                "type": "string",
+                "enum": ["", *sorted(_GOLD_STAR_ADJUDICATION_REASON_CODES)],
             },
         },
         "required": ["candidate_id", "decision", "reason_code"],
