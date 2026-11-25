@@ -425,7 +425,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 48) or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 320)}; "
+            f"discipline={_compact_gold_star_prompt_field(item.get('transferable_discipline') or item.get('discipline'), 320)}; "
             f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
@@ -438,7 +438,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "distinct contribution, redundancy, and boundary fit. "
         "Select one only when materially relevant and sufficient. Decide before drafting; "
         "apply the selected discipline in the visitor answer; quote an exact contiguous span from that answer as evidence. "
-        "Combine candidates only when each adds a distinct, necessary, compatible operation; never combine candidates to reward their number or similarity ranking. "
+        "Combine candidates only when each adds a distinct, necessary, compatible operation. Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. Never override the "
         "visitor question, evidence, or response shape. If none qualifies, answer normally.\n"

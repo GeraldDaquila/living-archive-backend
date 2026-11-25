@@ -56,6 +56,10 @@ def test_conceptual_question_does_not_suppress_a_verified_doorway(monkeypatch):
             "model": "test-model",
         }
 
+    # Isolate the retrieval-doorway contract from this exact approved fixture.
+    monkeypatch.setattr(guide, "_registered_exact_gold_standard", lambda _question: None)
+    monkeypatch.setattr(guide, "_gold_star_active_quality_contribution", lambda _question: None)
+
     monkeypatch.setattr(guide, "route_with_model_bank", fake_route)
     monkeypatch.setattr(guide, "_COMPOSITION_CACHE", guide.OrderedDict())
 

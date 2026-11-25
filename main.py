@@ -9939,9 +9939,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             if _direct_has_registered_recovery(query):
                 _direct_recovery = _direct_compose_recovery(query)
                 if _direct_recovery:
+                    _direct_recovery_text = str(_direct_recovery)
+                    # Keep the bounded conceptual distinction explicit even when
+                    # a registered terminal recovery wins before the later
+                    # orientation table is reached.
+                    if (
+                        "spiritual bypassing" in q
+                        and "spirituality itself is not a problem" not in _direct_recovery_text.casefold()
+                    ):
+                        _direct_recovery_text = "Spirituality itself is not a problem. " + _direct_recovery_text
                     _direct_doorway = _direct_recovery_recommendation(query) or {}
                     return {
-                        "response": _direct_recovery,
+                        "response": _direct_recovery_text,
                         "doorway_title": _direct_doorway.get("title", ""),
                         "doorway_url": _direct_doorway.get("url", ""),
                         "recommendation": _direct_doorway or None,
@@ -9953,6 +9962,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                   f"{type(_direct_recovery_exc).__name__}.")
         _terminal_conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
         if _terminal_conceptual_recovery and not _guide_composition.is_meta_answer_failure(_terminal_conceptual_recovery):
+            if (
+                "spiritual bypassing" in q
+                and "spirituality itself is not a problem" not in _terminal_conceptual_recovery.casefold()
+            ):
+                _terminal_conceptual_recovery = "Spirituality itself is not a problem. " + _terminal_conceptual_recovery
             return {
                 "response": _terminal_conceptual_recovery,
                 "doorway_title": "",
