@@ -196,6 +196,64 @@ def test_exact_provider_model_pin_requires_both_values():
 
 
 
+def test_control_and_treatment_share_the_same_nonadaptive_base_system_prompt():
+    from types import SimpleNamespace
+    from scripts.capture_gold_star_matched_pairs import CAPTURE_CONTEXT, _install_observers
+
+    composition = SimpleNamespace(
+        _gold_star_active_quality_contribution=lambda _query: {"candidates": []},
+        _normalize_gold_star_provider_adjudication=lambda value, **_kwargs: value,
+        route_with_model_bank=lambda **_kwargs: {"ok": True},
+        _build_general_guide_system_message=lambda question, **kwargs: (
+            question
+            + "|gold_star_guidance="
+            + str(kwargs.get("has_gold_star_guidance"))
+            + "|lesson="
+            + str(kwargs.get("gold_star_quality_instruction") or "")
+            + "|shared="
+            + str(kwargs.get("integrity_recovery_instruction") or "")
+        ),
+    )
+    main_module = SimpleNamespace(
+        _adjudicate_final_visitor_claims=lambda *args, **kwargs: {"status": "assessed"}
+    )
+    restore = _install_observers(composition, main_module)
+    try:
+        control_state = {}
+        token = CAPTURE_CONTEXT.set(control_state)
+        try:
+            control_prompt = composition._build_general_guide_system_message(
+                "same question",
+                has_gold_star_guidance=False,
+                gold_star_quality_instruction="",
+                integrity_recovery_instruction="same shared contract",
+            )
+        finally:
+            CAPTURE_CONTEXT.reset(token)
+
+        treatment_state = {}
+        token = CAPTURE_CONTEXT.set(treatment_state)
+        try:
+            treatment_prompt = composition._build_general_guide_system_message(
+                "same question",
+                has_gold_star_guidance=True,
+                gold_star_quality_instruction="reviewed lesson instruction",
+                integrity_recovery_instruction="same shared contract",
+            )
+        finally:
+            CAPTURE_CONTEXT.reset(token)
+    finally:
+        restore()
+
+    assert control_state["base_system_prompt_sha256"] == treatment_state["base_system_prompt_sha256"]
+    assert _sha256_for_test(control_prompt) != _sha256_for_test(treatment_prompt)
+
+
+def _sha256_for_test(value):
+    import hashlib
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
 def test_matched_pair_capture_isolates_composition_from_auxiliary_claim_adjudication():
     from types import SimpleNamespace
     from scripts.capture_gold_star_matched_pairs import (
@@ -208,6 +266,15 @@ def test_matched_pair_capture_isolates_composition_from_auxiliary_claim_adjudica
         _gold_star_active_quality_contribution=lambda _query: {"candidates": []},
         _normalize_gold_star_provider_adjudication=lambda value, **_kwargs: value,
         route_with_model_bank=lambda **_kwargs: {"ok": True},
+        _build_general_guide_system_message=lambda question, **kwargs: (
+            question
+            + "|gold_star_guidance="
+            + str(kwargs.get("has_gold_star_guidance"))
+            + "|lesson="
+            + str(kwargs.get("gold_star_quality_instruction") or "")
+            + "|shared="
+            + str(kwargs.get("integrity_recovery_instruction") or "")
+        ),
     )
     main_module = SimpleNamespace(
         _adjudicate_final_visitor_claims=lambda *args, **kwargs: (
