@@ -119,11 +119,11 @@ GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIM
 # minimum composition window; the shared 18s arbitration ceiling still bounds
 # the total cost and preserves the six-second integrity-repair reserve.
 GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
-# NVIDIA's Nemotron 3.5 Super VL is a reasoning model; production traces
-# showed the prior 5s half-open cap expiring before a complete composition.
-# Give this one reviewed lane the full 8s ceiling while retaining the shared
-# 18s arbitration deadline and the normal fallback reservation.
-GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
+# NVIDIA's Nemotron 3.5 Super VL has demonstrated successful inference near
+# five seconds, but a full eight-second half-open timeout can strand a proven
+# low-latency sibling after independent-provider failures. Keep a small margin
+# above the observed successful latency while preserving the next fallback slot.
+GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 5.5
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
