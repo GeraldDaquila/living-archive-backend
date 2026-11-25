@@ -1,15 +1,15 @@
 {
   "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
   "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
-  "expected_response": "Empirical inquiry investigates what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis examines how parts interact, including relationships and feedback loops that shape a larger whole.\n\nPhilosophy clarifies concepts and examines the reasons, assumptions, and values behind claims. Contemplative reflection attends to lived experience and awareness, helping people notice habitual interpretations that might otherwise go unexamined.\n\nThese approaches complement one another without being interchangeable: empirical inquiry tests claims against observation, systems analysis maps interdependence, philosophy evaluates concepts and reasons, and contemplative reflection explores experience. Each has strengths and limits, so the useful approach depends on the question being asked.",
-  "expected_doorway": {
-    "title": "The Question Beneath the Questions",
-    "url": null
-  },
+  "expected_response": "Empirical inquiry asks what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis asks how parts interact, tracing relationships, dependencies, and feedback that shape a larger whole.\n\nPhilosophy asks what our concepts mean and whether the reasons, assumptions, and values behind a claim hold together. Contemplative reflection turns attention toward lived experience and awareness, helping us notice habits of interpretation that might otherwise remain invisible.\n\nThe four approaches can work together without becoming interchangeable. If you are asking what happened or whether a claim is supported, empirical inquiry is useful; if you are asking how conditions influence one another, systems analysis helps; if you are examining meaning or reasons, philosophy is the better lens; and if you are trying to notice experience and interpretation more directly, contemplative reflection offers another form of inquiry. The question determines which approach should lead—and sometimes more than one is needed.",
+  "expected_doorway": null,
   "assertions": [
-    "Exactly three paragraphs.",
-    "Covers all four approaches distinctly.",
-    "No generic action-planning substitution.",
-    "Doorway URL remains unverified and unset."
+    "Answer directly compares all four named approaches.",
+    "Exactly three connected paragraphs: distinctions, orientation, and synthesis.",
+    "Preserve the distinction between empirical testing, systems interdependence, philosophical reasoning, and contemplative experience.",
+    "The final paragraph gives the visitor a practical decision framework for choosing which approach should lead, rather than ending with a generic statement that the answer depends on the question.",
+    "Synthesis may show complementarity without collapsing the four approaches into a single generic process.",
+    "No generic action-planning substitute and no Glossary handoff for this explanatory comparison.",
+    "No unverified doorway is attached; the answer remains complete before any optional continuation."
   ]
 }
