@@ -318,3 +318,54 @@ def test_skipped_provider_arm_can_be_recorded_without_crashing_pair_validation()
     assert "base_system_prompt_sha256" in skipped
     assert "route_input_system_prompt_sha256" in skipped
 
+
+
+
+def test_matched_pair_arm_order_is_counterbalanced_across_cases():
+    from scripts.capture_gold_star_matched_pairs import _counterbalanced_arm_order
+
+    assert _counterbalanced_arm_order(0) == ("control", "treatment")
+    assert _counterbalanced_arm_order(1) == ("treatment", "control")
+    assert _counterbalanced_arm_order(2) == ("control", "treatment")
+    orders = [_counterbalanced_arm_order(index) for index in range(6)]
+    assert sum(order[0] == "control" for order in orders) == 3
+    assert sum(order[0] == "treatment" for order in orders) == 3
+
+
+def test_generation_configuration_fingerprint_contract_names_effective_groq_settings():
+    source = (
+        __import__("pathlib").Path(__file__).resolve().parents[1]
+        / "scripts/capture_gold_star_matched_pairs.py"
+    ).read_text(encoding="utf-8")
+    for field in (
+        '"temperature": 0.0',
+        '"top_p": "not_supplied_provider_default"',
+        '"stop": "not_supplied"',
+        '"presence_penalty": "not_supplied_provider_default"',
+        '"frequency_penalty": "not_supplied_provider_default"',
+        '"chat_template_kwargs": "not_supplied"',
+        '"extra_body": "not_supplied"',
+        '"response_format":',
+        '"schema_sha256":',
+        '"reasoning_effort": "low"',
+        '"include_reasoning": False',
+        '"provider_timeout_seconds": control["provider_timeout_seconds"]',
+        '"provider_sdk_max_retries": (',
+        '"arm_call_order": list(attempted_arm_order)',
+        '"arm_evaluation_order": list(call_order)',
+        '"schema_mode": control["schema_mode"]',
+        'def evaluation_quota_guarded_call(',
+        'effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()',
+        'timeout_override=timeout_override',
+        '"omitted_text_mode"',
+    ):
+        assert field in source
+
+
+def test_skipped_arm_includes_all_generation_fingerprint_fields():
+    from scripts.capture_gold_star_matched_pairs import _skipped_arm
+
+    skipped = _skipped_arm("provider_lane_unavailable")
+    assert skipped["schema_sha256"] is None
+    assert skipped["schema_mode"] is None
+    assert skipped["provider_timeout_seconds"] is None
