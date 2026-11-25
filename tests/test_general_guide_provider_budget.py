@@ -1160,3 +1160,9 @@ def test_transparency_trust_prompt_module_is_omitted_from_community_liberty_ques
 
     assert "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING" in prompt
     assert "TRANSPARENCY AND TRUST RECIPROCITY" not in prompt
+
+
+def test_embedded_navigation_url_is_a_repairable_response_shape_failure():
+    reason = "general composition embedded a navigation URL in visitor prose"
+
+    assert provider_bank._contract_rejection_class(reason) == "response_shape"
