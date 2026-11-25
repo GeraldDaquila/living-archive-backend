@@ -13,22 +13,23 @@ def test_living_archive_stewardship_meaning_is_registered_as_user_approved():
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
     assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
-    assert resolved["doorway_title"] == "Choosing Stewardship Before Resentment"
+    assert resolved["doorway_title"] == ""
     assert resolved["doorway_url"] == ""
 
 
 def test_living_archive_stewardship_meaning_preserves_three_paragraph_gold_standard():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    answer = fixture["expected_response"]
-    paragraphs = [p for p in answer.split("\n\n") if p.strip()]
+    answer = fixture["expected_response"].casefold()
+    paragraphs = [p for p in answer.split("\\n\\n") if p.strip()]
     assert len(paragraphs) == 3
     for phrase in (
         "stewardship follows understanding",
+        "what depends on it",
         "personal interpretation",
-        "does not mean controlling everything",
-        "consequences for others and for the future",
+        "neither control nor unlimited self-sacrifice",
+        "what your actions preserve or pass forward",
     ):
-        assert phrase in answer.casefold()
+        assert phrase in answer
 
 
 def test_living_archive_stewardship_meaning_does_not_revert_to_glossary_handoff():
