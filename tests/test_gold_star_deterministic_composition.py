@@ -75,12 +75,15 @@ def test_provider_exhaustion_deterministic_application_updates_request_adjudicat
         assert applied["request_id"] == "abcdef0123456789abcdef0123456789"
         assert applied["provider_adjudication_status"] == "not_observed"
         assert applied["selection"] == "deterministic_renderer_selected"
-        assert applied["selected_candidate_ids"] == [
+        assert applied["selected_candidate_ids"] == []
+        assert applied["deterministic_application_candidate_id"] == (
             "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26"
-        ]
+        )
         assert applied["application"] == "deterministic_renderer_applied"
         assert applied["application_evidence_present"] is True
-        assert applied["application_evidence_candidate_ids"] == applied["selected_candidate_ids"]
+        assert applied["application_evidence_candidate_ids"] == [
+            applied["deterministic_application_candidate_id"]
+        ]
         assert applied["deterministic_application_span_count"] == 2
         assert trace.validate_trace(applied)["valid"]
 
