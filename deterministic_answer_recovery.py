@@ -1127,7 +1127,8 @@ def has_registered_recovery(question):
         or _is_systems_explanation_vs_simplistic_connection_question(question)
         or _is_humane_performance_question(question)
         or _is_stewardship_leadership_crisis_question(question)
-        or _is_general_explanatory_question(question)
+        # Broad explanatory recovery remains available to composition, but it
+        # is not an explicitly registered family for terminal last-mile override.
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
         or is_community_continuity_revision_question(question)
