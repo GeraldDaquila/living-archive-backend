@@ -438,7 +438,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "distinct contribution, redundancy, and boundary fit. "
         "Select one only when materially relevant and sufficient. Decide before drafting; "
         "apply the selected discipline in the visitor answer; quote an exact contiguous span from that answer as evidence. "
-        "Combine candidates only when each adds a distinct, necessary, compatible operation; never combine candidates to reward their number or similarity ranking. "
+        "Combine candidates only when each adds a distinct, necessary, compatible operation. Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. Never override the "
         "visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
