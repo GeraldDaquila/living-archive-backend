@@ -128,6 +128,12 @@ def _install_observers(composition, main_module):
                 )
             state["route_operation"] = str(kwargs.get("operation") or "")
             state["max_tokens"] = kwargs.get("max_tokens")
+            schema = kwargs.get("schema")
+            state["schema_sha256"] = (
+                _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
+                if isinstance(schema, dict) else None
+            )
+            state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
         return original_route(**kwargs)
 
     composition._gold_star_active_quality_contribution = observe_contribution
@@ -210,6 +216,9 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
         "user_content_sha256": None,
         "route_operation": None,
         "max_tokens": None,
+        "schema_sha256": None,
+        "schema_mode": None,
+        "provider_timeout_seconds": None,
         "provider_adjudication": {
             "status": "not_observed",
             "selected_candidate_ids": [],
@@ -256,11 +265,19 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
             "user_content_sha256": state["user_content_sha256"],
             "route_operation": state["route_operation"],
             "max_tokens": state["max_tokens"],
+            "schema_sha256": state["schema_sha256"],
+            "schema_mode": state["schema_mode"],
+            "provider_timeout_seconds": state["provider_timeout_seconds"],
             "route_source": payload.get("route_source"),
             "deployment_commit_sha": payload.get("deployment_commit_sha"),
         }
     finally:
         CAPTURE_CONTEXT.reset(token)
+
+
+def _counterbalanced_arm_order(case_index: int) -> tuple[str, str]:
+    """Alternate treatment-first and control-first order across adjacent cases."""
+    return ("control", "treatment") if case_index % 2 == 0 else ("treatment", "control")
 
 
 def _skipped_arm(reason: str) -> dict:
@@ -290,6 +307,9 @@ def _skipped_arm(reason: str) -> dict:
         "user_content_sha256": None,
         "route_operation": None,
         "max_tokens": None,
+        "schema_sha256": None,
+        "schema_mode": None,
+        "provider_timeout_seconds": None,
         "route_source": None,
         "deployment_commit_sha": None,
         "skipped_reason": reason,
@@ -346,6 +366,7 @@ async def capture(args) -> dict:
     # override for the exact pinned lane. This does not change application defaults,
     # production configuration, or the shared request deadline.
     original_provider_call_timeout = provider_bank._provider_call_timeout
+    original_quota_guarded_call = provider_bank._quota_guarded_call
 
     def evaluation_provider_call_timeout(operation, item=None, attempt_index=1):
         timeout = original_provider_call_timeout(operation, item, attempt_index)
@@ -354,14 +375,44 @@ async def capture(args) -> dict:
             and str((item or {}).get("provider") or "") == provider
             and str((item or {}).get("model") or "") == model
         ):
-            return max(float(timeout or 0), float(args.provider_timeout_seconds))
+            effective_timeout = max(float(timeout or 0), float(args.provider_timeout_seconds))
+            state = CAPTURE_CONTEXT.get()
+            if state is not None:
+                state["provider_timeout_seconds"] = effective_timeout
+            return effective_timeout
         return timeout
 
+    def evaluation_quota_guarded_call(
+        use_core, item, messages, max_tokens, schema=None,
+        timeout_override=None, operation=None,
+    ):
+        effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()
+        if (
+            effective_operation == "general_guide_composition"
+            and str((item or {}).get("provider") or "") == provider
+            and str((item or {}).get("model") or "") == model
+        ):
+            state = CAPTURE_CONTEXT.get()
+            if state is not None:
+                state["max_tokens"] = max_tokens
+                state["schema_sha256"] = (
+                    _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
+                    if isinstance(schema, dict) else None
+                )
+                state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
+                state["provider_timeout_seconds"] = timeout_override
+        return original_quota_guarded_call(
+            use_core, item, messages, max_tokens, schema,
+            timeout_override=timeout_override, operation=operation,
+        )
+
     provider_bank._provider_call_timeout = evaluation_provider_call_timeout
+    provider_bank._quota_guarded_call = evaluation_quota_guarded_call
     restore_observers = _install_observers(composition, main)
     def restore():
         restore_observers()
         provider_bank._provider_call_timeout = original_provider_call_timeout
+        provider_bank._quota_guarded_call = original_quota_guarded_call
 
     records = []
     blind_cases = []
@@ -374,9 +425,10 @@ async def capture(args) -> dict:
         ) as client:
             provider_lane_available = True
             provider_attempted = False
-            for case in cases:
+            for case_index, case in enumerate(cases):
                 arms = {}
-                for arm in ("control", "treatment"):
+                call_order = _counterbalanced_arm_order(case_index)
+                for arm in call_order:
                     if not provider_lane_available:
                         arms[arm] = _skipped_arm("previous_pinned_provider_attempt_unavailable")
                         continue
@@ -425,6 +477,9 @@ async def capture(args) -> dict:
                 if (
                     control["route_operation"] != treatment["route_operation"]
                     or control["max_tokens"] != treatment["max_tokens"]
+                    or control["schema_sha256"] != treatment["schema_sha256"]
+                    or control["schema_mode"] != treatment["schema_mode"]
+                    or control["provider_timeout_seconds"] != treatment["provider_timeout_seconds"]
                 ):
                     failures.append("paired_generation_configuration_mismatch")
 
@@ -459,11 +514,25 @@ async def capture(args) -> dict:
                     + "\nUSER_CONTENT_SHA256\n"
                     + str(control["user_content_sha256"] or "")
                 )
+                # Effective Groq payload contract for the exact pinned lane,
+                # verified against provider_bank._groq. Schema identity is hashed.
                 generation_config = {
                     "operation": control["route_operation"],
-                    "max_tokens": control["max_tokens"],
+                    "max_completion_tokens": control["max_tokens"],
                     "provider": provider,
                     "model": model,
+                    "temperature": 0.0,
+                    "response_format": (
+                        "omitted_text_mode" if control["schema_mode"] == "text"
+                        else "json_schema" if control["schema_sha256"] else "json_object"
+                    ),
+                    "schema_sha256": control["schema_sha256"],
+                    "schema_mode": control["schema_mode"],
+                    "reasoning_effort": "low",
+                    "include_reasoning": False,
+                    "provider_timeout_seconds": control["provider_timeout_seconds"],
+                    "provider_sdk_max_retries": 0,
+                    "inter_call_delay_seconds": args.inter_call_delay_seconds,
                     "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
                 }
                 generation_fingerprint = _sha256(
@@ -483,6 +552,7 @@ async def capture(args) -> dict:
                     "generation_config_fingerprint": generation_fingerprint,
                     "gold_star_registry_sha256": registry_sha,
                     "captured_at": datetime.now(timezone.utc).isoformat(),
+                    "arm_call_order": list(call_order),
                     "control": control,
                     "treatment": treatment,
                     "acceptance": {
@@ -532,6 +602,7 @@ async def capture(args) -> dict:
         "model": model,
         "provider_call_spacing_seconds": args.inter_call_delay_seconds,
         "provider_call_timeout_seconds": args.provider_timeout_seconds,
+        "arm_order_policy": "counterbalanced_by_case_index_control_first_on_even_treatment_first_on_odd",
         "composition_contract_version": COMPOSITION_CONTRACT_VERSION,
         "gold_star_registry_sha256": registry_sha,
         "selector_negative_control": {
