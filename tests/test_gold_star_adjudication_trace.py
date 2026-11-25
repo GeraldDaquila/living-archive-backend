@@ -369,6 +369,48 @@ def test_composition_decorator_keeps_latest_trace_without_request_context():
     assert "request_id" not in attached
     assert trace.validate_trace(attached)["valid"]
 
+def test_final_visitor_boundary_emits_deterministic_application_from_request_local_trace(monkeypatch):
+    import main
+
+    token = trace.begin_request_context("88888888888888888888888888888888")
+    events = []
+    try:
+        trace.begin_composition_attempt()
+        initial = trace.build_adjudication_trace(_contribution())
+        trace.mark_deterministic_application(initial, {
+            "benchmark_id": "lesson-one",
+            "reasoning_family": "stakeholder_tradeoffs",
+            "plan_id": "stakeholder_tradeoffs_v1",
+            "application_evidence_spans": ["First span.", "Second span."],
+            "abstention_boundary_applied": True,
+        })
+        monkeypatch.setattr(
+            main, "_guide_finalize_visitor_payload_inner",
+            lambda payload, _query: dict(payload),
+        )
+        monkeypatch.setattr(
+            main, "_emit_guide_outcome",
+            lambda event, **fields: events.append((event, fields)),
+        )
+
+        result = main._guide_finalize_visitor_payload(
+            {
+                "response": "A bounded deterministic answer.",
+                "response_provenance": {"class": "deterministic_recovery"},
+            },
+            "A held-out stakeholder question?",
+        )
+        assert result["response"] == "A bounded deterministic answer."
+        final_events = [fields for event, fields in events if event == "gold_star_adjudication_final_delivery"]
+        assert len(final_events) == 1
+        assert final_events[0]["application"] == "deterministic_renderer_applied"
+        assert final_events[0]["application_evidence_present"] is True
+        assert final_events[0]["application_evidence_candidate_ids"] == ["lesson-one"]
+        assert final_events[0]["final_delivery"] == "deterministic_or_unresolved_replacement"
+    finally:
+        trace.end_request_context(token)
+
+
 def test_final_visitor_boundary_recovers_request_local_trace_when_payload_omits_it():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     module = ast.parse(source)
