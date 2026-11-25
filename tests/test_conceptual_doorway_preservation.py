@@ -32,6 +32,9 @@ def test_conceptual_question_does_not_suppress_a_verified_doorway(monkeypatch):
             "content": "Agency and circumstance shape choices in social life.",
         }],
     )
+    # Isolate this retrieval-doorway contract from the independent canonical
+    # Glossary-first enrichment layer; the fixture below is the sole test source.
+    monkeypatch.setattr(guide, "resolve_glossary_context", lambda _question: ([], ""))
 
     def fake_route(**kwargs):
         raw = json.dumps(expected)
