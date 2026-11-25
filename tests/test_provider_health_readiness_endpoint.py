@@ -73,6 +73,7 @@ def test_provider_health_readiness_fails_closed_on_diagnostic_exception(monkeypa
 
 
 def test_provider_health_startup_warmup_synchronously_loads_shared_state(monkeypatch):
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-test-primary")
     calls = []
     monkeypatch.setattr(main, "refresh_shared_health_state", lambda: calls.append("refresh"))
     monkeypatch.setattr(main, "provider_bank_snapshot", lambda core: {
@@ -88,6 +89,7 @@ def test_provider_health_startup_warmup_synchronously_loads_shared_state(monkeyp
 
 
 def test_provider_health_startup_warmup_fails_open_without_leaking_exception(monkeypatch, capsys):
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-test-primary")
     def fail():
         raise RuntimeError("secret detail must not be logged")
 
