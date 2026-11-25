@@ -427,13 +427,13 @@ def evaluate_deterministic_contribution_retention(
     if not isinstance(application_spans, list) or not application_spans:
         return "not_verified"
     normalized_spans = [
-        re.sub(r"\\s+", " ", span).strip().casefold()
+        re.sub(r"\s+", " ", span).strip().casefold()
         for span in application_spans
         if isinstance(span, str) and span.strip()
     ]
     if len(normalized_spans) != len(application_spans) or not normalized_spans:
         return "not_verified"
-    normalized_response = re.sub(r"\\s+", " ", str(final_response or "")).strip().casefold()
+    normalized_response = re.sub(r"\s+", " ", str(final_response or "")).strip().casefold()
     return "retained" if all(span in normalized_response for span in normalized_spans) else "not_retained"
 
 
