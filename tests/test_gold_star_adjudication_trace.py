@@ -70,10 +70,12 @@ def test_deterministic_renderer_application_is_distinct_from_provider_adjudicati
     applied = trace.mark_deterministic_application(initial, application)
     assert applied["provider_adjudication_status"] == "not_observed"
     assert applied["selection"] == "deterministic_renderer_selected"
-    assert applied["selected_candidate_ids"] == ["lesson-one"]
+    assert applied["selected_candidate_ids"] == []
     assert applied["application"] == "deterministic_renderer_applied"
     assert applied["application_evidence_present"] is True
     assert applied["application_evidence_candidate_ids"] == ["lesson-one"]
+    assert applied["deterministic_application_candidate_id"] == "lesson-one"
+    assert applied["deterministic_application_plan_id"] == "stakeholder_tradeoffs_v1"
     assert applied["deterministic_application_span_count"] == 2
     assert trace.validate_trace(applied)["valid"]
 
@@ -96,7 +98,7 @@ def test_deterministic_renderer_application_is_distinct_from_provider_adjudicati
 def test_deterministic_renderer_application_fails_closed_without_candidate_or_spans():
     initial = trace.build_adjudication_trace(_contribution())
     missing_candidate = trace.mark_deterministic_application(initial, {
-        "benchmark_id": "not-in-trace",
+        "benchmark_id": "",
         "plan_id": "stakeholder_tradeoffs_v1",
         "application_evidence_spans": ["A span."],
         "abstention_boundary_applied": True,
