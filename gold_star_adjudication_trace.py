@@ -308,7 +308,9 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
         else False
     )
     result["composition"] = "provider_candidate_returned" if returned else "provider_no_result"
-    if result.get("provider_adjudication_status") == "provider_reported_selected":
+    if result.get("selection") == "deterministic_renderer_selected":
+        pass
+    elif result.get("provider_adjudication_status") == "provider_reported_selected":
         result["selection"] = "provider_reported_selected"
     elif result.get("provider_adjudication_status") == "provider_reported_rejected_all":
         result["selection"] = "provider_reported_rejected_all"
@@ -334,7 +336,6 @@ def mark_deterministic_application(trace: Any, application: Any) -> dict[str, An
     spans = application.get("application_evidence_spans")
     if (
         not benchmark_id
-        or benchmark_id not in (trace.get("candidate_ids") or [])
         or not plan_id
         or application.get("abstention_boundary_applied") is not True
         or not isinstance(spans, list)
@@ -344,11 +345,11 @@ def mark_deterministic_application(trace: Any, application: Any) -> dict[str, An
         return _store_current_trace(dict(trace))
     result = dict(trace)
     result["selection"] = "deterministic_renderer_selected"
-    result["selected_candidate_ids"] = [benchmark_id]
-    result["reasoning_discipline_ids"] = [plan_id]
     result["application_evidence_present"] = True
     result["application_evidence_candidate_ids"] = [benchmark_id]
     result["application"] = "deterministic_renderer_applied"
+    result["deterministic_application_candidate_id"] = benchmark_id
+    result["deterministic_application_plan_id"] = plan_id
     result["deterministic_application_span_count"] = len(spans)
     return _store_current_trace(result)
 
@@ -437,6 +438,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "guidance_exposure", "provider_adjudication_status", "selected_candidate_ids",
         "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
         "application_evidence_candidate_ids", "contribution_retained", "composition",
+        "deterministic_application_candidate_id", "deterministic_application_plan_id",
         "deterministic_application_span_count", "final_delivery", "final_provenance",
         "request_id", "attempt_ordinal"
     }
@@ -514,30 +516,45 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     ):
         return {"valid": False, "reason": "incomplete_reject_all_adjudication"}
     evidence_ids = trace.get("application_evidence_candidate_ids", [])
-    if not isinstance(evidence_ids, list) or len(evidence_ids) > count or any(
-        candidate_id not in selected_ids for candidate_id in evidence_ids
+    if not isinstance(evidence_ids, list) or len(evidence_ids) > MAX_CANDIDATES or not all(
+        isinstance(candidate_id, str) and candidate_id for candidate_id in evidence_ids
     ) or len(set(evidence_ids)) != len(evidence_ids):
         return {"valid": False, "reason": "invalid_application_evidence_candidate_ids"}
-    if trace.get("application_evidence_present") is True and (
-        not selected_ids or set(evidence_ids) != set(selected_ids)
+    deterministic_application = trace.get("application") == "deterministic_renderer_applied"
+    if deterministic_application:
+        deterministic_candidate_id = trace.get("deterministic_application_candidate_id")
+        deterministic_plan_id = trace.get("deterministic_application_plan_id")
+        if (
+            trace.get("selection") != "deterministic_renderer_selected"
+            or trace.get("provider_adjudication_status") != "not_observed"
+            or trace.get("application_evidence_present") is not True
+            or not isinstance(deterministic_candidate_id, str)
+            or not deterministic_candidate_id
+            or not isinstance(deterministic_plan_id, str)
+            or not deterministic_plan_id
+            or evidence_ids != [deterministic_candidate_id]
+            or type(trace.get("deterministic_application_span_count")) is not int
+            or trace["deterministic_application_span_count"] < 1
+        ):
+            return {"valid": False, "reason": "incomplete_deterministic_renderer_application"}
+    elif trace.get("selection") == "deterministic_renderer_selected":
+        return {"valid": False, "reason": "deterministic_selection_without_application"}
+    elif trace.get("application_evidence_present") is True and (
+        not selected_ids
+        or set(evidence_ids) != set(selected_ids)
+        or any(candidate_id not in ids for candidate_id in evidence_ids)
     ):
         return {"valid": False, "reason": "application_span_without_complete_selected_candidate_coverage"}
-    if trace.get("application_evidence_present") is not True and evidence_ids:
+    elif trace.get("application_evidence_present") is not True and evidence_ids:
         return {"valid": False, "reason": "application_evidence_ids_without_verified_spans"}
-    if trace.get("selection") == "deterministic_renderer_selected" and (
-        trace.get("provider_adjudication_status") != "not_observed"
-        or trace.get("application") != "deterministic_renderer_applied"
-        or trace.get("application_evidence_present") is not True
-        or len(selected_ids) != 1
-        or evidence_ids != selected_ids
-        or type(trace.get("deterministic_application_span_count")) is not int
-        or trace["deterministic_application_span_count"] < 1
+    if not deterministic_application and any(
+        key in trace for key in (
+            "deterministic_application_candidate_id",
+            "deterministic_application_plan_id",
+            "deterministic_application_span_count",
+        )
     ):
-        return {"valid": False, "reason": "incomplete_deterministic_renderer_application"}
-    if trace.get("application") == "deterministic_renderer_applied" and (
-        trace.get("selection") != "deterministic_renderer_selected"
-    ):
-        return {"valid": False, "reason": "deterministic_application_without_renderer_selection"}
+        return {"valid": False, "reason": "deterministic_application_metadata_without_application"}
     if trace.get("contribution_retained") == "provider_asserted_span_retained" and (
         trace.get("final_delivery") != "provider_candidate_delivered"
         or trace.get("application_evidence_present") is not True
