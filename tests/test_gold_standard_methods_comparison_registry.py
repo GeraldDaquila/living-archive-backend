@@ -6,12 +6,12 @@ from general_guide_gold_standards import resolve_exact_gold_standard
 FIXTURE = Path(__file__).parent / "fixtures" / "general_guide_methods_comparison_gold_standard.json"
 
 
-def test_method_comparison_is_registered_as_frozen_reference_only_gold_standard():
+def test_method_comparison_is_registered_as_user_approved_gold_standard():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     resolved = resolve_exact_gold_standard(fixture["query"])
     assert resolved is not None
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
-    assert resolved["status"] == "FROZEN_REFERENCE_ONLY"
+    assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
     assert resolved["doorway_title"] == "The Question Beneath the Questions"
     assert resolved["doorway_url"] == ""
