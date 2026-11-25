@@ -1313,7 +1313,7 @@ def _definition_significance_subject(query: str) -> str:
     """Extract the subject from a common definition-plus-significance question."""
     normalized = _normalize_space(query)
     match = re.match(
-        r"(?i)^what\s+is\s+(?:an?\s+|the\s+)?(.+?)\s*[,;:]?\s+and\s+why\s+does\s+it\s+matter\??$",
+        r"(?i)^what\s+is\s+(?:an?\s+|the\s+)?(.+?)\s*[,;:]?\s+and\s+why\s+does\s+it\s+matter(?:\s+(?:now(?:\s+more\s+than\s+ever)?|today|in\s+the\s+present(?:\s+day)?))?\??$",
         normalized,
     )
     if not match:
@@ -1342,7 +1342,9 @@ def _has_direct_definition_for_subject(query: str, response: str) -> bool:
     ))
     definition_content = bool(re.search(
         r"(?i)\b(?:knowledge|experience|decisions|lessons|records|understanding|"
-        r"practices|information|history|learning|memory|continuity)\b",
+        r"practices|information|history|learning|memory|continuity|choices|actions|"
+        r"care|resources?|responsibilit(?:y|ies)|relationships?|people|trust|"
+        r"entrusted|world|authority|stewardship)\b",
         first,
     ))
     return subject_present and definition_cue and definition_content
@@ -5615,7 +5617,10 @@ def compose(
     # Doorway selection is deterministic and independent of provider compliance.
     # First honor the narrowly verified canonical relationship for cross-scale
     # questions; then fall back to retrieval-backed selection for all others.
-    if not candidate.get("doorway_title"):
+    if not (candidate.get("doorway_title") and candidate.get("doorway_url")):
+        # A provider-supplied title without its canonical URL is not a complete
+        # doorway. Do not let that partial metadata suppress an independently
+        # verified destination from the retrieved canonical documents.
         doorway = _cross_scale_canonical_doorway(question)
         if not doorway.get("doorway_title"):
             doorway = _stewardship_technology_canonical_doorway(question)

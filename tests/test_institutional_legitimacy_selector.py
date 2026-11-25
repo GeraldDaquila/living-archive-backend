@@ -22,7 +22,7 @@ def test_institutional_legitimacy_selector_rejects_geographic_decoy_explicitly()
     candidate = {
         "title": "Philippine Institutions and Public Governance",
         "url": "https://geralddaquila.com/philippine-institutions/",
-        "text": "Institutions, governance, public systems, policy, and civic accountability.",
+        "text": "Institutional legitimacy in Philippine institutions, governance, public systems, policy, and civic accountability.",
     }
     accepted, reason = main._evaluate_outward_doc_eligibility(
         QUERY, candidate, PROFILE, min_relevance=2
@@ -38,7 +38,7 @@ def test_boolean_eligibility_wrapper_preserves_evaluator_decision():
         {
             "title": "Philippine Institutions and Public Governance",
             "url": "https://geralddaquila.com/philippine-institutions/",
-            "text": "Institutions, governance, public systems, policy, and civic accountability.",
+            "text": "Institutional legitimacy in Philippine institutions, governance, public systems, policy, and civic accountability.",
         },
         {
             "title": "Institutional Legitimacy and Public Trust",
@@ -64,7 +64,7 @@ def test_selector_diagnostics_are_bounded_and_do_not_change_selected_result():
         {
             "title": "Philippine Institutions and Public Governance",
             "url": "https://geralddaquila.com/philippine-institutions/",
-            "text": "Institutions, governance, public systems, policy, and civic accountability.",
+            "text": "Institutional legitimacy in Philippine institutions, governance, public systems, policy, and civic accountability.",
         },
         {
             "title": "Institutional Legitimacy and Public Trust",

@@ -350,7 +350,18 @@ def test_compound_stewardship_question_with_real_provider_bank_when_credentials_
     assert payload.get("processing") == "basic_inquiry"
     response = payload.get("response")
     assert isinstance(response, str) and len(response.strip()) >= 80
-    assert len([p for p in response.split("\n\n") if p.strip()]) >= 2
+    # The composition contract requires both requested parts, not a fixed
+    # paragraph count. Validate the definition-first opening and significance
+    # content without rejecting a complete single-paragraph explanation.
+    assert general_guide_composition._has_direct_definition_for_subject(QUERY, response)
+    normalized_response = response.casefold()
+    causal_markers = ("because", "since", "as a result", "therefore")
+    present_relevance_markers = (
+        "now", "today", "current", "increasingly", "interconnected",
+        "shared", "future", "long-term",
+    )
+    assert any(marker in normalized_response for marker in causal_markers)
+    assert any(marker in normalized_response for marker in present_relevance_markers)
     assert "glossary" not in str(payload.get("handoff") or "").casefold()
     recommendation = payload.get("recommendation")
     assert isinstance(recommendation, dict)

@@ -29,7 +29,7 @@ def test_shadow_score_is_confined_to_internal_candidate_diagnostics():
     assert "_fuzzy_relevance_shadow" in source
     assert "diagnostic" in source.lower()
     # The public doorway is explicitly reconstructed from only canonical title/URL.
-    assert 'return {"title": title, "url": url}' in source
+    assert 'result = {"title": title, "url": url}' in source
     assert '"_fuzzy_relevance_shadow":' not in source
 
 
@@ -56,6 +56,7 @@ def test_basic_inquiry_visitor_payload_is_an_explicit_allowlist():
 
 def test_public_doorway_normalizer_drops_unrecognized_diagnostic_fields():
     source = _source(_function("_normalize_authoritative_recommendation"))
-    assert 'return {"title": title, "url": url}' in source
+    assert 'normalized = {"title": title, "url": url}' in source
+    assert "return normalized" in source
     assert "_fuzzy_relevance_shadow" not in source
     assert "overall_shadow_score" not in source

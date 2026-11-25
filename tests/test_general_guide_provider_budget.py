@@ -599,7 +599,7 @@ def _select_guide_recovery_candidates(monkeypatch, items):
     )
 
 
-def test_general_guide_half_open_recovery_prefers_proven_transport_lanes(monkeypatch):
+def test_general_guide_half_open_recovery_prefers_current_streak_and_recent_success(monkeypatch):
     selected = _select_guide_recovery_candidates(
         monkeypatch,
         [
@@ -641,8 +641,8 @@ def test_general_guide_half_open_recovery_prefers_proven_transport_lanes(monkeyp
         (item["provider"], item["model"]) for item in selected[:3]
     ] == [
         ("groq", "openai/gpt-oss-20b"),
-        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
         ("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
     ]
 
 
@@ -1038,3 +1038,54 @@ def test_initial_and_internal_composition_retries_share_the_reserved_deadline():
     assert "from guide_request_budget import composition_provider_deadline" in source
     assert "provider_deadline_monotonic = composition_provider_deadline(" in source
     assert source.count("deadline_monotonic=provider_deadline_monotonic") == 2
+
+
+def test_general_guide_prefers_recent_success_and_lower_failure_streak_over_stale_transport_totals(monkeypatch):
+    candidates = [
+        {
+            **_item("groq", "openai/gpt-oss-120b"),
+            "health_state": "half_open",
+            "last_success": 100.0,
+            "transport_failures": 29,
+            "consecutive_failures": 6,
+            "quality_failures": 47,
+        },
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+            "health_state": "half_open",
+            "last_success": 200.0,
+            "transport_failures": 116,
+            "consecutive_failures": 1,
+            "quality_failures": 1,
+        },
+        {
+            **_item("mistral", "mistral-small-latest"),
+            "health_state": "half_open",
+            "last_success": 0.0,
+            "transport_failures": 609,
+            "consecutive_failures": 18,
+            "quality_failures": 0,
+        },
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "nvidia", "mistral"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+
+    assert [item["provider"] for item in selected[:3]] == ["nvidia", "groq", "mistral"]
+
+
+def test_definition_significance_matcher_recognizes_present_day_qualifier():
+    query = "What is stewardship and why does it matter now more than ever?"
+
+    assert guide_composition._definition_significance_subject(query) == "stewardship"
+    assert guide_composition._has_direct_definition_for_subject(
+        query,
+        "Stewardship means making responsible decisions about shared resources.",
+    )
+    assert not guide_composition._has_direct_definition_for_subject(
+        query,
+        "Responsible choices matter because they affect other people.",
+    )

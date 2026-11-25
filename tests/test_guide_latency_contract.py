@@ -52,8 +52,16 @@ class GuideLatencyContractTests(unittest.TestCase):
             if isinstance(node, ast.If)
             and isinstance(node.test, ast.Name)
             and node.test.id == "healthy_community_short_circuit"
+            and any(
+                isinstance(child, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "deterministic_result"
+                    for target in child.targets
+                )
+                for child in ast.walk(node)
+            )
         ]
-        self.assertEqual(len(branches), 1, "Expected one explicit governed newcomer branch.")
+        self.assertEqual(len(branches), 1, "Expected one deterministic newcomer answer branch.")
         self.assertFalse(
             _contains_composer_call(branches[0]),
             "The deterministic newcomer branch must not invoke the model composer.",
@@ -70,7 +78,7 @@ class GuideLatencyContractTests(unittest.TestCase):
 
     def test_final_paragraph_guard_never_reenters_composer(self):
         marker = MAIN_SOURCE.index(
-            "# Paragraph quality is enforced at the final payload boundary below."
+            "# Apply the shared task-dependent quality contract at the final visitor boundary."
         )
         start = MAIN_SOURCE.rfind("\n", 0, marker) + 1
         end = MAIN_SOURCE.index(
@@ -80,9 +88,9 @@ class GuideLatencyContractTests(unittest.TestCase):
         final_guard = ast.parse(textwrap.dedent(MAIN_SOURCE[start:end]))
         self.assertFalse(
             _contains_composer_call(final_guard),
-            "A last-mile formatting failure must fail honestly, not start another LLM turn.",
+            "The final semantic guard must not start another composition merely to satisfy answer shape.",
         )
-        self.assertIn("single final repair", MAIN_SOURCE[start:end])
+        self.assertIn("Do not run a second composition merely to satisfy a prescribed answer shape.", MAIN_SOURCE[start:end])
 
 
 if __name__ == "__main__":

@@ -5049,6 +5049,8 @@ def _has_substantive_topic_intent(query):
     return bool(re.search(
         r"\b(?:i\s+(?:care about|want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
+        r"i(?:'m| am) new\b.{0,120}\b(?:want to understand|want to know about|"
+        r"am interested in|would like to understand|am trying to understand)|"
         r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
         r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
         r"how\s+to\s+(?:create|build|recognize|improve|understand|support))\b",
@@ -9974,9 +9976,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "spiritual bypassing": (
                 "In general use, spiritual bypassing describes using spiritual beliefs, "
                 "practices, or language to avoid engaging with difficult emotions, conflicts, "
-                "responsibilities, or realities. The concern is not that spirituality itself is "
-                "a problem, but that a source of meaning can sometimes be used to move around "
-                "something that still needs attention. It matters because the appearance of "
+                "responsibilities, or realities. Spirituality itself is not a problem; the concern is that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of "
                 "peace, acceptance, or transcendence can coexist with unresolved harm or "
                 "unacknowledged responsibility."
             ),
@@ -14770,17 +14770,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         }
     elif (
         isinstance(deterministic_result, dict)
-        and deterministic_result.get("provider") == "bounded_practical_stewardship_recovery"
+        and deterministic_result.get("provider") in {
+            "bounded_practical_stewardship_recovery",
+            "bounded_general_knowledge_recovery",
+        }
     ):
-        # The separately selected Archive doorway is navigation, not evidence
-        # that the deterministic practical answer was sourced from the Archive.
+        # A deterministic general-knowledge answer and its separately selected
+        # Archive doorway are distinct visitor contracts. Navigation is not
+        # evidence that the answer's claims were sourced from the Archive.
         answer_basis = {
             "kind": "general_knowledge",
             "label": "General knowledge",
             "explanation": (
-                "This practical response is a bounded general-knowledge recovery. "
-                "The separately selected Archive doorway is a related continuation, "
-                "not evidence for the answer's claims."
+                "This is a bounded general-knowledge recovery. The separately "
+                "selected Archive doorway is a related continuation, not evidence "
+                "for the answer's claims."
             ),
         }
     elif direct_attribute_evidence_missing:

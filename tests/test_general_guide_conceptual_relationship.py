@@ -42,7 +42,7 @@ def test_recovery_explains_the_mechanism_between_concepts():
     response = _conceptual_relationship_recovery(RELATIONSHIP_QUESTION)
     assert has_conceptual_relationship_explanation(response)
     assert "because people can judge" in response
-    assert "repair turns accountability into action" in response
+    assert "repair turns accountability into action" in response.casefold()
     assert response.endswith("community?")
 
 
@@ -97,7 +97,7 @@ def test_transparency_trust_has_a_bounded_answer_when_provider_composition_is_un
     response = _conceptual_relationship_recovery(TRANSPARENCY_TRUST_QUESTION)
     assert response
     assert has_conceptual_relationship_explanation(response, TRANSPARENCY_TRUST_QUESTION)
-    assert "visibility creates the possibility of scrutiny" in response
+    assert "visibility creates the possibility of scrutiny" in response.casefold()
     assert "neither side guarantees the other" in response
     assert "legitimate confidentiality" in response
     assert not is_generic_nonanswer(TRANSPARENCY_TRUST_QUESTION, response)

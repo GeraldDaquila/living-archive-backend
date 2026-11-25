@@ -1759,10 +1759,13 @@ def select(use_core, operation="generic", schema=None):
             return (
                 health_rank,
                 0 if last_success > 0 else 1,
-                int(best.get("transport_failures", 0) or 0),
+                # A current consecutive-failure streak is more informative than
+                # lifetime transport failures. Among candidates with prior success,
+                # prefer the more recent successful inference before stale totals.
                 int(best.get("consecutive_failures", 0) or 0),
                 -last_success,
                 prediction_penalty,
+                int(best.get("transport_failures", 0) or 0),
                 int(best.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
