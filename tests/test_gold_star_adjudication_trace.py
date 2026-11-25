@@ -203,6 +203,23 @@ def test_provider_contribution_retention_requires_provider_reported_selection():
     )
     assert not_delivered["contribution_retained"] == "not_retained"
 
+    selected_with_application = trace.mark_provider_adjudication(initial, {
+        "status": "provider_reported_selected",
+        "selected_candidate_ids": ["lesson-one"],
+        "rejection_reason_codes": [{"candidate_id": "lesson-two", "reason_code": "subject_mismatch"}],
+        "reasoning_discipline_ids": ["relational_synthesis"],
+        "application_evidence_present": True,
+        "application_evidence_candidate_ids": ["lesson-one"],
+        "application": "provider_asserted_span_present",
+    })
+    retained = trace.mark_final_delivery(
+        selected_with_application,
+        provider_candidate_delivered=True,
+        final_provenance="llm",
+    )
+    assert retained["contribution_retained"] == "provider_asserted_span_retained"
+    assert retained["deterministic_contribution_retained"] == "not_applicable"
+
 
 def test_trace_is_content_free_and_rejects_identity_or_answer_fields():
     result = trace.build_adjudication_trace(_contribution())
