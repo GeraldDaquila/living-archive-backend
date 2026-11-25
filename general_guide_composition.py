@@ -3818,6 +3818,15 @@ def _requires_responsibility_boundary_answer(question: str) -> bool:
     q = _normalize_space(question).casefold()
     if not q:
         return False
+    # A community-level freedom/shared-responsibility trade-off is not a
+    # personal burden question. Keep it out of the separate responsibility
+    # boundary classifier and its final visitor assertion.
+    if (
+        re.search(r"\bindividual\s+freedom\b", q)
+        and re.search(r"\bshared\s+responsibility\b", q)
+        and re.search(r"\b(?:balance|reconcile|trade.?offs?|conflict|decide|decision)\b", q)
+    ):
+        return False
     individual_agency = bool(re.search(
         r"\b(?:my|our|individual|personal|a person|one person|each person|people)\b.{0,80}\b"
         r"(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility)|change|fix|repair|solve)\b"
