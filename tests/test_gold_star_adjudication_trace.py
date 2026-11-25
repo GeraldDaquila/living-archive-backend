@@ -445,7 +445,12 @@ def test_final_visitor_boundary_emits_deterministic_application_from_request_loc
         })
         monkeypatch.setattr(
             main, "_guide_finalize_visitor_payload_inner",
-            lambda payload, _query: dict(payload),
+            lambda payload, _query: {
+                **dict(payload),
+                "response": "First span. Second span.",
+                "intent": "SAFETY_INTERRUPT",
+                "_gold_star_deterministic_application_spans": ["First span.", "Second span."],
+            },
         )
         monkeypatch.setattr(
             main, "_emit_guide_outcome",
@@ -454,18 +459,22 @@ def test_final_visitor_boundary_emits_deterministic_application_from_request_loc
 
         result = main._guide_finalize_visitor_payload(
             {
-                "response": "A bounded deterministic answer.",
+                "response": "Pre-boundary deterministic answer.",
                 "response_provenance": {"class": "deterministic_recovery"},
             },
             "A held-out stakeholder question?",
         )
-        assert result["response"] == "A bounded deterministic answer."
+        assert result["response"] == "First span. Second span."
+        assert "_gold_star_deterministic_application_spans" not in result
         final_events = [fields for event, fields in events if event == "gold_star_adjudication_final_delivery"]
         assert len(final_events) == 1
         assert final_events[0]["application"] == "deterministic_renderer_applied"
         assert final_events[0]["application_evidence_present"] is True
         assert final_events[0]["application_evidence_candidate_ids"] == ["lesson-one"]
         assert final_events[0]["final_delivery"] == "deterministic_or_unresolved_replacement"
+        assert final_events[0]["contribution_retained"] == "not_applicable"
+        assert final_events[0]["deterministic_contribution_retained"] == "retained"
+        assert "_gold_star_deterministic_application_spans" not in final_events[0]
     finally:
         trace.end_request_context(token)
 
