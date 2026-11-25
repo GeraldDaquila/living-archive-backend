@@ -434,28 +434,30 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
 
 def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Dict[str, Any]]:
     """Require a structured adjudication object when reviewed candidates are present."""
-    candidate_count = 0
+    candidate_ids = set()
     try:
         for item in list(gold_star_candidates or [])[:_GOLD_STAR_MAX_CANDIDATES]:
-            if (
-                isinstance(item, dict)
-                and str(item.get("benchmark_id") or "").strip()
-                and str(item.get("reasoning_family") or "").strip()
-            ):
-                candidate_count += 1
+            if not isinstance(item, dict):
+                continue
+            candidate_id = str(item.get("benchmark_id") or "").strip()
+            family = str(item.get("reasoning_family") or "").strip()
+            if candidate_id and family:
+                candidate_ids.add(candidate_id)
     except TypeError:
-        candidate_count = 0
+        candidate_ids = set()
+    candidate_ids = sorted(candidate_ids)
+    candidate_count = len(candidate_ids)
     if candidate_count <= 0:
         return None
 
     assessment = {
         "type": "object",
         "properties": {
-            "candidate_id": {"type": "string", "minLength": 1},
+            "candidate_id": {"type": "string", "enum": candidate_ids},
             "decision": {"type": "string", "enum": ["select", "reject"]},
             "reason_code": {
                 "type": ["string", "null"],
-                "enum": [None, *_GOLD_STAR_ADJUDICATION_REASON_CODES],
+                "enum": [None, *sorted(_GOLD_STAR_ADJUDICATION_REASON_CODES)],
             },
         },
         "required": ["candidate_id", "decision", "reason_code"],
@@ -464,7 +466,7 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
     evidence_span = {
         "type": "object",
         "properties": {
-            "candidate_id": {"type": "string", "minLength": 1},
+            "candidate_id": {"type": "string", "enum": candidate_ids},
             "span": {"type": "string", "minLength": 12, "maxLength": 240},
         },
         "required": ["candidate_id", "span"],
@@ -508,7 +510,6 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
             "additionalProperties": True,
         },
     }
-
 
 _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
