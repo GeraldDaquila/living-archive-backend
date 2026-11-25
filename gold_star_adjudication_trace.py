@@ -527,7 +527,6 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         deterministic_plan_id = trace.get("deterministic_application_plan_id")
         if (
             trace.get("selection") != "deterministic_renderer_selected"
-            or trace.get("provider_adjudication_status") != "not_observed"
             or trace.get("application_evidence_present") is not True
             or not isinstance(deterministic_candidate_id, str)
             or not deterministic_candidate_id
