@@ -9202,6 +9202,34 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Ethical value conflicts must be dispatched before the broad conceptual
+    # relationship fallback below. Otherwise a generic relationship answer can
+    # intercept a registered, question-specific trade-off recovery.
+    from deterministic_answer_recovery import (
+        _is_ethical_tradeoff as _is_ethical_tradeoff_recovery,
+        compose_recovery as _compose_ethical_tradeoff_recovery,
+        registered_recovery_recommendation as _ethical_tradeoff_recommendation,
+    )
+    _ethical_query_text = str(query or "").casefold()
+    _is_freedom_responsibility_conflict = (
+        _is_ethical_tradeoff_recovery(query)
+        and bool(re.search(r"\bindividual\s+freedom\b", _ethical_query_text))
+        and bool(re.search(r"\bshared\s+responsibility\b", _ethical_query_text))
+    )
+    if _is_freedom_responsibility_conflict:
+        _ethical_answer = _compose_ethical_tradeoff_recovery(query)
+        _ethical_doorway = _ethical_tradeoff_recommendation(query)
+        return {
+            "response": _ethical_answer,
+            "doorway_title": str((_ethical_doorway or {}).get("title") or ""),
+            "doorway_url": str((_ethical_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_ethical_doorway or {}).get("rationale") or ""),
+            "recommendation": _ethical_doorway,
+            "canonical_doorway": _ethical_doorway,
+            "provider": "bounded_ethical_tradeoff_recovery",
+            "model": "",
+        }
+
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
