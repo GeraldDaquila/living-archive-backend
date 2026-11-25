@@ -34,6 +34,7 @@ on:
       - "scripts/validate_gold_star_registry.py"
       - "tests/test_gold_star_adaptive_intelligence_v2.py"
       - "tests/test_gold_star_final_delivery_attribution.py"
+      - "tests/test_stewardship_consent_contract.py"
       - "tests/test_gold_star_qualitative_transfer_review.py"
       - "tests/test_gold_star_transferability_map.py"
       - "docs/qa/gold_star_transferability_map.json"
