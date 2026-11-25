@@ -14,7 +14,9 @@ SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 CRITICAL_SUITE = ROOT / "docs/qa/guide_live_critical_evaluation_cases.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
-PROVIDER_PROBE_QUERY = "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
+# Reuse a question that has already traversed the real provider path in the primary visitor smoke.
+# This probe tests provider attribution only; it does not certify Gold Star application.
+PROVIDER_PROBE_QUERY = "How can leaders weigh obligations to employees, customers, and local residents when a decision benefits one group but imposes costs on another?"
 
 def file_commit(path):
     try:
@@ -162,13 +164,22 @@ def classify_llm_payload(body):
     }
 
 
-def has_metal_spoon_thermal_explanation(response):
-    """Require the physical-science negative control to answer its actual mechanism."""
+def has_stakeholder_tradeoff_explanation(response):
+    """Require the provider probe to address the stakeholder trade-off it actually asks about."""
     text = re.sub(r"\s+", " ", str(response or "")).casefold()
-    explains_heat_transfer = "thermal conductivity" in text or "conducts heat" in text
-    connects_hand_and_rate = "hand" in text and bool(re.search(r"\b(?:faster|more quickly|more rapidly)\b", text))
-    preserves_temperature_condition = "same room temperature" in text or "same temperature" in text
-    return explains_heat_transfer and connects_hand_and_rate and preserves_temperature_condition
+    names_affected_groups = all(term in text for term in ("employees", "customers", "local residents"))
+    explains_tradeoff = bool(re.search(r"\b(?:trade[- ]?offs?|benefits?|costs?|burdens?)\b", text))
+    makes_reasoning_explicit = bool(re.search(r"\b(?:weigh|weighing|explicit|explain|accountab|consider)\w*\b", text))
+    return names_affected_groups and explains_tradeoff and makes_reasoning_explicit
+
+
+def provider_invocation_id(body):
+    """Return the provider invocation ID attached to the final visitor response, if any."""
+    provenance = body.get("response_provenance") if isinstance(body, dict) else None
+    if not isinstance(provenance, dict):
+        return None
+    value = str(provenance.get("provider_invocation_id") or "").strip()
+    return value or None
 
 
 def claim_adjudication_summary(body):
@@ -425,16 +436,18 @@ def main():
     provider_probe_body=provider_probe_transport.get("body")
     provider_probe_body=provider_probe_body if isinstance(provider_probe_body,dict) else {}
     provider_probe_llm,provider_probe_provenance=classify_llm_payload(provider_probe_body)
+    provider_probe_invocation_id=provider_invocation_id(provider_probe_body)
     provider_probe_checks=[
         check("http_200",provider_probe_transport.get("status")==200,f"HTTP status {provider_probe_transport.get('status')}; {provider_probe_transport.get('error') or ''}"),
         check("api_ok",provider_probe_body.get("ok") is True,"API must return ok=true."),
         check("nonempty_answer",bool(str(provider_probe_body.get("response") or "").strip()),"Provider probe must return a non-empty answer."),
-        check("subject_specific_explanation",has_metal_spoon_thermal_explanation(provider_probe_body.get("response")),"The physical-science control must explain faster heat transfer from the hand; a generic systems answer is insufficient."),
+        check("stakeholder_tradeoff_explanation",has_stakeholder_tradeoff_explanation(provider_probe_body.get("response")),"The probe must name employees, customers, and local residents and explain the benefit/cost trade-off."),
         check("attributable_llm",provider_probe_llm,"Final visitor response must carry explicit LLM provenance; provider attempts alone do not count."),
+        check("provider_invocation_id",bool(provider_probe_invocation_id),"The final visitor response must include a provider invocation ID; a provider label alone is insufficient."),
     ]
-    report["provider_probe"]={"query":PROVIDER_PROBE_QUERY,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
+    report["provider_probe"]={"purpose":"provider_attribution_only_not_gold_star_effectiveness","query":PROVIDER_PROBE_QUERY,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"provider_invocation_id":provider_probe_invocation_id,"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
     gold=[x for x in report["results"] if x["split"]=="gold_standard"]; held=[x for x in report["results"] if x["split"]=="held_out"]
-    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"gold_standard_registry_total":len(eligible_records),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"provider_probe_attributable_llm":provider_probe_llm,"provider_probe_provider":provider_probe_provenance.get("provider"),"provider_probe_model":provider_probe_provenance.get("model"),"provider_probe_passed":all(x["passed"] for x in provider_probe_checks),"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks),"interpretation":"Live run is a bounded sample of registered Gold Standards plus the complete held-out set and one attributable provider probe. Heuristic checks require human review; no lesson is promoted automatically."}
+    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"gold_standard_registry_total":len(eligible_records),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"provider_probe_attributable_llm":provider_probe_llm,"provider_probe_provider":provider_probe_provenance.get("provider"),"provider_probe_model":provider_probe_provenance.get("model"),"provider_probe_passed":all(x["passed"] for x in provider_probe_checks),"provider_probe_has_invocation_id":bool(provider_probe_invocation_id),"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks),"interpretation":"Live run is a bounded sample of registered Gold Standards plus the complete held-out set and one attributable provider probe. The provider probe measures invocation attribution only, not Gold Star application. Heuristic checks require human review; no lesson is promoted automatically."}
     report["evaluation_finished_at"]=datetime.now(timezone.utc).isoformat()
     out=Path(args.output); out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report["summary"],ensure_ascii=False,indent=2)); print(f"Full report: {out}")
