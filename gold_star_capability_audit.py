@@ -1,7 +1,9 @@
-"""Audit registry eligibility against reviewed deterministic renderer support.
+"""Audit registry permission against runtime qualitative review and renderer support.
 
-Registry eligibility is not renderer capability. This report keeps record-level
-states separate and deliberately does not mutate registry authority flags.
+The runtime takes deterministic eligibility from the Gold Star registry, but
+reasoning_family and the structural discipline/boundary from the qualitative
+transfer-review register. Join those sources by benchmark_id; never infer
+runtime capability from similarly named registry fields.
 """
 from __future__ import annotations
 
@@ -9,71 +11,116 @@ import argparse
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict
 
 from gold_star_deterministic_composition import _PLANS
 
+_RUNTIME_STATUS = "USER_APPROVED_GOLD_STANDARD"
 
-def build_capability_audit(registry: Dict[str, Any]) -> Dict[str, Any]:
+
+def build_capability_audit(
+    registry: Dict[str, Any],
+    transfer_review: Dict[str, Any],
+) -> Dict[str, Any]:
     records = registry.get("records")
+    entries = transfer_review.get("entries")
     if not isinstance(records, list):
         raise ValueError("registry.records must be a list")
+    if not isinstance(entries, list):
+        raise ValueError("transfer_review.entries must be a list")
+
+    review_by_id = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        benchmark_id = str(entry.get("benchmark_id") or "").strip()
+        if benchmark_id:
+            if benchmark_id in review_by_id:
+                raise ValueError(f"duplicate transfer-review benchmark_id: {benchmark_id}")
+            review_by_id[benchmark_id] = entry
 
     eligible = [
         record for record in records
         if isinstance(record, dict)
-        and record.get("gold_star_capabilities", {}).get(
-            "deterministic_fallback_eligible"
-        ) is True
+        and isinstance(record.get("gold_star_capabilities"), dict)
+        and record["gold_star_capabilities"].get("deterministic_fallback_eligible") is True
     ]
-    missing_family = [
+    runtime_eligible = [
         record for record in eligible
-        if not str(record.get("reasoning_family") or "").strip()
+        if record.get("status") == _RUNTIME_STATUS
     ]
-    named = [
+    superseded = [
         record for record in eligible
-        if str(record.get("reasoning_family") or "").strip()
-    ]
-    supported = [
-        record for record in named
-        if record["reasoning_family"] in _PLANS
-    ]
-    unsupported = [
-        record for record in named
-        if record["reasoning_family"] not in _PLANS
+        if record.get("status") == "SUPERSEDED_GOLD_STANDARD"
     ]
 
-    family_counts = Counter(record["reasoning_family"] for record in named)
+    missing_review = [
+        record for record in runtime_eligible
+        if str(record.get("benchmark_id") or "").strip() not in review_by_id
+    ]
+    reviewed = [
+        (record, review_by_id[str(record.get("benchmark_id") or "").strip()])
+        for record in runtime_eligible
+        if str(record.get("benchmark_id") or "").strip() in review_by_id
+    ]
+    missing_family = [
+        (record, review) for record, review in reviewed
+        if not str(review.get("reasoning_family") or "").strip()
+    ]
+    named = [
+        (record, review) for record, review in reviewed
+        if str(review.get("reasoning_family") or "").strip()
+    ]
+    supported = [
+        (record, review) for record, review in named
+        if review["reasoning_family"] in _PLANS
+    ]
+    unsupported = [
+        (record, review) for record, review in named
+        if review["reasoning_family"] not in _PLANS
+    ]
+
+    family_counts = Counter(review["reasoning_family"] for _, review in named)
     supported_families = sorted(set(family_counts).intersection(_PLANS))
     unsupported_families = sorted(set(family_counts).difference(_PLANS))
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "registry_record_count": len(records),
+        "review_entry_count": len(entries),
         "eligible_record_count": len(eligible),
-        "eligible_missing_family_count": len(missing_family),
-        "eligible_named_family_record_count": len(named),
-        "eligible_renderer_supported_record_count": len(supported),
-        "eligible_renderer_unsupported_record_count": len(unsupported),
-        "eligible_named_family_count": len(family_counts),
+        "superseded_eligible_record_count": len(superseded),
+        "runtime_eligible_record_count": len(runtime_eligible),
+        "runtime_eligible_missing_review_count": len(missing_review),
+        "runtime_eligible_missing_family_count": len(missing_family),
+        "runtime_eligible_named_family_record_count": len(named),
+        "runtime_eligible_renderer_supported_record_count": len(supported),
+        "runtime_eligible_renderer_unsupported_record_count": len(unsupported),
+        "runtime_eligible_named_family_count": len(family_counts),
         "renderer_plan_count": len(_PLANS),
         "supported_families": [
-            {"reasoning_family": family, "eligible_record_count": family_counts[family],
+            {"reasoning_family": family, "runtime_eligible_record_count": family_counts[family],
              "plan_id": _PLANS[family]["plan_id"]}
             for family in supported_families
         ],
         "unsupported_families": [
-            {"reasoning_family": family, "eligible_record_count": family_counts[family]}
+            {"reasoning_family": family, "runtime_eligible_record_count": family_counts[family]}
             for family in unsupported_families
+        ],
+        "missing_review_records": [
+            {"benchmark_id": str(record.get("benchmark_id") or ""),
+             "status": str(record.get("status") or "")}
+            for record in missing_review
         ],
         "missing_family_records": [
             {"benchmark_id": str(record.get("benchmark_id") or ""),
-             "title": str(record.get("title") or "")}
-            for record in missing_family
+             "reasoning_family": ""}
+            for record, _ in missing_family
         ],
         "interpretation": {
-            "eligible": "Registry permission only; not proof of renderer support or runtime application.",
-            "renderer_supported": "The reasoning family has a reviewed deterministic plan.",
+            "eligible": "Registry permission only; superseded records are not active runtime lessons.",
+            "runtime_eligible": "USER_APPROVED_GOLD_STANDARD records whose deterministic fallback flag is true.",
+            "renderer_supported": "The joined qualitative-review reasoning family has a reviewed deterministic plan.",
             "selected_applied": "Must be established separately from runtime selection and application evidence.",
         },
     }
@@ -86,14 +133,23 @@ def main() -> int:
         type=Path,
         default=Path(__file__).parent / "docs/qa/gold_standard_registry.json",
     )
+    parser.add_argument(
+        "--review",
+        type=Path,
+        default=Path(__file__).parent / "docs/qa/gold_star_qualitative_transfer_review.json",
+    )
     parser.add_argument("--check", action="store_true",
-                        help="exit nonzero if eligible records lack a family or renderer plan")
+                        help="exit nonzero if active eligible records lack review/family/renderer support")
     args = parser.parse_args()
-    report = build_capability_audit(json.loads(args.registry.read_text(encoding="utf-8")))
+    report = build_capability_audit(
+        json.loads(args.registry.read_text(encoding="utf-8")),
+        json.loads(args.review.read_text(encoding="utf-8")),
+    )
     print(json.dumps(report, indent=2, sort_keys=True))
     if args.check and (
-        report["eligible_missing_family_count"]
-        or report["eligible_renderer_unsupported_record_count"]
+        report["runtime_eligible_missing_review_count"]
+        or report["runtime_eligible_missing_family_count"]
+        or report["runtime_eligible_renderer_unsupported_record_count"]
     ):
         return 1
     return 0
