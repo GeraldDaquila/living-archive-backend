@@ -138,7 +138,10 @@ def test_actual_final_visitor_boundary_repairs_the_exact_query():
         "_normalize_authoritative_recommendation": lambda value: value,
         # The production finalizer consults the request-local Gold Star ledger;
         # this AST-isolated test exercises the payload-trace fallback path.
-        "_gold_star_ledger": type("LedgerStub", (), {"current_attempt_trace": lambda self: None})(),
+        "_gold_star_ledger": type("LedgerStub", (), {
+            "current_attempt_trace": lambda self: None,
+            "current_request_context": lambda self: {"composition_attempt_count": 0},
+        })(),
         "_emit_guide_outcome": lambda *_args, **_kwargs: None,
         "is_stewardship_consent_relationship_question": is_stewardship_consent_relationship_question,
         "_apply_stewardship_consent_relationship_boundary": apply_stewardship_consent_relationship_boundary,
