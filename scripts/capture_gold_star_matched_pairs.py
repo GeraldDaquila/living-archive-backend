@@ -366,6 +366,7 @@ async def capture(args) -> dict:
     # override for the exact pinned lane. This does not change application defaults,
     # production configuration, or the shared request deadline.
     original_provider_call_timeout = provider_bank._provider_call_timeout
+    original_quota_guarded_call = provider_bank._quota_guarded_call
 
     def evaluation_provider_call_timeout(operation, item=None, attempt_index=1):
         timeout = original_provider_call_timeout(operation, item, attempt_index)
@@ -381,11 +382,36 @@ async def capture(args) -> dict:
             return effective_timeout
         return timeout
 
+    def evaluation_quota_guarded_call(
+        use_core, item, messages, max_tokens, schema=None,
+        timeout_override=None, operation=None,
+    ):
+        if (
+            operation == "general_guide_composition"
+            and str((item or {}).get("provider") or "") == provider
+            and str((item or {}).get("model") or "") == model
+        ):
+            state = CAPTURE_CONTEXT.get()
+            if state is not None:
+                state["max_tokens"] = max_tokens
+                state["schema_sha256"] = (
+                    _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
+                    if isinstance(schema, dict) else None
+                )
+                state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
+                state["provider_timeout_seconds"] = timeout_override
+        return original_quota_guarded_call(
+            use_core, item, messages, max_tokens, schema,
+            timeout_override=timeout_override, operation=operation,
+        )
+
     provider_bank._provider_call_timeout = evaluation_provider_call_timeout
+    provider_bank._quota_guarded_call = evaluation_quota_guarded_call
     restore_observers = _install_observers(composition, main)
     def restore():
         restore_observers()
         provider_bank._provider_call_timeout = original_provider_call_timeout
+        provider_bank._quota_guarded_call = original_quota_guarded_call
 
     records = []
     blind_cases = []
