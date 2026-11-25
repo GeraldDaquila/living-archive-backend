@@ -2,7 +2,10 @@ from pathlib import Path
 
 
 def test_harness_contract_runs_on_pull_requests_without_provider_calls():
-    workflow = (\n        Path(__file__).resolve().parents[1]\n        / ".github/workflows/gold-star-matched-pair-candidate.yml"\n    ).read_text(encoding="utf-8")
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/gold-star-matched-pair-candidate.yml"
+    ).read_text(encoding="utf-8")
     assert "matched-pair-contract:" in workflow
     assert "matched-pair-local:" in workflow
     assert "needs: matched-pair-contract" in workflow
