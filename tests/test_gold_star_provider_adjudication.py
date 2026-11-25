@@ -89,6 +89,35 @@ def test_span_must_be_exactly_present_and_bounded():
     assert result["application"] == "not_observed"
 
 
+def test_selected_without_exact_span_can_be_delivered_but_never_earns_application_credit():
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
+    report = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
+            ],
+            "application_evidence_spans": [],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    traced = trace.mark_provider_adjudication(initial, report)
+    composed = trace.mark_composition_result(
+        traced, provider_result={"parsed": {"response": response}}
+    )
+    delivered = trace.mark_final_delivery(
+        composed, provider_candidate_delivered=True, final_provenance="llm"
+    )
+    assert delivered["selection"] == "provider_reported_selected"
+    assert delivered["application_evidence_present"] is False
+    assert delivered["application"] == "not_observed"
+    assert delivered["contribution_retained"] == "not_verified"
+    assert delivered["outcome"] == "not_evaluated"
+    assert trace.validate_trace(delivered)["valid"] is True
+
+
 def test_trace_keeps_provider_report_distinct_from_human_review_and_tracks_retention():
     initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
     report = adjudication.normalize_provider_adjudication(
