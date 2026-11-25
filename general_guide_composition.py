@@ -16,6 +16,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from guide_request_budget import composition_provider_deadline
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from guide_answerability import (
     ARCHITECTURAL_CONTRACT as _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
@@ -4697,6 +4698,12 @@ def compose(
     if PROVIDER_BANK_CONTRACT_VERSION != "v2":
         raise RuntimeError("General Guide composition requires Provider Bank v2.")
 
+    # Keep the one bounded integrity repair available even when retrieval and
+    # ordinary provider arbitration have already consumed most of the request.
+    provider_deadline_monotonic = composition_provider_deadline(
+        deadline_monotonic,
+        integrity_recovery=integrity_recovery,
+    )
     question = _normalize_space(query)
     if not question:
         return None
@@ -5081,7 +5088,7 @@ def compose(
             ],
             max_tokens=750,
             parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
-            deadline_monotonic=deadline_monotonic,
+            deadline_monotonic=provider_deadline_monotonic,
         )
     finally:
         # A cold semantic index is requested during Gold Star selection but must
@@ -5139,7 +5146,7 @@ def compose(
                         effective_question,
                         gold_star_quality.get("candidates") if gold_star_quality else None,
                     ),
-                    deadline_monotonic=deadline_monotonic,
+                    deadline_monotonic=provider_deadline_monotonic,
                 )
                 _repaired_payload = (
                     _repaired_result.get("parsed")
