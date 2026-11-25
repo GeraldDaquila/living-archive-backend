@@ -302,3 +302,19 @@ def test_matched_pair_capture_isolates_composition_from_auxiliary_claim_adjudica
         "status": "assessed"
     }
     assert len(calls) == 1
+
+
+def test_skipped_arm_preserves_complete_prompt_fingerprint_schema():
+    skipped = _skipped_arm("provider_lane_unavailable")
+    assert skipped["base_system_prompt_sha256"] is None
+    assert skipped["route_input_system_prompt_sha256"] is None
+    assert skipped["user_content_sha256"] is None
+
+
+def test_skipped_provider_arm_can_be_recorded_without_crashing_pair_validation():
+    # A failed first provider attempt closes the lane; subsequent arms must still
+    # produce a complete evidence record rather than raising KeyError.
+    skipped = _skipped_arm("previous_pinned_provider_attempt_unavailable")
+    assert "base_system_prompt_sha256" in skipped
+    assert "route_input_system_prompt_sha256" in skipped
+
