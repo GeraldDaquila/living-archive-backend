@@ -58,6 +58,64 @@ def test_provider_exhaustion_is_recorded_without_inventing_adaptation():
     assert result["application"] == "not_observed"
 
 
+def test_deterministic_renderer_application_is_distinct_from_provider_adjudication():
+    initial = trace.build_adjudication_trace(_contribution())
+    application = {
+        "benchmark_id": "lesson-one",
+        "reasoning_family": "stakeholder_tradeoffs",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": ["First structural span.", "Second structural span."],
+        "abstention_boundary_applied": True,
+    }
+    applied = trace.mark_deterministic_application(initial, application)
+    assert applied["provider_adjudication_status"] == "not_observed"
+    assert applied["selection"] == "deterministic_renderer_selected"
+    assert applied["selected_candidate_ids"] == ["lesson-one"]
+    assert applied["application"] == "deterministic_renderer_applied"
+    assert applied["application_evidence_present"] is True
+    assert applied["application_evidence_candidate_ids"] == ["lesson-one"]
+    assert applied["deterministic_application_span_count"] == 2
+    assert trace.validate_trace(applied)["valid"]
+
+    # Composition finalization must not erase a deterministic renderer result.
+    composed = trace.mark_composition_result(applied, provider_result=None)
+    assert composed["composition"] == "provider_no_result"
+    assert composed["selection"] == "deterministic_renderer_selected"
+    assert composed["application"] == "deterministic_renderer_applied"
+    delivered = trace.mark_final_delivery(
+        composed,
+        provider_candidate_delivered=False,
+        final_provenance="deterministic_recovery",
+    )
+    assert delivered["final_delivery"] == "deterministic_or_unresolved_replacement"
+    assert delivered["application"] == "deterministic_renderer_applied"
+    assert delivered["application_evidence_present"] is True
+    assert trace.validate_trace(delivered)["valid"]
+
+
+def test_deterministic_renderer_application_fails_closed_without_candidate_or_spans():
+    initial = trace.build_adjudication_trace(_contribution())
+    missing_candidate = trace.mark_deterministic_application(initial, {
+        "benchmark_id": "not-in-trace",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": ["A span."],
+        "abstention_boundary_applied": True,
+    })
+    assert missing_candidate["selection"] == "not_observed"
+    assert missing_candidate["application"] == "not_observed"
+    assert trace.validate_trace(missing_candidate)["valid"]
+
+    missing_spans = trace.mark_deterministic_application(initial, {
+        "benchmark_id": "lesson-one",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": [],
+        "abstention_boundary_applied": True,
+    })
+    assert missing_spans["selection"] == "not_observed"
+    assert missing_spans["application"] == "not_observed"
+    assert trace.validate_trace(missing_spans)["valid"]
+
+
 def test_final_deterministic_replacement_does_not_inherit_provider_adaptation_credit():
     initial = trace.build_adjudication_trace(_contribution())
     composed = trace.mark_composition_result(
