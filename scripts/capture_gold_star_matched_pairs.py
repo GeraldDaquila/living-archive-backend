@@ -48,7 +48,23 @@ def _install_observers(composition, main_module):
     original_contribution = composition._gold_star_active_quality_contribution
     original_normalizer = composition._normalize_gold_star_provider_adjudication
     original_route = composition.route_with_model_bank
+    original_system_builder = composition._build_general_guide_system_message
     original_claim_adjudication = main_module._adjudicate_final_visitor_claims
+
+    def observe_system_builder(question, **kwargs):
+        system_message = original_system_builder(question, **kwargs)
+        state = CAPTURE_CONTEXT.get()
+        if state is not None:
+            # Rebuild the same request's non-adaptive base contract by removing
+            # only the two explicit treatment switches. This verifies that the
+            # arms differ by the governed Gold Star contribution, not by an
+            # unrelated question/context/system-contract change.
+            base_kwargs = dict(kwargs)
+            base_kwargs["has_gold_star_guidance"] = False
+            base_kwargs["gold_star_quality_instruction"] = ""
+            base_system_message = original_system_builder(question, **base_kwargs)
+            state["base_system_prompt_sha256"] = _sha256(base_system_message)
+        return system_message
 
     def observe_contribution(query):
         result = original_contribution(query)
@@ -104,7 +120,7 @@ def _install_observers(composition, main_module):
             if isinstance(messages, list) and len(messages) >= 2:
                 system_message = messages[0] if isinstance(messages[0], dict) else {}
                 user_message = messages[-1] if isinstance(messages[-1], dict) else {}
-                state["actual_system_prompt_sha256"] = _sha256(
+                state["route_input_system_prompt_sha256"] = _sha256(
                     str(system_message.get("content") or "")
                 )
                 state["user_content_sha256"] = _sha256(
@@ -117,12 +133,14 @@ def _install_observers(composition, main_module):
     composition._gold_star_active_quality_contribution = observe_contribution
     composition._normalize_gold_star_provider_adjudication = observe_adjudication
     composition.route_with_model_bank = observe_route
+    composition._build_general_guide_system_message = observe_system_builder
     main_module._adjudicate_final_visitor_claims = suppress_auxiliary_claim_adjudication
 
     def restore():
         composition._gold_star_active_quality_contribution = original_contribution
         composition._normalize_gold_star_provider_adjudication = original_normalizer
         composition.route_with_model_bank = original_route
+        composition._build_general_guide_system_message = original_system_builder
         main_module._adjudicate_final_visitor_claims = original_claim_adjudication
 
     return restore
@@ -187,7 +205,8 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
     state: dict[str, Any] = {
         "retrieved_candidates": [],
         "auxiliary_claim_adjudication": None,
-        "actual_system_prompt_sha256": None,
+        "base_system_prompt_sha256": None,
+        "route_input_system_prompt_sha256": None,
         "user_content_sha256": None,
         "route_operation": None,
         "max_tokens": None,
@@ -232,7 +251,7 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
             "retrieved_candidates": state["retrieved_candidates"],
             "provider_adjudication": state["provider_adjudication"],
             "auxiliary_claim_adjudication": state["auxiliary_claim_adjudication"],
-            "actual_system_prompt_sha256": state["actual_system_prompt_sha256"],
+            "route_input_system_prompt_sha256": state["route_input_system_prompt_sha256"],
             "user_content_sha256": state["user_content_sha256"],
             "route_operation": state["route_operation"],
             "max_tokens": state["max_tokens"],
@@ -265,7 +284,7 @@ def _skipped_arm(reason: str) -> dict:
             "application_evidence_candidate_ids": [],
             "application": "not_observed",
         },
-        "actual_system_prompt_sha256": None,
+        "route_input_system_prompt_sha256": None,
         "user_content_sha256": None,
         "route_operation": None,
         "max_tokens": None,
@@ -393,9 +412,13 @@ async def capture(args) -> dict:
                     failures.append("provider_route_prompt_capture_missing")
                 elif control["user_content_sha256"] != treatment["user_content_sha256"]:
                     failures.append("paired_user_content_mismatch")
-                if not control["actual_system_prompt_sha256"] or not treatment["actual_system_prompt_sha256"]:
+                if not control["base_system_prompt_sha256"] or not treatment["base_system_prompt_sha256"]:
+                    failures.append("provider_route_base_system_prompt_capture_missing")
+                elif control["base_system_prompt_sha256"] != treatment["base_system_prompt_sha256"]:
+                    failures.append("paired_base_system_prompt_mismatch")
+                if not control["route_input_system_prompt_sha256"] or not treatment["route_input_system_prompt_sha256"]:
                     failures.append("provider_route_system_prompt_capture_missing")
-                elif control["actual_system_prompt_sha256"] == treatment["actual_system_prompt_sha256"]:
+                elif control["route_input_system_prompt_sha256"] == treatment["route_input_system_prompt_sha256"]:
                     failures.append("treatment_system_prompt_not_adapted")
                 if (
                     control["route_operation"] != treatment["route_operation"]
@@ -429,8 +452,8 @@ async def capture(args) -> dict:
                 # through the same route. Pairing also includes the exact shared user
                 # message hash; treatment's adaptive system prompt hash is retained per arm.
                 base_prompt_fingerprint = _sha256(
-                    "CONTROL_SYSTEM_PROMPT_SHA256\n"
-                    + str(control["actual_system_prompt_sha256"] or "")
+                    "NON_ADAPTIVE_BASE_SYSTEM_PROMPT_SHA256\n"
+                    + str(control["base_system_prompt_sha256"] or "")
                     + "\nUSER_CONTENT_SHA256\n"
                     + str(control["user_content_sha256"] or "")
                 )
