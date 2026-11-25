@@ -16168,6 +16168,18 @@ def _gold_star_attach_route_context(payload, query, boundary=None):
     return safe
 
 
+def _visitor_request_correlation_id():
+    """Return the current request-local trace ID, never the stable query hash."""
+    try:
+        request_context = _gold_star_ledger.current_request_context()
+    except Exception:
+        return None
+    if not isinstance(request_context, dict):
+        return None
+    value = str(request_context.get("request_id") or "").strip().casefold()
+    return value if re.fullmatch(r"[0-9a-f]{32}", value) else None
+
+
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
@@ -16184,6 +16196,14 @@ async def _use_send_json(send, payload, status_code=200):
         payload.setdefault(
             "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
         )
+        # request_id is a stable query/history key. Expose the distinct,
+        # request-local correlation ID so response artifacts can join exactly
+        # to Gold Star terminal and final-delivery events.
+        _request_correlation_id = _visitor_request_correlation_id()
+        if _request_correlation_id:
+            payload["request_correlation_id"] = _request_correlation_id
+        else:
+            payload.setdefault("request_correlation_id", None)
     # Absolute visitor-facing boundary: all JSON routes pass through this sender,
     # including routes that bypass Basic Inquiry's local composer boundary.
     # A blank doorway field means "no doorway registered in this frozen answer,"
