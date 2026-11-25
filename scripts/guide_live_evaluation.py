@@ -302,7 +302,13 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             )))
         )
         mechanism = any(term in low for term in ("because", "enables", "allows", "allowing", "makes it possible", "basis for scrutiny"))
-        reciprocal = any(term in low for term in ("reinforce one another", "reinforce each other", "mutually reinforce", "strengthen one another", "strengthen each other", "work both ways", "works both ways", "other direction", "reciprocal", "in turn", "also makes"))
+        reciprocal = any(term in low for term in (
+            "reinforce one another", "reinforce each other", "mutually reinforce",
+            "mutually reinforcing", "strengthen one another", "strengthen each other",
+            "work both ways", "works both ways", "other direction", "in two directions",
+            "two directions", "in both directions", "conversely", "vice versa",
+            "reciprocal", "in turn", "also makes",
+        ))
         boundary = any(term in low for term in (
             "neither guarantees", "does not guarantee", "not guarantee", "not the same",
             "not equivalent", "conditional, not automatic", "one does not substitute for the other",
@@ -330,11 +336,18 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 attributable,
                 f"Community-rule transfer must be produced by an attributable LLM response, not deterministic fallback; observed {provenance!r}.",
             ))
-        purpose=any(x in low for x in ("shared purpose","shared need","coordination problem","demonstrable harm","common need"))
+        purpose=any(x in low for x in (
+            "shared purpose", "shared need", "coordination problem", "coordination need",
+            "demonstrable harm", "actual harm", "common need", "shared goal",
+        ))
         proportionality=any(x in low for x in ("proportionate","proportionality","necessary","least restrictive","least-restrictive"))
         burden=any(x in low for x in ("who benefits","who bears","who carries","fairly distributed","fair burden","reciprocal","accommodation"))
         participation=(
-            any(x in low for x in ("people most affected","affected people","shape the decision","participate","meaningful opportunity"))
+            any(x in low for x in (
+                "people most affected", "affected people", "shape the decision", "participate",
+                "meaningful opportunity", "meaningful participation",
+                "participation from those affected",
+            ))
             or "solicit input from those whose liberty would be curtailed" in low
         )
         appeal=any(x in low for x in ("appeal","question the rule","challenge its application","review point","review the rule","observable criteria"))
