@@ -4150,8 +4150,8 @@ def enforce_response_contracts(question: str, response: str) -> str:
     _tradeoff_query = _normalize_space(question).casefold()
     if (
         _is_ethical_tradeoff(question)
-        and re.search(r"\\bindividual\\s+freedom\\b", _tradeoff_query)
-        and re.search(r"\\bshared\\s+responsibility\\b", _tradeoff_query)
+        and re.search(r"\bindividual\s+freedom\b", _tradeoff_query)
+        and re.search(r"\bshared\s+responsibility\b", _tradeoff_query)
     ):
         candidate = compose_recovery(question)
         _tradeoff_requirements = (
