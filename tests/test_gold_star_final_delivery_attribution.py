@@ -186,4 +186,4 @@ def test_deterministic_renderer_passes_private_evidence_spans_to_shared_finalize
     assert '"_gold_star_deterministic_application_spans": list(' in source
     assert '_gold_star_application.get("application_evidence_spans")' in source
     assert 'finalized.pop("_gold_star_deterministic_application_spans", None)' in source
-\n
+
