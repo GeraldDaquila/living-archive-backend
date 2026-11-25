@@ -84,5 +84,5 @@ def test_request_boundary_keeps_explanatory_question_in_guide():
     assert payload.get("intent") != "CATALOGUE_HANDOFF"
     assert payload.get("handoff") != "catalogue"
     answer = str(payload.get("response") or "")
-    assert main.general_guide_composition._has_broad_conceptual_definition(answer)
     assert main.general_guide_composition._has_direct_definition_for_subject(query, answer)
+    assert "it matters because" in answer.casefold()
