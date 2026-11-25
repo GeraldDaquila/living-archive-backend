@@ -2695,6 +2695,29 @@ def _normalize_composition_envelope(parsed: Dict[str, Any]) -> Dict[str, Any]:
 
 def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_candidates: Any = None, emit_telemetry: bool = True):
     titles = {item["title"] for item in documents}
+
+    def _require_complete_gold_star_adjudication(parsed: Dict[str, Any], response: str) -> None:
+        # When candidates were supplied, do not admit a provider response as a
+        # valid composition if its required disposition report is absent or
+        # malformed. A selected candidate must also have an exact answer span.
+        if not gold_star_candidates:
+            return
+        report = _normalize_gold_star_provider_adjudication(
+            parsed.get("adaptive_adjudication"),
+            response=response,
+            candidates=gold_star_candidates,
+        )
+        if report.get("status") == "not_observed":
+            raise ValueError(
+                "provider Gold Star adjudication report is missing or incomplete"
+            )
+        if (
+            report.get("status") == "provider_reported_selected"
+            and report.get("application_evidence_present") is not True
+        ):
+            raise ValueError(
+                "provider Gold Star selection lacks exact answer-span application evidence"
+            )
     def _parse_strict(raw: str) -> Dict[str, Any]:
         try:
             parsed = json.loads(str(raw or "").strip())
@@ -2936,6 +2959,8 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
         if re.search(r"\bhttps?://\S+", response, flags=re.I):
             raise ValueError("general composition exposed a URL in visitor prose")
 
+        _require_complete_gold_star_adjudication(parsed, response)
+
         return {
             "response": response,
             "doorway_title": title,
@@ -3025,6 +3050,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 title = _normalize_space(parsed.get("doorway_title") or "")
                 if title and title not in titles:
                     title = ""
+                _require_complete_gold_star_adjudication(parsed, response)
                 # Telemetry is optional for provider-free structural probes. Those
                 # probes execute during module import and must not masquerade as
                 # visitor provider outcomes in production logs.
