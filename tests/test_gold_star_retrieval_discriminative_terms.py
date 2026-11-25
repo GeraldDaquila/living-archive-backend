@@ -4,7 +4,7 @@ import gold_star_lessons
 
 
 def test_generic_quantifier_does_not_establish_subject_identity():
-    assert "one" not in gold_star_lessons._concept_terms("one master cause")
+    assert not ({"one", "rather", "than"} & gold_star_lessons._concept_terms("one master cause rather than one cause"))
 
 
 def test_heldout_multicausal_query_prefers_societal_breakdown_gold_star():
