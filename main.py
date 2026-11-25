@@ -16196,14 +16196,6 @@ async def _use_send_json(send, payload, status_code=200):
         payload.setdefault(
             "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
         )
-        # request_id is a stable query/history key. Expose the distinct,
-        # request-local correlation ID so response artifacts can join exactly
-        # to Gold Star terminal and final-delivery events.
-        _request_correlation_id = _visitor_request_correlation_id()
-        if _request_correlation_id:
-            payload["request_correlation_id"] = _request_correlation_id
-        else:
-            payload.setdefault("request_correlation_id", None)
     # Absolute visitor-facing boundary: all JSON routes pass through this sender,
     # including routes that bypass Basic Inquiry's local composer boundary.
     # A blank doorway field means "no doorway registered in this frozen answer,"
@@ -16513,6 +16505,10 @@ async def _use_send_json(send, payload, status_code=200):
                 + str(_floor_result.get("reason") or "unknown")
             )
 
+    # Stamp after every rewrite/boundary so the response always carries the
+    # same request-local ID used by terminal and final-delivery telemetry.
+    if isinstance(payload, dict):
+        payload["request_correlation_id"] = _visitor_request_correlation_id()
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
