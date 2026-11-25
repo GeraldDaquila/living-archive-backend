@@ -78,6 +78,9 @@ def test_shared_final_boundary_consumes_private_trace_before_early_returns():
     assert 'reason="finalizer_non_dict"' in source_segment
     assert 'reason="delivery_result_non_dict"' in source_segment
     assert 'reason="trace_not_initialized"' in source_segment
+    assert "def _composition_attempt_count()" in source_segment
+    assert "if attempt_count > 0:" in source_segment
+    assert "composition_attempt_count=attempt_count" in source_segment
     assert "result_type=type(finalized).__name__" in source_segment
     assert "result_type=type(result).__name__" in source_segment
 
@@ -87,6 +90,7 @@ def test_non_dict_inner_finalizer_emits_explicit_unavailable_disposition(monkeyp
     import gold_star_adjudication_trace as ledger
 
     token = ledger.begin_request_context("0123456789abcdef0123456789abcdef")
+    ledger.begin_composition_attempt()
     events = []
     try:
         monkeypatch.setattr(main, "_guide_finalize_visitor_payload_inner", lambda *_args: None)
@@ -144,3 +148,27 @@ def test_gold_star_quality_event_reports_candidate_availability_not_activation()
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert '"gold_star_quality_candidate_available"' in source
     assert '"gold_star_quality_active"' not in source
+
+
+def test_no_composition_attempt_does_not_emit_missing_trace_failure(monkeypatch):
+    import main
+    import gold_star_adjudication_trace as ledger
+
+    token = ledger.begin_request_context("abcdef0123456789abcdef0123456789")
+    events = []
+    try:
+        monkeypatch.setattr(main, "_guide_finalize_visitor_payload_inner", lambda *_args: None)
+        monkeypatch.setattr(
+            main,
+            "_emit_guide_outcome",
+            lambda event, **fields: events.append((event, fields)),
+        )
+        result = main._guide_finalize_visitor_payload(
+            {"response": "private visitor text is not telemetry"},
+            "A deterministic early-route question?",
+        )
+        assert result is None
+        assert events == []
+    finally:
+        ledger.end_request_context(token)
+\n
