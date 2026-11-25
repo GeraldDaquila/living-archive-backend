@@ -141,10 +141,12 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
 
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     contract = adjudication.build_adjudication_output_contract(CANDIDATES)
-    assert len(contract) < 1150
+    assert len(contract) < 1300
     assert contract.endswith(
-        "Final JSON: response, doorway_title, response_shape, adaptive_adjudication; "
-        "response is the visitor answer."
+        "Output one object, not adjudication alone: "
+        '{"response":"complete visitor answer","doorway_title":"title or empty",'
+        '"response_shape":"shape","adaptive_adjudication":'
+        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
     )
     for required in (
         "adaptive_adjudication",
