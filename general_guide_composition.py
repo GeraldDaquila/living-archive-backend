@@ -3818,6 +3818,15 @@ def _requires_responsibility_boundary_answer(question: str) -> bool:
     q = _normalize_space(question).casefold()
     if not q:
         return False
+    # A community-level freedom/shared-responsibility trade-off is not a
+    # personal burden question. Keep it out of the separate responsibility
+    # boundary classifier and its final visitor assertion.
+    if (
+        re.search(r"\bindividual\s+freedom\b", q)
+        and re.search(r"\bshared\s+responsibility\b", q)
+        and re.search(r"\b(?:balance|reconcile|trade.?offs?|conflict|decide|decision)\b", q)
+    ):
+        return False
     individual_agency = bool(re.search(
         r"\b(?:my|our|individual|personal|a person|one person|each person|people)\b.{0,80}\b"
         r"(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility)|change|fix|repair|solve)\b"
@@ -4141,6 +4150,30 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _responsibility_boundary_recovery()
     if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
+
+    # This exact ethical conflict is not a personal-responsibility prompt.
+    # The generic responsibility boundary above can otherwise replace a valid
+    # freedom/shared-responsibility analysis while leaving upstream provenance
+    # untouched. Reassert the registered trade-off answer at the final contract.
+    from deterministic_answer_recovery import _is_ethical_tradeoff, compose_recovery
+    _tradeoff_query = _normalize_space(question).casefold()
+    if (
+        _is_ethical_tradeoff(question)
+        and re.search(r"\bindividual\s+freedom\b", _tradeoff_query)
+        and re.search(r"\bshared\s+responsibility\b", _tradeoff_query)
+    ):
+        candidate = compose_recovery(question)
+        _tradeoff_requirements = (
+            "individual freedom",
+            "shared responsibility",
+            "people who will be affected",
+            "less restrictive alternatives",
+            "proportionate",
+            "question or appeal",
+        )
+        if not all(term in candidate.casefold() for term in _tradeoff_requirements):
+            raise RuntimeError("Ethical trade-off response contract failed after final recovery.")
+
     candidate = _remove_visitor_meta_commentary(candidate)
     # Validate after all governed deterministic recoveries have had the
     # opportunity to replace a rejected provider candidate.

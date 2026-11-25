@@ -7,6 +7,11 @@ from deterministic_answer_recovery import (
     _is_ethical_tradeoff,
     compose_recovery,
 )
+from general_guide_composition import (
+    _requires_responsibility_boundary_answer,
+    _responsibility_boundary_recovery,
+    enforce_response_contracts,
+)
 
 ROOT = Path(__file__).parent
 MAIN = (ROOT / "main.py").read_text(encoding="utf-8")
@@ -34,6 +39,25 @@ def test_registered_tradeoff_composer_addresses_the_actual_value_conflict():
     ):
         assert phrase in answer.casefold()
     assert "feeling responsible for fixing it" not in answer.casefold()
+
+
+def test_ethical_tradeoff_is_not_misclassified_as_personal_responsibility_boundary():
+    assert not _requires_responsibility_boundary_answer(QUESTION)
+
+
+def test_final_response_contract_preserves_specific_tradeoff_over_generic_responsibility_boundary():
+    generic_candidate = _responsibility_boundary_recovery()
+    answer = enforce_response_contracts(QUESTION, generic_candidate)
+    for phrase in (
+        "individual freedom",
+        "shared responsibility",
+        "people who will be affected",
+        "less restrictive alternatives",
+        "proportionate",
+        "question or appeal",
+    ):
+        assert phrase in answer.casefold()
+    assert "noticing that something is broken" not in answer.casefold()
 
 
 def test_api_dispatches_ethical_tradeoff_before_broad_conceptual_recovery():
