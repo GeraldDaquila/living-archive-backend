@@ -19,5 +19,5 @@ def test_gold_star_active_quality_contribution_remains_wired_into_composition():
     assert "_gold_star_active_quality_contribution(question)" in source
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" in source
     assert "Select one " in source
-    assert "Combine candidates only when each contributes a distinct" in source
-    assert "Reject all when none materially improves the answer" in source
+    assert "Combine candidates only when each adds a distinct" in source
+    assert "Reject all when none improves the answer" in source
