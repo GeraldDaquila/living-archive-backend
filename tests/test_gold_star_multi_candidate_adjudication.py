@@ -126,7 +126,7 @@ def test_gold_star_adjudication_recovery_does_not_capture_unrelated_questions():
 
 
 
-def test_top_ranked_provider_candidate_preserves_complete_discipline_and_boundary():
+def test_top_ranked_community_rule_projection_preserves_key_operations_within_budget():
     candidate = {
         "benchmark_id": "gs-2026-11-22-community-freedom-shared-responsibility-decision",
         "role": "core",
@@ -153,12 +153,14 @@ def test_top_ranked_provider_candidate_preserves_complete_discipline_and_boundar
     }
     prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
     for phrase in (
-        "Include affected people",
-        "test less restrictive alternatives",
+        "Protect rights/agency",
+        "evidence shared need/harm",
+        "include affected, less influential people",
+        "test least-restrictive, proportionate limits",
         "distribute burdens fairly",
-        "accountability, appeal, review, and correction",
-        "Do not treat collective preference as sufficient authority",
-        "do not grant deterministic fallback eligibility",
+        "accountability, appeal, review, correction",
+        "Collective preference cannot override rights",
+        "never assume limits justified",
         "operationalizing its distinct reasoning steps and constraints",
     ):
         assert phrase in prompt
