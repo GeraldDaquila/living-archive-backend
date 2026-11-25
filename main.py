@@ -8489,6 +8489,10 @@ def _guide_finalize_visitor_payload(payload, query):
         str(safe_input.get("response") or safe_input.get("answer") or "")
     ) if isinstance(safe_input, dict) else ""
     finalized = _guide_finalize_visitor_payload_inner(safe_input, query)
+    deterministic_application_spans = (
+        finalized.pop("_gold_star_deterministic_application_spans", None)
+        if isinstance(finalized, dict) else None
+    )
     if not isinstance(finalized, dict):
         attempt_count = _composition_attempt_count()
         if attempt_count > 0:
@@ -8524,6 +8528,7 @@ def _guide_finalize_visitor_payload(payload, query):
                 )
             return result
         from gold_star_adjudication_trace import (
+            evaluate_deterministic_contribution_retention as _evaluate_deterministic_contribution_retention,
             mark_final_delivery as _mark_gold_star_final_delivery,
             mark_guidance_exposure as _mark_gold_star_guidance_exposure,
             validate_trace as _validate_gold_star_final_delivery_trace,
@@ -8571,6 +8576,11 @@ def _guide_finalize_visitor_payload(payload, query):
         trace_for_delivery = (
             _gold_star_ledger.current_attempt_trace() or adjudication_trace
         )
+        deterministic_contribution_retained = _evaluate_deterministic_contribution_retention(
+            trace_for_delivery.get("application", "not_observed"),
+            deterministic_application_spans,
+            final_response,
+        )
         if str(trace_for_delivery.get("guidance_exposure") or "not_observed") == "not_observed":
             trace_for_delivery = _mark_gold_star_guidance_exposure(
                 trace_for_delivery,
@@ -8594,6 +8604,7 @@ def _guide_finalize_visitor_payload(payload, query):
             provider_candidate_delivered=delivered,
             final_provenance=final_provenance,
             cached_candidate_reused=cached_candidate_reused,
+            deterministic_contribution_retained=deterministic_contribution_retained,
         )
         validation = _validate_gold_star_final_delivery_trace(trace)
         if not validation.get("valid"):
@@ -8616,6 +8627,7 @@ def _guide_finalize_visitor_payload(payload, query):
             deterministic_application_plan_id=trace.get("deterministic_application_plan_id"),
             deterministic_application_span_count=trace.get("deterministic_application_span_count"),
             contribution_retained=trace.get("contribution_retained", "not_evaluated"),
+            deterministic_contribution_retained=trace.get("deterministic_contribution_retained", "not_applicable"),
             outcome_state=trace.get("outcome", "not_evaluated"),
             request_id=trace.get("request_id"),
             attempt_ordinal=trace.get("attempt_ordinal"),
@@ -9383,6 +9395,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "canonical_doorway": _gold_star_doorway,
                 "provider": "gold_star_deterministic_structural_fallback",
                 "model": "",
+                "_gold_star_deterministic_application_spans": list(
+                    _gold_star_application.get("application_evidence_spans") or []
+                ),
             }
     except Exception as _deterministic_gold_star_exc:
         print(
