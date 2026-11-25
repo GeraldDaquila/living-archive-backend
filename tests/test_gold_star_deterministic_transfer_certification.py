@@ -28,7 +28,7 @@ HELD_OUT_CASES = (
         "case_id": "stakeholder-obligations-unseen-01",
         "query": (
             "How should leaders balance competing stakeholder obligations when employees, customers, "
-            "when a decision benefits one group but imposes costs on another?"
+            "and local residents have conflicting interests?"
         ),
         "family": "stakeholder_tradeoffs",
         "plan_id": "stakeholder_tradeoffs_v1",
