@@ -829,6 +829,15 @@ def test_guide_system_prompt_retains_meta_evaluation_modules_only_for_meta_quest
     assert "GOLD STAR REMEDY SELECTION" in prompt
 
 
+def test_guide_system_prompt_keeps_navigation_links_out_of_visitor_prose():
+    prompt = guide_composition._build_general_guide_system_prompt(
+        "How should a community decide whether limits on personal liberty are justified?"
+    )
+
+    assert "Never include raw URLs or Markdown links in visitor prose" in prompt
+    assert "the Guide attaches verified doorway links separately" in prompt
+
+
 def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
     quality = gold_star_lessons.active_quality_contribution(question)
