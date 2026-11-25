@@ -113,7 +113,7 @@ def test_ambiguous_stakeholder_recovery_does_not_reuse_exact_gold_standard_answe
 
     response = str(result.get("response") or "").strip()
     assert len(response) >= 400
-    assert len(response.split("\\n\\n")) == 3
+    assert len(response.split("\n\n")) == 3
     assert response != exact["expected_response"]
     assert find_cross_question_standard_response(query, response) is None
     assert "community project accounting" not in response.casefold()
