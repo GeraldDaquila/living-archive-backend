@@ -130,3 +130,19 @@ def test_transparency_trust_prompt_requires_both_directions_and_non_guarantee():
     assert "TRANSPARENCY AND TRUST RECIPROCITY" in prompt
     assert "explain both directions of influence" in prompt
     assert "Do not describe the relationship as one-way" in prompt
+
+
+def test_provider_parser_rejects_one_way_transparency_trust_answer():
+    from general_guide_composition import _parse_factory
+
+    one_way_answer = (
+        "Transparency makes decisions visible and can support trust because people can inspect "
+        "what an institution does. Trust can exist without transparency, so the relationship is "
+        "one-way. People may rely on others for many reasons, and disclosure alone does not make "
+        "conduct reliable. Institutions should protect confidential information while explaining "
+        "their decisions and making evidence available for review."
+    )
+    parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
+
+    with pytest.raises(ValueError, match="transparency-trust answer must explain both directions"):
+        parse(json.dumps({"response": one_way_answer}))
