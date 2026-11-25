@@ -91,3 +91,29 @@ def test_unrelated_physical_science_question_does_not_receive_either_plan():
     assert result["provider"] != "gold_star_deterministic_structural_fallback"
     assert "competing interests and possible losses" not in result["response"]
     assert "legitimate rights" not in result["response"]
+
+
+def test_ambiguous_stakeholder_recovery_does_not_reuse_exact_gold_standard_answer():
+    from general_guide_gold_standards import (
+        find_cross_question_standard_response,
+        resolve_exact_gold_standard,
+    )
+
+    query = (
+        "How can leaders weigh obligations to employees, customers, and local residents "
+        "when a decision benefits one group but imposes costs on another?"
+    )
+    exact = resolve_exact_gold_standard("How can leaders hold competing stakeholder obligations?")
+    assert exact is not None
+
+    # The ambiguous negative control is not eligible for the community-project
+    # deterministic lesson, but it remains answerable from bounded general knowledge.
+    assert gold_star_lessons.deterministic_fallback_contribution(query) is None
+    result = main._basic_inquiry_provider_exhaustion_response(query, {}, {})
+
+    response = str(result.get("response") or "").strip()
+    assert len(response) >= 400
+    assert len(response.split("\\n\\n")) == 3
+    assert response != exact["expected_response"]
+    assert find_cross_question_standard_response(query, response) is None
+    assert "community project accounting" not in response.casefold()
