@@ -8,12 +8,17 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/guide-live-evaluation.yml"
+      - "scripts/guide_live_evaluation.py"
+      - "main.py"
+      - "general_guide_*.py"
+      - "gold_star_*.py"
       - "provider_bank.py"
-      - "scripts/guide_live_evaluation.py"
+      - "community_tradeoff_candidate_policy.py"
+      - "deterministic_answer_recovery.py"
       - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_transferability_map.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
       - "docs/qa/guide_learning_evaluation_set.json"
-      - "scripts/guide_live_evaluation.py"
-      - ".github/workflows/guide-live-evaluation.yml"
   workflow_dispatch:
     inputs:
       target_service:
