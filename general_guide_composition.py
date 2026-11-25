@@ -421,9 +421,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "answer span as evidence. Combine only distinct, necessary, compatible operations; reject lexical "
         "matches or candidates adding no value. Never transfer exemplar answers, claims, examples, citations, "
         "or doorways, or override the visitor's question, evidence, or response shape. If none qualifies, "
-        "answer normally.\\n"
-        "Ranked candidates (for adjudication, not automatic application):\\n"
-        + candidate_evidence + "\\n\\n"
+        "answer normally.\n"
+        "Ranked candidates (for adjudication, not automatic application):\n"
+        + candidate_evidence + "\n\n"
     )
     return instruction + "\n\n" + _build_gold_star_adjudication_output_contract(candidates)
 
