@@ -11,8 +11,8 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn('or bool(_guide_composition._conceptual_relationship_recovery(query))', MAIN)
 
     def test_quality_guards_remain_in_force(self):
-        self.assertIn("not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)", MAIN)
-        self.assertIn("not _guide_composition.is_meta_answer_failure(_conceptual_recovery)", MAIN)
+        self.assertIn("general_guide_composition.is_generic_nonanswer(query, recovery_text)", MAIN)
+        self.assertIn("general_guide_composition.is_meta_answer_failure(recovery_text)", MAIN)
 
     def test_gold_star_baseline_is_wired_into_live_composition(self):
         composition_module = __import__("general_guide_composition")
