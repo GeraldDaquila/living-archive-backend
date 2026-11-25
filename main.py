@@ -8473,6 +8473,14 @@ def _guide_finalize_visitor_payload(payload, query):
         _gold_star_ledger.current_attempt_trace()
         or payload_adjudication_trace
     )
+    def _composition_attempt_count():
+        request_context = _gold_star_ledger.current_request_context()
+        if not isinstance(request_context, dict):
+            return 0
+        try:
+            return max(0, int(request_context.get("composition_attempt_count") or 0))
+        except (TypeError, ValueError):
+            return 0
     provider_candidate_matches_payload = bool(
         safe_input.pop("_gold_star_provider_candidate_matches_payload", False)
         if isinstance(safe_input, dict) else False
@@ -8482,29 +8490,38 @@ def _guide_finalize_visitor_payload(payload, query):
     ) if isinstance(safe_input, dict) else ""
     finalized = _guide_finalize_visitor_payload_inner(safe_input, query)
     if not isinstance(finalized, dict):
-        _emit_guide_outcome(
-            "gold_star_final_delivery_unavailable",
-            reason="finalizer_non_dict",
-            result_type=type(finalized).__name__,
-        )
+        attempt_count = _composition_attempt_count()
+        if attempt_count > 0:
+            _emit_guide_outcome(
+                "gold_star_final_delivery_unavailable",
+                reason="finalizer_non_dict",
+                result_type=type(finalized).__name__,
+                composition_attempt_count=attempt_count,
+            )
         return finalized
 
     def _finish_gold_star_delivery_trace(result, *, allow_provider_delivery=True):
         if not isinstance(result, dict):
-            _emit_guide_outcome(
-                "gold_star_final_delivery_unavailable",
-                reason="delivery_result_non_dict",
-                result_type=type(result).__name__,
-            )
+            attempt_count = _composition_attempt_count()
+            if attempt_count > 0:
+                _emit_guide_outcome(
+                    "gold_star_final_delivery_unavailable",
+                    reason="delivery_result_non_dict",
+                    result_type=type(result).__name__,
+                    composition_attempt_count=attempt_count,
+                )
             return result
         result.pop("_gold_star_adjudication_trace", None)
         result.pop("_gold_star_provider_candidate_matches_payload", None)
         if not isinstance(adjudication_trace, dict):
-            _emit_guide_outcome(
-                "gold_star_final_delivery_unavailable",
-                reason="trace_not_initialized",
-                result_type=type(result).__name__,
-            )
+            attempt_count = _composition_attempt_count()
+            if attempt_count > 0:
+                _emit_guide_outcome(
+                    "gold_star_final_delivery_unavailable",
+                    reason="trace_not_initialized",
+                    result_type=type(result).__name__,
+                    composition_attempt_count=attempt_count,
+                )
             return result
         from gold_star_adjudication_trace import (
             mark_final_delivery as _mark_gold_star_final_delivery,
