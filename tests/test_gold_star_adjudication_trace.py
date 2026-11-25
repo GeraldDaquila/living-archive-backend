@@ -77,6 +77,7 @@ def test_deterministic_renderer_application_is_distinct_from_provider_adjudicati
     assert applied["deterministic_application_candidate_id"] == "lesson-one"
     assert applied["deterministic_application_plan_id"] == "stakeholder_tradeoffs_v1"
     assert applied["deterministic_application_span_count"] == 2
+    assert applied["deterministic_contribution_retained"] == "not_verified"
     assert trace.validate_trace(applied)["valid"]
 
     # Composition finalization must not erase a deterministic renderer result.
@@ -92,6 +93,8 @@ def test_deterministic_renderer_application_is_distinct_from_provider_adjudicati
     assert delivered["final_delivery"] == "deterministic_or_unresolved_replacement"
     assert delivered["application"] == "deterministic_renderer_applied"
     assert delivered["application_evidence_present"] is True
+    assert delivered["contribution_retained"] == "not_applicable"
+    assert delivered["deterministic_contribution_retained"] == "not_verified"
     assert trace.validate_trace(delivered)["valid"]
 
 
@@ -132,6 +135,8 @@ def test_final_deterministic_replacement_does_not_inherit_provider_adaptation_cr
     assert delivered["final_delivery"] == "deterministic_or_unresolved_replacement"
     assert delivered["final_provenance"] == "deterministic_recovery"
     assert delivered["application"] == "not_observed"
+    assert delivered["contribution_retained"] == "not_applicable"
+    assert delivered["deterministic_contribution_retained"] == "not_applicable"
     assert delivered["outcome"] == "not_evaluated"
 
 
@@ -144,7 +149,59 @@ def test_final_provider_delivery_is_still_not_semantic_quality_certification():
     )
     assert delivered["final_delivery"] == "provider_candidate_delivered"
     assert delivered["application"] == "not_observed"
+    assert delivered["contribution_retained"] == "not_applicable"
+    assert delivered["deterministic_contribution_retained"] == "not_applicable"
     assert delivered["outcome"] == "not_evaluated"
+
+
+def test_deterministic_renderer_span_retention_is_measured_separately():
+    spans = ["The first structural relation.", "The second structural relation."]
+    assert trace.evaluate_deterministic_contribution_retention(
+        "deterministic_renderer_applied",
+        spans,
+        "Answer: The first structural relation. Then, the second structural relation.",
+    ) == "retained"
+    assert trace.evaluate_deterministic_contribution_retention(
+        "deterministic_renderer_applied",
+        spans,
+        "Answer: The first structural relation only.",
+    ) == "not_retained"
+    assert trace.evaluate_deterministic_contribution_retention(
+        "deterministic_renderer_applied",
+        None,
+        "Answer with no private evidence spans.",
+    ) == "not_verified"
+    assert trace.evaluate_deterministic_contribution_retention(
+        "not_observed",
+        spans,
+        "Answer.",
+    ) == "not_applicable"
+
+
+def test_provider_contribution_retention_requires_provider_reported_selection():
+    initial = trace.build_adjudication_trace(_contribution())
+    no_selection = trace.mark_final_delivery(
+        initial,
+        provider_candidate_delivered=False,
+        final_provenance="deterministic_recovery",
+    )
+    assert no_selection["contribution_retained"] == "not_applicable"
+
+    selected = trace.mark_provider_adjudication(initial, {
+        "status": "provider_reported_selected",
+        "selected_candidate_ids": ["lesson-one"],
+        "rejection_reason_codes": [{"candidate_id": "lesson-two", "reason_code": "subject_mismatch"}],
+        "reasoning_discipline_ids": ["relational_synthesis"],
+        "application_evidence_present": False,
+        "application_evidence_candidate_ids": [],
+        "application": "not_observed",
+    })
+    not_delivered = trace.mark_final_delivery(
+        selected,
+        provider_candidate_delivered=False,
+        final_provenance="deterministic_recovery",
+    )
+    assert not_delivered["contribution_retained"] == "not_retained"
 
 
 def test_trace_is_content_free_and_rejects_identity_or_answer_fields():
@@ -201,6 +258,8 @@ def test_final_deterministic_rewrite_does_not_inherit_llm_delivery_credit():
     assert final["final_delivery"] == "deterministic_or_unresolved_replacement"
     assert final["final_provenance"] == "deterministic_recovery"
     assert final["application"] == "not_observed"
+    assert final["contribution_retained"] == "not_applicable"
+    assert final["deterministic_contribution_retained"] == "not_applicable"
     assert final["outcome"] == "not_evaluated"
 
 
