@@ -9107,15 +9107,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # Import locally so isolated recovery harnesses retain the same behavior.
     import general_guide_composition as _guide_composition
     if _guide_composition._is_broad_existential_question(query):
-        _existential_recovery = _guide_composition._broad_existential_recovery()
-        if isinstance(_existential_recovery, dict) and "spiritual bypassing" in q:
-            _existential_recovery = dict(_existential_recovery)
-            _existential_response = str(_existential_recovery.get("response") or "")
-            if "spirituality itself is not a problem" not in _existential_response.casefold():
-                _existential_recovery["response"] = (
-                    "Spirituality itself is not a problem. " + _existential_response
-                )
-        return _existential_recovery
+        return _guide_composition._broad_existential_recovery()
 
     # Exact approved Gold Star recovery must remain available even when the
     # provider bank is exhausted and this deterministic path is called directly.
@@ -9420,6 +9412,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
 
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
+    # Preserve the explicit distinction in this registered conceptual-recovery
+    # branch too: it returns before the later deterministic finalizer can add it.
+    if (
+        "spiritual bypassing" in q
+        and _conceptual_recovery
+        and "spirituality itself is not a problem" not in _conceptual_recovery.casefold()
+    ):
+        _conceptual_recovery = "Spirituality itself is not a problem. " + _conceptual_recovery
     # The shared composer and the last-resort API path must agree on the same
     # registered recovery. Mechanism questions are explanatory but need not fit
     # the older two-concept relationship validator; validate them with the shared
