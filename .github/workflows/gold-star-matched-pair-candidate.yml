@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [qa/gold-star-matched-pair-mainline-20261125]
+    branches: [qa/gold-star-matched-pair-candidate-2017-20261125]
   workflow_dispatch:
     inputs:
       run_provider_capture:
@@ -48,7 +48,7 @@ jobs:
     # Provider capture is manual from protected main, or an explicit push to the
     # dedicated, repository-controlled QA branch. Ordinary PR and push events
     # cannot consume provider quota. QA execution stays in GitHub Actions.
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true) || (github.event_name == 'push' && github.ref == 'refs/heads/qa/gold-star-matched-pair-mainline-20261125') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true) || (github.event_name == 'push' && github.ref == 'refs/heads/qa/gold-star-matched-pair-candidate-2017-20261125') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
