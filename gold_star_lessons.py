@@ -773,6 +773,17 @@ def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
     score = float(selected.get("score") or 0.0)
     if not selected.get("exact") and score < 0.65:
         return None
+    # The community-project accounting lesson has a deliberately narrow
+    # qualifying context. Generic benefit/cost language is not enough to move
+    # an ordinary stakeholder conflict into project-economics guidance.
+    if selected.get("reasoning_family") == "community_project_economic_accounting_and_shared_resource_stewardship":
+        project_scope = re.search(
+            r"\\b(?:community project|project|cooperative|volunteer|shared resources?|common resources?|financial returns?|economic contribution|lifecycle costs?|maintenance|labor hours?|local value)\\b",
+            str(query or "").casefold(),
+        )
+        if not project_scope:
+            return None
+
     discipline = str(selected.get("transferable_discipline") or "").strip()
     boundary = str(selected.get("abstention_boundary") or "").strip()
     if not discipline or not boundary:
