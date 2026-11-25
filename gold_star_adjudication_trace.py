@@ -560,14 +560,6 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "not_evaluated", "not_applicable", "retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_deterministic_contribution_retention_state"}
-    if "deterministic_contribution_retained" in trace:
-        deterministic_retention = trace["deterministic_contribution_retained"]
-        if deterministic_application and deterministic_retention not in {
-            "retained", "not_retained", "not_verified"
-        }:
-            return {"valid": False, "reason": "deterministic_application_without_retention_disposition"}
-        if not deterministic_application and deterministic_retention != "not_applicable":
-            return {"valid": False, "reason": "deterministic_retention_without_deterministic_application"}
     rejection_ids = [item["candidate_id"] for item in rejections]
     if len(set(rejection_ids)) != len(rejection_ids) or set(selected_ids) & set(rejection_ids):
         return {"valid": False, "reason": "duplicate_or_conflicting_candidate_disposition"}
@@ -586,6 +578,14 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     ) or len(set(evidence_ids)) != len(evidence_ids):
         return {"valid": False, "reason": "invalid_application_evidence_candidate_ids"}
     deterministic_application = trace.get("application") == "deterministic_renderer_applied"
+    if "deterministic_contribution_retained" in trace:
+        deterministic_retention = trace["deterministic_contribution_retained"]
+        if deterministic_application and deterministic_retention not in {
+            "retained", "not_retained", "not_verified"
+        }:
+            return {"valid": False, "reason": "deterministic_application_without_retention_disposition"}
+        if not deterministic_application and deterministic_retention != "not_applicable":
+            return {"valid": False, "reason": "deterministic_retention_without_deterministic_application"}
     if deterministic_application:
         deterministic_candidate_id = trace.get("deterministic_application_candidate_id")
         deterministic_plan_id = trace.get("deterministic_application_plan_id")
