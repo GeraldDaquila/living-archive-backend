@@ -6,6 +6,13 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches: [qa/gold-star-matched-pair-mainline-20261125]
+  workflow_dispatch:
+    inputs:
+      run_provider_capture:
+        description: "Explicitly authorize the six-call Groq matched-pair capture"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -38,31 +45,24 @@ jobs:
 
   matched-pair-local:
     needs: matched-pair-contract
-    # Explicit provider-backed opt-in remains confined to the original pinned branch.
-    # A clean-main reconciliation branch runs contract tests only; no provider calls.
+    # Provider capture is manual, opt-in, and only runs from the protected default branch.
+    # The default-off input prevents PR and push events from consuming provider quota.
     # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'qa/gold-star-matched-pair-main-1969' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq,openrouter,gemini"
+      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq"
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY }}
-      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
     steps:
-      - name: Check out the exact candidate commit
+      - name: Check out the exact dispatched commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
