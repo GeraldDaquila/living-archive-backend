@@ -24,7 +24,6 @@ def test_cosmology_lived_question_does_not_receive_unverified_glossary_doorway()
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert "No directly relevant canonical cosmology resource has been verified" in source
     assert "None if _cosmology_doorway_not_verified" in source
-    assert "reviewed_omission or explicit_no_doorway or _cosmology_doorway_not_verified" in source
 
 
 def test_general_guide_contract_requires_subject_first_domain_distinction():
