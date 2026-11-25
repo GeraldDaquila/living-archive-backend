@@ -9107,7 +9107,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # Import locally so isolated recovery harnesses retain the same behavior.
     import general_guide_composition as _guide_composition
     if _guide_composition._is_broad_existential_question(query):
-        return _guide_composition._broad_existential_recovery()
+        _existential_recovery = _guide_composition._broad_existential_recovery()
+        if isinstance(_existential_recovery, dict) and "spiritual bypassing" in q:
+            _existential_recovery = dict(_existential_recovery)
+            _existential_response = str(_existential_recovery.get("response") or "")
+            if "spirituality itself is not a problem" not in _existential_response.casefold():
+                _existential_recovery["response"] = (
+                    "Spirituality itself is not a problem. " + _existential_response
+                )
+        return _existential_recovery
 
     # Exact approved Gold Star recovery must remain available even when the
     # provider bank is exhausted and this deterministic path is called directly.
