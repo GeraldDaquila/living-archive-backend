@@ -19,7 +19,8 @@ def test_reflective_conceptual_recovery_generalizes_beyond_hope():
     question = "How can conviction remain firm without becoming rigid?"
     answer = recovery.compose_recovery(question)
 
-    assert answer.startswith("Conviction can remain firm without becoming rigid")
+    assert answer.startswith("Conviction can be firm without becoming rigid")
+    assert "answerable to reality" in answer
     assert len(answer.split("\n\n")) == 3
     assert "Start by defining the outcome" not in answer
 
