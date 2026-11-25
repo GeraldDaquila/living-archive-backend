@@ -29,7 +29,7 @@ _STOP_WORDS = frozenset({
     "difference","differences","explain","important","meaning","question",
     "questions","understand","understanding","way","ways",
     # Broad decision/context vocabulary cannot establish subject identity by itself.
-    "people","person","act","action","actions","acting","one","future","uncertain",
+    "people","person","act","action","actions","acting","one","rather","than","future","uncertain",
     "uncertainty","consequential","consequence","consequences","decision",
     "decisions","responsibility","responsibilities","responsible","change",
     "changes","changing","system","systems","outcome","outcomes","impact",
