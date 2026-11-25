@@ -180,3 +180,10 @@ def test_no_composition_attempt_does_not_emit_missing_trace_failure(monkeypatch)
     finally:
         ledger.end_request_context(token)
 
+
+def test_deterministic_renderer_passes_private_evidence_spans_to_shared_finalizer():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert '"_gold_star_deterministic_application_spans": list(' in source
+    assert '_gold_star_application.get("application_evidence_spans")' in source
+    assert 'finalized.pop("_gold_star_deterministic_application_spans", None)' in source
+\n
