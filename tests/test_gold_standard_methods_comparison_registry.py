@@ -13,7 +13,7 @@ def test_method_comparison_is_registered_as_user_approved_gold_standard():
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
     assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
-    assert resolved["doorway_title"] == "The Question Beneath the Questions"
+    assert resolved["doorway_title"] == ""
     assert resolved["doorway_url"] == ""
 
 

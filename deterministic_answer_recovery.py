@@ -1105,8 +1105,16 @@ def human_development_comparison_final_contract(question):
 
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
+    try:
+        from institutional_learning_failure_contract import (
+            is_institutional_learning_failure_question,
+        )
+        institutional_learning_failure = is_institutional_learning_failure_question(question)
+    except Exception:
+        institutional_learning_failure = False
     return bool(
-        is_guide_personal_decision_agency_question(question)
+        institutional_learning_failure
+        or is_guide_personal_decision_agency_question(question)
         or is_weekly_stewardship_action_question(question)
         or is_personal_stewardship_invitation_question(question)
         or is_interpretation_revision_evidence_question(question)
@@ -1127,7 +1135,8 @@ def has_registered_recovery(question):
         or _is_systems_explanation_vs_simplistic_connection_question(question)
         or _is_humane_performance_question(question)
         or _is_stewardship_leadership_crisis_question(question)
-        or _is_general_explanatory_question(question)
+        # Broad explanatory recovery remains available to composition, but it
+        # is not an explicitly registered family for terminal last-mile override.
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
         or is_community_continuity_revision_question(question)

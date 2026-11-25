@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "evaluation_id": "gold-star-community-rule-matched-pair-2026-11-23",
+  "purpose": "Candidate-local, same-provider control/treatment evaluation. Three held-out community-rule questions test transfer across distinct rule-design subfamilies; an unrelated physical-science query is a selector-only negative control.",
+  "cases": [
+    {
+      "case_id": "heldout-community-rule-design-transfer-001",
+      "case_family": "community_rule_design_transfer",
+      "query": "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?",
+      "critical_dimensions": [
+        "answer_directness",
+        "legitimate_shared_purpose",
+        "liberty_proportionality",
+        "fair_burden_allocation",
+        "affected_party_participation",
+        "appeal_and_review"
+      ],
+      "rubric": [
+        "Identify a legitimate shared purpose and a demonstrable harm or coordination need; collective convenience alone is insufficient.",
+        "Assess necessity, proportionality, and less restrictive workable means.",
+        "Make visible who benefits, who bears costs, and whose freedom is restricted; distribute obligations fairly and allow reasonable accommodation.",
+        "Give affected people a meaningful opportunity to shape the decision and a way to question or appeal its application.",
+        "Set observable review criteria and allow revision if the rule fails or creates new harms.",
+        "Do not transfer the exact approved answer or Archive doorway."
+      ]
+    },
+    {
+      "case_id": "heldout-community-rule-necessity-002",
+      "case_family": "community_rule_necessity",
+      "query": "How should a community decide whether a rule that limits individual freedom is necessary to prevent harm to others while respecting shared obligations?",
+      "critical_dimensions": [
+        "answer_directness",
+        "legitimate_shared_purpose",
+        "liberty_proportionality",
+        "uncertainty_honesty"
+      ],
+      "rubric": [
+        "Identify the specific shared purpose and demonstrable harm the rule is meant to prevent.",
+        "Test whether the restriction is necessary and proportionate, including less restrictive workable alternatives.",
+        "Distinguish preventing harm from enforcing convenience or conformity.",
+        "Explain how the community should review whether the restriction remains justified."
+      ]
+    },
+    {
+      "case_id": "heldout-community-rule-burdens-003",
+      "case_family": "community_rule_burden_participation",
+      "query": "When a community proposes a limit on personal liberty to meet shared responsibilities, how can it account for unequal burdens and the voices of affected members?",
+      "critical_dimensions": [
+        "answer_directness",
+        "fair_burden_allocation",
+        "affected_party_participation",
+        "appeal_and_review"
+      ],
+      "rubric": [
+        "Make visible who benefits, who carries costs, and whose freedom is restricted.",
+        "Distribute obligations fairly and allow reasonable accommodation for materially different circumstances.",
+        "Give affected members a meaningful role in shaping the rule.",
+        "Provide a way to challenge application and review outcomes for unintended harms."
+      ]
+    }
+  ]
+}

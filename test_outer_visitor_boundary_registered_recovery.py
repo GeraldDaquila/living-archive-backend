@@ -27,7 +27,8 @@ class OuterBoundaryRegisteredRecoveryTests(unittest.TestCase):
         self.assertIn("_terminal_has_registered_recovery(query)", MAIN)
         self.assertIn("compose_recovery as _terminal_compose_recovery", MAIN)
         self.assertIn("registered_recovery_recommendation as _terminal_recovery_recommendation", MAIN)
-        self.assertIn('safe["recommendation"] = _terminal_recovery_recommendation(query)', MAIN)
+        self.assertIn("_pinned = _terminal_recovery_recommendation(query)", MAIN)
+        self.assertIn('safe["recommendation"] = _preserved', MAIN)
 
 if __name__ == "__main__":
     unittest.main()

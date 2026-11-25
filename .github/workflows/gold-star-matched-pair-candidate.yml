@@ -1,0 +1,103 @@
+name: Gold Star candidate-local matched-pair evaluation
+# Pin the registered Groq GPT-OSS 120B lane; both arms use this exact provider/model.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [qa/gold-star-matched-pair-mainline-20261125]
+  workflow_dispatch:
+    inputs:
+      run_provider_capture:
+        description: "Explicitly authorize the six-call Groq matched-pair capture"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  matched-pair-contract:
+    # Always validate the harness on PRs without consuming provider quota.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+    steps:
+      - name: Check out the exact candidate commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Install candidate runtime and ASGI test transport
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt httpx pytest
+      - name: Verify pinned held-out case set
+        run: test -f docs/qa/gold_star_matched_pair_cases.json
+      - name: Run matched-pair harness contract tests
+        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py
+
+  matched-pair-local:
+    needs: matched-pair-contract
+    # Provider capture is manual, opt-in, and only runs from the protected default branch.
+    # The default-off input prevents PR and push events from consuming provider quota.
+    # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONPATH: .
+      USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
+      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq"
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
+    steps:
+      - name: Check out the exact dispatched commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Install candidate runtime and ASGI test transport
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt httpx
+      - name: Verify pinned held-out case set
+        run: test -f docs/qa/gold_star_matched_pair_cases.json
+      - name: Run same-provider, same-model control/treatment captures
+        run: >-
+          python scripts/capture_gold_star_matched_pairs.py
+          --provider groq
+          --model openai/gpt-oss-120b
+          --provider-timeout-seconds 10
+          --inter-call-delay-seconds 65
+          --output-dir artifacts/gold-star-matched-pairs
+      - name: Upload blind review package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-blind-review-${{ github.run_id }}
+          path: artifacts/gold-star-matched-pairs/blind-review-package.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Upload evidence and separate unblinding key
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-unblinding-evidence-${{ github.run_id }}
+          path: |
+            artifacts/gold-star-matched-pairs/matched-pair-evidence.json
+            artifacts/gold-star-matched-pairs/unblinding-key.json
+            artifacts/gold-star-matched-pairs/paired-evaluation-template.json
+          if-no-files-found: warn
+          retention-days: 90
