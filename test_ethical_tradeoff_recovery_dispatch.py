@@ -48,8 +48,8 @@ def test_api_dispatches_ethical_tradeoff_before_broad_conceptual_recovery():
     conceptual = source.index('_guide_composition._conceptual_relationship_recovery(query)')
     assert ethical < conceptual
     assert '_is_ethical_tradeoff_recovery(query)' in source
-    assert r"\\bindividual\\s+freedom\\b" in source
-    assert r"\\bshared\\s+responsibility\\b" in source
+    assert r"\bindividual\s+freedom\b" in source
+    assert r"\bshared\s+responsibility\b" in source
     assert '"provider": "bounded_ethical_tradeoff_recovery"' in source
     assert '_compose_ethical_tradeoff_recovery(query)' in source
 
