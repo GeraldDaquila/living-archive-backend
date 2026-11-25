@@ -27,7 +27,7 @@ HELD_OUT_CASES = (
     {
         "case_id": "stakeholder-obligations-unseen-01",
         "query": (
-            "How can leaders weigh obligations to employees, customers, and local residents "
+            "How should leaders balance competing stakeholder obligations when employees, customers, "
             "when a decision benefits one group but imposes costs on another?"
         ),
         "family": "stakeholder_tradeoffs",
@@ -66,6 +66,16 @@ def test_real_provider_exhaustion_boundary_uses_supported_deterministic_plan(cas
     assert result["model"] == ""
     for term in case["evidence_terms"]:
         assert term in result["response"]
+
+
+def test_ambiguous_stakeholder_distribution_question_does_not_receive_project_accounting_lesson():
+    query = (
+        "How can leaders weigh obligations to employees, customers, and local residents "
+        "when a decision benefits one group but imposes costs on another?"
+    )
+
+    contribution = gold_star_lessons.deterministic_fallback_contribution(query)
+    assert contribution is None
 
 
 def test_unrelated_physical_science_question_does_not_receive_either_plan():
