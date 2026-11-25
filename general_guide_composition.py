@@ -1313,7 +1313,7 @@ def _definition_significance_subject(query: str) -> str:
     """Extract the subject from a common definition-plus-significance question."""
     normalized = _normalize_space(query)
     match = re.match(
-        r"(?i)^what\s+is\s+(?:an?\s+|the\s+)?(.+?)\s*[,;:]?\s+and\s+why\s+does\s+it\s+matter\??$",
+        r"(?i)^what\s+is\s+(?:an?\s+|the\s+)?(.+?)\s*[,;:]?\s+and\s+why\s+does\s+it\s+matter(?:\s+(?:now(?:\s+more\s+than\s+ever)?|today|in\s+the\s+present(?:\s+day)?))?\??$",
         normalized,
     )
     if not match:
