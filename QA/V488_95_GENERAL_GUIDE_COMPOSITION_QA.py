@@ -263,11 +263,19 @@ def main():
         assert_true(composed["provider"] == "fake_provider", "provider identity did not cross the bank boundary")
         assert_true("Stewardship means taking care of something entrusted to you" in composed["response"], "fake provider response was not preserved by composition")
         assert_true(composed["response_shape"] == "explanatory", "composition response shape drifted")
-        empty_result = composition.compose(
-            use_core=FakeCore(),
-            query="Why does stewardship matter in everyday life?",
-            context_data={},
-        )
+        # This assertion isolates the no-Archive/no-Gold-Star general-knowledge
+        # lane. A separate candidate-bearing composition must provide a complete
+        # adjudication report before its provider answer can be admitted.
+        original_quality_retrieval = composition._gold_star_active_quality_contribution
+        composition._gold_star_active_quality_contribution = lambda _question: None
+        try:
+            empty_result = composition.compose(
+                use_core=FakeCore(),
+                query="Why does stewardship matter in everyday life?",
+                context_data={},
+            )
+        finally:
+            composition._gold_star_active_quality_contribution = original_quality_retrieval
         assert_true(empty_result is not None, "empty Archive retrieval blocked a general-purpose answer")
         assert_true(
             "No relevant Archive material was retrieved" in captured_user_messages[-1],
