@@ -1885,7 +1885,10 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
         query_geo = bool(re.search(r"\b(?:philippine|philippines)\b", q, re.I))
         public_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", q, re.I))
         candidate_public = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", body_probe, re.I))
-        if not query_geo and not (public_frame and candidate_public):
+        # A Philippine-titled resource is geographically scoped. Broad public-
+        # governance vocabulary in its body does not make it a fit for a
+        # question that asks about institutions without a Philippine context.
+        if not query_geo:
             return False, "geographic_scope_mismatch"
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
