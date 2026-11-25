@@ -100,3 +100,16 @@ def test_provider_health_startup_warmup_fails_open_without_leaking_exception(mon
     assert "available=false" in output
     assert "exception_type=RuntimeError" in output
     assert "secret detail" not in output
+
+
+
+def test_provider_health_startup_warmup_skips_non_render_process(monkeypatch, capsys):
+    monkeypatch.delenv("RENDER_SERVICE_ID", raising=False)
+
+    def unexpected_refresh():
+        raise AssertionError("non-Render process must not contact the shared store")
+
+    monkeypatch.setattr(main, "refresh_shared_health_state", unexpected_refresh)
+
+    assert main._warm_provider_health_state_on_startup() is False
+    assert "skipped=non_render" in capsys.readouterr().out
