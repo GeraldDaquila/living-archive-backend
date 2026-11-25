@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import scripts.guide_live_evaluation as live_evaluation
 
 from scripts.guide_live_evaluation import (
@@ -583,3 +585,10 @@ def test_live_evaluation_requires_request_local_correlation_id():
     assert live_evaluation.visitor_request_correlation_id(stable_query_id_only) is None
     assert live_evaluation.visitor_request_correlation_id(malformed) is None
     assert live_evaluation.visitor_request_correlation_id(None) is None
+
+def test_live_evaluation_records_request_local_correlation_ids():
+    source = (Path(__file__).resolve().parents[1] / "scripts" / "guide_live_evaluation.py").read_text(encoding="utf-8")
+    assert 'checks.append(check(' in source
+    assert '"request_correlation_id"' in source
+    assert '"request_correlation_id":request_correlation' in source
+    assert '"request_correlation_id":provider_probe_correlation_id' in source
