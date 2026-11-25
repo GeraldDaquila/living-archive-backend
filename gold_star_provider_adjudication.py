@@ -160,7 +160,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "the runtime validates IDs, complete disposition, reason codes, and exact "
         "span presence. Improvement still requires paired evaluation. "
         "Output one object, not adjudication alone: "
-        "{\\"response\\":\\"complete visitor answer\\",\\"doorway_title\\":\\"title or empty\\","
-        "\\"response_shape\\":\\"shape\\",\\"adaptive_adjudication\\":"
-        "{\\"candidate_assessments\\":[...],\\"application_evidence_spans\\":[...]}}."
+        '{"response":"complete visitor answer","doorway_title":"title or empty",'
+        '"response_shape":"shape","adaptive_adjudication":'
+        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
     )
