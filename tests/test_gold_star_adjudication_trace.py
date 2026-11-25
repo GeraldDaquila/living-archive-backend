@@ -367,6 +367,19 @@ def test_composition_decorator_keeps_latest_trace_without_request_context():
     assert "request_id" not in attached
     assert trace.validate_trace(attached)["valid"]
 
+def test_final_visitor_boundary_recovers_request_local_trace_when_payload_omits_it():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    finalizer = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_guide_finalize_visitor_payload"
+    )
+    function_source = ast.get_source_segment(source, finalizer)
+    assert "_gold_star_ledger.current_attempt_trace()" in function_source
+    assert "or payload_adjudication_trace" in function_source
+    assert "trace_for_delivery = (" in function_source
+
+
 def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     module = ast.parse(source)
