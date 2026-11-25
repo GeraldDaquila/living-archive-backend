@@ -1075,3 +1075,17 @@ def test_general_guide_prefers_recent_success_and_lower_failure_streak_over_stal
     selected = provider_bank.select(use_core=None, operation="general_guide_composition")
 
     assert [item["provider"] for item in selected[:3]] == ["nvidia", "groq", "mistral"]
+
+
+def test_definition_significance_matcher_recognizes_present_day_qualifier():
+    query = "What is stewardship and why does it matter now more than ever?"
+
+    assert guide_composition._definition_significance_subject(query) == "stewardship"
+    assert guide_composition._has_direct_definition_for_subject(
+        query,
+        "Stewardship is important because it guides responsible choices.",
+    )
+    assert not guide_composition._has_direct_definition_for_subject(
+        query,
+        "Responsible choices matter because they affect other people.",
+    )
