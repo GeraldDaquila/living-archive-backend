@@ -123,3 +123,41 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
     }
     parsed = _gold_star_parse(payload)
     assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
+
+
+def test_provider_composition_schema_requires_candidate_adjudication_object():
+    schema = composition._build_provider_composition_schema(GOLD_STAR_CANDIDATES)
+    assert schema is not None
+    assert schema["strict"] is False
+    root = schema["schema"]
+    assert "adaptive_adjudication" in root["required"]
+    adjudication = root["properties"]["adaptive_adjudication"]
+    assert set(adjudication["required"]) == {
+        "candidate_assessments",
+        "application_evidence_spans",
+    }
+    assessments = adjudication["properties"]["candidate_assessments"]
+    assert assessments["minItems"] == assessments["maxItems"] == 1
+    assert assessments["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
+    assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
+    spans = adjudication["properties"]["application_evidence_spans"]
+    assert spans["items"]["properties"]["span"]["minLength"] == 12
+    assert spans["items"]["properties"]["span"]["maxLength"] == 240
+
+
+def test_provider_composition_schema_is_not_added_without_candidates():
+    assert composition._build_provider_composition_schema(None) is None
+    assert composition._build_provider_composition_schema([]) is None
+
+
+def test_provider_composition_schema_deduplicates_candidate_ids_like_runtime_index():
+    duplicate = {
+        "benchmark_id": "lesson-a",
+        "reasoning_family": "evidence_discipline",
+        "discipline": "A second registry record with the same identity.",
+    }
+    schema = composition._build_provider_composition_schema(
+        [GOLD_STAR_CANDIDATES[0], duplicate]
+    )
+    assessments = schema["schema"]["properties"]["adaptive_adjudication"]["properties"]["candidate_assessments"]
+    assert assessments["minItems"] == assessments["maxItems"] == 1
