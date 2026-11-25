@@ -16168,18 +16168,6 @@ def _gold_star_attach_route_context(payload, query, boundary=None):
     return safe
 
 
-def _visitor_request_correlation_id():
-    """Return the current request-local trace ID, never the stable query hash."""
-    try:
-        request_context = _gold_star_ledger.current_request_context()
-    except Exception:
-        return None
-    if not isinstance(request_context, dict):
-        return None
-    value = str(request_context.get("request_id") or "").strip().casefold()
-    return value if re.fullmatch(r"[0-9a-f]{32}", value) else None
-
-
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
@@ -16505,10 +16493,6 @@ async def _use_send_json(send, payload, status_code=200):
                 + str(_floor_result.get("reason") or "unknown")
             )
 
-    # Stamp after every rewrite/boundary so the response always carries the
-    # same request-local ID used by terminal and final-delivery telemetry.
-    if isinstance(payload, dict):
-        payload["request_correlation_id"] = _visitor_request_correlation_id()
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -18272,6 +18256,19 @@ async def _use_request_boundary(scope, receive, send):
                     "source_commit": _DEPLOYED_SOURCE_COMMIT,
                 })
             if isinstance(safe_payload, dict):
+                # This is the actual outermost visitor boundary. Its request
+                # context remains active here; inner JSON senders may run after
+                # other wrappers have already transformed or captured the payload.
+                _request_context = _gold_star_ledger.current_request_context()
+                _request_correlation_id = (
+                    str(_request_context.get("request_id") or "").strip().casefold()
+                    if isinstance(_request_context, dict) else ""
+                )
+                safe_payload["request_correlation_id"] = (
+                    _request_correlation_id
+                    if re.fullmatch(r"[0-9a-f]{32}", _request_correlation_id)
+                    else None
+                )
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
