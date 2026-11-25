@@ -11,6 +11,24 @@ PROVIDER_CALL_MINIMUM_SECONDS = 1.0
 REPAIR_RESERVE_SECONDS = 6.0
 
 
+def composition_provider_deadline(
+    deadline_monotonic: float | None,
+    *,
+    integrity_recovery: bool = False,
+    now: float | None = None,
+) -> float | None:
+    """Reserve one bounded repair window after ordinary composition.
+
+    The first composition and any internal answerability retry must stop before
+    the shared request deadline. The single integrity-recovery composition may
+    consume that reserved remainder.
+    """
+    if deadline_monotonic is None or integrity_recovery:
+        return deadline_monotonic
+    current = _monotonic() if now is None else float(now)
+    return max(current, float(deadline_monotonic) - REPAIR_RESERVE_SECONDS)
+
+
 def remaining_seconds(deadline_monotonic: float, *, now: float | None = None) -> float:
     """Return non-negative time left in an absolute monotonic deadline."""
     current = _monotonic() if now is None else float(now)
