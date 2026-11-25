@@ -72,14 +72,9 @@ def test_request_boundary_hands_explicit_resource_search_to_catalogue():
     assert payload["catalogue_query"] == query
 
 
-def test_request_boundary_keeps_explanatory_question_in_guide(monkeypatch):
+def test_request_boundary_keeps_explanatory_question_in_guide():
     from starlette.testclient import TestClient
 
-    monkeypatch.setattr(
-        main,
-        "_basic_inquiry_response",
-        lambda **kwargs: {"response": "A bounded Guide explanation."},
-    )
     query = "What is stewardship and why does it matter now more than ever?"
     with TestClient(main.app) as client:
         response = client.post("/api/query", json={"query": query})
@@ -88,4 +83,6 @@ def test_request_boundary_keeps_explanatory_question_in_guide(monkeypatch):
     payload = response.json()
     assert payload.get("intent") != "CATALOGUE_HANDOFF"
     assert payload.get("handoff") != "catalogue"
-    assert "bounded Guide explanation" in str(payload.get("response") or payload)
+    answer = str(payload.get("response") or "")
+    assert main.general_guide_composition._has_broad_conceptual_definition(answer)
+    assert main.general_guide_composition._has_direct_definition_for_subject(query, answer)
