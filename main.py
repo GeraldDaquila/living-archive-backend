@@ -9962,6 +9962,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                   f"{type(_direct_recovery_exc).__name__}.")
         _terminal_conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
         if _terminal_conceptual_recovery and not _guide_composition.is_meta_answer_failure(_terminal_conceptual_recovery):
+            if (
+                "spiritual bypassing" in q
+                and "spirituality itself is not a problem" not in _terminal_conceptual_recovery.casefold()
+            ):
+                _terminal_conceptual_recovery = "Spirituality itself is not a problem. " + _terminal_conceptual_recovery
             return {
                 "response": _terminal_conceptual_recovery,
                 "doorway_title": "",
