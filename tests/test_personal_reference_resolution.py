@@ -68,7 +68,7 @@ def test_teaching_conflict_resolution_requires_all_verified_source_bodies():
     assert "source-grounded synthesis" in result["response"]
     assert "public Guide cannot retrieve that source" in result["response"]
     assert "conscience matters as an ethical signal" in result["response"].casefold()
-    assert "not automatic proof" in result["response"].casefold()
+    assert "not treated as automatic proof" in result["response"].casefold()
     for step in (
         "Pause before concluding",
         "Observe what is actually in conflict",
