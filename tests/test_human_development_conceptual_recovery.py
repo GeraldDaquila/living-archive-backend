@@ -60,7 +60,7 @@ def test_matched_general_fact_bypasses_direct_attribute_guard_but_unlisted_attri
         "general_knowledge_recovery = _established_general_knowledge_recovery(query)"
     )
     guard = SOURCE.index("direct_attribute_evidence_missing = (", resolver_call)
-    guard_block = SOURCE[guard:SOURCE.index("# Subject discovery", guard)]
+    guard_block = SOURCE[guard:SOURCE.index("# Direct-attribute questions may not fall through", guard)]
     assert resolver_call < guard
     assert "_direct_attribute_evidence_missing(query, authoritative_doorway)" in guard_block
     assert "and general_knowledge_recovery is None" in guard_block
@@ -87,7 +87,7 @@ def test_final_answer_basis_remains_general_knowledge_for_matched_fact():
         "# Re-evaluate after every downstream gate has had the opportunity to"
     )
     final_attribute_check = SOURCE.index(
-        "direct_attribute_evidence_missing = _direct_attribute_evidence_missing(",
+        "direct_attribute_evidence_missing = (",
         final_guard,
     )
     final_provenance = SOURCE.index(
