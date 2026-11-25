@@ -28,14 +28,42 @@ class SystemicRecoveryTerminalContractTests(unittest.TestCase):
 
     def test_final_boundary_uses_registered_recovery_before_terminal_error(self):
         tree = ast.parse(MAIN)
-        source = MAIN
-        self.assertIn("_deterministic_recovery = _basic_inquiry_round1_deterministic_response(", source)
-        self.assertIn("elif _deterministic_valid:", source)
-        self.assertIn("deterministic registered recovery PASS", source)
-        self.assertLess(
-            source.index("_deterministic_recovery = _basic_inquiry_round1_deterministic_response("),
-            source.index("I couldn’t produce a reliable answer to that question just now."),
+        recovery_assignment = next(
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "_deterministic_recovery"
+                for target in node.targets
+            )
+            and isinstance(node.value, ast.Call)
+            and isinstance(node.value.func, ast.Name)
+            and node.value.func.id == "_basic_inquiry_round1_deterministic_response"
         )
+        answer_only_branch = next(
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.If)
+            and isinstance(node.test, ast.Name)
+            and node.test.id == "_answer_only_valid"
+            and node.orelse
+            and isinstance(node.orelse[0], ast.If)
+            and isinstance(node.orelse[0].test, ast.Name)
+            and node.orelse[0].test.id == "_deterministic_valid"
+        )
+        deterministic_branch = answer_only_branch.orelse[0]
+        pass_messages = [
+            node.value for node in ast.walk(deterministic_branch)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        ]
+        terminal_messages = [
+            node.value for node in ast.walk(deterministic_branch.orelse)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        ]
+        self.assertTrue(any("deterministic registered recovery PASS" in value for value in pass_messages))
+        self.assertTrue(any(
+            "I couldn’t produce a reliable answer to that question just now." in value
+            for value in terminal_messages
+        ))
+        self.assertLess(recovery_assignment.lineno, answer_only_branch.lineno)
 
     def test_registered_mechanism_recovery_has_shape_aware_quality_admission(self):
         source = MAIN
