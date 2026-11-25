@@ -833,6 +833,10 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     question = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
     quality = gold_star_lessons.active_quality_contribution(question)
     assert quality and len(quality.get("candidates") or []) == 4
+    adjudication_instruction = guide_composition._build_gold_star_quality_instruction(quality)
+    assert "An unclassified role is not disqualifying" in adjudication_instruction
+    assert "Decide before drafting" in adjudication_instruction
+    assert "quote an exact contiguous span" in adjudication_instruction
     system = guide_composition._build_general_guide_system_message(
         question,
         has_gold_star_guidance=True,
