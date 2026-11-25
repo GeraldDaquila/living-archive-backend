@@ -45,10 +45,10 @@ jobs:
 
   matched-pair-local:
     needs: matched-pair-contract
-    # Provider capture is manual, opt-in, and only runs from the protected default branch.
-    # The default-off input prevents PR and push events from consuming provider quota.
-    # QA execution is isolated to GitHub Actions; no Render task or deployment is created.
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true }}
+    # Provider capture is manual from protected main, or an explicit push to the
+    # dedicated, repository-controlled QA branch. Ordinary PR and push events
+    # cannot consume provider quota. QA execution stays in GitHub Actions.
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true) || (github.event_name == 'push' && github.ref == 'refs/heads/qa/gold-star-matched-pair-mainline-20261125') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
