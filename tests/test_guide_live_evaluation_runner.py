@@ -658,6 +658,83 @@ def test_transparency_trust_accepts_clear_reciprocal_paraphrase_but_keeps_proven
     assert reciprocal["passed"], checks
     assert provenance["passed"] is False, checks
 
+def test_transparency_trust_accepts_live_two_direction_reciprocity_paraphrase():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency and trust influence each other in two directions. Transparency—making decisions, "
+        "reasons, evidence, and conduct open to scrutiny—can support justified trust by allowing others to "
+        "verify and correct what is done. When people can see how and why choices are made, they are more "
+        "likely to trust the process, even if they disagree with the outcome. Conversely, reasonable trust "
+        "can make transparency more possible: when people feel safe and respected, they are more willing to "
+        "share information, ask questions, and engage openly. Institutions that trust their members often "
+        "receive more candid disclosure in return. This reciprocity is conditional, not automatic. Publishing "
+        "information does not make poor conduct trustworthy, and trusting someone does not remove the need "
+        "for accountability. The relationship works best when both sides treat openness and confidence as "
+        "mutually reinforcing, not as substitutes for performance or responsibility."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm",
+                "provider": "nvidia",
+                "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+                "llm_invoked": True,
+                "provider_invocation_id": "test-invocation",
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert all(item["passed"] for item in checks), checks
+
+
+def test_community_rule_live_paraphrases_pass_purpose_and_participation_but_not_missing_burden_allocation():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should evaluate limits on personal liberty by first clarifying the specific shared "
+        "obligations or risks that motivate the restriction. Then it must gather evidence of the actual harm "
+        "or coordination need those obligations address. With that evidence, the community can compare the "
+        "severity of the risk against the degree of liberty being curtailed, ensuring that any limitation is "
+        "the least-intrusive means necessary to achieve the shared goal. Decision-making authority should be "
+        "transparent, include meaningful participation from those affected, and provide a clear appeal process "
+        "if the restriction is contested. Finally, the community should regularly review the restriction to "
+        "confirm that the underlying risk persists and that the limitation remains proportionate."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "This essay offers a relevant perspective on human-scale governance and community accountability.",
+            },
+            "response_provenance": {
+                "class": "llm",
+                "provider": "groq",
+                "model": "openai/gpt-oss-120b",
+                "llm_invoked": True,
+                "provider_invocation_id": "test-invocation",
+            },
+        },
+    }
+    expected = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected)
+    by_name = {item["name"]: item for item in checks}
+    assert by_name["legitimate_shared_purpose"]["passed"], checks
+    assert by_name["affected_party_participation"]["passed"], checks
+    assert by_name["fair_burden_allocation"]["passed"] is False, checks
+
+
 def test_live_evaluation_requires_request_local_correlation_id():
     valid = {"request_correlation_id": "0123456789abcdef0123456789abcdef"}
     stable_query_id_only = {"request_id": "basic-0123456789abcdef"}
