@@ -84,7 +84,7 @@ def test_provider_health_startup_warmup_synchronously_loads_shared_state(monkeyp
 
     assert main._warm_provider_health_state_on_startup() is True
     assert calls == ["refresh"]
-    assert main._warm_provider_health_state_on_startup in main.app.router.on_startup
+    assert main._warm_provider_health_state_on_startup in main._base.app.router.on_startup
 
 
 def test_provider_health_startup_warmup_fails_open_without_leaking_exception(monkeypatch, capsys):
