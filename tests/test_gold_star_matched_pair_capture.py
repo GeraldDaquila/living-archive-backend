@@ -347,6 +347,7 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"provider_sdk_max_retries": 0',
         '"schema_mode": control["schema_mode"]',
         'def evaluation_quota_guarded_call(',
+        'effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()',
         'timeout_override=timeout_override',
         '"omitted_text_mode"',
     ):
