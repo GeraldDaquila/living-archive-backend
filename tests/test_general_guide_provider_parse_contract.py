@@ -89,7 +89,13 @@ def test_provider_selected_candidate_without_exact_span_is_delivered_without_app
         },
     }
     parsed = _gold_star_parse(payload)
-    report = parsed["adaptive_adjudication"]
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    import gold_star_provider_adjudication as adjudication
+    report = adjudication.normalize_provider_adjudication(
+        parsed["adaptive_adjudication"],
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
     assert report["status"] == "provider_reported_selected"
     assert report["application_evidence_present"] is False
     assert report["application"] == "not_observed"
