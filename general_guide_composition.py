@@ -3992,19 +3992,6 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
-    # Archive-scoped meaning has an approved three-paragraph answer contract.
-    # Enforce it at the final shared boundary so provider and recovery paths
-    # cannot bypass the visitor-facing structure requirement.
-    if _requires_archive_scoped_meaning(question):
-        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
-        if len(paragraphs) != 3:
-            raise ValueError("Archive-scoped meaning answer must follow the three-paragraph Guide Gold Standard")
-        if re.search(
-            r"\b(?:best understood by what it means|a useful definition distinguishes|makes its implications clear|precise meaning can vary by field|general explanation rather than a claim)\b",
-            candidate,
-            re.I,
-        ):
-            raise ValueError("Archive-scoped meaning answer must provide a substantive definition, not a circular meta-definition")
     # Preserve an answerable general explanation when a provider over-abstains.
     from guide_answerability import (
         is_reality_vs_ideology_leadership_question,
@@ -4155,6 +4142,18 @@ def enforce_response_contracts(question: str, response: str) -> str:
     if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
     candidate = _remove_visitor_meta_commentary(candidate)
+    # Validate after all governed deterministic recoveries have had the
+    # opportunity to replace a rejected provider candidate.
+    if _requires_archive_scoped_meaning(question):
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
+        if len(paragraphs) != 3:
+            raise ValueError("Archive-scoped meaning answer must follow the three-paragraph Guide Gold Standard")
+        if re.search(
+            r"\b(?:best understood by what it means|a useful definition distinguishes|makes its implications clear|precise meaning can vary by field|general explanation rather than a claim)\b",
+            candidate,
+            re.I,
+        ):
+            raise ValueError("Archive-scoped meaning answer must provide a substantive definition, not a circular meta-definition")
     return candidate
 
 
