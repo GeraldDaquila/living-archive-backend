@@ -35,6 +35,18 @@ def test_conceptual_question_does_not_suppress_a_verified_doorway(monkeypatch):
     # Isolate this retrieval-doorway contract from the independent canonical
     # Glossary-first enrichment layer; the fixture below is the sole test source.
     monkeypatch.setattr(guide, "resolve_glossary_context", lambda _question: ([], ""))
+    monkeypatch.setattr(
+        guide,
+        "_select_verified_recovery_doorway",
+        lambda _question, docs: (
+            {
+                "doorway_title": "A Canonical Resource",
+                "doorway_url": "https://geralddaquila.com/a-canonical-resource/",
+            }
+            if docs
+            else {"doorway_title": "", "doorway_url": ""}
+        ),
+    )
 
     def fake_route(**kwargs):
         raw = json.dumps(expected)
