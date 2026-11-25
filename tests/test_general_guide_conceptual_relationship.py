@@ -1,7 +1,8 @@
-from pathlib import Path
-import json
-import pytest
 """Regression tests for conceptual relationship questions in The Guide."""
+import json
+from pathlib import Path
+
+import pytest
 from general_guide_composition import (
     _conceptual_relationship_recovery,
     _has_transparency_trust_reciprocity,
