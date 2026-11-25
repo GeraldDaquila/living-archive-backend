@@ -312,7 +312,7 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
         result["selection"] = "provider_reported_selected"
     elif result.get("provider_adjudication_status") == "provider_reported_rejected_all":
         result["selection"] = "provider_reported_rejected_all"
-    else:
+    elif result.get("selection") != "deterministic_renderer_selected":
         result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
     if result.get("provider_adjudication_status") == "not_observed" and result.get("selection") != "deterministic_renderer_selected":
         result["application"] = "not_observed"
