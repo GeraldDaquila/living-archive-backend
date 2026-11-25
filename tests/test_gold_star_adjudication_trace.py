@@ -414,10 +414,14 @@ def test_final_visitor_boundary_emits_deterministic_application_from_request_loc
 def test_final_visitor_boundary_recovers_request_local_trace_when_payload_omits_it():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     module = ast.parse(source)
-    finalizer = next(
+    finalizers = [
         node for node in module.body
         if isinstance(node, ast.FunctionDef) and node.name == "_guide_finalize_visitor_payload"
-    )
+    ]
+    # main.py intentionally wraps the legacy finalizer with a later definition;
+    # the last module-level binding is the live visitor boundary.
+    assert len(finalizers) == 2
+    finalizer = finalizers[-1]
     function_source = ast.get_source_segment(source, finalizer)
     assert "_gold_star_ledger.current_attempt_trace()" in function_source
     assert "or payload_adjudication_trace" in function_source
