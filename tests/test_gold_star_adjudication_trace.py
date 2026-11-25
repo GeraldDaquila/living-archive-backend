@@ -734,3 +734,27 @@ def test_final_answer_provenance_does_not_invent_provider_metadata():
         cached_candidate_reused=False,
     )
     assert result["response_provenance"] == {"class": "deterministic_recovery"}
+
+
+
+def test_final_answer_provenance_preserves_visitor_failure_route_classification():
+    from gold_star_adjudication_trace import synchronize_final_response_provenance
+
+    payload = {
+        "response": "Bounded visitor recovery.",
+        "response_provenance": {
+            "class": "visitor_failure_recovery",
+            "provider": "provider_independent_visitor_recovery",
+            "llm_invoked": False,
+        },
+    }
+    result = synchronize_final_response_provenance(
+        payload,
+        final_provenance="deterministic_recovery",
+        provider_candidate_delivered=False,
+        cached_candidate_reused=False,
+    )
+    # Route provenance and answer-production provenance are separate facts.
+    assert result["response_provenance"]["class"] == "visitor_failure_recovery"
+    assert result["response_provenance"]["provider"] == "provider_independent_visitor_recovery"
+    assert result["response_provenance"]["llm_invoked"] is False
