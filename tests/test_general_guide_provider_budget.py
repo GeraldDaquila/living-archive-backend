@@ -417,6 +417,16 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "SECRET" not in snapshot
 
 
+def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_timeout():
+    item = {
+        **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+        "health_state": "half_open",
+    }
+    timeout = provider_bank._provider_call_timeout("general_guide_composition", item)
+    assert timeout == provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
+    assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+
+
 def test_general_guide_half_open_candidates_receive_composition_timeout_and_preserve_fallbacks(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
