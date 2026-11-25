@@ -123,3 +123,95 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
     }
     parsed = _gold_star_parse(payload)
     assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
+
+
+def test_provider_composition_schema_requires_candidate_adjudication_object():
+    schema = composition._build_provider_composition_schema(GOLD_STAR_CANDIDATES)
+    assert schema is not None
+    assert schema["strict"] is False
+    root = schema["schema"]
+    assert "adaptive_adjudication" in root["required"]
+    adjudication = root["properties"]["adaptive_adjudication"]
+    assert set(adjudication["required"]) == {
+        "candidate_assessments",
+        "application_evidence_spans",
+    }
+    assessments = adjudication["properties"]["candidate_assessments"]
+    assert assessments["minItems"] == assessments["maxItems"] == 1
+    assert assessments["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
+    assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
+    assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
+    spans = adjudication["properties"]["application_evidence_spans"]
+    assert spans["items"]["properties"]["span"]["minLength"] == 12
+    assert spans["items"]["properties"]["span"]["maxLength"] == 240
+
+
+def test_provider_composition_schema_is_not_added_without_candidates():
+    assert composition._build_provider_composition_schema(None) is None
+    assert composition._build_provider_composition_schema([]) is None
+
+
+def test_provider_composition_schema_deduplicates_candidate_ids_like_runtime_index():
+    duplicate = {
+        "benchmark_id": "lesson-a",
+        "reasoning_family": "evidence_discipline",
+        "discipline": "A second registry record with the same identity.",
+    }
+    schema = composition._build_provider_composition_schema(
+        [GOLD_STAR_CANDIDATES[0], duplicate]
+    )
+    assessments = schema["schema"]["properties"]["adaptive_adjudication"]["properties"]["candidate_assessments"]
+    assert assessments["minItems"] == assessments["maxItems"] == 1
+
+
+def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
+    candidate = {
+        "benchmark_id": "lesson-a",
+        "score": 0.81,
+        "authority_mode": "structural_guidance_only",
+        "reasoning_family": "evidence_discipline",
+        "discipline": "Separate observation from inference.",
+        "abstention_boundary": "Do not infer responsibility without evidence.",
+    }
+    contribution = {
+        "benchmark_id": candidate["benchmark_id"],
+        "score": candidate["score"],
+        "authority_mode": "structural_guidance_only",
+        "candidates": [candidate],
+    }
+    captured = {}
+    monkeypatch.setattr(
+        composition, "_gold_star_active_quality_contribution",
+        lambda _question: contribution,
+    )
+    monkeypatch.setattr(composition, "_registered_exact_gold_standard", lambda _question: None)
+    monkeypatch.setattr(composition, "_documents_from_context", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(composition, "_start_requested_gold_star_semantic_warmup", lambda: None)
+    monkeypatch.setattr(composition, "_COMPOSITION_CACHE", composition.OrderedDict())
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        payload = {
+            "response": GOLD_STAR_RESPONSE,
+            "doorway_title": "",
+            "response_shape": "direct",
+            "adaptive_adjudication": {
+                "candidate_assessments": [
+                    {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
+                ],
+                "application_evidence_spans": [],
+            },
+        }
+        return {
+            "parsed": kwargs["parse"](json.dumps(payload)),
+            "provider": "test-provider",
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    composition.compose(
+        use_core=object(),
+        query="What does observation mean in a clinical record?",
+        context_data={},
+    )
+    assert captured["schema"]["schema"]["properties"]["adaptive_adjudication"]
