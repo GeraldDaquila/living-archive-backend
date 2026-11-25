@@ -599,7 +599,7 @@ def _select_guide_recovery_candidates(monkeypatch, items):
     )
 
 
-def test_general_guide_half_open_recovery_prefers_proven_transport_lanes(monkeypatch):
+def test_general_guide_half_open_recovery_prefers_current_streak_and_recent_success(monkeypatch):
     selected = _select_guide_recovery_candidates(
         monkeypatch,
         [
@@ -641,8 +641,8 @@ def test_general_guide_half_open_recovery_prefers_proven_transport_lanes(monkeyp
         (item["provider"], item["model"]) for item in selected[:3]
     ] == [
         ("groq", "openai/gpt-oss-20b"),
-        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
         ("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
     ]
 
 
