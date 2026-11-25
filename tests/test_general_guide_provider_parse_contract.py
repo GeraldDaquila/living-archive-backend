@@ -77,7 +77,7 @@ def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudic
         _gold_star_parse(payload)
 
 
-def test_provider_selected_candidate_requires_exact_application_span():
+def test_provider_selected_candidate_without_exact_span_is_delivered_without_application_credit():
     payload = {
         "response": GOLD_STAR_RESPONSE,
         "response_shape": "direct",
@@ -88,8 +88,11 @@ def test_provider_selected_candidate_requires_exact_application_span():
             "application_evidence_spans": [],
         },
     }
-    with pytest.raises(ValueError, match="exact answer-span application evidence"):
-        _gold_star_parse(payload)
+    parsed = _gold_star_parse(payload)
+    report = parsed["adaptive_adjudication"]
+    assert report["status"] == "provider_reported_selected"
+    assert report["application_evidence_present"] is False
+    assert report["application"] == "not_observed"
 
 
 def test_provider_may_validly_reject_all_gold_star_candidates():
