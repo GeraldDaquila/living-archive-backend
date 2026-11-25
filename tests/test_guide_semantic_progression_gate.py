@@ -5,7 +5,6 @@ from pathlib import Path
 import general_guide_composition as composition
 
 ROOT = Path(__file__).resolve().parents[1]
-
 QUERY = "How can one distinguish structural change from ordinary disruption?"
 
 SCREENSHOT_RESPONSE = (
@@ -36,9 +35,9 @@ def test_applied_conclusion_that_derives_a_new_post_event_test_is_preserved():
 def test_provider_templates_integrate_gold_star_discipline_without_appending_it_to_paragraph_three():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert "GOLD STAR INTEGRATION RULE:" in source
-    assert "Never append the lesson's wording, abstention boundary, or a meta-label to paragraph three." in source
-    assert "Broad lexical overlap" in source
-    assert "Do not append this guidance, its wording, or its boundary to paragraph three" in source
+    assert "Never append lesson wording, an abstention boundary, or a meta-label as a substitute for the answer's own conclusion." in source
+    assert "Integrate a relevant discipline invisibly into the reasoning operation" in source
+    assert "If subject relevance is weak, ignore the lesson." in source
 
 
 def test_deterministic_template_gives_paragraph_three_a_new_correctability_function():
@@ -47,7 +46,7 @@ def test_deterministic_template_gives_paragraph_three_a_new_correctability_funct
     answer = compose_recovery(
         "How should people act when the future is uncertain but consequential?"
     )
-    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
     assert len(paragraphs) == 3
     assert "who will be affected" in paragraphs[0]
     assert "Compare realistic options" in paragraphs[1]
@@ -63,9 +62,8 @@ def test_deterministic_gold_star_guidance_is_not_appended_to_visitor_answers():
     assert "Apply the deterministic Gold Star adapter outside the question-preserving" not in source
 
 
-
 def test_compact_llm_contract_blocks_unrequested_ai_and_gold_star_content_transfer():
     prompt = composition._GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "Do not introduce AI, artificial intelligence, or another adjacent subject unless the visitor explicitly asks about it." in prompt
-    assert "Never append the lesson's wording, abstention boundary, or a meta-label to paragraph three." in prompt
-    assert "Paragraph three must remain a coherent conclusion to this answer" in prompt
+    assert "Specialized guidance is conditional and must remain dormant outside its defined scope." in prompt
+    assert "Never append lesson wording, an abstention boundary, or a meta-label as a substitute for the answer's own conclusion." in prompt
+    assert "The conclusion must follow from this question's reasoning" in prompt

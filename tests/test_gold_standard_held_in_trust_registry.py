@@ -13,19 +13,20 @@ def test_held_in_trust_answer_is_registered_as_user_approved():
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
     assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
-    assert resolved["doorway_title"] == "Case Study 12: The Stewardship Commons"
-    assert resolved["doorway_url"] == "https://geralddaquila.com/case-study-12"
+    assert resolved["doorway_title"] == fixture["expected_doorway"]["title"]
+    assert resolved["doorway_url"] == fixture["expected_doorway"]["url"]
 
 
 def test_held_in_trust_gold_standard_has_three_paragraphs_and_core_concepts():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"]
     assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
-    for phrase in ("held in trust", "obligations", "misuse or neglect", "authority ends", "what is known"):
+    for phrase in ("placed in someone's care", "who or what depends", "misuse or neglect", "authority ends", "responsible care"):
         assert phrase in answer.casefold()
 
 
 def test_held_in_trust_doorway_is_canonical_and_not_legacy_inferred():
-    resolved = resolve_exact_gold_standard("How does one identify what is being held in trust in a given situation?")
-    assert resolved["doorway_url"] == "https://geralddaquila.com/case-study-12"
-    assert resolved["doorway_title"] == "Case Study 12: The Stewardship Commons"
+    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    resolved = resolve_exact_gold_standard(fixture["query"])
+    assert resolved["doorway_url"] == fixture["expected_doorway"]["url"]
+    assert resolved["doorway_title"] == fixture["expected_doorway"]["title"]
