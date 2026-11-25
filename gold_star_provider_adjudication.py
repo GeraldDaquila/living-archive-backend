@@ -159,5 +159,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "use [] when none is selected. No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and exact "
-        "span presence. Improvement still requires paired evaluation."
+        "span presence. Improvement still requires paired evaluation. "
+        "Final JSON must include response, doorway_title, response_shape, and adaptive_adjudication; "
+        "response is the complete visitor answer, not metadata."
     )
