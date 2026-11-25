@@ -2798,7 +2798,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
     def _require_complete_gold_star_adjudication(parsed: Dict[str, Any], response: str) -> None:
         # When candidates were supplied, do not admit a provider response as a
         # valid composition if its required disposition report is absent or
-        # malformed. A selected candidate must also have an exact answer span.
+        # malformed. Exact-span evidence governs adaptation credit, not answer delivery.
         if not gold_star_candidates:
             return
         report = _normalize_gold_star_provider_adjudication(
