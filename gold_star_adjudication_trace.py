@@ -16,8 +16,8 @@ from contextvars import ContextVar
 VERSION = "1.1"
 REQUEST_LEDGER_VERSION = "2"
 MAX_CANDIDATES = 4
-_SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "human_reviewed_selected", "human_reviewed_rejected"}
-_APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
+_SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "deterministic_renderer_selected", "human_reviewed_selected", "human_reviewed_rejected"}
+_APPLICATION_STATES = {"not_observed", "provider_asserted_span_present", "deterministic_renderer_applied", "review_required", "human_reviewed_applied", "human_reviewed_not_applied"}
 _OUTCOME_STATES = {"not_evaluated", "review_required", "human_reviewed_improved", "human_reviewed_not_improved"}
 _FORBIDDEN_KEYS = {"query", "question", "answer", "response", "user_id", "session_id", "content_hash"}
 _REQUEST_CONTEXT = ContextVar("gold_star_request_context", default=None)
@@ -314,9 +314,42 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
         result["selection"] = "provider_reported_rejected_all"
     else:
         result["selection"] = "not_observed" if result.get("candidate_count", 0) else "not_applicable"
-    if result.get("provider_adjudication_status") == "not_observed":
+    if result.get("provider_adjudication_status") == "not_observed" and result.get("selection") != "deterministic_renderer_selected":
         result["application"] = "not_observed"
     result["outcome"] = "not_evaluated"
+    return _store_current_trace(result)
+
+
+def mark_deterministic_application(trace: Any, application: Any) -> dict[str, Any] | None:
+    """Record a verified local renderer application without claiming provider selection.
+
+    The renderer must return a candidate already present in this request's
+    bounded retrieval trace, a registered plan, evidence spans, and an applied
+    abstention boundary. Provider adjudication remains independently observed.
+    """
+    if not isinstance(trace, Mapping) or not isinstance(application, Mapping):
+        return _store_current_trace(trace) if isinstance(trace, Mapping) else None
+    benchmark_id = str(application.get("benchmark_id") or "").strip()
+    plan_id = str(application.get("plan_id") or "").strip()
+    spans = application.get("application_evidence_spans")
+    if (
+        not benchmark_id
+        or benchmark_id not in (trace.get("candidate_ids") or [])
+        or not plan_id
+        or application.get("abstention_boundary_applied") is not True
+        or not isinstance(spans, list)
+        or not spans
+        or not all(isinstance(span, str) and span.strip() for span in spans)
+    ):
+        return _store_current_trace(dict(trace))
+    result = dict(trace)
+    result["selection"] = "deterministic_renderer_selected"
+    result["selected_candidate_ids"] = [benchmark_id]
+    result["reasoning_discipline_ids"] = [plan_id]
+    result["application_evidence_present"] = True
+    result["application_evidence_candidate_ids"] = [benchmark_id]
+    result["application"] = "deterministic_renderer_applied"
+    result["deterministic_application_span_count"] = len(spans)
     return _store_current_trace(result)
 
 
@@ -403,7 +436,9 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     allowed = required | {
         "guidance_exposure", "provider_adjudication_status", "selected_candidate_ids",
         "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
-        "application_evidence_candidate_ids", "contribution_retained", "composition", "final_delivery", "final_provenance", "request_id", "attempt_ordinal"
+        "application_evidence_candidate_ids", "contribution_retained", "composition",
+        "deterministic_application_span_count", "final_delivery", "final_provenance",
+        "request_id", "attempt_ordinal"
     }
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
@@ -489,6 +524,20 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         return {"valid": False, "reason": "application_span_without_complete_selected_candidate_coverage"}
     if trace.get("application_evidence_present") is not True and evidence_ids:
         return {"valid": False, "reason": "application_evidence_ids_without_verified_spans"}
+    if trace.get("selection") == "deterministic_renderer_selected" and (
+        trace.get("provider_adjudication_status") != "not_observed"
+        or trace.get("application") != "deterministic_renderer_applied"
+        or trace.get("application_evidence_present") is not True
+        or len(selected_ids) != 1
+        or evidence_ids != selected_ids
+        or type(trace.get("deterministic_application_span_count")) is not int
+        or trace["deterministic_application_span_count"] < 1
+    ):
+        return {"valid": False, "reason": "incomplete_deterministic_renderer_application"}
+    if trace.get("application") == "deterministic_renderer_applied" and (
+        trace.get("selection") != "deterministic_renderer_selected"
+    ):
+        return {"valid": False, "reason": "deterministic_application_without_renderer_selection"}
     if trace.get("contribution_retained") == "provider_asserted_span_retained" and (
         trace.get("final_delivery") != "provider_candidate_delivered"
         or trace.get("application_evidence_present") is not True
