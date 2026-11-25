@@ -8,7 +8,7 @@ import main
 
 
 def test_guide_route_prompt_distinguishes_outcome_evaluation_from_fsd():
-    prompt = main._GUIDE_ROUTE_PROMPT.lower()
+    prompt = " ".join(main._GUIDE_ROUTE_PROMPT.lower().split())
     assert "distinguish outcome evaluation from systems-pattern diagnosis" in prompt
     assert "observable outcomes" in prompt
     assert "feedback from affected people" in prompt
@@ -17,7 +17,7 @@ def test_guide_route_prompt_distinguishes_outcome_evaluation_from_fsd():
 
 
 def test_guide_route_prompt_blocks_topic_only_fsd_handoffs():
-    prompt = main._GUIDE_ROUTE_PROMPT.lower()
+    prompt = " ".join(main._GUIDE_ROUTE_PROMPT.lower().split())
     assert "do not route" in prompt
     assert "solely because the question mentions a group, organization" in prompt
     assert "must not substitute for evaluating outcomes" in prompt
@@ -25,7 +25,7 @@ def test_guide_route_prompt_blocks_topic_only_fsd_handoffs():
 
 
 def test_guide_route_prompt_preserves_legitimate_fsd_use():
-    prompt = main._GUIDE_ROUTE_PROMPT.lower()
+    prompt = " ".join(main._GUIDE_ROUTE_PROMPT.lower().split())
     assert "fsd is appropriate when the visitor's primary need is to map or diagnose" in prompt
     assert "recurring system patterns" in prompt
     assert "feedback loops" in prompt
@@ -33,5 +33,5 @@ def test_guide_route_prompt_preserves_legitimate_fsd_use():
 
 
 def test_guide_route_prompt_includes_the_observed_calibration_question():
-    prompt = main._GUIDE_ROUTE_PROMPT.lower()
+    prompt = " ".join(main._GUIDE_ROUTE_PROMPT.lower().split())
     assert "genuinely reducing harm rather than making us feel we addressed it" in prompt
