@@ -339,6 +339,12 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
     ).read_text(encoding="utf-8")
     for field in (
         '"temperature": 0.0',
+        '"top_p": "not_supplied_provider_default"',
+        '"stop": "not_supplied"',
+        '"presence_penalty": "not_supplied_provider_default"',
+        '"frequency_penalty": "not_supplied_provider_default"',
+        '"chat_template_kwargs": "not_supplied"',
+        '"extra_body": "not_supplied"',
         '"response_format":',
         '"schema_sha256":',
         '"reasoning_effort": "low"',
