@@ -2798,7 +2798,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
     def _require_complete_gold_star_adjudication(parsed: Dict[str, Any], response: str) -> None:
         # When candidates were supplied, do not admit a provider response as a
         # valid composition if its required disposition report is absent or
-        # malformed. A selected candidate must also have an exact answer span.
+        # malformed. Exact-span evidence governs adaptation credit, not answer delivery.
         if not gold_star_candidates:
             return
         report = _normalize_gold_star_provider_adjudication(
@@ -2810,13 +2810,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             raise ValueError(
                 "provider Gold Star adjudication report is missing or incomplete"
             )
-        if (
-            report.get("status") == "provider_reported_selected"
-            and report.get("application_evidence_present") is not True
-        ):
-            raise ValueError(
-                "provider Gold Star selection lacks exact answer-span application evidence"
-            )
+        # A missing exact span removes Gold Star application credit; it does
+        # not invalidate an otherwise complete visitor answer. The trace keeps
+        # selection and application separate, so this response cannot be counted
+        # as an evidenced adaptation. Missing or malformed adjudication remains
+        # a hard rejection above.
     def _parse_strict(raw: str) -> Dict[str, Any]:
         try:
             parsed = json.loads(str(raw or "").strip())

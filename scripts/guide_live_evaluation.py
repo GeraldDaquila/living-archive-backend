@@ -14,9 +14,10 @@ SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 CRITICAL_SUITE = ROOT / "docs/qa/guide_live_critical_evaluation_cases.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
-# Reuse a question that has already traversed the real provider path in the primary visitor smoke.
-# This probe tests provider attribution only; it does not certify Gold Star application.
-PROVIDER_PROBE_QUERY = "How can leaders weigh obligations to employees, customers, and local residents when a decision benefits one group but imposes costs on another?"
+# Use a distinct but semantically equivalent question so the attribution probe
+# cannot inherit a cached answer from the primary visitor smoke.
+# This probe tests fresh provider attribution only; it does not certify Gold Star application.
+PROVIDER_PROBE_QUERY = "When a policy choice helps employees but burdens customers or nearby residents, how should leaders compare their obligations, explain the trade-offs, and decide who should bear the costs?"
 
 def file_commit(path):
     try:

@@ -418,6 +418,16 @@ def test_provider_probe_query_does_not_match_an_exact_approved_gold_standard():
     assert resolve_exact_gold_standard(live_evaluation.PROVIDER_PROBE_QUERY) is None
 
 
+def test_provider_probe_query_is_distinct_from_primary_visitor_smoke_to_avoid_cache_reuse():
+    visitor_smoke_query = (
+        "How can leaders weigh obligations to employees, customers, and local residents "
+        "when a decision benefits one group but imposes costs on another?"
+    )
+    probe = live_evaluation.PROVIDER_PROBE_QUERY
+    assert probe != visitor_smoke_query
+    assert all(term in probe.casefold() for term in ("employees", "customers", "residents"))
+
+
 def test_provider_probe_requires_stakeholder_tradeoff_explanation():
     accurate = (
         "Leaders face a persistent tension: decisions that improve one stakeholder group often create trade-offs "
