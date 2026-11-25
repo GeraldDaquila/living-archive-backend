@@ -140,7 +140,10 @@ app = _base.app
 
 
 def _warm_provider_health_state_on_startup():
-    """Load shared provider health before the first visitor request after a deploy."""
+    """Load shared provider health before the first Render visitor request after a deploy."""
+    if not str(os.getenv("RENDER_SERVICE_ID") or "").strip():
+        print("USE provider health startup warmup: skipped=non_render", flush=True)
+        return False
     try:
         refresh_shared_health_state()
         shared = provider_bank_snapshot(use_core).get("shared_health_state") or {}
