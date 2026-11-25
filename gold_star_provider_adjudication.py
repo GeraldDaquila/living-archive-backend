@@ -147,6 +147,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
     # Keep this contract compact: it is repeated in every provider prompt and
     # competes with visitor evidence for finite context/token budgets.
     return (
+        "Preserve response, doorway_title, response_shape; adjudication is additional. "
         "Add JSON property adaptive_adjudication with exactly two keys: "
         "candidate_assessments and application_evidence_spans. For every candidate "
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "

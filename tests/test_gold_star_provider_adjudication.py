@@ -144,6 +144,10 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     assert len(contract) < 1100
     for required in (
         "adaptive_adjudication",
+        "Preserve response",
+        "doorway_title",
+        "response_shape",
+        "adjudication is additional",
         "candidate_assessments",
         "application_evidence_spans",
         "lesson-a",
