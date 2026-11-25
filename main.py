@@ -9210,7 +9210,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         compose_recovery as _compose_ethical_tradeoff_recovery,
         registered_recovery_recommendation as _ethical_tradeoff_recommendation,
     )
-    if _is_ethical_tradeoff_recovery(query):
+    _ethical_query_text = str(query or "").casefold()
+    _is_freedom_responsibility_conflict = (
+        _is_ethical_tradeoff_recovery(query)
+        and bool(re.search(r"\\bindividual\\s+freedom\\b", _ethical_query_text))
+        and bool(re.search(r"\\bshared\\s+responsibility\\b", _ethical_query_text))
+    )
+    if _is_freedom_responsibility_conflict:
         _ethical_answer = _compose_ethical_tradeoff_recovery(query)
         _ethical_doorway = _ethical_tradeoff_recommendation(query)
         return {
