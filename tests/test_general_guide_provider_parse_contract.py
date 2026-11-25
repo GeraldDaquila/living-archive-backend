@@ -162,3 +162,57 @@ def test_provider_composition_schema_deduplicates_candidate_ids_like_runtime_ind
     )
     assessments = schema["schema"]["properties"]["adaptive_adjudication"]["properties"]["candidate_assessments"]
     assert assessments["minItems"] == assessments["maxItems"] == 1
+
+
+def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
+    candidate = {
+        "benchmark_id": "lesson-a",
+        "score": 0.81,
+        "authority_mode": "structural_guidance_only",
+        "reasoning_family": "evidence_discipline",
+        "discipline": "Separate observation from inference.",
+        "abstention_boundary": "Do not infer responsibility without evidence.",
+    }
+    contribution = {
+        "benchmark_id": candidate["benchmark_id"],
+        "score": candidate["score"],
+        "authority_mode": "structural_guidance_only",
+        "candidates": [candidate],
+    }
+    captured = {}
+    monkeypatch.setattr(
+        composition, "_gold_star_active_quality_contribution",
+        lambda _question: contribution,
+    )
+    monkeypatch.setattr(composition, "_registered_exact_gold_standard", lambda _question: None)
+    monkeypatch.setattr(composition, "_documents_from_context", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(composition, "_start_requested_gold_star_semantic_warmup", lambda: None)
+    monkeypatch.setattr(composition, "_COMPOSITION_CACHE", composition.OrderedDict())
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        payload = {
+            "response": GOLD_STAR_RESPONSE,
+            "doorway_title": "",
+            "response_shape": "direct",
+            "adaptive_adjudication": {
+                "candidate_assessments": [
+                    {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
+                ],
+                "application_evidence_spans": [],
+            },
+        }
+        return {
+            "parsed": kwargs["parse"](json.dumps(payload)),
+            "provider": "test-provider",
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    result = composition.compose(
+        use_core=object(),
+        query="How should a clinic distinguish observed evidence from assumptions?",
+        context_data={},
+    )
+    assert result is not None
+    assert captured["schema"]["schema"]["properties"]["adaptive_adjudication"]
