@@ -55,7 +55,7 @@ class SystemicRecoveryTerminalContractTests(unittest.TestCase):
             if isinstance(node, ast.Constant) and isinstance(node.value, str)
         ]
         terminal_messages = [
-            node.value for node in ast.walk(deterministic_branch.orelse)
+            node.value for node in ast.walk(ast.Module(body=deterministic_branch.orelse, type_ignores=[]))
             if isinstance(node, ast.Constant) and isinstance(node.value, str)
         ]
         self.assertTrue(any("deterministic registered recovery PASS" in value for value in pass_messages))
