@@ -1083,7 +1083,7 @@ def test_definition_significance_matcher_recognizes_present_day_qualifier():
     assert guide_composition._definition_significance_subject(query) == "stewardship"
     assert guide_composition._has_direct_definition_for_subject(
         query,
-        "Stewardship is important because it guides responsible choices.",
+        "Stewardship means making responsible decisions about shared resources.",
     )
     assert not guide_composition._has_direct_definition_for_subject(
         query,
