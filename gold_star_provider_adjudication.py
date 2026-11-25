@@ -147,6 +147,11 @@ def build_adjudication_output_contract(candidates: Any) -> str:
     # Keep this contract compact: it is repeated in every provider prompt and
     # competes with visitor evidence for finite context/token budgets.
     return (
+        "Return one complete JSON object containing both the visitor-facing answer and this adjudication report. "
+        "Preserve the visitor-facing properties required by the composition contract: response (a non-empty "
+        "visitor-facing answer), doorway_title, and response_shape. Add adaptive_adjudication as an additional "
+        "top-level property; it supplements and never replaces, omits, renames, or displaces response. "
+        "Never return only adjudication metadata. "
         "Add JSON property adaptive_adjudication with exactly two keys: "
         "candidate_assessments and application_evidence_spans. For every candidate "
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
