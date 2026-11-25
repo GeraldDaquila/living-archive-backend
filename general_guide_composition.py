@@ -3089,6 +3089,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 query, candidate_for_comparison
             ):
                 raise strict_exc
+            # This pair-specific semantic requirement is not an editorial preference:
+            # do not let the generic hard-integrity compatibility lane re-admit a
+            # one-way answer after the strict relational contract rejected it.
+            if (
+                re.search(r"\btransparency\b", query, re.I)
+                and re.search(r"\btrust\b", query, re.I)
+                and is_conceptual_relationship_question(query)
+                and not _has_transparency_trust_reciprocity(candidate_for_comparison)
+            ):
+                raise strict_exc
             try:
                 try:
                     parsed = json.loads(str(raw or "").strip())
