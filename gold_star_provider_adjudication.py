@@ -150,7 +150,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "Add JSON property adaptive_adjudication with exactly two keys: "
         "candidate_assessments and application_evidence_spans. For every candidate "
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
-        "decision (select/reject), and reason_code (null for select; one of " + reasons +
+        "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Select only a distinct, materially relevant discipline whose "
         "abstention boundary fits; otherwise reject. For each selected ID, include "
         "one application_evidence_spans object with candidate_id and an exact "
