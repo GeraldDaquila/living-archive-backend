@@ -5617,7 +5617,10 @@ def compose(
     # Doorway selection is deterministic and independent of provider compliance.
     # First honor the narrowly verified canonical relationship for cross-scale
     # questions; then fall back to retrieval-backed selection for all others.
-    if not candidate.get("doorway_title"):
+    if not (candidate.get("doorway_title") and candidate.get("doorway_url")):
+        # A provider-supplied title without its canonical URL is not a complete
+        # doorway. Do not let that partial metadata suppress an independently
+        # verified destination from the retrieved canonical documents.
         doorway = _cross_scale_canonical_doorway(question)
         if not doorway.get("doorway_title"):
             doorway = _stewardship_technology_canonical_doorway(question)
