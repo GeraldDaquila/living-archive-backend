@@ -4,6 +4,8 @@ name: Gold Star candidate-local matched-pair evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches: [qa/gold-star-matched-pair-mainline-20261125]
 
 permissions:
   contents: read
@@ -19,7 +21,7 @@ jobs:
       - name: Check out the exact candidate commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
