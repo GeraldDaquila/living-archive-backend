@@ -524,6 +524,12 @@ async def capture(args) -> dict:
                     "provider": provider,
                     "model": model,
                     "temperature": 0.0,
+                    "top_p": "not_supplied_provider_default",
+                    "stop": "not_supplied",
+                    "presence_penalty": "not_supplied_provider_default",
+                    "frequency_penalty": "not_supplied_provider_default",
+                    "chat_template_kwargs": "not_supplied",
+                    "extra_body": "not_supplied",
                     "response_format": (
                         "omitted_text_mode" if control["schema_mode"] == "text"
                         else "json_schema" if control["schema_sha256"] else "json_object"
