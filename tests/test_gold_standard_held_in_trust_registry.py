@@ -21,7 +21,7 @@ def test_held_in_trust_gold_standard_has_three_paragraphs_and_core_concepts():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"]
     assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
-    for phrase in ("held in trust", "who or what depends", "misuse or neglect", "authority ends", "responsible care"):
+    for phrase in ("placed in someone's care", "who or what depends", "misuse or neglect", "authority ends", "responsible care"):
         assert phrase in answer.casefold()
 
 
