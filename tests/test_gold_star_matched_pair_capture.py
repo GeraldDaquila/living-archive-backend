@@ -346,6 +346,8 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"provider_timeout_seconds": control["provider_timeout_seconds"]',
         '"provider_sdk_max_retries": 0',
         '"schema_mode": control["schema_mode"]',
+        'def evaluation_quota_guarded_call(',
+        'timeout_override=timeout_override',
         '"omitted_text_mode"',
     ):
         assert field in source
