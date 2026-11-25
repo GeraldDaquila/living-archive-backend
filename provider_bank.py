@@ -745,7 +745,7 @@ def _contract_rejection_class(contract_reason):
         else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", str(contract_reason or ""), re.I)
         # A URL embedded in provider prose is a repairable response-format defect;
         # canonical doorway selection is attached separately by the server.
-        else "response_shape" if re.search(r"(?:embedded|exposed|included).{0,48}\\b(?:navigation )?URL\\b|URL in visitor prose", str(contract_reason or ""), re.I)
+        else "response_shape" if re.search(r"(?:embedded|exposed|included).{0,48}\b(?:navigation )?URL\b|URL in visitor prose", str(contract_reason or ""), re.I)
         else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", str(contract_reason or ""), re.I)
         else "response_shape" if re.search(r"empty|short|long|paragraph|sentence|question", str(contract_reason or ""), re.I)
         else "other_contract"
