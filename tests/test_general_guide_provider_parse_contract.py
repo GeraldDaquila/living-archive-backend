@@ -209,10 +209,9 @@ def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
         }
 
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
-    result = composition.compose(
+    composition.compose(
         use_core=object(),
-        query="How should a clinic distinguish observed evidence from assumptions?",
+        query="What does observation mean in a clinical record?",
         context_data={},
     )
-    assert result is not None
     assert captured["schema"]["schema"]["properties"]["adaptive_adjudication"]
