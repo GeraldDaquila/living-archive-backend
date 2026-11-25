@@ -1,8 +1,9 @@
 """Privacy-minimized observability contract for runtime Gold Star adjudication.
 
-Retrieval, prompt exposure, model/provider completion, final delivery, human
-review, and improvement are distinct evidence states. The system never labels
-retrieval or prompt injection as lesson selection, application, or benefit.
+Retrieval, prompt exposure, provider adjudication, deterministic renderer
+selection/application, final delivery, human review, and improvement are
+distinct evidence states. Retrieval or prompt injection alone never proves
+selection, application, or benefit.
 
 No visitor question, answer text, user identity, session identity, or content
 hash is retained in this trace.
@@ -13,7 +14,7 @@ from typing import Any, Mapping
 import re
 from contextvars import ContextVar
 
-VERSION = "1.1"
+VERSION = "1.2"
 REQUEST_LEDGER_VERSION = "2"
 MAX_CANDIDATES = 4
 _SELECTION_STATES = {"not_applicable", "not_observed", "provider_reported_selected", "provider_reported_rejected_all", "deterministic_renderer_selected", "human_reviewed_selected", "human_reviewed_rejected"}
