@@ -3996,11 +3996,11 @@ def enforce_response_contracts(question: str, response: str) -> str:
     # Enforce it at the final shared boundary so provider and recovery paths
     # cannot bypass the visitor-facing structure requirement.
     if _requires_archive_scoped_meaning(question):
-        paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", candidate) if part.strip()]
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
         if len(paragraphs) != 3:
             raise ValueError("Archive-scoped meaning answer must follow the three-paragraph Guide Gold Standard")
         if re.search(
-            r"\\b(?:best understood by what it means|a useful definition distinguishes|makes its implications clear|precise meaning can vary by field|general explanation rather than a claim)\\b",
+            r"\b(?:best understood by what it means|a useful definition distinguishes|makes its implications clear|precise meaning can vary by field|general explanation rather than a claim)\b",
             candidate,
             re.I,
         ):
