@@ -133,6 +133,7 @@ def _install_observers(composition, main_module):
                 _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
                 if isinstance(schema, dict) else None
             )
+            state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
         return original_route(**kwargs)
 
     composition._gold_star_active_quality_contribution = observe_contribution
@@ -216,6 +217,8 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
         "route_operation": None,
         "max_tokens": None,
         "schema_sha256": None,
+        "schema_mode": None,
+        "provider_timeout_seconds": None,
         "provider_adjudication": {
             "status": "not_observed",
             "selected_candidate_ids": [],
@@ -263,6 +266,8 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
             "route_operation": state["route_operation"],
             "max_tokens": state["max_tokens"],
             "schema_sha256": state["schema_sha256"],
+            "schema_mode": state["schema_mode"],
+            "provider_timeout_seconds": state["provider_timeout_seconds"],
             "route_source": payload.get("route_source"),
             "deployment_commit_sha": payload.get("deployment_commit_sha"),
         }
@@ -366,7 +371,11 @@ async def capture(args) -> dict:
             and str((item or {}).get("provider") or "") == provider
             and str((item or {}).get("model") or "") == model
         ):
-            return max(float(timeout or 0), float(args.provider_timeout_seconds))
+            effective_timeout = max(float(timeout or 0), float(args.provider_timeout_seconds))
+            state = CAPTURE_CONTEXT.get()
+            if state is not None:
+                state["provider_timeout_seconds"] = effective_timeout
+            return effective_timeout
         return timeout
 
     provider_bank._provider_call_timeout = evaluation_provider_call_timeout
@@ -439,6 +448,8 @@ async def capture(args) -> dict:
                     control["route_operation"] != treatment["route_operation"]
                     or control["max_tokens"] != treatment["max_tokens"]
                     or control["schema_sha256"] != treatment["schema_sha256"]
+                    or control["schema_mode"] != treatment["schema_mode"]
+                    or control["provider_timeout_seconds"] != treatment["provider_timeout_seconds"]
                 ):
                     failures.append("paired_generation_configuration_mismatch")
 
@@ -481,11 +492,15 @@ async def capture(args) -> dict:
                     "provider": provider,
                     "model": model,
                     "temperature": 0.0,
-                    "response_format": "json_schema" if control["schema_sha256"] else "json_object",
+                    "response_format": (
+                        "omitted_text_mode" if control["schema_mode"] == "text"
+                        else "json_schema" if control["schema_sha256"] else "json_object"
+                    ),
                     "schema_sha256": control["schema_sha256"],
+                    "schema_mode": control["schema_mode"],
                     "reasoning_effort": "low",
                     "include_reasoning": False,
-                    "provider_timeout_seconds": args.provider_timeout_seconds,
+                    "provider_timeout_seconds": control["provider_timeout_seconds"],
                     "provider_sdk_max_retries": 0,
                     "inter_call_delay_seconds": args.inter_call_delay_seconds,
                     "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
