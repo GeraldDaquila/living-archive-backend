@@ -35,6 +35,8 @@ from gold_star_adjudication_trace import (
     current_attempt_trace as _current_gold_star_attempt_trace,
 )
 from gold_star_provider_adjudication import (
+    MAX_CANDIDATES as _GOLD_STAR_MAX_CANDIDATES,
+    REASON_CODES as _GOLD_STAR_ADJUDICATION_REASON_CODES,
     build_adjudication_output_contract as _build_gold_star_adjudication_output_contract,
     normalize_provider_adjudication as _normalize_gold_star_provider_adjudication,
 )
@@ -428,6 +430,84 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         + candidate_evidence + "\\n\\n"
     )
     return instruction + "\n\n" + _build_gold_star_adjudication_output_contract(candidates)
+
+
+def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Dict[str, Any]]:
+    """Require a structured adjudication object when reviewed candidates are present."""
+    candidate_count = 0
+    try:
+        for item in list(gold_star_candidates or [])[:_GOLD_STAR_MAX_CANDIDATES]:
+            if (
+                isinstance(item, dict)
+                and str(item.get("benchmark_id") or "").strip()
+                and str(item.get("reasoning_family") or "").strip()
+            ):
+                candidate_count += 1
+    except TypeError:
+        candidate_count = 0
+    if candidate_count <= 0:
+        return None
+
+    assessment = {
+        "type": "object",
+        "properties": {
+            "candidate_id": {"type": "string", "minLength": 1},
+            "decision": {"type": "string", "enum": ["select", "reject"]},
+            "reason_code": {
+                "type": ["string", "null"],
+                "enum": [None, *_GOLD_STAR_ADJUDICATION_REASON_CODES],
+            },
+        },
+        "required": ["candidate_id", "decision", "reason_code"],
+        "additionalProperties": False,
+    }
+    evidence_span = {
+        "type": "object",
+        "properties": {
+            "candidate_id": {"type": "string", "minLength": 1},
+            "span": {"type": "string", "minLength": 12, "maxLength": 240},
+        },
+        "required": ["candidate_id", "span"],
+        "additionalProperties": False,
+    }
+    adjudication = {
+        "type": "object",
+        "properties": {
+            "candidate_assessments": {
+                "type": "array",
+                "items": assessment,
+                "minItems": candidate_count,
+                "maxItems": candidate_count,
+            },
+            "application_evidence_spans": {
+                "type": "array",
+                "items": evidence_span,
+                "maxItems": candidate_count,
+            },
+        },
+        "required": ["candidate_assessments", "application_evidence_spans"],
+        "additionalProperties": False,
+    }
+    return {
+        "name": "general_guide_gold_star_composition",
+        "strict": False,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "response": {"type": "string", "minLength": 1},
+                "doorway_title": {"type": "string"},
+                "response_shape": {"type": "string"},
+                "adaptive_adjudication": adjudication,
+            },
+            "required": [
+                "response",
+                "doorway_title",
+                "response_shape",
+                "adaptive_adjudication",
+            ],
+            "additionalProperties": True,
+        },
+    }
 
 
 _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
@@ -5112,6 +5192,9 @@ def compose(
             ],
             max_tokens=750,
             parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
+            schema=_build_provider_composition_schema(
+                gold_star_quality.get("candidates") if gold_star_quality else None
+            ),
             deadline_monotonic=provider_deadline_monotonic,
         )
     finally:
@@ -5169,6 +5252,9 @@ def compose(
                         documents,
                         effective_question,
                         gold_star_quality.get("candidates") if gold_star_quality else None,
+                    ),
+                    schema=_build_provider_composition_schema(
+                        gold_star_quality.get("candidates") if gold_star_quality else None
                     ),
                     deadline_monotonic=provider_deadline_monotonic,
                 )
