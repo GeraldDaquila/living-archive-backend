@@ -428,6 +428,77 @@ def test_provider_probe_query_is_distinct_from_primary_visitor_smoke_to_avoid_ca
     assert all(term in probe.casefold() for term in ("employees", "customers", "residents"))
 
 
+def test_provider_probe_accepts_nearby_residents_without_literal_local_qualifier():
+    response = (
+        "Leaders weigh obligations to employees, customers, and residents by identifying "
+        "who benefits, who bears costs, and how those burdens are distributed. They should "
+        "explain the trade-offs and make the reasons for the decision explicit."
+    )
+    assert live_evaluation.has_stakeholder_tradeoff_explanation(response)
+
+
+def test_community_rule_participation_accepts_input_from_people_whose_liberty_is_limited():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "Identify the concrete risk or collective need and the specific liberty being limited. "
+        "Test necessity and proportionality, including whether a less intrusive measure would work. "
+        "Gather evidence and diverse perspectives, and solicit input from those whose liberty would be curtailed "
+        "as well as the broader community. Weigh the seriousness of the risk, the effectiveness of the limit, "
+        "available alternatives, and fairness in who bears the burden. Publish the reasoning, provide an appeal, "
+        "and review observable outcomes. The majority alone is not enough to justify a restriction."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "This resource offers a related perspective on human-scale community governance.",
+            },
+            "response_provenance": {
+                "class": "llm", "provider": "groq", "model": "openai/gpt-oss-120b", "llm_invoked": True,
+            },
+        },
+    }
+    expected = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected)
+    participation = next(item for item in checks if item["name"] == "affected_party_participation")
+    assert participation["passed"], checks
+
+
+def test_transparency_trust_accepts_conditional_reciprocity_and_earned_trust_paraphrases():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency—making decisions, reasons, evidence, and conduct open to scrutiny—can support justified trust "
+        "by allowing people to see how and why choices are made, which makes trust feel earned rather than assumed. "
+        "When institutions share the information behind their actions, people can assess whether conduct is consistent, "
+        "fair, and competent. Reasonable trust, in turn, can make transparency more possible: people may ask questions, "
+        "share information, and engage constructively. This reciprocity is conditional, not automatic. Disclosure "
+        "does not make poor conduct trustworthy, and trust does not remove the need for accountability. Legitimate "
+        "privacy and confidentiality still matter."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm", "provider": "nvidia", "model": "nvidia/nemotron-3.5-lightning-30b-a3b", "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert all(item["passed"] for item in checks), checks
+
+
 def test_provider_probe_requires_stakeholder_tradeoff_explanation():
     accurate = (
         "Leaders face a persistent tension: decisions that improve one stakeholder group often create trade-offs "
