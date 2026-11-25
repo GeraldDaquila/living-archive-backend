@@ -423,7 +423,7 @@ def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_
         "health_state": "half_open",
     }
     timeout = provider_bank._provider_call_timeout("general_guide_composition", item)
-    assert timeout == provider_bank.GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS
+    assert timeout == pytest.approx(5.5)
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
 
@@ -1149,3 +1149,14 @@ def test_half_open_nvidia_super_vl_timeout_preserves_a_proven_sibling_fallback_s
     assert result["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert calls[0][2] == pytest.approx(5.5)
     assert calls[-1][1] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+
+
+def test_transparency_trust_prompt_module_is_omitted_from_community_liberty_question():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
+    )
+    prompt = guide_composition._build_general_guide_system_prompt(question)
+
+    assert "COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING" in prompt
+    assert "TRANSPARENCY AND TRUST RECIPROCITY" not in prompt
