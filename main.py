@@ -19064,6 +19064,21 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                             "reason=opening_contract_failure."
                         )
 
+                # Re-stamp correlation at the actual outermost JSON boundary.
+                # Inner response wrappers may serialize before their request-local
+                # ContextVar has been restored through streaming/task adapters.
+                # This outer request context is authoritative and remains active
+                # until this response has been emitted.
+                _outer_request_context = _gold_star_ledger.current_request_context()
+                _outer_request_correlation_id = (
+                    str(_outer_request_context.get("request_id") or "").strip().casefold()
+                    if isinstance(_outer_request_context, dict) else ""
+                )
+                safe_payload["request_correlation_id"] = (
+                    _outer_request_correlation_id
+                    if re.fullmatch(r"[0-9a-f]{32}", _outer_request_correlation_id)
+                    else None
+                )
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
