@@ -87,7 +87,8 @@ def test_final_answer_basis_remains_general_knowledge_for_matched_fact():
         "# Re-evaluate after every downstream gate has had the opportunity to"
     )
     final_attribute_check = SOURCE.index(
-        "direct_attribute_evidence_missing = (", final_guard
+        "direct_attribute_evidence_missing = _direct_attribute_evidence_missing(",
+        final_guard,
     )
     final_provenance = SOURCE.index(
         'if general_knowledge_recovery is not None:',
