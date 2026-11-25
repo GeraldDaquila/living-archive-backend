@@ -82,6 +82,10 @@ def test_shared_final_boundary_consumes_private_trace_before_early_returns():
     assert "if attempt_count > 0:" in source_segment
     assert "composition_attempt_count=attempt_count" in source_segment
     assert "result_type=type(finalized).__name__" in source_segment
+    assert 'finalized.pop("_gold_star_deterministic_application_spans", None)' in source_segment
+    assert "evaluate_deterministic_contribution_retention" in source_segment
+    assert "deterministic_contribution_retained=deterministic_contribution_retained" in source_segment
+    assert 'deterministic_contribution_retained=trace.get("deterministic_contribution_retained", "not_applicable")' in source_segment
     assert "result_type=type(result).__name__" in source_segment
 
 
