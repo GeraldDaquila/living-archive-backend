@@ -48,7 +48,10 @@ def test_historical_origin_boundary_does_not_rewrite_a_relevant_explanatory_answ
 
     result = app._guide_finalize_visitor_payload(payload, query)
 
-    assert result is payload
+    # The finalizer may enrich metadata in a copied payload; the invariant
+    # is that a complete historical explanation is not replaced.
+    assert result["response"] == good_answer
+    assert result["recommendation"] is None
 
 
 def test_historical_mismatch_detector_matches_actual_visitor_wording():
