@@ -1105,8 +1105,16 @@ def human_development_comparison_final_contract(question):
 
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
+    try:
+        from institutional_learning_failure_contract import (
+            is_institutional_learning_failure_question,
+        )
+        institutional_learning_failure = is_institutional_learning_failure_question(question)
+    except Exception:
+        institutional_learning_failure = False
     return bool(
-        is_guide_personal_decision_agency_question(question)
+        institutional_learning_failure
+        or is_guide_personal_decision_agency_question(question)
         or is_weekly_stewardship_action_question(question)
         or is_personal_stewardship_invitation_question(question)
         or is_interpretation_revision_evidence_question(question)
