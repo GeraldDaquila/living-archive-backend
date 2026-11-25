@@ -9412,14 +9412,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
 
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
-    # Preserve the explicit distinction in this registered conceptual-recovery
-    # branch too: it returns before the later deterministic finalizer can add it.
-    if (
-        "spiritual bypassing" in q
-        and _conceptual_recovery
-        and "spirituality itself is not a problem" not in _conceptual_recovery.casefold()
-    ):
-        _conceptual_recovery = "Spirituality itself is not a problem. " + _conceptual_recovery
     # The shared composer and the last-resort API path must agree on the same
     # registered recovery. Mechanism questions are explanatory but need not fit
     # the older two-concept relationship validator; validate them with the shared
