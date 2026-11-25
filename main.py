@@ -9977,10 +9977,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "The shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal."
             ),
             "spiritual bypassing": (
-                "In general use, spiritual bypassing describes using spiritual beliefs, "
-                "practices, or language to avoid engaging with difficult emotions, conflicts, "
-                "responsibilities, or realities. Spirituality itself is not a problem; the concern is that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of "
-                "peace, acceptance, or transcendence can coexist with unresolved harm or "
+                "Spirituality itself is not a problem. In general use, spiritual bypassing describes using spiritual beliefs, "
+                "practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. "
+                "The concern is that a source of meaning can sometimes be used to move around something that still needs attention. "
+                "It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or "
                 "unacknowledged responsibility."
             ),
             "circularity and regeneration": (
@@ -13854,8 +13854,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
 
     # Re-evaluate after every downstream gate has had the opportunity to
     # suppress a destination; the final decision must reflect current state.
-    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
-        query, authoritative_doorway
+    direct_attribute_evidence_missing = (
+        _direct_attribute_evidence_missing(query, authoritative_doorway)
+        and general_knowledge_recovery is None
     )
 
     # Direct-attribute questions may not fall through to general-knowledge
