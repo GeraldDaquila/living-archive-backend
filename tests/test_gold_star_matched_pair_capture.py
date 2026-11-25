@@ -349,3 +349,12 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"omitted_text_mode"',
     ):
         assert field in source
+
+
+def test_skipped_arm_includes_all_generation_fingerprint_fields():
+    from scripts.capture_gold_star_matched_pairs import _skipped_arm
+
+    skipped = _skipped_arm("provider_lane_unavailable")
+    assert skipped["schema_sha256"] is None
+    assert skipped["schema_mode"] is None
+    assert skipped["provider_timeout_seconds"] is None
