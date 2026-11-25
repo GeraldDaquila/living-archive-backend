@@ -5,15 +5,17 @@ from general_guide_gold_standards import resolve_exact_gold_standard
 
 FIXTURE = Path(__file__).parent / "fixtures" / "general_guide_stewardship_living_archive_meaning_gold_standard.json"
 
-def test_living_archive_stewardship_meaning_is_registered_as_frozen_reference_only():
+
+def test_living_archive_stewardship_meaning_is_registered_as_user_approved():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     resolved = resolve_exact_gold_standard(fixture["query"])
     assert resolved is not None
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
-    assert resolved["status"] == "FROZEN_REFERENCE_ONLY"
+    assert resolved["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert resolved["expected_response"] == fixture["expected_response"]
     assert resolved["doorway_title"] == "Choosing Stewardship Before Resentment"
     assert resolved["doorway_url"] == ""
+
 
 def test_living_archive_stewardship_meaning_preserves_three_paragraph_gold_standard():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -27,6 +29,7 @@ def test_living_archive_stewardship_meaning_preserves_three_paragraph_gold_stand
         "consequences for others and for the future",
     ):
         assert phrase in answer.casefold()
+
 
 def test_living_archive_stewardship_meaning_does_not_revert_to_glossary_handoff():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
