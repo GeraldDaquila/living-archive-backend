@@ -15,7 +15,7 @@ def test_archive_scoped_meaning_is_recognized_as_its_own_quality_class():
     assert not _requires_archive_scoped_meaning("Open the Glossary for stewardship")
 
 
-def test_archive_scoped_meaning_rejects_one_paragraph_generic_answer():
+def test_archive_scoped_meaning_recovers_one_paragraph_generic_answer():
     generic = (
         "Stewardship mean in the Living Archive is best understood by what it means "
         "and how it operates in practice. A useful definition distinguishes the idea "
@@ -23,8 +23,13 @@ def test_archive_scoped_meaning_rejects_one_paragraph_generic_answer():
         "can vary by field or institution, so this is a general explanation rather "
         "than a claim that the Living Archive uses a particular formal definition."
     )
-    with pytest.raises(ValueError, match="three-paragraph Guide Gold Standard"):
-        enforce_response_contracts(QUESTION, generic)
+    recovered = enforce_response_contracts(QUESTION, generic)
+    paragraphs = [part.strip() for part in recovered.split("\n\n") if part.strip()]
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("In the Living Archive, stewardship means")
+    assert "For example" in paragraphs[1]
+    assert paragraphs[2].startswith("Stewardship does not mean")
+    assert "general explanation rather than a claim" not in recovered
 
 
 def test_archive_scoped_meaning_accepts_three_paragraph_answer_with_example():
