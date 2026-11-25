@@ -24,7 +24,7 @@ def test_archive_scoped_meaning_recovers_one_paragraph_generic_answer():
         "than a claim that the Living Archive uses a particular formal definition."
     )
     recovered = enforce_response_contracts(QUESTION, generic)
-    paragraphs = [part.strip() for part in recovered.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in recovered.split("\n\n") if part.strip()]
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("In the Living Archive, stewardship means")
     assert "For example" in paragraphs[1]
