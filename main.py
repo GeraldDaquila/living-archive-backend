@@ -5049,7 +5049,7 @@ def _has_substantive_topic_intent(query):
     return bool(re.search(
         r"\b(?:i\s+(?:care about|want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
-        r"i(?:\'m| am) new\\b.{0,120}\\b(?:want to understand|want to know about|"
+        r"i(?:'m| am) new\b.{0,120}\b(?:want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
         r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
         r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
