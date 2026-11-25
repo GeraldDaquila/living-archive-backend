@@ -3267,8 +3267,14 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct)\w*\b", text)
     )
     trust_supports_openness = bool(
-        re.search(r"\btrust\b.{0,220}\b(?:transparency|openness|disclos|share|engage|raise concerns|speak up)\w*\b", text)
-        or re.search(r"\b(?:openness|disclos|share|engage|raise concerns|speak up)\w*\b.{0,220}\btrust\b", text)
+        re.search(
+            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|make\w* it (?:safer|easier))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
+            text,
+        )
+        or re.search(
+            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b.{0,120}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b.{0,100}\btrust\b",
+            text,
+        )
     )
     non_guarantee = bool(
         re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|not a guarantee|not automatic)\b", text)
