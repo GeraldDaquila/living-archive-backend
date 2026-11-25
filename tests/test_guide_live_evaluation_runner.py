@@ -440,7 +440,7 @@ def test_provider_probe_accepts_nearby_residents_without_literal_local_qualifier
 def test_community_rule_participation_accepts_input_from_people_whose_liberty_is_limited():
     case = {"case_id": "heldout-community-rule-design-transfer-001"}
     answer = (
-        "Identify the concrete risk or collective need and the specific liberty being limited. "
+        "Identify the shared need, concrete risk, and the specific liberty being limited. "
         "Test necessity and proportionality, including whether a less intrusive measure would work. "
         "Gather evidence and diverse perspectives, and solicit input from those whose liberty would be curtailed "
         "as well as the broader community. Weigh the seriousness of the risk, the effectiveness of the limit, "
