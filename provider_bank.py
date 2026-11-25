@@ -630,7 +630,10 @@ def _failure(exc, provider, model, operation=None):
         or "billing details" in low
     ):
         category = "quota_or_billing"
-    elif status == 404:
+    elif status in {404, 410}:
+        # HTTP 410 Gone is a retired/unavailable model endpoint just like 404.
+        # Use the existing one-hour model-only quarantine instead of retrying it
+        # as a transient provider failure on every request.
         category = "model_unavailable"
     elif status == 429 or "rate limit" in low or "too many requests" in low:
         category = "rate_limited"
