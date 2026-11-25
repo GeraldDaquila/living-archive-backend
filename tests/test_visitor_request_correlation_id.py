@@ -38,6 +38,7 @@ async def test_outermost_visitor_boundary_stamps_the_same_id_as_terminal_telemet
     monkeypatch.setattr(main, "_guide_sync_power_responsibility_final_metadata", lambda payload: payload)
     monkeypatch.setattr(main, "_guide_reconcile_verified_doorway_recovery", lambda payload: payload)
     monkeypatch.setattr(main, "_final_exact_gold_standard_authority", lambda _query: None)
+    monkeypatch.setattr(main.general_guide_composition, "_requires_substantive_answer_contract", lambda _query: False)
     monkeypatch.setattr(
         gold_star_response_floor,
         "apply_response_floor_boundary",
