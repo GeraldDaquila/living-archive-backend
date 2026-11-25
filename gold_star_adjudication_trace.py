@@ -325,9 +325,9 @@ def mark_composition_result(trace: Mapping[str, Any], *, provider_result: Any) -
 def mark_deterministic_application(trace: Any, application: Any) -> dict[str, Any] | None:
     """Record a verified local renderer application without claiming provider selection.
 
-    The renderer must return a candidate already present in this request's
-    bounded retrieval trace, a registered plan, evidence spans, and an applied
-    abstention boundary. Provider adjudication remains independently observed.
+    The renderer must return its own candidate identity, a registered plan,
+    evidence spans, and an applied abstention boundary. This selection is
+    intentionally separate from the provider's bounded candidate set.
     """
     if not isinstance(trace, Mapping) or not isinstance(application, Mapping):
         return _store_current_trace(trace) if isinstance(trace, Mapping) else None
