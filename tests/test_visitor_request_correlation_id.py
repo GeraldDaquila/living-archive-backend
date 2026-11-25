@@ -33,26 +33,25 @@ def test_request_correlation_id_is_request_local_and_strictly_validated(monkeypa
 @pytest.mark.asyncio
 async def test_shared_json_sender_stamps_correlation_id_after_response_boundaries(monkeypatch):
     correlation_id = "fedcba9876543210fedcba9876543210"
-    monkeypatch.setattr(
-        main._gold_star_ledger,
-        "current_request_context",
-        lambda: {"request_id": correlation_id},
-    )
+    token = main._gold_star_ledger.begin_request_context(correlation_id)
     messages = []
 
     async def send(message):
         messages.append(message)
 
-    await main._use_send_json(
-        send,
-        {
-            "ok": True,
-            "request_id": "basic-0123456789abcdef",
-            "query": "",
-            "response": "A bounded visitor response.",
-        },
-        200,
-    )
+    try:
+        await main._use_send_json(
+            send,
+            {
+                "ok": True,
+                "request_id": "basic-0123456789abcdef",
+                "query": "",
+                "response": "A bounded visitor response.",
+            },
+            200,
+        )
+    finally:
+        main._gold_star_ledger.end_request_context(token)
     response_body = b"".join(
         message.get("body", b"")
         for message in messages
