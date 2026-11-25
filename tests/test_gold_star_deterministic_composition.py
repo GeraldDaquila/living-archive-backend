@@ -54,8 +54,8 @@ def test_main_deterministic_fallback_consumes_eligible_gold_star(monkeypatch):
 
 def test_provider_exhaustion_deterministic_application_updates_request_adjudication_trace():
     query = (
-        "How should a group decide what to protect when one person's priorities mean "
-        "another person will lose something deeply valued?"
+        "How should leaders balance competing stakeholder obligations when employees, "
+        "customers, and local residents have conflicting interests?"
     )
     import gold_star_adjudication_trace as trace
 
@@ -75,7 +75,9 @@ def test_provider_exhaustion_deterministic_application_updates_request_adjudicat
         assert applied["request_id"] == "abcdef0123456789abcdef0123456789"
         assert applied["provider_adjudication_status"] == "not_observed"
         assert applied["selection"] == "deterministic_renderer_selected"
-        assert applied["selected_candidate_ids"] == [result.get("benchmark_id", applied["selected_candidate_ids"][0])]
+        assert applied["selected_candidate_ids"] == [
+            "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26"
+        ]
         assert applied["application"] == "deterministic_renderer_applied"
         assert applied["application_evidence_present"] is True
         assert applied["application_evidence_candidate_ids"] == applied["selected_candidate_ids"]
