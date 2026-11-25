@@ -8430,9 +8430,17 @@ def _guide_finalize_visitor_payload(payload, query):
     # Consume private composition evidence before any specialist finalizer can
     # return early. The evidence is reattached only as content-free telemetry.
     safe_input = dict(payload) if isinstance(payload, dict) else payload
-    adjudication_trace = (
+    payload_adjudication_trace = (
         safe_input.pop("_gold_star_adjudication_trace", None)
         if isinstance(safe_input, dict) else None
+    )
+    # The request-local ledger is authoritative for the current attempt. Some
+    # recovery routes return a visitor payload without carrying the private
+    # trace field, so relying on payload propagation alone silently drops
+    # otherwise valid retrieval and deterministic-application evidence.
+    adjudication_trace = (
+        _gold_star_ledger.current_attempt_trace()
+        or payload_adjudication_trace
     )
     provider_candidate_matches_payload = bool(
         safe_input.pop("_gold_star_provider_candidate_matches_payload", False)
@@ -8494,7 +8502,12 @@ def _guide_finalize_visitor_payload(payload, query):
             provider_candidate_delivered=delivered,
             cached_candidate_reused=cached_candidate_reused,
         )
-        trace_for_delivery = adjudication_trace
+        # Prefer the live request-local trace: deterministic fallback may
+        # have recorded a renderer application after the composer attached its
+        # initial provider-adjudication snapshot to the payload.
+        trace_for_delivery = (
+            _gold_star_ledger.current_attempt_trace() or adjudication_trace
+        )
         if str(trace_for_delivery.get("guidance_exposure") or "not_observed") == "not_observed":
             trace_for_delivery = _mark_gold_star_guidance_exposure(
                 trace_for_delivery,
@@ -8536,6 +8549,9 @@ def _guide_finalize_visitor_payload(payload, query):
             application=trace.get("application", "not_observed"),
             application_evidence_present=trace.get("application_evidence_present", False),
             application_evidence_candidate_ids=trace.get("application_evidence_candidate_ids", []),
+            deterministic_application_candidate_id=trace.get("deterministic_application_candidate_id"),
+            deterministic_application_plan_id=trace.get("deterministic_application_plan_id"),
+            deterministic_application_span_count=trace.get("deterministic_application_span_count"),
             contribution_retained=trace.get("contribution_retained", "not_evaluated"),
             outcome_state=trace.get("outcome", "not_evaluated"),
             request_id=trace.get("request_id"),
@@ -9261,6 +9277,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         _eligible_gold_star = _deterministic_gold_star_contribution(query)
         _gold_star_application = _compose_deterministic_gold_star(query, _eligible_gold_star)
         if _gold_star_application:
+            # The deterministic renderer is a separate selection/application
+            # path from provider adjudication. Record its verified evidence in
+            # the same request-local trace without attributing it to a provider.
+            _gold_star_trace_before = _gold_star_ledger.current_attempt_trace()
+            _gold_star_trace_after = _gold_star_ledger.mark_deterministic_application(
+                _gold_star_trace_before, _gold_star_application
+            )
+            _gold_star_trace_request_id = str(
+                (_gold_star_trace_after or {}).get("request_id") or ""
+            )
             _gold_star_doorway = (
                 _normalize_authoritative_recommendation(context_data.get("authoritative_doorway"))
                 if isinstance(context_data, dict) else None
@@ -9280,7 +9306,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 f"family={_gold_star_application['reasoning_family']} "
                 f"plan={_gold_star_application['plan_id']} "
                 f"applied=true abstention_boundary_applied=true "
-                f"application_span_count={len(_gold_star_application['application_evidence_spans'])}",
+                f"application_span_count={len(_gold_star_application['application_evidence_spans'])} "
+                f"request_id={_gold_star_trace_request_id or 'unavailable'} "
+                f"trace_application={(_gold_star_trace_after or {}).get('application', 'not_observed')}",
                 flush=True,
             )
             return {

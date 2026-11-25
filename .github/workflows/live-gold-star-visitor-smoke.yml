@@ -1,0 +1,128 @@
+name: Live Gold Star visitor smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-visitor-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify primary production revision and exercise visitor endpoint
+        env:
+          BASE_URL: https://living-archive-backend.onrender.com
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = os.environ["BASE_URL"].rstrip("/")
+          expected_commit = os.environ["EXPECTED_COMMIT"]
+
+          def request(url, *, method="GET", payload=None, timeout=120):
+              data = None if payload is None else json.dumps(payload).encode("utf-8")
+              headers = {"Accept": "application/json", "User-Agent": "Living-Archive-Live-Smoke/1.0"}
+              if data is not None:
+                  headers["Content-Type"] = "application/json"
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=timeout) as response:
+                      raw = response.read().decode("utf-8")
+                      return response.status, json.loads(raw)
+              except urllib.error.HTTPError as exc:
+                  raw = exc.read().decode("utf-8", errors="replace")
+                  try:
+                      body = json.loads(raw)
+                  except Exception:
+                      body = {"raw": raw[:2000]}
+                  return exc.code, body
+
+          deadline = time.time() + 540
+          audit = {}
+          status = 0
+          deployed = ""
+          while time.time() < deadline:
+              try:
+                  status, audit = request(base + "/api/integration-audit", timeout=20)
+                  deployed = str(audit.get("deployment_commit_sha") or "")
+                  if status == 200 and deployed == expected_commit:
+                      break
+              except Exception as exc:
+                  print(f"Waiting for expected production revision: {type(exc).__name__}")
+              print(f"Waiting for production revision {expected_commit}; observed status={status}, commit={deployed or 'missing'}")
+              time.sleep(15)
+          if status != 200 or deployed != expected_commit:
+              raise SystemExit(f"Expected production revision {expected_commit}; last status={status}, commit={deployed or 'missing'}")
+          print(json.dumps({
+              "check": "production_revision",
+              "http_status": status,
+              "deployment_commit_sha": deployed,
+              "version": audit.get("version"),
+              "fingerprint": audit.get("fingerprint"),
+          }, sort_keys=True))
+
+          cases = [
+              {
+                  "id": "held_out_stakeholder_tradeoff",
+                  "query": "How should leaders balance competing stakeholder obligations when employees, customers, and local residents have conflicting interests?",
+              },
+              {
+                  "id": "ambiguous_benefit_cost_negative_control",
+                  "query": "How can leaders weigh obligations to employees, customers, and local residents when a decision benefits one group but imposes costs on another?",
+              },
+          ]
+          results = []
+          for case in cases:
+              status, body = request(base + "/api/query", method="POST", payload={"query": case["query"]})
+              answer = str(body.get("response") or body.get("answer") or "").strip()
+              request_id = str(body.get("request_id") or "")
+              if status != 200:
+                  raise SystemExit(f"{case['id']}: HTTP {status}: {body}")
+              if body.get("ok") is not True:
+                  raise SystemExit(f"{case['id']}: application did not report ok=true: {body}")
+              if not re.fullmatch(r"basic-[0-9a-f]{16}", request_id):
+                  raise SystemExit(f"{case['id']}: missing/invalid visitor request_id: {request_id!r}")
+              if len(answer) < 100:
+                  raise SystemExit(f"{case['id']}: response too short ({len(answer)} chars)")
+              item = {
+                  "case": case["id"],
+                  "http_status": status,
+                  "ok": body.get("ok"),
+                  "request_id": request_id,
+                  "response_chars": len(answer),
+                  "version": body.get("version"),
+                  "fingerprint": body.get("fingerprint"),
+                  "source_sha256": body.get("source_sha256"),
+                  "response_excerpt": answer[:600],
+              }
+              results.append(item)
+              print(json.dumps(item, ensure_ascii=False, sort_keys=True))
+              time.sleep(2)
+
+          with open("live-gold-star-smoke-results.json", "w", encoding="utf-8") as f:
+              json.dump({
+                  "expected_deployment_commit": expected_commit,
+                  "production_identity": audit,
+                  "visitor_cases": results,
+              }, f, ensure_ascii=False, indent=2)
+          print("LIVE VISITOR SMOKE PASSED: both visitor POSTs returned substantive responses with trace-correlatable request IDs.")
+          PY
+      - name: Upload request and response evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-gold-star-visitor-smoke
+          path: live-gold-star-smoke-results.json
+          if-no-files-found: warn
+          retention-days: 14

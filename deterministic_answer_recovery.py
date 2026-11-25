@@ -2249,10 +2249,13 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
                 "disagreement responsibly, not to erase it."
             )
         elif re.search(r"\b(?:stakeholders?|obligations?|duties)\b", lower):
+            # This is a general provider-exhaustion recovery, not the verbatim
+            # answer to the separately approved exact Gold Standard question.
+            # Keep its reasoning useful while preventing cross-question answer reuse.
             answer = (
-                "Leaders can hold competing stakeholder obligations by treating them as responsibilities to weigh openly, not as a contest in which one group must automatically win. Start by naming each obligation, the people who depend on it, and the legitimate interests or rights at stake. Separate commitments that must be honored from preferences that can be negotiated, and make any real conflict explicit rather than promising everyone everything.\n\n"
-                "Then compare the consequences of realistic options: who benefits, who carries the cost, what harm may be irreversible, and whether people affected have had a meaningful chance to be heard. Apply consistent criteria such as duty, fairness, evidence, proportionality, and long-term effects. Where one obligation must take priority, explain why that criterion applies and look for ways to reduce or repair the burden placed on others.\n\n"
-                "No decision will always satisfy every stakeholder, and equal consideration does not mean identical outcomes. Responsible leadership means giving each obligation a fair hearing, being transparent about trade-offs, refusing to shift costs onto people with less power merely because they are easier to ignore, and revisiting the decision when evidence or circumstances change. Trust grows when people can see both the reasoning and the accountability behind a difficult choice."
+                "Competing stakeholder obligations should be assessed by separating the kinds of obligations involved. A legal or contractual duty, a promise already made, a basic right, and a reasonable expectation may carry different weight. Name the people affected and what each group is owed; do not let the group with the most influence define the whole problem.\n\n"
+                "Compare realistic options by tracing benefits, costs, risks, timing, reversibility, who can influence the decision, and who carries the cost. Ask whether the burden falls on people who have little voice, whether less harmful alternatives exist, and whether a benefit to one group depends on transferring an avoidable cost to another. Distinguish evidence about likely effects from assumptions about what each group will accept.\n\n"
+                "If priorities still conflict, state which obligation takes precedence and why, then reduce remaining harm through mitigation, compensation where appropriate, clear responsibility, and a review point. Give affected groups, especially those with less power, a meaningful way to question the reasoning and report consequences. Fairness does not guarantee that every group receives the same outcome; it requires a defensible process and accountability for the costs the decision leaves behind."
             )
         else:
             answer = (

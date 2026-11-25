@@ -991,3 +991,27 @@ def test_provider_parser_rejects_question_narration_before_archive_orientation()
 
     with pytest.raises(ValueError, match="hard answer-first visitor boundary"):
         parse(json.dumps({"response": response}))
+
+
+def test_initial_composition_reserves_six_seconds_for_integrity_repair():
+    from guide_request_budget import composition_provider_deadline
+
+    assert composition_provider_deadline(24.0, now=0.0) == 18.0
+    assert composition_provider_deadline(24.0, now=20.0) == 20.0
+    assert composition_provider_deadline(None, now=0.0) is None
+
+
+def test_integrity_recovery_composition_can_use_the_reserved_deadline():
+    from guide_request_budget import composition_provider_deadline
+
+    assert composition_provider_deadline(
+        24.0, integrity_recovery=True, now=20.0
+    ) == 24.0
+
+
+def test_initial_and_internal_composition_retries_share_the_reserved_deadline():
+    source = Path("general_guide_composition.py").read_text(encoding="utf-8")
+
+    assert "from guide_request_budget import composition_provider_deadline" in source
+    assert "provider_deadline_monotonic = composition_provider_deadline(" in source
+    assert source.count("deadline_monotonic=provider_deadline_monotonic") == 2

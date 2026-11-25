@@ -58,6 +58,66 @@ def test_provider_exhaustion_is_recorded_without_inventing_adaptation():
     assert result["application"] == "not_observed"
 
 
+def test_deterministic_renderer_application_is_distinct_from_provider_adjudication():
+    initial = trace.build_adjudication_trace(_contribution())
+    application = {
+        "benchmark_id": "lesson-one",
+        "reasoning_family": "stakeholder_tradeoffs",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": ["First structural span.", "Second structural span."],
+        "abstention_boundary_applied": True,
+    }
+    applied = trace.mark_deterministic_application(initial, application)
+    assert applied["provider_adjudication_status"] == "not_observed"
+    assert applied["selection"] == "deterministic_renderer_selected"
+    assert applied["selected_candidate_ids"] == []
+    assert applied["application"] == "deterministic_renderer_applied"
+    assert applied["application_evidence_present"] is True
+    assert applied["application_evidence_candidate_ids"] == ["lesson-one"]
+    assert applied["deterministic_application_candidate_id"] == "lesson-one"
+    assert applied["deterministic_application_plan_id"] == "stakeholder_tradeoffs_v1"
+    assert applied["deterministic_application_span_count"] == 2
+    assert trace.validate_trace(applied)["valid"]
+
+    # Composition finalization must not erase a deterministic renderer result.
+    composed = trace.mark_composition_result(applied, provider_result=None)
+    assert composed["composition"] == "provider_no_result"
+    assert composed["selection"] == "deterministic_renderer_selected"
+    assert composed["application"] == "deterministic_renderer_applied"
+    delivered = trace.mark_final_delivery(
+        composed,
+        provider_candidate_delivered=False,
+        final_provenance="deterministic_recovery",
+    )
+    assert delivered["final_delivery"] == "deterministic_or_unresolved_replacement"
+    assert delivered["application"] == "deterministic_renderer_applied"
+    assert delivered["application_evidence_present"] is True
+    assert trace.validate_trace(delivered)["valid"]
+
+
+def test_deterministic_renderer_application_fails_closed_without_candidate_or_spans():
+    initial = trace.build_adjudication_trace(_contribution())
+    missing_candidate = trace.mark_deterministic_application(initial, {
+        "benchmark_id": "",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": ["A span."],
+        "abstention_boundary_applied": True,
+    })
+    assert missing_candidate["selection"] == "not_observed"
+    assert missing_candidate["application"] == "not_observed"
+    assert trace.validate_trace(missing_candidate)["valid"]
+
+    missing_spans = trace.mark_deterministic_application(initial, {
+        "benchmark_id": "lesson-one",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": [],
+        "abstention_boundary_applied": True,
+    })
+    assert missing_spans["selection"] == "not_observed"
+    assert missing_spans["application"] == "not_observed"
+    assert trace.validate_trace(missing_spans)["valid"]
+
+
 def test_final_deterministic_replacement_does_not_inherit_provider_adaptation_credit():
     initial = trace.build_adjudication_trace(_contribution())
     composed = trace.mark_composition_result(
@@ -308,6 +368,65 @@ def test_composition_decorator_keeps_latest_trace_without_request_context():
     assert attached["guidance_exposure"] == "not_applicable"
     assert "request_id" not in attached
     assert trace.validate_trace(attached)["valid"]
+
+def test_final_visitor_boundary_emits_deterministic_application_from_request_local_trace(monkeypatch):
+    import main
+
+    token = trace.begin_request_context("88888888888888888888888888888888")
+    events = []
+    try:
+        trace.begin_composition_attempt()
+        initial = trace.build_adjudication_trace(_contribution())
+        trace.mark_deterministic_application(initial, {
+            "benchmark_id": "lesson-one",
+            "reasoning_family": "stakeholder_tradeoffs",
+            "plan_id": "stakeholder_tradeoffs_v1",
+            "application_evidence_spans": ["First span.", "Second span."],
+            "abstention_boundary_applied": True,
+        })
+        monkeypatch.setattr(
+            main, "_guide_finalize_visitor_payload_inner",
+            lambda payload, _query: dict(payload),
+        )
+        monkeypatch.setattr(
+            main, "_emit_guide_outcome",
+            lambda event, **fields: events.append((event, fields)),
+        )
+
+        result = main._guide_finalize_visitor_payload(
+            {
+                "response": "A bounded deterministic answer.",
+                "response_provenance": {"class": "deterministic_recovery"},
+            },
+            "A held-out stakeholder question?",
+        )
+        assert result["response"] == "A bounded deterministic answer."
+        final_events = [fields for event, fields in events if event == "gold_star_adjudication_final_delivery"]
+        assert len(final_events) == 1
+        assert final_events[0]["application"] == "deterministic_renderer_applied"
+        assert final_events[0]["application_evidence_present"] is True
+        assert final_events[0]["application_evidence_candidate_ids"] == ["lesson-one"]
+        assert final_events[0]["final_delivery"] == "deterministic_or_unresolved_replacement"
+    finally:
+        trace.end_request_context(token)
+
+
+def test_final_visitor_boundary_recovers_request_local_trace_when_payload_omits_it():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    finalizers = [
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_guide_finalize_visitor_payload"
+    ]
+    # main.py intentionally wraps the legacy finalizer with a later definition;
+    # the last module-level binding is the live visitor boundary.
+    assert len(finalizers) == 2
+    finalizer = finalizers[-1]
+    function_source = ast.get_source_segment(source, finalizer)
+    assert "_gold_star_ledger.current_attempt_trace()" in function_source
+    assert "or payload_adjudication_trace" in function_source
+    assert "trace_for_delivery = (" in function_source
+
 
 def test_main_binds_shared_outcome_emitter_for_delivery_and_request_terminal():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
