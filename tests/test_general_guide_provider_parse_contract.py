@@ -140,6 +140,7 @@ def test_provider_composition_schema_requires_candidate_adjudication_object():
     assert assessments["minItems"] == assessments["maxItems"] == 1
     assert assessments["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
     assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
+    assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
     spans = adjudication["properties"]["application_evidence_spans"]
     assert spans["items"]["properties"]["span"]["minLength"] == 12
     assert spans["items"]["properties"]["span"]["maxLength"] == 240
