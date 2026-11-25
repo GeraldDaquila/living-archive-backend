@@ -82,6 +82,10 @@ def test_shared_final_boundary_consumes_private_trace_before_early_returns():
     assert "if attempt_count > 0:" in source_segment
     assert "composition_attempt_count=attempt_count" in source_segment
     assert "result_type=type(finalized).__name__" in source_segment
+    assert 'finalized.pop("_gold_star_deterministic_application_spans", None)' in source_segment
+    assert "evaluate_deterministic_contribution_retention" in source_segment
+    assert "deterministic_contribution_retained=deterministic_contribution_retained" in source_segment
+    assert 'deterministic_contribution_retained=trace.get("deterministic_contribution_retained", "not_applicable")' in source_segment
     assert "result_type=type(result).__name__" in source_segment
 
 
@@ -175,4 +179,11 @@ def test_no_composition_attempt_does_not_emit_missing_trace_failure(monkeypatch)
         assert events == []
     finally:
         ledger.end_request_context(token)
+
+
+def test_deterministic_renderer_passes_private_evidence_spans_to_shared_finalizer():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert '"_gold_star_deterministic_application_spans": list(' in source
+    assert '_gold_star_application.get("application_evidence_spans")' in source
+    assert 'finalized.pop("_gold_star_deterministic_application_spans", None)' in source
 

@@ -1,9 +1,10 @@
 """Privacy-minimized observability contract for runtime Gold Star adjudication.
 
 Retrieval, prompt exposure, provider adjudication, deterministic renderer
-selection/application, final delivery, human review, and improvement are
-distinct evidence states. Retrieval or prompt injection alone never proves
-selection, application, or benefit.
+selection/application, provider contribution retention, deterministic renderer
+span retention, final delivery, human review, and improvement are distinct
+evidence states. Retrieval or prompt injection alone never proves selection,
+application, retention, or benefit.
 
 No visitor question, answer text, user identity, session identity, or content
 hash is retained in this trace.
@@ -252,6 +253,7 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
         "application_evidence_present": False,
         "application_evidence_candidate_ids": [],
         "contribution_retained": "not_evaluated",
+        "deterministic_contribution_retained": "not_applicable",
         "selection": "not_observed" if count else "not_applicable",
         "application": "not_observed",
         "outcome": "not_evaluated",
@@ -352,6 +354,7 @@ def mark_deterministic_application(trace: Any, application: Any) -> dict[str, An
     result["deterministic_application_candidate_id"] = benchmark_id
     result["deterministic_application_plan_id"] = plan_id
     result["deterministic_application_span_count"] = len(spans)
+    result["deterministic_contribution_retained"] = "not_verified"
     return _store_current_trace(result)
 
 
@@ -368,6 +371,7 @@ def mark_cache_reuse(trace: Mapping[str, Any]) -> dict[str, Any]:
     result["application"] = "not_observed"
     result["composition"] = "cached_candidate_reused"
     result["contribution_retained"] = "not_evaluated"
+    result["deterministic_contribution_retained"] = "not_applicable"
     result["outcome"] = "not_evaluated"
     return _store_current_trace(result)
 
@@ -411,11 +415,35 @@ def synchronize_final_response_provenance(
     return payload
 
 
+def evaluate_deterministic_contribution_retention(
+    application_state: str, application_spans: Any, final_response: str
+) -> str:
+    """Check whether private deterministic-renderer evidence spans survive final delivery.
+
+    Span text is transient input only. The returned state is content-free and
+    never stores or emits the spans or a content hash.
+    """
+    if str(application_state or "") != "deterministic_renderer_applied":
+        return "not_applicable"
+    if not isinstance(application_spans, list) or not application_spans:
+        return "not_verified"
+    normalized_spans = [
+        re.sub(r"\s+", " ", span).strip().casefold()
+        for span in application_spans
+        if isinstance(span, str) and span.strip()
+    ]
+    if len(normalized_spans) != len(application_spans) or not normalized_spans:
+        return "not_verified"
+    normalized_response = re.sub(r"\s+", " ", str(final_response or "")).strip().casefold()
+    return "retained" if all(span in normalized_response for span in normalized_spans) else "not_retained"
+
+
 def mark_final_delivery(
     trace: Mapping[str, Any], *, provider_candidate_delivered: bool,
-    final_provenance: str, cached_candidate_reused: bool = False
+    final_provenance: str, cached_candidate_reused: bool = False,
+    deterministic_contribution_retained: str | None = None,
 ) -> dict[str, Any]:
-    """Attach final delivery attribution; delivery is not evidence of quality."""
+    """Attach final delivery and independent provider/deterministic retention states."""
     result = dict(trace)
     result["final_delivery"] = (
         "cached_candidate_reused" if cached_candidate_reused
@@ -423,12 +451,25 @@ def mark_final_delivery(
         else "deterministic_or_unresolved_replacement"
     )
     result["final_provenance"] = str(final_provenance or "unresolved").strip().casefold()
-    result["contribution_retained"] = (
-        "not_applicable" if result.get("provider_adjudication_status") == "provider_reported_rejected_all"
-        else "provider_asserted_span_retained" if provider_candidate_delivered and result.get("application_evidence_present") is True
-        else "not_retained" if not provider_candidate_delivered and not cached_candidate_reused
-        else "not_verified"
-    )
+    # This existing field is provider-contribution retention, not deterministic-renderer retention.
+    if cached_candidate_reused:
+        result["contribution_retained"] = "not_verified"
+    elif result.get("provider_adjudication_status") == "provider_reported_selected":
+        result["contribution_retained"] = (
+            "provider_asserted_span_retained"
+            if provider_candidate_delivered and result.get("application_evidence_present") is True
+            else "not_retained" if not provider_candidate_delivered
+            else "not_verified"
+        )
+    else:
+        result["contribution_retained"] = "not_applicable"
+    if result.get("application") == "deterministic_renderer_applied":
+        state = deterministic_contribution_retained or result.get("deterministic_contribution_retained") or "not_verified"
+        result["deterministic_contribution_retained"] = (
+            state if state in {"retained", "not_retained", "not_verified"} else "not_verified"
+        )
+    else:
+        result["deterministic_contribution_retained"] = "not_applicable"
     result["outcome"] = "not_evaluated"
     return _store_current_trace(result)
 
@@ -451,8 +492,8 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "rejection_reason_codes", "reasoning_discipline_ids", "application_evidence_present",
         "application_evidence_candidate_ids", "contribution_retained", "composition",
         "deterministic_application_candidate_id", "deterministic_application_plan_id",
-        "deterministic_application_span_count", "final_delivery", "final_provenance",
-        "request_id", "attempt_ordinal"
+        "deterministic_application_span_count", "deterministic_contribution_retained",
+        "final_delivery", "final_provenance", "request_id", "attempt_ordinal"
     }
     unexpected = sorted(set(trace) - allowed)
     if unexpected:
@@ -515,6 +556,10 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         "not_evaluated", "not_applicable", "provider_asserted_span_retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_contribution_retention_state"}
+    if trace.get("deterministic_contribution_retained", "not_applicable") not in {
+        "not_evaluated", "not_applicable", "retained", "not_retained", "not_verified"
+    }:
+        return {"valid": False, "reason": "invalid_deterministic_contribution_retention_state"}
     rejection_ids = [item["candidate_id"] for item in rejections]
     if len(set(rejection_ids)) != len(rejection_ids) or set(selected_ids) & set(rejection_ids):
         return {"valid": False, "reason": "duplicate_or_conflicting_candidate_disposition"}
@@ -533,6 +578,14 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     ) or len(set(evidence_ids)) != len(evidence_ids):
         return {"valid": False, "reason": "invalid_application_evidence_candidate_ids"}
     deterministic_application = trace.get("application") == "deterministic_renderer_applied"
+    if "deterministic_contribution_retained" in trace:
+        deterministic_retention = trace["deterministic_contribution_retained"]
+        if deterministic_application and deterministic_retention not in {
+            "retained", "not_retained", "not_verified"
+        }:
+            return {"valid": False, "reason": "deterministic_application_without_retention_disposition"}
+        if not deterministic_application and deterministic_retention != "not_applicable":
+            return {"valid": False, "reason": "deterministic_retention_without_deterministic_application"}
     if deterministic_application:
         deterministic_candidate_id = trace.get("deterministic_application_candidate_id")
         deterministic_plan_id = trace.get("deterministic_application_plan_id")
