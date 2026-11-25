@@ -8,6 +8,7 @@ from deterministic_answer_recovery import (
     compose_recovery,
 )
 from general_guide_composition import (
+    _requires_responsibility_boundary_answer,
     _responsibility_boundary_recovery,
     enforce_response_contracts,
 )
@@ -38,6 +39,10 @@ def test_registered_tradeoff_composer_addresses_the_actual_value_conflict():
     ):
         assert phrase in answer.casefold()
     assert "feeling responsible for fixing it" not in answer.casefold()
+
+
+def test_ethical_tradeoff_is_not_misclassified_as_personal_responsibility_boundary():
+    assert not _requires_responsibility_boundary_answer(QUESTION)
 
 
 def test_final_response_contract_preserves_specific_tradeoff_over_generic_responsibility_boundary():
