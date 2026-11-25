@@ -34,18 +34,20 @@ def test_all_dimensions_have_plain_language_and_both_doorways():
 def test_synthesis_contract_forbids_generic_fixed_output():
     contract=LIB["composition_contract"]
     assert contract["paragraphs"] == 3
-    assert "generic paragraph repeated regardless of score vector" in contract["anti_genericity"]
+    assert "name at least two actual dimension scores" in contract["anti_genericity"]
+    assert "explain their relationship" in contract["anti_genericity"]
 
 def test_perspective_narratives_name_distinct_exploration_domains():
     assert "authority" in LIB["relational_patterns"]["P_K"]["collective"]
     assert "first interpretation" in LIB["relational_patterns"]["R_P"]["individual"]
-    assert "whose experience" in LIB["relational_patterns"]["P_R"]["collective"]
+    assert "limited range of people or experiences" in LIB["relational_patterns"]["P_R"]["collective"]
+    assert "whose experience" in LIB["relational_patterns"]["P_R"]["doorway_collective"]
 
 
 def test_boundary_and_tie_contract_is_explicit():
     validation = LIB["simulation_validation"]
     gaps = {item["gap"]: item["expected"] for item in validation["boundary_cases"]}
-    assert "no relational pattern" in gaps[0.79]
+    assert "does not qualify" in gaps[0.79]
     assert "qualifies" in gaps[0.80]
     assert LIB["pattern_precedence"][0] == "P_K"
 
