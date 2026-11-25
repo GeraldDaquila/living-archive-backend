@@ -69,3 +69,47 @@ def test_provider_health_readiness_fails_closed_on_diagnostic_exception(monkeypa
     assert result["ok"] is False
     assert result["shared_health"]["mode"] == "diagnostic_failure"
     assert "secret should not leak" not in repr(result)
+
+
+
+def test_provider_health_startup_warmup_synchronously_loads_shared_state(monkeypatch):
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-test-primary")
+    calls = []
+    monkeypatch.setattr(main, "refresh_shared_health_state", lambda: calls.append("refresh"))
+    monkeypatch.setattr(main, "provider_bank_snapshot", lambda core: {
+        "shared_health_state": {
+            "available": True,
+            "mode": "shared_wordpress_database",
+        }
+    })
+
+    assert main._warm_provider_health_state_on_startup() is True
+    assert calls == ["refresh"]
+    assert main._warm_provider_health_state_on_startup in main._base.app.router.on_startup
+
+
+def test_provider_health_startup_warmup_fails_open_without_leaking_exception(monkeypatch, capsys):
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-test-primary")
+    def fail():
+        raise RuntimeError("secret detail must not be logged")
+
+    monkeypatch.setattr(main, "refresh_shared_health_state", fail)
+
+    assert main._warm_provider_health_state_on_startup() is False
+    output = capsys.readouterr().out
+    assert "available=false" in output
+    assert "exception_type=RuntimeError" in output
+    assert "secret detail" not in output
+
+
+
+def test_provider_health_startup_warmup_skips_non_render_process(monkeypatch, capsys):
+    monkeypatch.delenv("RENDER_SERVICE_ID", raising=False)
+
+    def unexpected_refresh():
+        raise AssertionError("non-Render process must not contact the shared store")
+
+    monkeypatch.setattr(main, "refresh_shared_health_state", unexpected_refresh)
+
+    assert main._warm_provider_health_state_on_startup() is False
+    assert "skipped=non_render" in capsys.readouterr().out

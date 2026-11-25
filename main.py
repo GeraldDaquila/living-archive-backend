@@ -137,6 +137,37 @@ _BASE_MODULE_NAME = "guide_runtime"
 _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
+
+
+def _warm_provider_health_state_on_startup():
+    """Load shared provider health before the first Render visitor request after a deploy."""
+    if not str(os.getenv("RENDER_SERVICE_ID") or "").strip():
+        print("USE provider health startup warmup: skipped=non_render", flush=True)
+        return False
+    try:
+        refresh_shared_health_state()
+        shared = provider_bank_snapshot(use_core).get("shared_health_state") or {}
+        available = shared.get("available") is True
+        mode = str(shared.get("mode") or "unknown")
+        print(
+            "USE provider health startup warmup: available="
+            + str(available).lower()
+            + ", mode="
+            + mode,
+            flush=True,
+        )
+        return available
+    except Exception as exc:
+        print(
+            "USE provider health startup warmup: available=false, "
+            "mode=diagnostic_failure, exception_type="
+            + type(exc).__name__,
+            flush=True,
+        )
+        return False
+
+
+app.router.on_startup.append(_warm_provider_health_state_on_startup)
 _original_guide_handle_query = use_core.handle_query
 # Load the durable territorial map first. Live services are read-only consumers:
 # a Render restart must never trigger a full Pinecone enumeration.
