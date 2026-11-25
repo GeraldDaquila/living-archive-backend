@@ -318,3 +318,32 @@ def test_skipped_provider_arm_can_be_recorded_without_crashing_pair_validation()
     assert "base_system_prompt_sha256" in skipped
     assert "route_input_system_prompt_sha256" in skipped
 
+
+
+
+def test_matched_pair_arm_order_is_counterbalanced_across_cases():
+    from scripts.capture_gold_star_matched_pairs import _counterbalanced_arm_order
+
+    assert _counterbalanced_arm_order(0) == ("control", "treatment")
+    assert _counterbalanced_arm_order(1) == ("treatment", "control")
+    assert _counterbalanced_arm_order(2) == ("control", "treatment")
+    orders = [_counterbalanced_arm_order(index) for index in range(6)]
+    assert sum(order[0] == "control" for order in orders) == 3
+    assert sum(order[0] == "treatment" for order in orders) == 3
+
+
+def test_generation_configuration_fingerprint_contract_names_effective_groq_settings():
+    source = (
+        __import__("pathlib").Path(__file__).resolve().parents[1]
+        / "scripts/capture_gold_star_matched_pairs.py"
+    ).read_text(encoding="utf-8")
+    for field in (
+        '"temperature": 0.0',
+        '"response_format":',
+        '"schema_sha256":',
+        '"reasoning_effort": "low"',
+        '"include_reasoning": False',
+        '"provider_timeout_seconds": args.provider_timeout_seconds',
+        '"provider_sdk_max_retries": 0',
+    ):
+        assert field in source
