@@ -64,6 +64,6 @@ def test_deterministic_gold_star_guidance_is_not_appended_to_visitor_answers():
 
 def test_compact_llm_contract_blocks_unrequested_ai_and_gold_star_content_transfer():
     prompt = composition._GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "Do not introduce AI, artificial intelligence, or another adjacent subject unless the visitor explicitly asks about it." in prompt
+    assert "Specialized guidance is conditional and must remain dormant outside its defined scope." in prompt
     assert "Never append lesson wording, an abstention boundary, or a meta-label as a substitute for the answer's own conclusion." in prompt
     assert "The conclusion must follow from this question's reasoning" in prompt
