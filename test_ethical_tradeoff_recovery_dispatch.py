@@ -44,11 +44,23 @@ def test_api_dispatches_ethical_tradeoff_before_broad_conceptual_recovery():
         and node.name == "_basic_inquiry_round1_deterministic_response"
     )
     source = ast.get_source_segment(MAIN, function)
-    ethical = source.index('if _is_ethical_tradeoff_recovery(query):')
+    ethical = source.index('if _is_freedom_responsibility_conflict:')
     conceptual = source.index('_guide_composition._conceptual_relationship_recovery(query)')
     assert ethical < conceptual
+    assert '_is_ethical_tradeoff_recovery(query)' in source
+    assert r"\\bindividual\\s+freedom\\b" in source
+    assert r"\\bshared\\s+responsibility\\b" in source
     assert '"provider": "bounded_ethical_tradeoff_recovery"' in source
     assert '_compose_ethical_tradeoff_recovery(query)' in source
+
+
+def test_other_tradeoff_families_are_not_claimed_by_the_narrow_dispatch():
+    funding_question = (
+        "How should a community decide which of two competing priorities deserves "
+        "funding when neither can be fully supported?"
+    )
+    assert _is_ethical_tradeoff(funding_question)
+    assert "if _is_freedom_responsibility_conflict:" in MAIN
 
 
 if __name__ == "__main__":
