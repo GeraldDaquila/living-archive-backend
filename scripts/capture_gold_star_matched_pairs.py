@@ -428,12 +428,14 @@ async def capture(args) -> dict:
             for case_index, case in enumerate(cases):
                 arms = {}
                 call_order = _counterbalanced_arm_order(case_index)
+                attempted_arm_order = []
                 for arm in call_order:
                     if not provider_lane_available:
                         arms[arm] = _skipped_arm("previous_pinned_provider_attempt_unavailable")
                         continue
                     if provider_attempted and args.inter_call_delay_seconds:
                         await asyncio.sleep(args.inter_call_delay_seconds)
+                    attempted_arm_order.append(arm)
                     arms[arm] = await _request_arm(
                         client, evaluation_context, provider, model, case["query"], arm
                     )
@@ -531,7 +533,9 @@ async def capture(args) -> dict:
                     "reasoning_effort": "low",
                     "include_reasoning": False,
                     "provider_timeout_seconds": control["provider_timeout_seconds"],
-                    "provider_sdk_max_retries": 0,
+                    "provider_sdk_max_retries": (
+                        0 if control["provider_timeout_seconds"] is not None else "not_invoked"
+                    ),
                     "inter_call_delay_seconds": args.inter_call_delay_seconds,
                     "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
                 }
@@ -552,7 +556,8 @@ async def capture(args) -> dict:
                     "generation_config_fingerprint": generation_fingerprint,
                     "gold_star_registry_sha256": registry_sha,
                     "captured_at": datetime.now(timezone.utc).isoformat(),
-                    "arm_call_order": list(call_order),
+                    "arm_call_order": list(attempted_arm_order),
+                    "arm_evaluation_order": list(call_order),
                     "control": control,
                     "treatment": treatment,
                     "acceptance": {
