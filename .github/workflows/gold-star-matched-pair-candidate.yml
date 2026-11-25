@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   matched-pair-contract:
@@ -101,3 +102,10 @@ jobs:
             artifacts/gold-star-matched-pairs/paired-evaluation-template.json
           if-no-files-found: warn
           retention-days: 90
+      - name: Publish capture run reference to PR #2018
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          gh pr comment 2018 --repo GeraldDaquila/living-archive-backend --body "Candidate-local matched-pair capture run: https://github.com/GeraldDaquila/living-archive-backend/actions/runs/${{ github.run_id }}. Job status: ${JOB_STATUS}. Blind-review and evidence artifacts are attached to this run."
