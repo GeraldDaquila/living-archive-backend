@@ -343,7 +343,9 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"schema_sha256":',
         '"reasoning_effort": "low"',
         '"include_reasoning": False',
-        '"provider_timeout_seconds": args.provider_timeout_seconds',
+        '"provider_timeout_seconds": control["provider_timeout_seconds"]',
         '"provider_sdk_max_retries": 0',
+        '"schema_mode": control["schema_mode"]',
+        '"omitted_text_mode"',
     ):
         assert field in source
