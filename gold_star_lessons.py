@@ -778,7 +778,7 @@ def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
     # an ordinary stakeholder conflict into project-economics guidance.
     if selected.get("reasoning_family") == "community_project_economic_accounting_and_shared_resource_stewardship":
         project_scope = re.search(
-            r"\\b(?:community project|project|cooperative|volunteer|shared resources?|common resources?|financial returns?|economic contribution|lifecycle costs?|maintenance|labor hours?|local value)\\b",
+            r"\b(?:community project|project|cooperative|volunteer|shared resources?|common resources?|financial returns?|economic contribution|lifecycle costs?|maintenance|labor hours?|local value)\b",
             str(query or "").casefold(),
         )
         if not project_scope:
