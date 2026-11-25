@@ -9248,6 +9248,58 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # rather than query-specific: provider exhaustion must not bypass a valid
     # conceptual recovery that the composition layer already recognizes.
     # Keep the legacy recovery identity stable for downstream observability.
+    # A registry-approved deterministic Gold Star must be considered before the
+    # broad conceptual relationship fallback. Otherwise a short generic recovery
+    # can intercept an eligible unseen question and be rejected at the visitor floor.
+    try:
+        from gold_star_lessons import (
+            deterministic_fallback_contribution as _deterministic_gold_star_contribution,
+        )
+        from gold_star_deterministic_composition import (
+            compose_deterministic_gold_star_response as _compose_deterministic_gold_star,
+        )
+        _eligible_gold_star = _deterministic_gold_star_contribution(query)
+        _gold_star_application = _compose_deterministic_gold_star(query, _eligible_gold_star)
+        if _gold_star_application:
+            _gold_star_doorway = (
+                _normalize_authoritative_recommendation(context_data.get("authoritative_doorway"))
+                if isinstance(context_data, dict) else None
+            )
+            try:
+                from deterministic_answer_recovery import (
+                    registered_recovery_recommendation as _gold_star_registered_recommendation,
+                )
+                _registered_gold_star_doorway = _gold_star_registered_recommendation(query)
+                if _registered_gold_star_doorway:
+                    _gold_star_doorway = _registered_gold_star_doorway
+            except Exception:
+                pass
+            print(
+                "gold_star_deterministic_application "
+                f"candidate={_gold_star_application['benchmark_id']} "
+                f"family={_gold_star_application['reasoning_family']} "
+                f"plan={_gold_star_application['plan_id']} "
+                f"applied=true abstention_boundary_applied=true "
+                f"application_span_count={len(_gold_star_application['application_evidence_spans'])}",
+                flush=True,
+            )
+            return {
+                "response": _gold_star_application["response"],
+                "doorway_title": str((_gold_star_doorway or {}).get("title") or ""),
+                "doorway_url": str((_gold_star_doorway or {}).get("url") or ""),
+                "doorway_rationale": str((_gold_star_doorway or {}).get("rationale") or ""),
+                "recommendation": _gold_star_doorway,
+                "canonical_doorway": _gold_star_doorway,
+                "provider": "gold_star_deterministic_structural_fallback",
+                "model": "",
+            }
+    except Exception as _deterministic_gold_star_exc:
+        print(
+            "gold_star_deterministic_application unavailable; preserving conceptual recovery: "
+            f"{type(_deterministic_gold_star_exc).__name__}",
+            flush=True,
+        )
+
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
     # The shared composer and the last-resort API path must agree on the same
     # registered recovery. Mechanism questions are explanatory but need not fit

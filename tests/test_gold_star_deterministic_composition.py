@@ -66,6 +66,7 @@ def test_provider_exhaustion_community_tradeoff_path_survives_early_branch_final
     assert gold_star_lessons.deterministic_fallback_contribution(query) is None
     result = main._basic_inquiry_provider_exhaustion_response(query, {}, {})
     assert result["response"].strip()
+    assert result["provider"] != "gold_star_deterministic_structural_fallback"
     import general_guide_composition
     assert not general_guide_composition.is_generic_nonanswer(query, result["response"])
     assert not general_guide_composition.is_meta_answer_failure(result["response"])
@@ -132,6 +133,20 @@ def test_unseen_tradeoff_question_reaches_real_deterministic_response_boundary_w
     assert "false consensus" in result["response"]
     assert "least power" in result["response"]
     assert result["model"] == ""
+
+
+def test_provider_exhaustion_boundary_applies_registered_deterministic_gold_star_before_conceptual_fallback():
+    query = (
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
+    )
+    # Exercise the real provider-exhaustion recovery boundary with the live
+    # registry selector and deterministic renderer; no retrieval or renderer mocks.
+    result = main._basic_inquiry_provider_exhaustion_response(query, {}, {})
+    assert result["provider"] == "gold_star_deterministic_structural_fallback"
+    assert "competing interests and possible losses" in result["response"]
+    assert "false consensus" in result["response"]
+    assert "least power" in result["response"]
 
 
 def test_unrelated_physical_science_question_does_not_receive_ethical_tradeoff_plan():
