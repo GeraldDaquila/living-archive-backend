@@ -178,6 +178,34 @@ def test_deterministic_renderer_span_retention_is_measured_separately():
     ) == "not_applicable"
 
 
+def test_trace_validation_rejects_deterministic_retention_without_matching_application():
+    initial = trace.build_adjudication_trace(_contribution())
+    invalid_without_application = {
+        **initial,
+        "deterministic_contribution_retained": "retained",
+    }
+    assert trace.validate_trace(invalid_without_application) == {
+        "valid": False,
+        "reason": "deterministic_retention_without_deterministic_application",
+    }
+
+    applied = trace.mark_deterministic_application(initial, {
+        "benchmark_id": "lesson-one",
+        "reasoning_family": "stakeholder_tradeoffs",
+        "plan_id": "stakeholder_tradeoffs_v1",
+        "application_evidence_spans": ["A structural span."],
+        "abstention_boundary_applied": True,
+    })
+    invalid_without_disposition = {
+        **applied,
+        "deterministic_contribution_retained": "not_applicable",
+    }
+    assert trace.validate_trace(invalid_without_disposition) == {
+        "valid": False,
+        "reason": "deterministic_application_without_retention_disposition",
+    }
+
+
 def test_provider_contribution_retention_requires_provider_reported_selection():
     initial = trace.build_adjudication_trace(_contribution())
     no_selection = trace.mark_final_delivery(
