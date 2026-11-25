@@ -499,6 +499,48 @@ def test_transparency_trust_accepts_conditional_reciprocity_and_earned_trust_par
     assert all(item["passed"] for item in checks), checks
 
 
+def test_provider_probe_is_scheduled_before_the_heldout_workload_to_preserve_provider_budget():
+    import inspect
+
+    source = inspect.getsource(live_evaluation.main)
+    assert source.index("provider_probe_started_at") < source.index("for index,(split,item) in enumerate(workload)")
+
+
+def test_provider_probe_query_is_concise_and_forbids_inline_navigation_links():
+    query = live_evaluation.PROVIDER_PROBE_QUERY.casefold()
+    assert "employees" in query and "customers" in query and "residents" in query
+    assert "one concise paragraph" in query
+    assert "do not include urls" in query
+    assert "resource recommendations" in query
+
+
+def test_transparency_trust_accepts_two_direction_and_conversely_reciprocity_language():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency makes decisions, reasons, evidence, and conduct open to scrutiny, while trust is justified "
+        "reliance on conduct that proves dependable. Transparency supports trust by allowing people to inspect "
+        "decisions and correct mistakes. The relationship runs in two directions: conversely, reasonable trust "
+        "makes people more willing to share information and engage openly. These conditions are mutually reinforcing, "
+        "but neither guarantees the other; the reciprocity is conditional, not automatic. Accountability and privacy "
+        "still matter."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm", "provider": "nvidia", "model": "nvidia/nemotron-3.5-lightning-30b-a3b", "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    reciprocal = next(item for item in checks if item["name"] == "reciprocal_but_not_identical")
+    assert reciprocal["passed"], checks
+
+
 def test_provider_probe_requires_stakeholder_tradeoff_explanation():
     accurate = (
         "Leaders face a persistent tension: decisions that improve one stakeholder group often create trade-offs "
