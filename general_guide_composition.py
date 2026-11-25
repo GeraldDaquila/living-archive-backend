@@ -73,6 +73,9 @@ Select the smallest response architecture that fully serves the actual question.
 RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:
 When a visitor asks about the relationship, connection, or interplay between concepts, answer the relationship itself rather than giving adjacent mini-definitions or a generic explanation of only one term. Briefly establish each concept's distinct role, state the mechanism connecting them, explain whether the relationship is reciprocal, one-way, or conditional, and identify a meaningful boundary or tension and its practical implication. Preserve differences; connection does not mean equivalence. Do not let keyword overlap substitute for a causal or normative explanation.
 
+TRANSPARENCY AND TRUST RECIPROCITY:
+When asked about the relationship between transparency and trust, explain both directions of influence. Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. Do not describe the relationship as one-way or imply that either concept guarantees the other.
+
 For questions about stewardship and consent, make the governing distinction explicit: stewardship names a responsibility to care for something entrusted to one's attention or role; consent concerns whether and within what limits another person's participation, choices, body, information, property, resources, or interests may legitimately be involved. Being entrusted with responsibility does not automatically confer authority to decide for affected people. Consent is not merely consultation or a steward's good intention. Where consent is the relevant basis for participation or use, it should be informed, voluntary, and specific to what is being agreed to; it may need to be renewed, renegotiated, or respected when withdrawn. Do not turn this into a universal legal test or imply that every routine act of care requires individual permission. Distinguish matters a steward may responsibly manage within an authorized role from decisions that require permission, shared authority, or respect for refusal. Preserve affected people's agency and name the practical consequence: responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.
  Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
 """
@@ -316,6 +319,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         ("GOLD STAR REMEDY SELECTION", gold_star_meta and has(r"\b(?:remedy|engineering|repair|failure|new lesson|new gold star)\b")),
         ("SEMANTIC AMBIGUITY BEFORE ANSWERING", has(r"\b(?:ambiguous|ambiguity|same term|different meaning|used differently)\b")),
         ("QUOTED-PASSAGE CONTEXT RESTORATION", has(r"\b(?:quote|quoted|passage|out of context|exact wording)\b")),
+        ("TRANSPARENCY AND TRUST RECIPROCITY", has(r"\btransparency\b") and has(r"\btrust\b") and is_conceptual_relationship_question(question)),
         ("GOLD STAR INTEGRATION RULE", gold_star_guidance),
         ("For consequential action under uncertainty", consequential),
         ("Preserve useful distinctions and calibrate causal claims.", has(r"\b(?:algorithm|automated|bias|inequit|causal|cause|synthesis|coherence|judgment|overconfiden|abstract concept)\b")),
@@ -2874,6 +2878,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 "intergenerational stewardship answer must explain cross-generational responsibility, reciprocal influence, and present choices"
             )
 
+        if (
+            re.search(r"\btransparency\b", query, re.I)
+            and re.search(r"\btrust\b", query, re.I)
+            and is_conceptual_relationship_question(query)
+            and not _has_transparency_trust_reciprocity(response)
+        ):
+            raise ValueError(
+                "transparency-trust answer must explain both directions of influence and the non-guarantee boundary"
+            )
+
         # A complete practical next-step question must receive an actionable
         # move, not only abstract analysis or a request for more context. If the
         # provider misses this, reject the candidate so Provider Bank can retry.
@@ -3243,6 +3257,23 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
         return False
     concepts = _conceptual_relationship_terms(question) if question else []
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
+
+
+def _has_transparency_trust_reciprocity(response: str) -> bool:
+    """Require both directions and the non-guarantee boundary for this concept pair."""
+    text = _normalize_space(response).casefold()
+    transparency_supports_trust = bool(
+        re.search(r"\btransparency\b.{0,220}\b(?:trust|confidence)\b", text)
+        and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct)\w*\b", text)
+    )
+    trust_supports_openness = bool(
+        re.search(r"\btrust\b.{0,220}\b(?:transparency|openness|disclos|share|engage|raise concerns|speak up)\w*\b", text)
+        or re.search(r"\b(?:openness|disclos|share|engage|raise concerns|speak up)\w*\b.{0,220}\btrust\b", text)
+    )
+    non_guarantee = bool(
+        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|not a guarantee|not automatic)\b", text)
+    )
+    return transparency_supports_trust and trust_supports_openness and non_guarantee
 
 
 def _archive_voice_meaning_question(question: str) -> bool:
