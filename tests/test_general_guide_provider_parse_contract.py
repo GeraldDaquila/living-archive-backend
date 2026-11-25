@@ -67,6 +67,50 @@ def _gold_star_parse(payload):
     "adjudication",
     [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
 )
+def test_community_liberty_limit_prompt_requires_burden_distribution_and_participation():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
+    )
+    prompt = composition._build_general_guide_system_message(question)
+    for required in (
+        "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY",
+        "legitimate shared purpose",
+        "who benefits",
+        "who bears each cost or burden",
+        "include those affected in shaping the rule",
+        "less restrictive workable alternatives",
+        "burden distribution from proportionality",
+        "appeal, observable review criteria",
+    ):
+        assert required in prompt
+    unrelated = composition._build_general_guide_system_message("What is stewardship?")
+    assert "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY" not in unrelated
+
+
+def test_gold_star_adjudication_prefers_specific_reasoning_family_over_broad_thematic_overlap():
+    instruction = composition._build_gold_star_quality_instruction(
+        {
+            "candidates": [
+                {
+                    "benchmark_id": "broad-community-freedom",
+                    "reasoning_family": "community_freedom_shared_responsibility_proportionate_decision",
+                    "discipline": "Protect rights while weighing shared responsibility.",
+                    "abstention_boundary": "Do not assume restrictions are justified.",
+                },
+                {
+                    "benchmark_id": "specific-community-rule-design",
+                    "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+                    "discipline": "Identify who benefits, who bears costs, and whose liberty is restricted.",
+                    "abstention_boundary": "Do not infer legal authority without facts.",
+                },
+            ]
+        }
+    )
+    assert "narrower matching family outranks a broader adjacent family" in instruction
+    assert "Redundancy requires the same necessary reasoning operation" in instruction
+
+
 def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudication(adjudication):
     payload = {
         "response": GOLD_STAR_RESPONSE,
