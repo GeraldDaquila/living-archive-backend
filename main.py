@@ -8430,9 +8430,17 @@ def _guide_finalize_visitor_payload(payload, query):
     # Consume private composition evidence before any specialist finalizer can
     # return early. The evidence is reattached only as content-free telemetry.
     safe_input = dict(payload) if isinstance(payload, dict) else payload
-    adjudication_trace = (
+    payload_adjudication_trace = (
         safe_input.pop("_gold_star_adjudication_trace", None)
         if isinstance(safe_input, dict) else None
+    )
+    # The request-local ledger is authoritative for the current attempt. Some
+    # recovery routes return a visitor payload without carrying the private
+    # trace field, so relying on payload propagation alone silently drops
+    # otherwise valid retrieval and deterministic-application evidence.
+    adjudication_trace = (
+        _gold_star_ledger.current_attempt_trace()
+        or payload_adjudication_trace
     )
     provider_candidate_matches_payload = bool(
         safe_input.pop("_gold_star_provider_candidate_matches_payload", False)
