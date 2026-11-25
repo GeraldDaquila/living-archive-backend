@@ -8494,7 +8494,12 @@ def _guide_finalize_visitor_payload(payload, query):
             provider_candidate_delivered=delivered,
             cached_candidate_reused=cached_candidate_reused,
         )
-        trace_for_delivery = adjudication_trace
+        # Prefer the live request-local trace: deterministic fallback may
+        # have recorded a renderer application after the composer attached its
+        # initial provider-adjudication snapshot to the payload.
+        trace_for_delivery = (
+            _gold_star_ledger.current_attempt_trace() or adjudication_trace
+        )
         if str(trace_for_delivery.get("guidance_exposure") or "not_observed") == "not_observed":
             trace_for_delivery = _mark_gold_star_guidance_exposure(
                 trace_for_delivery,
@@ -9261,6 +9266,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         _eligible_gold_star = _deterministic_gold_star_contribution(query)
         _gold_star_application = _compose_deterministic_gold_star(query, _eligible_gold_star)
         if _gold_star_application:
+            # The deterministic renderer is a separate selection/application
+            # path from provider adjudication. Record its verified evidence in
+            # the same request-local trace without attributing it to a provider.
+            _gold_star_trace_before = _gold_star_ledger.current_attempt_trace()
+            _gold_star_trace_after = _gold_star_ledger.mark_deterministic_application(
+                _gold_star_trace_before, _gold_star_application
+            )
+            _gold_star_trace_request_id = str(
+                (_gold_star_trace_after or {}).get("request_id") or ""
+            )
             _gold_star_doorway = (
                 _normalize_authoritative_recommendation(context_data.get("authoritative_doorway"))
                 if isinstance(context_data, dict) else None
@@ -9280,7 +9295,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 f"family={_gold_star_application['reasoning_family']} "
                 f"plan={_gold_star_application['plan_id']} "
                 f"applied=true abstention_boundary_applied=true "
-                f"application_span_count={len(_gold_star_application['application_evidence_spans'])}",
+                f"application_span_count={len(_gold_star_application['application_evidence_spans'])} "
+                f"request_id={_gold_star_trace_request_id or 'unavailable'} "
+                f"trace_application={(_gold_star_trace_after or {}).get('application', 'not_observed')}",
                 flush=True,
             )
             return {
