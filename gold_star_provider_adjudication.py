@@ -147,7 +147,6 @@ def build_adjudication_output_contract(candidates: Any) -> str:
     # Keep this contract compact: it is repeated in every provider prompt and
     # competes with visitor evidence for finite context/token budgets.
     return (
-        "Preserve response, doorway_title, response_shape; adjudication is additional. "
         "Add JSON property adaptive_adjudication with exactly two keys: "
         "candidate_assessments and application_evidence_spans. For every candidate "
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
@@ -159,5 +158,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "use [] when none is selected. No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and exact "
-        "span presence. Improvement still requires paired evaluation."
+        "span presence. Improvement still requires paired evaluation. "
+        "Final JSON: response, doorway_title, response_shape, adaptive_adjudication; "
+        "response is the visitor answer."
     )
