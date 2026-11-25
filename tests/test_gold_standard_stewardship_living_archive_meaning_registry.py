@@ -20,7 +20,7 @@ def test_living_archive_stewardship_meaning_is_registered_as_user_approved():
 def test_living_archive_stewardship_meaning_preserves_three_paragraph_gold_standard():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"].casefold()
-    paragraphs = [p for p in answer.split("\\n\\n") if p.strip()]
+    paragraphs = [p for p in answer.split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     for phrase in (
         "stewardship follows understanding",
