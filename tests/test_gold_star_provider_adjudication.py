@@ -144,9 +144,9 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     assert len(contract) < 1300
     assert contract.endswith(
         "Output one object, not adjudication alone: "
-        "{\\"response\\":\\"complete visitor answer\\",\\"doorway_title\\":\\"title or empty\\","
-        "\\"response_shape\\":\\"shape\\",\\"adaptive_adjudication\\":"
-        "{\\"candidate_assessments\\":[...],\\"application_evidence_spans\\":[...]}}."
+        '{"response":"complete visitor answer","doorway_title":"title or empty",'
+        '"response_shape":"shape","adaptive_adjudication":'
+        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
     )
     for required in (
         "adaptive_adjudication",
