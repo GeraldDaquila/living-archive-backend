@@ -52,6 +52,48 @@ def test_main_deterministic_fallback_consumes_eligible_gold_star(monkeypatch):
     assert "least power" in result["response"]
 
 
+def test_provider_exhaustion_deterministic_application_updates_request_adjudication_trace():
+    query = (
+        "How should a group decide what to protect when one person's priorities mean "
+        "another person will lose something deeply valued?"
+    )
+    import gold_star_adjudication_trace as trace
+
+    token = trace.begin_request_context("abcdef0123456789abcdef0123456789")
+    try:
+        trace.begin_composition_attempt()
+        contribution = gold_star_lessons.active_quality_contribution(query)
+        assert contribution is not None
+        initial = trace.build_adjudication_trace(contribution)
+        assert initial["selection"] == "not_observed"
+        assert initial["application"] == "not_observed"
+
+        result = main._basic_inquiry_provider_exhaustion_response(query, {}, {})
+        assert result["provider"] == "gold_star_deterministic_structural_fallback"
+
+        applied = trace.current_attempt_trace()
+        assert applied["request_id"] == "abcdef0123456789abcdef0123456789"
+        assert applied["provider_adjudication_status"] == "not_observed"
+        assert applied["selection"] == "deterministic_renderer_selected"
+        assert applied["selected_candidate_ids"] == [result.get("benchmark_id", applied["selected_candidate_ids"][0])]
+        assert applied["application"] == "deterministic_renderer_applied"
+        assert applied["application_evidence_present"] is True
+        assert applied["application_evidence_candidate_ids"] == applied["selected_candidate_ids"]
+        assert applied["deterministic_application_span_count"] == 2
+        assert trace.validate_trace(applied)["valid"]
+
+        final = trace.mark_final_delivery(
+            applied,
+            provider_candidate_delivered=False,
+            final_provenance="deterministic_recovery",
+        )
+        assert final["final_delivery"] == "deterministic_or_unresolved_replacement"
+        assert final["application"] == "deterministic_renderer_applied"
+        assert trace.validate_trace(final)["valid"]
+    finally:
+        trace.end_request_context(token)
+
+
 def test_community_rule_gold_stars_remain_excluded_from_deterministic_fallback():
     query = "How should a community balance personal liberty with collective obligations when setting a fair rule?"
     assert gold_star_lessons.deterministic_fallback_contribution(query) is None
