@@ -12,8 +12,13 @@ def test_recognized_concept_gets_useful_bounded_orientation_without_archive_clai
     response = result["response"].lower()
     assert "using spiritual beliefs" in response
     assert "difficult emotions" in response
-    assert "spirituality itself is not a problem" in response
-    assert "archive material" in response
+    assert (
+        "spirituality itself is not a problem" in response
+        or "not that spirituality itself is a problem" in response
+    )
+    # The exact approved Gold Standard marks this as general-use knowledge;
+    # the generic fallback uses the explicit Archive-material boundary.
+    assert "general use" in response or "archive material" in response
     assert result["recommendation"] is None
 
 
