@@ -82,7 +82,8 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
         "apply the selected discipline in the visitor answer",
         "quote an exact contiguous span",
         "Combine candidates only when each adds a distinct, necessary, compatible operation",
-        "Reject all when none improves the answer or relevance is merely lexical.",
+        "Reject all when none improves the answer ",
+        "or relevance is merely lexical.",
         "answer normally",
         "not approved selections",
     )
