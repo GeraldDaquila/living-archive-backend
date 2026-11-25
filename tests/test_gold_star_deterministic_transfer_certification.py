@@ -103,8 +103,11 @@ def test_ambiguous_stakeholder_recovery_does_not_reuse_exact_gold_standard_answe
         "How can leaders weigh obligations to employees, customers, and local residents "
         "when a decision benefits one group but imposes costs on another?"
     )
-    exact = resolve_exact_gold_standard("How can leaders hold competing stakeholder obligations?")
+    exact_query = "How can leaders hold competing stakeholder obligations?"
+    exact = resolve_exact_gold_standard(exact_query)
     assert exact is not None
+    exact_result = main._basic_inquiry_round1_deterministic_response(exact_query, {}, {})
+    assert exact_result["response"] == exact["expected_response"]
 
     # The ambiguous negative control is not eligible for the community-project
     # deterministic lesson, but it remains answerable from bounded general knowledge.
