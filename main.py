@@ -164,7 +164,7 @@ def _warm_provider_health_state_on_startup():
         return False
 
 
-app.add_event_handler("startup", _warm_provider_health_state_on_startup)
+app.router.on_startup.append(_warm_provider_health_state_on_startup)
 _original_guide_handle_query = use_core.handle_query
 # Load the durable territorial map first. Live services are read-only consumers:
 # a Render restart must never trigger a full Pinecone enumeration.
