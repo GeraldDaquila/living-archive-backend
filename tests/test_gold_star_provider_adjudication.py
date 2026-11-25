@@ -159,6 +159,7 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "select/reject",
         "abstention boundary",
         "exact contiguous 12–240 character span",
+        "if you cannot quote a valid span, mark that candidate reject",
         "No hidden reasoning or chain-of-thought",
         "paired evaluation",
     ):
