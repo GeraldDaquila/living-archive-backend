@@ -19,11 +19,26 @@ class _FakeEmbeddingModel:
 
 
 def test_module_import_does_not_load_fastembed_or_onnxruntime():
+    # The full pytest process may already have initialized embeddings in an
+    # earlier test. Verify the import contract in a fresh interpreter so this
+    # assertion is independent of test order and shared module state.
+    import subprocess
     import sys
 
-    assert use_core.embedding_model is None
-    assert "fastembed" not in sys.modules
-    assert "onnxruntime" not in sys.modules
+    probe = (
+        "import sys; "
+        "import use_core; "
+        "assert use_core.embedding_model is None; "
+        "assert 'fastembed' not in sys.modules; "
+        "assert 'onnxruntime' not in sys.modules"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", probe],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
 
 
 def test_embedding_model_is_initialized_only_when_embedding_is_requested(monkeypatch):
