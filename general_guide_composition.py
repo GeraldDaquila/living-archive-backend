@@ -405,10 +405,10 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         )
         candidate_lines.append(
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
-            f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 72) or 'none'}; "
-            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 56)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 320)}; "
-            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 140)}"
+            f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 56) or 'none'}; "
+            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 40)}; "
+            f"discipline={_compact_gold_star_prompt_field(item.get('discipline'), 220)}; "
+            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
