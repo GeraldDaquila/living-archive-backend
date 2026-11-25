@@ -1342,7 +1342,9 @@ def _has_direct_definition_for_subject(query: str, response: str) -> bool:
     ))
     definition_content = bool(re.search(
         r"(?i)\b(?:knowledge|experience|decisions|lessons|records|understanding|"
-        r"practices|information|history|learning|memory|continuity)\b",
+        r"practices|information|history|learning|memory|continuity|choices|actions|"
+        r"care|resources?|responsibilit(?:y|ies)|relationships?|people|trust|"
+        r"entrusted|world|authority|stewardship)\b",
         first,
     ))
     return subject_present and definition_cue and definition_content
