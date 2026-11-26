@@ -199,7 +199,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "questions. Select only distinct, relevant candidates. After drafting the final response, emit one "
         "offset object per candidate ID: selected IDs give zero-based Unicode character start/end offsets "
         "(end exclusive) into the final response, length 12–120; rejected IDs use 0,0. Select only when the "
-        "range shows the candidate's distinctive operation. Prefer the smallest sufficient set, normally one candidate. Measure offsets against the exact final response string after all wording and punctuation are fixed; do not estimate, reuse offsets from an earlier draft, or count bytes. Each selected range must point to a verbatim 12–120-character substring that visibly demonstrates that candidate's distinctive operation. Reject a candidate if no such exact range exists; rejected IDs use 0,0. "
+        "range shows the candidate's distinctive operation. Prefer the smallest sufficient set, normally one candidate. Compute zero-based Unicode offsets only after the final answer is fixed; each selected span must be an exact verbatim 12–120-character substring demonstrating that candidate's distinctive operation. Never estimate or reuse draft offsets; reject if no exact span exists. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "
