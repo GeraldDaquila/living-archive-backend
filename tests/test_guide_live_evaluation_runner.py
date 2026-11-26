@@ -762,6 +762,39 @@ def test_production_community_rule_wording_is_recognized_but_accommodation_remai
     assert by_name["reasonable_accommodation"]["passed"] is False, checks
 
 
+def test_production_community_rule_live_wording_passes_participation_and_accommodation():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should decide whether limits on personal liberty are justified by shared obligations and risks "
+        "through a structured process that names the purpose, identifies who is affected, and tests whether the limit "
+        "is the least restrictive means to address a demonstrated need. Legitimate shared purpose requires evidence of "
+        "genuine harm or coordination need—not merely majority preference. The decision must specify who benefits, "
+        "who bears the costs, and whose freedom is restricted, and it should be shaped by the people most affected. "
+        "Less restrictive, workable alternatives must be considered and accommodated if possible. The limit must be "
+        "necessary and proportionate to the risk, and the community must provide accessible appeal and review mechanisms."
+    )
+    transport = {
+        "status": 200, "error": None,
+        "body": {"ok": True, "response": answer,
+                 "recommendation": {
+                    "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                    "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                    "rationale": "This resource offers a relevant perspective on human-scale community governance.",
+                 },
+                 "response_provenance": {"class": "llm", "provider": "nvidia",
+                    "model": "nvidia/nemotron-3.5-lightning-30b-a3b", "llm_invoked": True}},
+    }
+    expected = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected)
+    by_name = {item["name"]: item for item in checks}
+    assert by_name["affected_party_participation"]["passed"] is True, checks
+    assert by_name["reasonable_accommodation"]["passed"] is True, checks
+    assert by_name["fair_burden_allocation"]["passed"] is True, checks
+
+
 def test_community_rule_live_paraphrases_pass_purpose_and_participation_but_not_missing_burden_allocation():
     case = {"case_id": "heldout-community-rule-design-transfer-001"}
     answer = (
