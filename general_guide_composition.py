@@ -427,27 +427,57 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         # the entire record exceeded the Groq 8k TPM budget. Keep this prompt
         # projection bounded without changing the immutable registry record.
         family = str(item.get("reasoning_family") or "")
-        community_rule_projection = (
+        community_freedom_projection = (
             index == 1
             and family == "community_freedom_shared_responsibility_proportionate_decision"
         )
+        community_rule_projection = (
+            family == "community_rule_design_personal_liberty_shared_obligations"
+        )
         discipline_text = item.get("transferable_discipline") or item.get("discipline")
         boundary_text = item.get("abstention_boundary")
-        if community_rule_projection:
+        activation_text = item.get("activation_condition")
+        if community_freedom_projection:
             discipline_text = (
                 "Protect rights/agency; evidence shared need/harm; include affected, less influential people; "
-                "distinguish duties from majority preference; test least-restrictive, proportionate limits; "
-                "distribute burdens fairly; require transparent, consistent rules, accountability, appeal, review, correction."
+                "distinguish necessary duties from majority preference; test less-restrictive alternatives and proportionality; "
+                "identify who benefits, who bears costs, and who is constrained; distribute burdens fairly; "
+                "require transparent, consistent rules, accountability, appeal, review, and correction."
             )
             boundary_text = (
                 "Collective preference cannot override rights; never assume limits justified or decide without facts."
             )
+        elif community_rule_projection:
+            # Preserve the rule-design lesson's distinctive operations and its
+            # qualifying scope. Generic head/tail truncation removed the central
+            # benefits/costs, reciprocal-duty, and accommodation requirements,
+            # while the 48-character activation fragment obscured when this
+            # conditional lesson should apply.
+            activation_text = (
+                "Activate for questions asking whether community limits on personal liberty are justified by "
+                "shared obligations, risks, safety, or coordination, even when phrased without the words rule or policy."
+            )
+            discipline_text = (
+                "Name legitimate shared purpose and demonstrable harm/coordination need; include affected people; "
+                "identify who benefits, who bears costs, and whose liberty is restricted; test necessity, proportionality, "
+                "and least-restrictive workable means; distribute obligations fairly with reasonable accommodation; "
+                "explain enforcement, appeal, and observable review criteria."
+            )
+            boundary_text = (
+                "Only for community liberty limits and collective obligations. Do not infer legal validity or assume "
+                "necessity/proportionality; require evidence, alternatives, fair allocation, accommodation, appeal, and review."
+            )
+        activation_value = (
+            activation_text
+            if community_rule_projection
+            else _compact_gold_star_prompt_field(activation_text, 48)
+        )
         candidate_lines.append(
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
-            f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 48) or 'none'}; "
+            f"activation={activation_value or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(discipline_text, 320)}; "
-            f"boundary={_compact_gold_star_prompt_field(boundary_text, 100)}"
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if community_rule_projection else 360)}; "
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if community_rule_projection else 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
