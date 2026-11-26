@@ -65,3 +65,45 @@ def test_ranked_gold_star_lesson_is_in_system_message_not_user_message(monkeypat
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" not in user_message
     assert candidate["benchmark_id"] not in user_message
     assert candidate["discipline"] not in user_message
+
+
+def test_community_rule_candidate_prompt_preserves_qualifying_scope_and_all_distinct_operations():
+    candidates = [
+        {
+            "benchmark_id": "gs-2026-11-22-community-freedom-shared-responsibility-decision",
+            "role": "core",
+            "reasoning_family": "community_freedom_shared_responsibility_proportionate_decision",
+            "activation_condition": "community freedom and shared responsibility",
+            "transferable_discipline": "Protect rights and distribute burdens fairly.",
+            "abstention_boundary": "Do not override rights.",
+        },
+        {
+            "benchmark_id": "gs-2026-11-23-community-rule-design-liberty-shared-obligations",
+            "role": "conditional",
+            "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+            "activation_condition": "The question explicitly asks to formulate, justify, or review a community rule, policy, or restriction.",
+            "transferable_discipline": (
+                "For community rules that constrain personal liberty in the name of collective obligations, "
+                "identify the legitimate shared purpose and demonstrable harm or coordination need; include the "
+                "people most affected; examine who benefits, who bears costs, and whose freedom is restricted; "
+                "require necessity, proportionality, and the least restrictive workable means; distribute "
+                "obligations fairly with reasonable accommodation; explain enforcement and provide appeal; "
+                "and set observable review criteria."
+            ),
+            "abstention_boundary": "Apply only to community rule design where personal liberty and collective obligations must be balanced.",
+        },
+    ]
+    prompt = composition._build_gold_star_quality_instruction({"candidates": candidates})
+    assert (
+        "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
+    ) in prompt
+    for required in (
+        "who benefits",
+        "who bears costs",
+        "whose liberty is restricted",
+        "least-restrictive workable means",
+        "reasonable accommodation",
+        "enforcement, appeal, and observable review criteria",
+    ):
+        assert required in prompt
+    assert "activation=The question explicitly asks to formulate" not in prompt
