@@ -67,14 +67,32 @@ def _gold_star_parse(payload):
     "adjudication",
     [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
 )
-def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudication(adjudication):
+def test_provider_response_with_candidates_preserves_answer_without_valid_adjudication(adjudication):
     payload = {
         "response": GOLD_STAR_RESPONSE,
         "response_shape": "direct",
         "adaptive_adjudication": adjudication,
     }
-    with pytest.raises(ValueError, match="Gold Star adjudication report is missing or incomplete"):
-        _gold_star_parse(payload)
+    parsed = _gold_star_parse(payload)
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    import gold_star_provider_adjudication as adjudication_contract
+    report = adjudication_contract.normalize_provider_adjudication(
+        parsed.get("adaptive_adjudication"),
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
+    assert report["status"] == "not_observed"
+    assert report["selected_candidate_ids"] == []
+    assert report["application"] == "not_observed"
+
+
+def test_provider_response_without_adjudication_field_preserves_complete_answer():
+    parsed = _gold_star_parse({
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+    })
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    assert "adaptive_adjudication" not in parsed
 
 
 def test_provider_selected_candidate_without_exact_span_is_delivered_without_application_credit():
@@ -134,12 +152,13 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
     assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
 
 
-def test_provider_composition_schema_requires_candidate_adjudication_object():
+def test_provider_composition_schema_keeps_adjudication_optional():
     schema = composition._build_provider_composition_schema(GOLD_STAR_CANDIDATES)
     assert schema is not None
     assert schema["strict"] is False
     root = schema["schema"]
-    assert "adaptive_adjudication" in root["required"]
+    assert "adaptive_adjudication" not in root["required"]
+    assert "adaptive_adjudication" in root["properties"]
     adjudication = root["properties"]["adaptive_adjudication"]
     assert set(adjudication["required"]) == {
         "candidate_assessments",
