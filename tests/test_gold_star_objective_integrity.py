@@ -34,7 +34,7 @@ def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_
     assert near_miss["linked_successor_benchmark_id"] == SUCCESSOR_ID
     assert near_miss["successor_state"] == "SUCCESSOR_APPROVED_AS_SEPARATE_GOLD_STAR"
 
-    # A proposed successor cannot become a runtime lesson before review/approval.
+    # The approved successor contributes only its bounded structural discipline.
     assert successor["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert successor["runtime_transfer"] is True
     assert successor["gold_star_capabilities"]["active_quality_contributor"] is True
@@ -52,6 +52,8 @@ def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_
     review_entry = next(item for item in review["entries"] if item["benchmark_id"] == SUCCESSOR_ID)
     assert review_entry["activation"] == "active_quality_contributor"
     assert SUCCESSOR_ID in {item["benchmark_id"] for item in transfer_map["entries"]}
+    assert successor["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
+    assert "NOT_EVALUATED" in successor["gold_star_capabilities"]["abstention_boundary"]
     assert successor["numbering_status"] == "UNASSIGNED"
     assert successor["doorway_status"] == "NOT_EVALUATED"
 
