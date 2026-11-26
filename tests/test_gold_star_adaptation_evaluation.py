@@ -267,3 +267,34 @@ def test_prompt_generation_and_registry_fingerprints_must_match_across_pair():
     result = evaluation.evaluate_paired_case(pair)
     assert result["valid"] is False
     assert result["reason"] == "unpaired_base_prompt_fingerprint"
+
+
+def test_batch_reports_descriptive_paired_confidence_interval_and_requires_positive_lower_bound():
+    pairs = [
+        _pair("case-1", "proxy_metric"),
+        _pair("case-2", "feedback_loop"),
+        _pair("case-3", "goal_revision"),
+        _pair("case-4", "proxy_metric"),
+        _pair("case-5", "feedback_loop"),
+        _pair("case-6", "goal_revision"),
+    ]
+    result = evaluation.evaluate_batch(pairs)
+    interval = result["confidence_interval_95"]
+    assert interval["level"] == 0.95
+    assert interval["lower"] == 1.0
+    assert interval["upper"] == 1.0
+    assert interval["method"] == "paired_student_t_interval"
+    assert "descriptive_curated_cohort" in interval["interpretation"]
+
+
+def test_batch_with_positive_mean_but_uncertain_small_sample_does_not_pass_screening():
+    pairs = [
+        _pair("case-1", "proxy_metric", baseline=1, treatment=2, verdict="improved"),
+        _pair("case-2", "feedback_loop", baseline=1, treatment=1, verdict="not_improved"),
+        _pair("case-3", "goal_revision", baseline=1, treatment=1, verdict="not_improved"),
+    ]
+    result = evaluation.evaluate_batch(pairs)
+    assert result["mean_score_delta"] > 0
+    assert result["confidence_interval_95"]["lower"] < 0
+    assert "confidence_interval_not_above_zero" in result["reasons"]
+    assert result["status"] == "evidence_insufficient"
