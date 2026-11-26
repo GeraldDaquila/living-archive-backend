@@ -203,6 +203,15 @@ def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
     return provider, model, bool(attributable)
 
 
+def _exact_provider_model_candidates(candidates: list[dict], provider: str, model: str) -> list[dict]:
+    """Return only the exact pinned lane; never admit sibling-model fallback."""
+    return [
+        item for item in candidates
+        if str(item.get("provider") or "").strip() == str(provider or "").strip()
+        and str(item.get("model") or "").strip() == str(model or "").strip()
+    ]
+
+
 def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: str = "") -> dict:
     """Choose one exact eligible provider/model pair; never silently substitute."""
     provider = str(provider or "").strip()
@@ -274,6 +283,23 @@ def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inte
             "reasoning_effort": "low" if model.startswith("openai/gpt-oss-") else "provider_default",
             "include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable",
             "provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked",
+        }
+    if provider == "workers_ai":
+        return {
+            **common,
+            "max_tokens": arm_state.get("max_tokens"),
+            "temperature": 0.0,
+            "response_format": (
+                "omitted_text_mode" if arm_state.get("schema_mode") == "text"
+                else "json_schema" if arm_state.get("schema_sha256") else "json_object"
+            ),
+            "options_reject_if_busy": True,
+            "chat_template_kwargs": (
+                {"enable_thinking": False}
+                if model == "@cf/google/gemma-4-26b-a4b-it" else "not_supplied"
+            ),
+            "message_adapter": "_workers_normalize_messages",
+            "transport_retry_policy": "single_http_attempt_no_provider_sdk_retry",
         }
     raise ValueError(f"Matched-pair generation fingerprint is not defined for provider: {provider}")
 
@@ -418,7 +444,7 @@ async def capture(args) -> dict:
     ]
     negative_control_passed = target_lesson_id not in negative_control_ids
 
-    eligible = provider_bank.select(
+    eligible = provider_bank.candidates(
         main.use_core, operation="general_guide_composition"
     )
     try:
@@ -440,6 +466,15 @@ async def capture(args) -> dict:
     # production configuration, or the shared request deadline.
     original_provider_call_timeout = provider_bank._provider_call_timeout
     original_quota_guarded_call = provider_bank._quota_guarded_call
+    original_select = provider_bank.select
+
+    def evaluation_select(use_core, operation="generic", schema=None):
+        if operation == "general_guide_composition":
+            current = provider_bank.candidates(
+                use_core, operation=operation, schema=schema
+            )
+            return _exact_provider_model_candidates(current, provider, model)[:1]
+        return original_select(use_core, operation=operation, schema=schema)
 
     def evaluation_provider_call_timeout(operation, item=None, attempt_index=1):
         timeout = original_provider_call_timeout(operation, item, attempt_index)
@@ -469,10 +504,13 @@ async def capture(args) -> dict:
             if state is not None:
                 state["max_tokens"] = max_tokens
                 effective_schema = schema
-                if provider == "gemini" and isinstance(schema, dict):
+                if provider in {"gemini", "workers_ai"} and isinstance(schema, dict):
                     nested_schema = schema.get("schema")
                     if isinstance(nested_schema, dict):
-                        effective_schema = provider_bank._gemini_compatible_response_schema(nested_schema)
+                        effective_schema = (
+                            provider_bank._gemini_compatible_response_schema(nested_schema)
+                            if provider == "gemini" else nested_schema
+                        )
                 state["schema_sha256"] = (
                     _sha256(json.dumps(effective_schema, sort_keys=True, separators=(",", ":")))
                     if isinstance(effective_schema, dict) else None
@@ -486,11 +524,13 @@ async def capture(args) -> dict:
 
     provider_bank._provider_call_timeout = evaluation_provider_call_timeout
     provider_bank._quota_guarded_call = evaluation_quota_guarded_call
+    provider_bank.select = evaluation_select
     restore_observers = _install_observers(composition, main)
     def restore():
         restore_observers()
         provider_bank._provider_call_timeout = original_provider_call_timeout
         provider_bank._quota_guarded_call = original_quota_guarded_call
+        provider_bank.select = original_select
 
     records = []
     blind_cases = []
