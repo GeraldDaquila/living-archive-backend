@@ -119,6 +119,8 @@ def test_final_answerability_boundary_repairs_provider_exhaustion_payload():
     assert repaired["answer_basis"]["kind"] == "general_knowledge"
     assert repaired["doorway_title"] == ""
     assert repaired["doorway_url"] == ""
+    assert repaired["doorway_decision"] == "omit"
+    assert repaired["navigation_suppressed_by_task_contract"] is True
 
 
 def test_final_answerability_boundary_preserves_source_only_and_high_stakes_limits():
