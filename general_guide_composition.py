@@ -456,13 +456,12 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
                 "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
             )
             discipline_text = (
-                "Identify the legitimate shared purpose and demonstrable harm; include affected people; name who benefits, who bears costs, "
-                "whose liberty is restricted; test necessity, proportionality, least-restrictive workable means; distribute burdens fairly "
-                "with reasonable accommodation; set enforcement, appeal, and observable review criteria."
+                "Identify the legitimate shared purpose and evidence of demonstrable harm; compare necessity, proportionality, and "
+                "less-restrictive means; identify whose liberty is limited, who benefits, and who bears costs; include affected people; "
+                "distribute burdens fairly with reasonable accommodation; specify appeal and observable review."
             )
             boundary_text = (
-                "Community liberty limits only. Do not infer legality or assume a restriction is necessary; require evidence, fair allocation, "
-                "accommodation, appeal, and observable review."
+                "Do not infer legality or assume necessity without case-specific evidence; require fair allocation, accommodation, appeal, and review."
             )
         activation_value = (
             activation_text

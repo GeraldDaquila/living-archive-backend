@@ -181,7 +181,9 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     }
     prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
 
-    assert "Identify the legitimate shared purpose and demonstrable harm" in prompt
-    assert "distribute burdens fairly" in prompt
-    assert "accommodation, appeal, and observable review" in prompt
-    assert "Do not infer legality or assume a restriction is necessary" in prompt
+    assert "Identify the legitimate shared purpose and evidence of demonstrable harm" in prompt
+    assert "less-restrictive means" in prompt
+    assert "whose liberty is limited, who benefits, and who bears costs" in prompt
+    assert "distribute burdens fairly with reasonable accommodation" in prompt
+    assert "specify appeal and observable review" in prompt
+    assert "Do not infer legality or assume necessity without case-specific evidence" in prompt
