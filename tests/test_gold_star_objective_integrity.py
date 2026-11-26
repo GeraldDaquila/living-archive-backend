@@ -43,6 +43,12 @@ def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_
     assert successor["user_reviewed_response"] is True
     assert successor["explicit_user_elevation_approval"] is True
     assert successor["elevation_approval_evidence"]
+    assert successor["approval_state"].startswith("USER APPROVED GOLD STAR")
+    assert successor["user_approved_at"] == "2026-11-26"
+    assert successor["assistant_assessment_out_of_10"] == 9.5
+    assert successor["transferable_lesson"]
+    assert successor["transfer_boundary"]
+    assert successor["freeze_policy"] == "immutable_user_approved_gold_standard"
     review_entry = next(item for item in review["entries"] if item["benchmark_id"] == SUCCESSOR_ID)
     assert review_entry["activation"] == "active_quality_contributor"
     assert SUCCESSOR_ID in {item["benchmark_id"] for item in transfer_map["entries"]}
