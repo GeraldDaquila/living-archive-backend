@@ -17,6 +17,8 @@ def test_general_guide_contract_requires_semantic_chunks_without_a_fixed_templat
     for phrase in required:
         assert phrase in source
     assert "Do not impose a fixed number of paragraphs or a universal sequence" in source
+    assert "VISITOR IDEA-CHUNKING AND READABILITY:" in source
+    assert "The visitor should be able to pause after each idea" in source
 
 
 def test_guide_answer_css_gives_semantic_chunks_readable_spacing_and_mobile_rhythm():
