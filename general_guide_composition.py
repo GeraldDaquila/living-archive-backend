@@ -456,8 +456,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
                 "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
             )
             discipline_text = (
-                "State purpose and evidenced shared need; map beneficiaries, burdens, restricted liberty, reciprocal duties, and accommodation; "
-                "include affected people in design; test necessity, proportionality, least-restrictive means, appeal, and review."
+                "State purpose/evidenced need; map beneficiaries, burden-bearers, restricted liberty, reciprocal duties, and accommodation; "
+                "include affected people in design; require least-restrictive proportional limits, enforcement, appeal, and observable review."
             )
             boundary_text = (
                 "Name missing facts; do not invent need, infer legality, or assume necessity."
@@ -484,8 +484,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
         "apply selected reasoning in the answer. Copy an exact 12–120-character response substring verbatim, "
         "including punctuation; no paraphrase, ellipsis, or quotes. Reject if impossible. "
-        "For community rules, state purpose, evidenced need, beneficiaries/burdens/liberty, reciprocal duties, "
-        "accommodation, and affected-party influence. Name missing facts; do not invent them. "
+        "For community rules, state purpose/evidenced need; map benefits, burdens, and liberty; require reciprocal duties, "
+        "accommodation, affected-party influence, enforcement, appeal, and observable review. Name missing facts; do not invent them. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
