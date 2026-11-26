@@ -17,8 +17,8 @@ ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
 # Run provider-sensitive critical transfer cases before the sampled Gold Standards.
 # This preserves every acceptance criterion while reducing false failures from shared TPM exhaustion.
 PROVIDER_PRIORITY_HELDOUT_IDS = (
-    "heldout-transparency-trust-relational-synthesis-001",
     "heldout-community-rule-design-transfer-001",
+    "heldout-transparency-trust-relational-synthesis-001",
 )
 # Use a distinct but semantically equivalent question so the attribution probe
 # cannot inherit a cached answer from the primary visitor smoke.

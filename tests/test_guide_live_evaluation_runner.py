@@ -780,8 +780,8 @@ def test_provider_sensitive_heldout_cases_run_before_sampled_gold_standards():
     ]
     priority, remaining = prioritize_heldout_cases(cases)
     assert [item["case_id"] for item in priority] == [
-        "heldout-transparency-trust-relational-synthesis-001",
         "heldout-community-rule-design-transfer-001",
+        "heldout-transparency-trust-relational-synthesis-001",
     ]
     assert [item["case_id"] for item in remaining] == [
         "heldout-water-boiling-point-001",
