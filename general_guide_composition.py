@@ -394,7 +394,7 @@ def _objective_integrity_instruction(question: str) -> str:
     if not (optimization_topic and objective_topic):
         return ""
     return (
-        "OBJECTIVE INTEGRITY: Test whether the measure still serves the purpose. "
+        "OBJECTIVE INTEGRITY: Test whether the proxy/measure still serves the purpose. "
         "Distinguish improving methods for a sound goal from revising a goal that "
         "is misaligned, harmful, or based on failed assumptions. Check feedback loops, "
         "unmeasured costs, affected people, evidence, and legitimate authority. "
