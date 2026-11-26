@@ -59,8 +59,8 @@ def test_ranked_gold_star_lesson_is_in_system_message_not_user_message(monkeypat
     assert "If none qualifies, answer normally" in system_message
     assert "If none qualifies, answer normally" in system_message
     assert "Never transfer exemplar answers, claims, examples, citations, or doorways" in system_message
-    assert "Never combine candidates to reward their number or similarity ranking" in system_message
-    assert "apply the selected discipline's distinct reasoning steps in the answer" in system_message
+    assert "Combine only when each adds a distinct, necessary, compatible operation not already covered" in system_message
+    assert "apply selected reasoning in the answer" in system_message
 
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" not in user_message
     assert candidate["benchmark_id"] not in user_message
@@ -98,12 +98,12 @@ def test_community_rule_candidate_prompt_preserves_qualifying_scope_and_all_dist
         "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
     ) in prompt
     for required in (
-        "who benefits",
-        "who bears costs",
-        "whose liberty is restricted",
-        "least-restrictive workable means",
-        "reasonable accommodation",
-        "enforcement, appeal, and observable review criteria",
+        "beneficiaries",
+        "burden-bearers",
+        "restricted liberty",
+        "least-restrictive proportional limits",
+        "accommodation",
+        "enforcement, appeal, and observable review",
     ):
         assert required in prompt
     assert "activation=The question explicitly asks to formulate" not in prompt

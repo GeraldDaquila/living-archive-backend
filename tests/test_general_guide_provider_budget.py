@@ -862,7 +862,8 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     adjudication_instruction = guide_composition._build_gold_star_quality_instruction(quality)
     assert "An unclassified role is not disqualifying" in adjudication_instruction
     assert "Decide before drafting" in adjudication_instruction
-    assert "quote an exact contiguous span" in adjudication_instruction
+    assert "Copy an exact 12–120-character response substring verbatim" in adjudication_instruction
+    assert "Reject if impossible" in adjudication_instruction
     system = guide_composition._build_general_guide_system_message(
         question,
         has_gold_star_guidance=True,

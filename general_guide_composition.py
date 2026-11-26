@@ -456,12 +456,11 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
                 "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
             )
             discipline_text = (
-                "Identify the legitimate shared purpose and demonstrable harm; include affected people; name who benefits, who bears costs, "
-                "whose liberty is restricted; test necessity, proportionality, least-restrictive workable means; distribute burdens fairly "
-                "with reasonable accommodation; set enforcement, appeal, and observable review criteria."
+                "State purpose/evidenced need; map beneficiaries, burden-bearers, restricted liberty, reciprocal duties, and accommodation; "
+                "include affected people in design; require least-restrictive proportional limits, enforcement, appeal, and observable review."
             )
             boundary_text = (
-                "Do not infer legality or assume necessity without case-specific evidence; require fair allocation, accommodation, appeal, and review."
+                "Name missing facts; do not invent need, infer legality, or assume necessity."
             )
         activation_value = (
             activation_text
@@ -483,8 +482,10 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Check subject/task fit, contribution, redundancy, and boundary. Decide before drafting. "
         "Select the smallest sufficient set; prefer one specific candidate when it covers the task. "
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
-        "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span. "
-        "Never combine candidates to reward their number or similarity ranking. "
+        "apply selected reasoning in the answer. Copy an exact 12–120-character response substring verbatim, "
+        "including punctuation; no paraphrase, ellipsis, or quotes. Reject if impossible. "
+        "Community rules: state purpose/evidenced need; map benefits, burdens, liberty; require reciprocity, accommodation, "
+        "affected-party input, enforcement, appeal, observable review. Name missing facts; don't invent. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"

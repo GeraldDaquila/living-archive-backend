@@ -79,8 +79,11 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
         "An unclassified role is not disqualifying",
         "Select the smallest sufficient set; prefer one specific candidate when it covers the task.",
         "Decide before drafting",
-        "apply the selected discipline's distinct reasoning steps in the answer",
-        "quote an exact contiguous span",
+        "apply selected reasoning in the answer",
+        "Copy an exact 12–120-character response substring verbatim",
+        "including punctuation; no paraphrase, ellipsis, or quotes. Reject if impossible",
+        "Community rules: state purpose/evidenced need; map benefits, burdens, liberty",
+        "affected-party input, enforcement, appeal, observable review. Name missing facts; don't invent",
         "Combine only when each adds a distinct, necessary, compatible operation not already covered.",
         "Reject all when none improves the answer ",
         "or relevance is merely lexical.",
@@ -161,7 +164,7 @@ def test_top_ranked_community_rule_projection_preserves_key_operations_within_bu
         "accountability, appeal, review, correction",
         "Collective preference cannot override rights",
         "never assume limits justified",
-        "apply the selected discipline's distinct reasoning steps in the answer",
+        "apply selected reasoning in the answer",
     ):
         assert phrase in prompt
 
@@ -181,11 +184,9 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     }
     prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
 
-    assert "Identify the legitimate shared purpose and demonstrable harm" in prompt
-    assert "who benefits" in prompt
-    assert "who bears costs" in prompt
-    assert "whose liberty is restricted" in prompt
-    assert "least-restrictive workable means" in prompt
-    assert "distribute burdens fairly with reasonable accommodation" in prompt
-    assert "enforcement, appeal, and observable review criteria" in prompt
-    assert "Do not infer legality or assume necessity without case-specific evidence" in prompt
+    assert "State purpose/evidenced need" in prompt
+    assert "beneficiaries, burden-bearers, restricted liberty, reciprocal duties, and accommodation" in prompt
+    assert "include affected people in design" in prompt
+    assert "require least-restrictive proportional limits, enforcement, appeal, and observable review" in prompt
+    assert "Name missing facts; do not invent need, infer legality, or assume necessity" in prompt
+    assert "Community rules: state purpose/evidenced need; map benefits, burdens, liberty" in prompt
