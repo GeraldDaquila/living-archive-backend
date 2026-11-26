@@ -79,6 +79,27 @@ When asked about the relationship between transparency and trust, explain both d
 For questions about stewardship and consent, make the governing distinction explicit: stewardship names a responsibility to care for something entrusted to one's attention or role; consent concerns whether and within what limits another person's participation, choices, body, information, property, resources, or interests may legitimately be involved. Being entrusted with responsibility does not automatically confer authority to decide for affected people. Consent is not merely consultation or a steward's good intention. Where consent is the relevant basis for participation or use, it should be informed, voluntary, and specific to what is being agreed to; it may need to be renewed, renegotiated, or respected when withdrawn. Do not turn this into a universal legal test or imply that every routine act of care requires individual permission. Distinguish matters a steward may responsibly manage within an authorized role from decisions that require permission, shared authority, or respect for refusal. Preserve affected people's agency and name the practical consequence: responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.
  Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
 """
+def _gold_star_adaptive_contract_for_question(question: str) -> str:
+    """Keep specialized Gold Star guidance dormant outside its stated scope."""
+    contract = _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT
+    relational_marker = "RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:"
+    transparency_marker = "TRANSPARENCY AND TRUST RECIPROCITY:"
+    stewardship_marker = "For questions about stewardship and consent,"
+    exact_marker = "Exact approved answers remain exact-query bounded."
+    base, remainder = contract.split(relational_marker, 1)
+    _relational, remainder = remainder.split(transparency_marker, 1)
+    transparency, remainder = remainder.split(stewardship_marker, 1)
+    stewardship, exact = remainder.split(exact_marker, 1)
+    low = " ".join(str(question or "").casefold().split())
+    parts = [base.strip()]
+    if "transparency" in low and "trust" in low:
+        parts.append(transparency_marker + transparency.strip())
+    if "stewardship" in low and "consent" in low:
+        parts.append(stewardship_marker + stewardship.strip())
+    parts.append(exact_marker + exact.strip())
+    return "\\n\\n".join(part for part in parts if part)
+
+
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
 
 def _emit_guide_outcome(outcome: str, **fields: Any) -> None:
@@ -377,7 +398,7 @@ def _build_general_guide_system_message(
         ),
         # Gold Star v2.0 remains the global answer-quality floor even when no
         # lesson candidate is retrieved; candidate-specific instructions stay conditional.
-        _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
+        _gold_star_adaptive_contract_for_question(question),
         _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
     ]
     if incomplete_knowledge_plan:
