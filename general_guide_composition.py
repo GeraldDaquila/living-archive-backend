@@ -485,7 +485,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Select one only when materially relevant and sufficient. "
         "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span. "
         "Combine candidates only when each adds a distinct, necessary, compatible operation; "
-        "never combine candidates to reward their number or similarity ranking. "
+        "Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
