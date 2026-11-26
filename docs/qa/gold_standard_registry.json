@@ -8996,10 +8996,50 @@
           "Add one concrete individual or community example"
         ]
       },
-      "freeze_policy": "Preserve the original visitor-facing question and answer as immutable diagnostic evidence. Any improved response must be recorded as a separately reviewed successor; do not silently overwrite this near-miss record."
+      "freeze_policy": "Preserve the original visitor-facing question and answer as immutable diagnostic evidence. The linked successor is a separate candidate; do not overwrite this record or treat either record as an approved Gold Star without the required review and evidence.",
+      "linked_successor_benchmark_id": "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
+      "successor_state": "SEPARATE_CANDIDATE_PENDING_USER_REVIEW_AND_VALIDATION"
+    },
+    {
+      "benchmark_id": "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
+      "status": "CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "query": "What are the limits of self-optimization as a model of development?",
+      "expected_response": "Self-optimization can be valuable: it helps people learn, improve skills, correct mistakes, and use their abilities more effectively. Its limit is that it usually asks how to perform better against an existing goal. It does not, by itself, establish whether the goal is still worth pursuing, whether the measure captures what matters, or whether changing circumstances require the goal to be reconsidered.\n\nA first risk is **proxy drift**. A measurable target often stands in for a deeper purpose, but the measure can gradually become the purpose. A school that treats test scores as the whole meaning of education may improve scores while narrowing learning, curiosity, or students’ ability to apply knowledge. The metric rises, yet the underlying purpose may be weakened.\n\nA second risk is a **self-reinforcing feedback loop**. Once people are rewarded for a particular measure, they tend to direct effort toward what the measure recognizes. The resulting data can then appear to confirm that the chosen target is right, while costs that were not measured—such as exclusion, exhaustion, reduced trust, or damage to shared resources—remain less visible. More optimization can therefore strengthen the original mistake rather than correct it.\n\nThis is why two different questions must be kept apart:\n\n- **Is the goal sound, but the method ineffective?** Improve the method, learn from reliable feedback, and reassess the results.\n- **Is the goal itself misaligned with its purpose, harmful in its wider effects, or based on assumptions that no longer hold?** Reconsider the goal before investing in greater efficiency.\n\nThat second decision should not be made casually. It calls for examining the original purpose, the quality and limits of the evidence, the people affected, external constraints, unintended consequences, and who has legitimate authority to revise the objective. Difficulty or an inconvenient result alone is not proof that a goal should be abandoned; equally, a rising score is not proof that it remains worthwhile.\n\nImagine a community garden that begins by optimizing the amount of food harvested. Better scheduling and cultivation may increase yield. But if the pursuit of yield depletes the soil, excludes less-resourced residents, or leaves no time for shared learning, the garden may be succeeding at its measure while failing at its purpose. The appropriate response may include improving techniques, but it may also require revisiting what the garden is for and how its benefits and responsibilities are shared.\n\nDevelopment, then, is broader than continual self-improvement. It includes learning and adaptation, but also judgment about ends, attention to relationships and systems, stewardship of what must endure, and the willingness to stop optimizing a measure when it no longer serves the purpose. Sometimes progress means doing something better; sometimes it means choosing a better thing to do.\n\nThis is a general conceptual explanation, not a claim that the Living Archive defines these ideas in exactly these terms.",
+      "doorway_status": "NOT_EVALUATED",
+      "expected_doorway": null,
+      "rating": null,
+      "rating_out_of_10": null,
+      "known_theme": "objective_integrity; proxy_mismatch; self_reinforcing_feedback_loops; goal_revision; developmental_stewardship; systemic_consequences",
+      "runtime_transfer": false,
+      "gold_star_candidate_state": "PENDING_USER_REVIEW_AND_STRUCTURAL_VALIDATION",
+      "gold_star_capabilities": {
+        "generation_class": "candidate_only",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false
+      },
+      "assertions": [
+        "Distinguish optimizing execution against an existing objective from evaluating whether the objective still serves its underlying purpose.",
+        "Explain proxy drift: a measurable indicator can displace the purpose it was intended to represent.",
+        "Explain self-reinforcing feedback loops in which incentives and selective measurement strengthen a flawed objective while concealing unmeasured costs.",
+        "Give a decision rule: improve methods when the goal remains sound; reconsider the goal when it is misaligned with purpose, harmful in wider effects, or based on materially invalid assumptions.",
+        "Require evidence, affected-party consideration, external constraints, consequences, and legitimate decision authority before recommending objective revision.",
+        "Use a concrete example to demonstrate how a metric can improve while the underlying purpose deteriorates.",
+        "Do not imply that every difficulty justifies abandoning a goal, or that a rising metric proves the goal remains worthwhile.",
+        "Keep the explanation general unless an authoritative Living Archive source supports an Archive-specific claim."
+      ],
+      "provenance": {
+        "source": "Separately authored successor to the immutable near-miss recorded in PR #2050.",
+        "source_date": "2026-11-26",
+        "linked_near_miss_benchmark_id": "general-guide-self-optimization-limits-development-near-miss-2026-11-26",
+        "implementation_status": "Proposed response and architectural guardrail; not yet user-reviewed, approved, or runtime-active.",
+        "evidence_boundary": "The original screenshot establishes only the earlier visitor-facing answer. This successor is an authored candidate, not a live visitor response or evidence of adaptive transfer."
+      },
+      "freeze_policy": "This is a proposed successor, not an approved Gold Star. Preserve it as a candidate until the user reviews this exact response and required regression/held-out validation passes. Do not grant runtime transfer, exact-answer authority, deterministic fallback, or doorway authority before the governed approval step."
     }
   ],
-  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created.",
+  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created. Added a separately authored objective-integrity successor candidate linked to the immutable self-optimization near-miss. Both remain excluded from approved and active Gold Star counts pending user review and validation; canonical counts reconciled to the 179 existing records plus this new candidate.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -9128,13 +9168,13 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-24",
+    "last_audit_date": "2026-11-26",
     "approved_gold_star_count": 139,
-    "registry_record_count": 178,
-    "review_reconciliation": "Canonical approved inventory contains 139 USER_APPROVED_GOLD_STANDARD records: 136 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance. A further 2026-11-24 civic-commons provider-exhaustion near-miss is preserved as diagnostic evidence and linked to the existing approved public-commons Gold Star; it is excluded from the approved count and does not create a duplicate learning record.",
+    "registry_record_count": 180,
+    "review_reconciliation": "Canonical inventory contains 139 USER_APPROVED_GOLD_STANDARD records: 136 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The two self-optimization records are separate candidates and do not increase approved or active counts. The original visitor response remains immutable near-miss evidence; its proposed successor is not runtime-active.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 139 approved Gold Stars; 39 assigned display serials #56–#94; 100 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-26: 139 approved Gold Stars; 39 assigned display serials #56–#94; 100 approved records explicitly UNASSIGNED with reasons. The proposed successor has no serial because it is not yet approved and no display serial was requested.",
     "unassigned_approved_gold_star_count": 100,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 136,
@@ -9143,7 +9183,7 @@
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-governance-balance-consequence-aware-2026-11-24 approved by user 2026-11-24",
-    "calibration_candidates_pending_user_review": 0,
+    "calibration_candidates_pending_user_review": 2,
     "approved_response_quality_exemplar_count": 1
   },
   "numbering_policy": {
@@ -9242,23 +9282,23 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-24",
-    "approved_gold_star_count": 136,
-    "registry_record_count": 173,
-    "review_reconciliation": "Canonical approved inventory now contains 136 USER_APPROVED_GOLD_STANDARD records: 133 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical duplicate. The consequence-aware governance response is preserved as an approved answer-level quality exemplar paired with the active structural governance Gold Star. The original screenshot answer remains preserved as linked diagnostic provenance.",
+    "last_audit_date": "2026-11-26",
+    "approved_gold_star_count": 139,
+    "registry_record_count": 180,
+    "review_reconciliation": "Canonical inventory contains 139 USER_APPROVED_GOLD_STANDARD records: 136 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The two self-optimization records are separate candidates and do not increase approved or active counts. The original visitor response remains immutable near-miss evidence; its proposed successor is not runtime-active.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-24: 136 approved Gold Stars; 39 assigned display serials #56–#94; 97 approved records explicitly UNASSIGNED with reasons. This exemplar remains unnumbered because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 97,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-26: 139 approved Gold Stars; 39 assigned display serials #56–#94; 100 approved records explicitly UNASSIGNED with reasons. The proposed successor has no serial because it is not yet approved and no display serial was requested.",
+    "unassigned_approved_gold_star_count": 100,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 133,
+    "active_quality_contributor_count": 136,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-governance-balance-consequence-aware-2026-11-24 approved by user 2026-11-24",
-    "calibration_candidates_pending_user_review": 0,
+    "calibration_candidates_pending_user_review": 2,
     "approved_response_quality_exemplar_count": 1
   },
-  "last_reconciled": "2026-11-24"
+  "last_reconciled": "2026-11-26"
 }
