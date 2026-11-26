@@ -427,14 +427,15 @@ def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
 
-def test_healthy_nvidia_lightning_gets_six_second_margin_after_live_timeout(monkeypatch):
+def test_healthy_nvidia_lightning_gets_six_point_five_second_margin_after_live_timeout(monkeypatch):
     model = "nvidia/nemotron-3.5-lightning-30b-a3b"
-    # 2.74s EWMA produces the observed 5.1s timeout that was exceeded
-    # by 22ms during the live transparency/trust composition.
+    # 2.74s EWMA produces the former 5.1s timeout; live acceptance later
+    # observed 6.032s on a complete held-out community-rule transfer.
     monkeypatch.setitem(provider_bank._PROVIDER_LATENCY_EWMA, ("nvidia", model), 2.74)
     healthy = {**_item("nvidia", model), "health_state": "healthy"}
     timeout = provider_bank._provider_call_timeout("general_guide_composition", healthy)
-    assert timeout == pytest.approx(6.0)
+    assert timeout == pytest.approx(6.5)
+    assert timeout > 6.032
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
     # Do not lengthen half-open probes; preserve their existing bounded policy.
