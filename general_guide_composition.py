@@ -380,6 +380,38 @@ def _is_community_liberty_limit_question(question: str) -> bool:
     return has_liberty and has_limit and has_community
 
 
+def _objective_integrity_instruction(question: str) -> str:
+    """Add goal/metric reasoning only to questions where it is relevant."""
+    low = " ".join(str(question or "").casefold().split())
+    improvement_topic = any(term in low for term in (
+        "optim", "improv", "performance", "development",
+    ))
+    objective_topic = any(term in low for term in (
+        "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim", "score", "indicator", "outcome", "benchmark",
+    ))
+    # Metric-to-purpose alignment is itself an objective-integrity task,
+    # even when the visitor does not phrase it as an improvement request.
+    metric_alignment_question = (
+        any(term in low for term in ("metric", "measure", "indicator", "success measure"))
+        and any(term in low for term in ("align", "serve", "reflect", "represent"))
+        and any(term in low for term in ("goal", "objective", "purpose", "mission", "aim"))
+    )
+    developmental_limits_question = (
+        "optim" in low
+        and any(term in low for term in ("development", "limit", "model of"))
+    )
+    if not ((improvement_topic and objective_topic) or metric_alignment_question or developmental_limits_question):
+        return ""
+    return (
+        "OBJECTIVE INTEGRITY: Test whether the proxy/measure still serves the purpose. "
+        "Distinguish improving methods for a sound goal from revising a goal that "
+        "is misaligned, harmful, or based on failed assumptions. Check feedback loops, "
+        "unmeasured costs, affected people, evidence, and legitimate authority. "
+        "Difficulty alone does not invalidate a goal; a rising metric does not prove "
+        "the goal remains worthwhile."
+    )
+
+
 def _build_general_guide_system_message(
     question: str,
     *,
@@ -388,6 +420,7 @@ def _build_general_guide_system_message(
     integrity_recovery_instruction: str = "",
     gold_star_quality_instruction: str = "",
     public_live_source_instruction: str = "",
+    objective_integrity_instruction: str = "",
 ) -> str:
     """Assemble only the system contracts required by this request."""
     parts = [
@@ -399,6 +432,8 @@ def _build_general_guide_system_message(
         _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
         _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
     ]
+    if objective_integrity_instruction:
+        parts.append(objective_integrity_instruction.strip())
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
@@ -4978,6 +5013,7 @@ def compose(
     )
 
     public_live_source_instruction = _public_live_source_security_instruction(context_data)
+    objective_integrity_instruction = _objective_integrity_instruction(question)
 
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
@@ -5329,6 +5365,7 @@ def compose(
                     integrity_recovery_instruction=integrity_recovery_instruction,
                     gold_star_quality_instruction=gold_star_quality_instruction,
                     public_live_source_instruction=public_live_source_instruction,
+                    objective_integrity_instruction=objective_integrity_instruction,
                 )},
                 {"role": "user", "content": user_content[:7000]},
             ],
@@ -5371,6 +5408,7 @@ def compose(
                 integrity_recovery_instruction=integrity_recovery_instruction,
                 gold_star_quality_instruction=gold_star_quality_instruction,
                 public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
             ) + (
                 "\n\nANSWERABILITY REPAIR — THIS IS A GENERAL CONCEPTUAL QUESTION. "
                 "Do not repeat a generic statement that the available response lacks enough "

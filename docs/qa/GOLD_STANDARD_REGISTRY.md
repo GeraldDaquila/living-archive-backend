@@ -1,5 +1,13 @@
 # Living Archive Gold-Standard Registry
 
+## Newly elevated — 2026-11-26
+
+- **Gold Star:** `general-guide-developmental-stewardship-objective-integrity-2026-11-26` — **Developmental Stewardship and Objective Integrity**. The user reviewed and explicitly approved the exact successor response on 2026-11-26 after the candidate behavioral and matched-pair gates passed.
+- **Diagnostic provenance:** The original `general-guide-self-optimization-limits-development-near-miss-2026-11-26` from PR #2050 remains preserved as a separate, immutable near-miss. It is not overwritten or counted as an approved Gold Star.
+- **Transferable discipline:** Distinguish improving methods against an existing objective from reconsidering the objective itself; test proxy/purpose alignment, feedback loops, unmeasured costs, systemic consequences, affected parties, and legitimate decision authority.
+- **Runtime boundary:** Active structural-learning contributor for qualifying optimization, performance, development, metric, target, and goal-setting questions. Exact-answer authority and deterministic fallback remain disabled. The successor has no verified doorway and remains `NOT_EVALUATED`; no serial was requested, so numbering is `UNASSIGNED`.
+- **Evidence boundary:** Approval and CI validation do not establish live visitor application or measurable adaptive outcome improvement. Those require separate production-correlated evidence.
+
 ## Newly elevated 2026-11-24
 
 - **Newly elevated 2026-11-24:** `general-guide-public-commons-civic-renewal-2026-11-24` preserves the exact live visitor answer to “What is the role of public commons in civic renewal?” It demonstrates bounded conceptual answerability after provider exhaustion: answer the general question directly, distinguish general explanation from formal Archive doctrine, identify governance conditions and failure modes, and preserve a separately warranted continuation. The screenshot confirms the visible **Philippine Renewal Framework** doorway title, but not its URL; the canonical destination remains unevaluated and must not be inferred. The record is an active structural-learning contributor with deterministic-fallback eligibility disabled. Its human-facing serial remains `UNASSIGNED`. This elevation does not claim held-out adaptive transfer has been proven.
@@ -977,3 +985,18 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Production evidence boundary:** The supplied screenshot confirms the visitor-facing response and doorway. It does not establish the serving commit or request-correlated Gold Star retrieval, selection, application, or outcome trace.
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved answer and bounded transferable discipline. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star — Developmental stewardship and objective integrity (2026-11-26)
+
+- **Benchmark:** `general-guide-developmental-stewardship-objective-integrity-2026-11-26`.
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact successor response approved by the user on 2026-11-26.
+- **Question:** “What are the limits of self-optimization as a model of development?”
+- **Answer:** Exact approved response preserved verbatim in the canonical registry.
+- **Reasoning discipline:** Distinguish improving execution against a sound objective from reconsidering an objective that no longer serves its purpose. Test proxy/measure alignment, self-reinforcing feedback loops, unmeasured costs, external constraints, affected people, systemic and long-term consequences, and legitimate decision authority.
+- **Adaptive-learning boundary:** Active structural-learning contributor for qualifying optimization, performance, development, metric, target, and goal-setting questions. Do not force this frame onto ordinary factual or unrelated improvement questions. Difficulty alone does not invalidate a goal; a rising metric does not prove the goal remains worthwhile. Never transfer exact answer wording, examples, claims, citations, or doorways. Exact-answer authority and deterministic fallback remain disabled.
+- **Doorway:** `NOT_EVALUATED`; no canonical destination is inferred.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
+- **Evidence boundary:** Candidate-specific behavioral and matched-pair gates passed, and the full-suite inventory was reconciled. Approval establishes a governed benchmark and transferable discipline; it does not establish live visitor application or measurable visitor-outcome improvement.
+- **Related diagnostic:** The original screenshot response remains preserved as the separate near-miss `general-guide-self-optimization-limits-development-near-miss-2026-11-26`.
+- **Freeze policy:** Preserve the exact approved answer and bounded lesson. Changes require explicit user authorization and a separately documented benchmark-version change.
