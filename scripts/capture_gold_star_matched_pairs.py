@@ -236,6 +236,8 @@ def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: 
 
 def _effective_max_tokens(provider: str, model: str, operation: str, requested: int) -> int:
     """Mirror Provider Bank model/operation ceilings for the captured payload fingerprint."""
+    import provider_bank
+
     effective = max(1, int(requested))
     model_limit = int(
         provider_bank.MODEL_LIMITS.get((provider, model), {}).get("max_completion_tokens", 0) or 0
