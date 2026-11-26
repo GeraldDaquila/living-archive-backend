@@ -225,6 +225,59 @@ def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: 
     return eligible[0]
 
 
+def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inter_call_delay_seconds: float) -> dict:
+    """Fingerprint the effective provider payload settings, not another lane's defaults."""
+    common = {
+        "operation": arm_state.get("route_operation"),
+        "provider": provider,
+        "model": model,
+        "schema_mode": arm_state.get("schema_mode"),
+        "schema_sha256": arm_state.get("schema_sha256"),
+        "provider_timeout_seconds": arm_state.get("provider_timeout_seconds"),
+        "inter_call_delay_seconds": inter_call_delay_seconds,
+        "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
+    }
+    if provider == "gemini":
+        return {
+            **common,
+            "max_output_tokens": arm_state.get("max_tokens"),
+            "temperature": "not_supplied_provider_default",
+            "top_p": "not_supplied_provider_default",
+            "response_mime_type": (
+                "omitted_text_mode"
+                if arm_state.get("schema_mode") == "text"
+                else "application/json"
+            ),
+            "response_schema_transform": (
+                "gemini_compatible_drop_additionalProperties"
+                if arm_state.get("schema_sha256") else "none"
+            ),
+            "system_instruction": "separate_systemInstruction",
+            "thinking_level": "low",
+            "transport_retry_policy": "single_http_attempt_no_sdk_retry",
+        }
+    if provider == "groq":
+        return {
+            **common,
+            "max_completion_tokens": arm_state.get("max_tokens"),
+            "temperature": 0.0,
+            "top_p": "not_supplied_provider_default",
+            "stop": "not_supplied",
+            "presence_penalty": "not_supplied_provider_default",
+            "frequency_penalty": "not_supplied_provider_default",
+            "chat_template_kwargs": "not_supplied",
+            "extra_body": "not_supplied",
+            "response_format": (
+                "omitted_text_mode" if arm_state.get("schema_mode") == "text"
+                else "json_schema" if arm_state.get("schema_sha256") else "json_object"
+            ),
+            "reasoning_effort": "low" if model.startswith("openai/gpt-oss-") else "provider_default",
+            "include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable",
+            "provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked",
+        }
+    raise ValueError(f"Matched-pair generation fingerprint is not defined for provider: {provider}")
+
+
 async def _request_arm(client, evaluation_context, provider, model, query, arm):
     import httpx
 
@@ -415,9 +468,14 @@ async def capture(args) -> dict:
             state = CAPTURE_CONTEXT.get()
             if state is not None:
                 state["max_tokens"] = max_tokens
+                effective_schema = schema
+                if provider == "gemini" and isinstance(schema, dict):
+                    nested_schema = schema.get("schema")
+                    if isinstance(nested_schema, dict):
+                        effective_schema = provider_bank._gemini_compatible_response_schema(nested_schema)
                 state["schema_sha256"] = (
-                    _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
-                    if isinstance(schema, dict) else None
+                    _sha256(json.dumps(effective_schema, sort_keys=True, separators=(",", ":")))
+                    if isinstance(effective_schema, dict) else None
                 )
                 state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
                 state["provider_timeout_seconds"] = timeout_override
@@ -536,35 +594,9 @@ async def capture(args) -> dict:
                     + "\nUSER_CONTENT_SHA256\n"
                     + str(control["user_content_sha256"] or "")
                 )
-                # Effective Groq payload contract for the exact pinned lane,
-                # verified against provider_bank._groq. Schema identity is hashed.
-                generation_config = {
-                    "operation": control["route_operation"],
-                    "max_completion_tokens": control["max_tokens"],
-                    "provider": provider,
-                    "model": model,
-                    "temperature": 0.0,
-                    "top_p": "not_supplied_provider_default",
-                    "stop": "not_supplied",
-                    "presence_penalty": "not_supplied_provider_default",
-                    "frequency_penalty": "not_supplied_provider_default",
-                    "chat_template_kwargs": "not_supplied",
-                    "extra_body": "not_supplied",
-                    "response_format": (
-                        "omitted_text_mode" if control["schema_mode"] == "text"
-                        else "json_schema" if control["schema_sha256"] else "json_object"
-                    ),
-                    "schema_sha256": control["schema_sha256"],
-                    "schema_mode": control["schema_mode"],
-                    "reasoning_effort": "low",
-                    "include_reasoning": False,
-                    "provider_timeout_seconds": control["provider_timeout_seconds"],
-                    "provider_sdk_max_retries": (
-                        0 if control["provider_timeout_seconds"] is not None else "not_invoked"
-                    ),
-                    "inter_call_delay_seconds": args.inter_call_delay_seconds,
-                    "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
-                }
+                generation_config = _generation_config_for_lane(
+                    provider, model, control, args.inter_call_delay_seconds
+                )
                 generation_fingerprint = _sha256(
                     json.dumps(generation_config, sort_keys=True, separators=(",", ":"))
                 )
