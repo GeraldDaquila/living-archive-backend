@@ -135,7 +135,7 @@ def test_provider_may_validly_reject_all_gold_star_candidates():
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
             ],
-            "application_evidence_spans": [{"candidate_id": "lesson-a", "span": ""}],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
         },
     }
     parsed = _gold_star_parse(payload)
