@@ -18291,8 +18291,6 @@ async def _use_request_boundary(scope, receive, send):
                     if re.fullmatch(r"[0-9a-f]{32}", _request_correlation_id)
                     else None
                 )
-                _gold_star_terminal_payload = dict(safe_payload)
-                _gold_star_terminal_status = _outer_status
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
@@ -19093,6 +19091,8 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                 # ContextVar has been restored through streaming/task adapters.
                 # This outer request context is authoritative and remains active
                 # until this response has been emitted.
+                _gold_star_terminal_payload = dict(safe_payload)
+                _gold_star_terminal_status = _outer_status
                 _outer_request_context = _gold_star_ledger.current_request_context()
                 _outer_request_correlation_id = (
                     str(_outer_request_context.get("request_id") or "").strip().casefold()
