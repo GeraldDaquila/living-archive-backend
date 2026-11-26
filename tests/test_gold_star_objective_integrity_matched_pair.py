@@ -90,3 +90,50 @@ def test_generation_fingerprint_describes_actual_gemini_payload_not_groq_default
     assert config["thinking_level"] == "low"
     assert "reasoning_effort" not in config
     assert "max_completion_tokens" not in config
+
+
+def test_workers_ai_pilot_is_separately_preregistered_after_groq_and_gemini_quota_failures():
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_workers_ai.json"
+    suite, cases, target = _load_cases(path)
+    assert suite["evaluation_id"] == "gold-star-objective-integrity-heldout-pilot-workers-ai-2026-11-26"
+    assert target == TARGET_ID
+    assert suite["design"]["provider_pin"] == {
+        "provider": "workers_ai",
+        "model": "@cf/zai-org/glm-4.7-flash",
+    }
+    assert len(cases) == 6
+    assert len({case["case_family"] for case in cases}) == 3
+    assert "before any treatment arm ran" in suite["purpose"]
+
+
+def test_workers_ai_heldout_queries_retrieve_target_and_negative_control_excludes_it():
+    import gold_star_lessons
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_workers_ai.json"
+    suite, cases, target = _load_cases(path)
+    for case in cases:
+        selected = gold_star_lessons.select_lesson_candidates(case["query"], limit=4)
+        assert target in {item["benchmark_id"] for item in selected}, case["case_id"]
+    negative = gold_star_lessons.select_lesson_candidates(suite["negative_control_query"], limit=4)
+    assert target not in {item["benchmark_id"] for item in negative}
+
+
+def test_workers_ai_generation_fingerprint_describes_actual_payload():
+    from scripts.capture_gold_star_matched_pairs import _generation_config_for_lane
+
+    config = _generation_config_for_lane("workers_ai", "@cf/zai-org/glm-4.7-flash", {
+        "route_operation": "general_guide_composition",
+        "max_tokens": 1800,
+        "schema_mode": "json_schema_best_effort",
+        "schema_sha256": "effective-workers-schema-sha",
+        "provider_timeout_seconds": 10,
+    }, 65)
+    assert config["max_tokens"] == 1800
+    assert config["temperature"] == 0.0
+    assert config["response_format"] == "json_schema"
+    assert config["options_reject_if_busy"] is True
+    assert config["message_adapter"] == "_workers_normalize_messages"
+    assert config["transport_retry_policy"] == "single_http_attempt_no_provider_sdk_retry"
