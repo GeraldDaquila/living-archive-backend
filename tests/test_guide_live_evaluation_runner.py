@@ -738,6 +738,30 @@ def test_transparency_trust_accountability_alone_does_not_satisfy_disclosure_lim
     assert limits["passed"] is False, checks
 
 
+def test_production_community_rule_wording_is_recognized_but_accommodation_remains_distinct():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should decide whether limits on personal liberty are justified by shared obligations and risks "
+        "through a structured process that names the purpose, identifies who is affected, and tests whether the limit "
+        "is the least restrictive means to address a demonstrated need. The governing mechanism includes: a legitimate "
+        "shared purpose; evidence of demonstrable harm; a proportionality test that the limit is no greater than "
+        "necessary, bears burdens fairly, and does not disproportionately fall on the least powerful; affected people's "
+        "participation in shaping the rule, with opportunity to propose less restrictive alternatives; and observable "
+        "review and appeal routes."
+    )
+    transport = {
+        "status": 200, "error": None,
+        "body": {"ok": True, "response": answer, "recommendation": None,
+                 "response_provenance": {"class": "llm", "provider": "nvidia",
+                    "model": "nvidia/nemotron-3.5-lightning-30b-a3b", "llm_invoked": True}},
+    }
+    checks = evaluate_held(case, transport)
+    by_name = {item["name"]: item for item in checks}
+    assert by_name["affected_party_participation"]["passed"] is True, checks
+    assert by_name["fair_burden_allocation"]["passed"] is True, checks
+    assert by_name["reasonable_accommodation"]["passed"] is False, checks
+
+
 def test_community_rule_live_paraphrases_pass_purpose_and_participation_but_not_missing_burden_allocation():
     case = {"case_id": "heldout-community-rule-design-transfer-001"}
     answer = (
