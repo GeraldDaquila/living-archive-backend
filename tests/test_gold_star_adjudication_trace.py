@@ -885,12 +885,12 @@ def test_partial_provider_application_is_reported_as_partially_retained():
     report = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [
-                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
-                {"candidate_id": "lesson-b", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-one", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-two", "decision": "select", "reason_code": None},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
-                {"candidate_id": "lesson-b", "span": "This sentence is not present in the answer at all"},
+                {"candidate_id": "lesson-one", "span": "Separate observation from inference"},
+                {"candidate_id": "lesson-two", "span": "This sentence is not present in the answer at all"},
             ],
         },
         response="Separate what was observed from what is inferred, then test the evidence.",
@@ -904,6 +904,6 @@ def test_partial_provider_application_is_reported_as_partially_retained():
     trace_value = trace.mark_final_delivery(
         trace_value, provider_candidate_delivered=True, final_provenance="llm"
     )
-    assert trace_value["application_evidence_candidate_ids"] == ["lesson-a"]
+    assert trace_value["application_evidence_candidate_ids"] == ["lesson-one"]
     assert trace_value["contribution_retained"] == "provider_asserted_span_partially_retained"
     assert trace.validate_trace(trace_value)["valid"]
