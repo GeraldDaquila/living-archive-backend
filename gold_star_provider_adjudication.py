@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import Any
+import re
 
 MAX_CANDIDATES = 4
 MAX_EVIDENCE_SPAN = 240
@@ -50,6 +51,7 @@ def normalize_provider_adjudication(
         "application_evidence_present": False,
         "application_evidence_candidate_ids": [],
         "application": "not_observed",
+        "application_evidence_reason": "not_observed",
     }
     index = _candidate_index(candidates)
     if not index or not isinstance(value, Mapping):
@@ -100,31 +102,43 @@ def normalize_provider_adjudication(
     # reject-all invalid or retaining visitor content in telemetry.
     spans = value.get("application_evidence_spans")
     evidence_ids: list[str] = []
+    evidence_reason = "span_entry_count_mismatch"
     spans_valid = isinstance(spans, list) and len(spans) == len(index)
     span_by_id: dict[str, str] = {}
     if spans_valid:
         for item in spans:
             if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
                 spans_valid = False
+                evidence_reason = "invalid_span_entry"
                 break
             candidate_id, span = item.get("candidate_id"), item.get("span")
             if (
                 not isinstance(candidate_id, str)
                 or candidate_id not in index
                 or candidate_id in span_by_id
-                or not isinstance(span, str)
-                or len(span) > MAX_EVIDENCE_SPAN
             ):
                 spans_valid = False
+                evidence_reason = "invalid_span_candidate_id"
+                break
+            if not isinstance(span, str) or len(span) > MAX_EVIDENCE_SPAN:
+                spans_valid = False
+                evidence_reason = "invalid_span_length"
                 break
             span_by_id[candidate_id] = span
         if spans_valid and set(span_by_id) != set(index):
             spans_valid = False
+            evidence_reason = "span_candidate_coverage_incomplete"
     if spans_valid:
+        normalized_response = re.sub(r"\\s+", " ", str(response or "")).strip().casefold()
         for candidate_id in selected:
-            span = span_by_id.get(candidate_id, "").strip()
-            if not 12 <= len(span) <= MAX_EVIDENCE_SPAN or span not in str(response or ""):
+            span = re.sub(r"\\s+", " ", span_by_id.get(candidate_id, "")).strip().casefold()
+            if not 12 <= len(span) <= MAX_EVIDENCE_SPAN:
                 spans_valid = False
+                evidence_reason = "selected_span_missing_or_out_of_bounds"
+                break
+            if span not in normalized_response:
+                spans_valid = False
+                evidence_reason = "selected_span_not_in_final_response"
                 break
             evidence_ids.append(candidate_id)
         if spans_valid and any(
@@ -132,8 +146,13 @@ def normalize_provider_adjudication(
             for candidate_id in set(index) - set(selected)
         ):
             spans_valid = False
+            evidence_reason = "rejected_span_not_empty"
     if not spans_valid:
         evidence_ids = []
+    elif selected:
+        evidence_reason = "exact_selected_spans_validated"
+    else:
+        evidence_reason = "no_selected_candidates"
     span_present = bool(selected) and set(evidence_ids) == set(selected)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
@@ -143,6 +162,7 @@ def normalize_provider_adjudication(
         "application_evidence_present": span_present,
         "application_evidence_candidate_ids": evidence_ids,
         "application": "provider_asserted_span_present" if span_present else "not_observed",
+        "application_evidence_reason": evidence_reason,
     }
 
 

@@ -5648,6 +5648,7 @@ def compose(
         composition=gold_star_adjudication_trace.get("composition", "unobserved"),
         selection=gold_star_adjudication_trace["selection"],
         application=gold_star_adjudication_trace["application"],
+        application_evidence_reason=provider_adjudication.get("application_evidence_reason", "not_observed"),
         outcome_state=gold_star_adjudication_trace["outcome"],
         provider=result.get("provider"),
         model=result.get("model"),

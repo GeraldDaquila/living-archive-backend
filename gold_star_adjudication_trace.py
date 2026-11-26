@@ -287,7 +287,7 @@ def mark_provider_adjudication(trace: Mapping[str, Any], result: Any) -> dict[st
         "status", "selected_candidate_ids", "rejection_reason_codes",
         "reasoning_discipline_ids", "application_evidence_present", "application_evidence_candidate_ids", "application",
     }
-    if set(result) != allowed:
+    if set(result) not in (allowed, allowed | {"application_evidence_reason"}):
         return _store_current_trace(updated)
     updated["provider_adjudication_status"] = result["status"]
     updated["selected_candidate_ids"] = list(result["selected_candidate_ids"])
