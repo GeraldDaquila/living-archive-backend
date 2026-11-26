@@ -43,7 +43,7 @@ jobs:
       - name: Validate pre-registered objective-integrity cohort
         run: |
           test -f docs/qa/objective_integrity_matched_pair_cases_gemini.json
-          PYTHONPATH=. python -m pytest -q tests/test_gold_star_objective_integrity_matched_pair.py tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py
+          PYTHONPATH=. python -m pytest -q tests/test_gold_star_objective_integrity_matched_pair.py tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py tests/test_gold_star_objective_integrity_matched_pair_workflow.py tests/test_gold_star_adaptation_evaluation.py
       - name: Verify candidate-local suite wiring
         run: python -m compileall -q scripts/capture_gold_star_matched_pairs.py
 
