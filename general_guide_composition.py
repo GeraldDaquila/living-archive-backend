@@ -52,6 +52,8 @@ from provider_bank import (
 )
 
 CONTRACT_VERSION = "v1.55"
+GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
+GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -5330,6 +5332,38 @@ def compose(
         )
     )
 
+    evaluation_base_prompt_fingerprint = ""
+    if evaluation is not None:
+        # Both arms retain the same generic Gold Star integration contract.
+        # Only the treatment receives the candidate-specific lesson instruction.
+        shared_base_system_message = _build_general_guide_system_message(
+            question,
+            has_gold_star_guidance=True,
+            incomplete_knowledge_plan=incomplete_knowledge_plan,
+            integrity_recovery_instruction=integrity_recovery_instruction,
+            gold_star_quality_instruction="",
+            public_live_source_instruction=public_live_source_instruction,
+            objective_integrity_instruction=objective_integrity_instruction,
+        )
+        base_prompt_material = {
+            "fingerprint_version": GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION,
+            "operation": OPERATION,
+            "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
+            "max_tokens": 750,
+            "messages": [
+                {"role": "system", "content": shared_base_system_message},
+                {"role": "user", "content": user_content[:7000]},
+            ],
+        }
+        evaluation_base_prompt_fingerprint = hashlib.sha256(
+            json.dumps(
+                base_prompt_material,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
     cache_key = _composition_cache_key(
         question,
         history_text,
@@ -5386,6 +5420,20 @@ def compose(
                     return cached_result
                 del _COMPOSITION_CACHE[cache_key]
 
+    provider_schema = _build_provider_composition_schema(
+        gold_star_quality.get("candidates") if gold_star_quality else None
+    )
+    evaluation_schema_fingerprint = ""
+    if evaluation is not None:
+        evaluation_schema_fingerprint = hashlib.sha256(
+            json.dumps(
+                provider_schema,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
     try:
         result = route_with_model_bank(
             use_core=use_core,
@@ -5394,8 +5442,11 @@ def compose(
                 {"role": "system", "content": _build_general_guide_system_message(
                     question,
                     has_gold_star_guidance=bool(
-                        isinstance(gold_star_quality, dict)
-                        and gold_star_quality.get("candidates")
+                        evaluation is not None
+                        or (
+                            isinstance(gold_star_quality, dict)
+                            and gold_star_quality.get("candidates")
+                        )
                     ),
                     incomplete_knowledge_plan=incomplete_knowledge_plan,
                     integrity_recovery_instruction=integrity_recovery_instruction,
@@ -5407,9 +5458,7 @@ def compose(
             ],
             max_tokens=750,
             parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
-            schema=_build_provider_composition_schema(
-                gold_star_quality.get("candidates") if gold_star_quality else None
-            ),
+            schema=provider_schema,
             deadline_monotonic=provider_deadline_monotonic,
         )
     finally:
@@ -5437,8 +5486,11 @@ def compose(
             _repair_system_message = _build_general_guide_system_message(
                 question,
                 has_gold_star_guidance=bool(
-                    isinstance(gold_star_quality, dict)
-                    and gold_star_quality.get("candidates")
+                    evaluation is not None
+                    or (
+                        isinstance(gold_star_quality, dict)
+                        and gold_star_quality.get("candidates")
+                    )
                 ),
                 incomplete_knowledge_plan=incomplete_knowledge_plan,
                 integrity_recovery_instruction=integrity_recovery_instruction,
@@ -5851,6 +5903,17 @@ def compose(
         # provider did execute, but it did not author the final visitor answer.
         candidate["_provider_execution_verified"] = False
         candidate["_provider_execution_modified"] = True
+
+    if evaluation is not None:
+        candidate["_gold_star_evaluation_response_unchanged"] = (
+            candidate.get("response") == provider_candidate_response
+        )
+        candidate["_gold_star_evaluation_base_prompt_fingerprint"] = (
+            evaluation_base_prompt_fingerprint
+        )
+        candidate["_gold_star_evaluation_schema_fingerprint"] = (
+            evaluation_schema_fingerprint
+        )
 
     if evaluation is None:
         # Visitor requests retain the normal cache. Evaluation arms bypass both

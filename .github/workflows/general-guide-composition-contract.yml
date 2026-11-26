@@ -23,8 +23,9 @@ on:
       - "tests/test_general_guide_practical_next_step_contract.py"
       - "gold_star_evaluation_context.py"
       - "tests/test_gold_star_evaluation_context.py"
-      - "gold_star_evaluation_context.py"
-      - "tests/test_gold_star_evaluation_context.py"
+      - "gold_star_evaluation_runner.py"
+      - "tests/test_gold_star_evaluation_runner.py"
+      - "docs/qa/gold_star_matched_pair_evaluation_protocol.md"
       - "tests/test_guide_outcome_telemetry_correlation.py"
       - "guide_answerability.py"
       - "tests/test_guide_layered_answerability.py"
@@ -114,6 +115,11 @@ on:
       - "guide_runtime.py"
       - "general_guide_composition.py"
       - "tests/test_general_guide_practical_next_step_contract.py"
+      - "gold_star_evaluation_context.py"
+      - "tests/test_gold_star_evaluation_context.py"
+      - "gold_star_evaluation_runner.py"
+      - "tests/test_gold_star_evaluation_runner.py"
+      - "docs/qa/gold_star_matched_pair_evaluation_protocol.md"
       - "tests/test_guide_outcome_telemetry_correlation.py"
       - "guide_answerability.py"
       - "tests/test_guide_layered_answerability.py"
@@ -166,9 +172,11 @@ jobs:
       - name: Install runtime dependencies and test runner
         run: python -m pip install -r requirements.txt pytest
       - name: Compile Guide runtime modules
-        run: python -m compileall -q main.py guide_runtime.py gold_star_response_floor.py guide_direct_attribute_evidence.py general_guide_composition.py general_guide_gold_standards.py gold_star_lessons.py gold_star_semantic_retrieval.py comparative_traditions_contract.py deterministic_answer_recovery.py guide_incomplete_knowledge.py guide_answerability.py streaming_transport.py gold_star_evaluation_context.py provider_bank.py
+        run: python -m compileall -q main.py guide_runtime.py gold_star_response_floor.py guide_direct_attribute_evidence.py general_guide_composition.py general_guide_gold_standards.py gold_star_lessons.py gold_star_semantic_retrieval.py comparative_traditions_contract.py deterministic_answer_recovery.py guide_incomplete_knowledge.py guide_answerability.py streaming_transport.py gold_star_evaluation_context.py provider_bank.py gold_star_evaluation_runner.py
       - name: Run request-local Gold Star matched-pair isolation contracts
         run: python -m pytest -q tests/test_gold_star_evaluation_context.py
+      - name: Run synthetic-only Gold Star paired generation contracts
+        run: python -m pytest -q tests/test_gold_star_evaluation_runner.py
       - name: Run multi-candidate and cold-start Gold Star retrieval contracts
         run: python -m pytest -q tests/test_gold_star_multi_candidate_adjudication.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_lessons.py tests/test_gold_star_semantic_retrieval.py
       - name: Run provider-exhaustion and response-boundary regressions
