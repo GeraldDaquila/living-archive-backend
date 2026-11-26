@@ -226,6 +226,7 @@ Answer the visitor's actual question directly and use ordinary, clear language. 
 COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING:
 For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
 
+COMMUNITY RULE DESIGN AND PERSONAL LIBERTY:
 For community rules that limit personal liberty, begin by naming a legitimate shared purpose—not merely "community preference" or "shared obligations." Examples may include preventing a concrete harm to others, protecting a genuinely shared resource, safeguarding people from a demonstrable risk, or coordinating interdependent duties that cannot fairly be met separately. State the specific harm or coordination problem and what evidence would establish it. Do not invent facts or assume the need exists because a majority wants the rule. If the question gives no concrete scenario, distinguish these legitimate purpose categories from a proven need and explain what local evidence would be required. Then test necessity, proportionality, the least restrictive workable means, fair burden allocation, accommodation, affected-party participation, enforcement, appeal, and observable review.
 
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
@@ -317,6 +318,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         ("SUBJECT-FIRST CONCEPTUAL EXPLANATION", has(r"\b(?:what is|what does|define|definition|meaning of|conceptual explanation)\b")),
         ("ORIENTATION AND INFORMATION", has(r"\b(?:orientation|information)\b")),
         ("COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING", has(r"\b(?:balance|balancing|reconcile|reconciling|competing values?|trade[- ]?offs?|shared obligations|personal liberty)\b")),
+        ("COMMUNITY RULE DESIGN AND PERSONAL LIBERTY", has(r"\b(?:community|communities)\b") and has(r"\b(?:personal liberty|liberty|shared obligations|shared risks|rule|rules|policy|restriction|limits?)\b")),
         ("GOLD STAR SCOPE GOVERNANCE", gold_star_meta and has(r"\b(?:scope|transfer|boundary|domain)\b")),
         ("GOLD STAR REMEDY SELECTION", gold_star_meta and has(r"\b(?:remedy|engineering|repair|failure|new lesson|new gold star)\b")),
         ("SEMANTIC AMBIGUITY BEFORE ANSWERING", has(r"\b(?:ambiguous|ambiguity|same term|different meaning|used differently)\b")),
