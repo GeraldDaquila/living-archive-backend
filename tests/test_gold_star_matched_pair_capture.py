@@ -338,6 +338,7 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         / "scripts/capture_gold_star_matched_pairs.py"
     ).read_text(encoding="utf-8")
     for field in (
+        'def _generation_config_for_lane(',
         '"temperature": 0.0',
         '"top_p": "not_supplied_provider_default"',
         '"stop": "not_supplied"',
@@ -346,14 +347,14 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"chat_template_kwargs": "not_supplied"',
         '"extra_body": "not_supplied"',
         '"response_format":',
-        '"schema_sha256":',
-        '"reasoning_effort": "low"',
-        '"include_reasoning": False',
-        '"provider_timeout_seconds": control["provider_timeout_seconds"]',
-        '"provider_sdk_max_retries": (',
+        '"schema_sha256": arm_state.get("schema_sha256")',
+        '"reasoning_effort": "low" if model.startswith("openai/gpt-oss-") else "provider_default"',
+        '"include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable"',
+        '"provider_timeout_seconds": arm_state.get("provider_timeout_seconds")',
+        '"provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked"',
         '"arm_call_order": list(attempted_arm_order)',
         '"arm_evaluation_order": list(call_order)',
-        '"schema_mode": control["schema_mode"]',
+        '"schema_mode": arm_state.get("schema_mode")',
         'def evaluation_quota_guarded_call(',
         'effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()',
         'timeout_override=timeout_override',
