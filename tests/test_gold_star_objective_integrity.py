@@ -87,7 +87,7 @@ def test_objective_integrity_guardrail_is_injected_into_real_composition_contrac
     assert "proxy" in system_message.casefold()
     assert "feedback loops" in system_message.casefold()
     assert "legitimate authority" in system_message.casefold()
-    assert "A rising metric alone does not prove" in system_message
+    assert "a rising metric does not prove" in system_message.casefold()
 
 
 
