@@ -1,11 +1,12 @@
 # Living Archive Gold-Standard Registry
 
-## Candidate successor under review — 2026-11-26
+## Newly elevated — 2026-11-26
 
-- **Diagnostic source:** `general-guide-self-optimization-limits-development-near-miss-2026-11-26` remains preserved as the exact visitor-facing near-miss from PR #2050.
-- **Proposed successor:** `general-guide-developmental-stewardship-objective-integrity-2026-11-26` is a separately authored candidate addressing proxy drift, self-reinforcing feedback loops, the distinction between improving means and revising ends, and legitimate authority over shared objectives.
-- **Architectural change:** The Guide composition contract now requires objective/purpose alignment, feedback integrity, systemic consequences, and disciplined goal reconsideration for relevant optimization and development questions.
-- **Approval boundary:** The successor remains `CANDIDATE`, with `runtime_transfer: false`, no exact-answer authority, no deterministic fallback, no assigned serial, and no doorway authority. It is excluded from approved and active Gold Star counts pending review of the exact response and validation.
+- **Gold Star:** `general-guide-developmental-stewardship-objective-integrity-2026-11-26` — **Developmental Stewardship and Objective Integrity**. The user reviewed and explicitly approved the exact successor response on 2026-11-26 after the candidate behavioral and matched-pair gates passed.
+- **Diagnostic provenance:** The original `general-guide-self-optimization-limits-development-near-miss-2026-11-26` from PR #2050 remains preserved as a separate, immutable near-miss. It is not overwritten or counted as an approved Gold Star.
+- **Transferable discipline:** Distinguish improving methods against an existing objective from reconsidering the objective itself; test proxy/purpose alignment, feedback loops, unmeasured costs, systemic consequences, affected parties, and legitimate decision authority.
+- **Runtime boundary:** Active structural-learning contributor for qualifying optimization, performance, development, metric, target, and goal-setting questions. Exact-answer authority and deterministic fallback remain disabled. The successor has no verified doorway and remains `NOT_EVALUATED`; no serial was requested, so numbering is `UNASSIGNED`.
+- **Evidence boundary:** Approval and CI validation do not establish live visitor application or measurable adaptive outcome improvement. Those require separate production-correlated evidence.
 
 ## Newly elevated 2026-11-24
 
