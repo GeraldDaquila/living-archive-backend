@@ -137,3 +137,32 @@ def test_workers_ai_generation_fingerprint_describes_actual_payload():
     assert config["options_reject_if_busy"] is True
     assert config["message_adapter"] == "_workers_normalize_messages"
     assert config["transport_retry_policy"] == "single_http_attempt_no_provider_sdk_retry"
+
+
+def test_groq_20b_pilot_is_separately_preregistered_after_model_scoped_120b_rate_limit():
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_groq_20b.json"
+    suite, cases, target = _load_cases(path)
+    assert suite["evaluation_id"] == "gold-star-objective-integrity-heldout-pilot-groq-20b-2026-11-26"
+    assert target == TARGET_ID
+    assert suite["design"]["provider_pin"] == {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+    }
+    assert len(cases) == 6
+    assert len({case["case_family"] for case in cases}) == 3
+    assert "model-scoped HTTP 429" in suite["purpose"]
+
+
+def test_groq_20b_heldout_queries_retrieve_target_and_negative_control_excludes_it():
+    import gold_star_lessons
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_groq_20b.json"
+    suite, cases, target = _load_cases(path)
+    for case in cases:
+        selected = gold_star_lessons.select_lesson_candidates(case["query"], limit=4)
+        assert target in {item["benchmark_id"] for item in selected}, case["case_id"]
+    negative = gold_star_lessons.select_lesson_candidates(suite["negative_control_query"], limit=4)
+    assert target not in {item["benchmark_id"] for item in negative}
