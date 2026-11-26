@@ -9,6 +9,7 @@ from scripts.guide_live_evaluation import (
     evaluate_gold,
     evaluate_held,
     select_gold_standard_sample,
+    prioritize_heldout_cases,
 )
 
 
@@ -633,7 +634,7 @@ def test_critical_live_suite_is_included_in_runner_workload():
 
     source = inspect.getsource(live_evaluation.main)
     assert "critical_cases=critical_suite.get(\"cases\",[])" in source
-    assert 'workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in heldout_cases]' in source
+    assert 'workload=[("held_out",x) for x in priority_heldout_cases]+[("gold_standard",x) for x in records]+[("held_out",x) for x in remaining_heldout_cases]' in source
 
 
 
@@ -767,3 +768,22 @@ def test_live_evaluation_records_request_local_correlation_ids():
     assert '"request_correlation_id"' in source
     assert '"request_correlation_id":request_correlation' in source
     assert '"request_correlation_id":provider_probe_correlation_id' in source
+
+
+def test_provider_sensitive_heldout_cases_run_before_sampled_gold_standards():
+    cases = [
+        {"case_id": "heldout-water-boiling-point-001"},
+        {"case_id": "heldout-community-rule-design-transfer-001"},
+        {"case_id": "heldout-transparency-trust-relational-synthesis-001"},
+        {"case_id": "heldout-practical-trust-001"},
+    ]
+    priority, remaining = prioritize_heldout_cases(cases)
+    assert [item["case_id"] for item in priority] == [
+        "heldout-transparency-trust-relational-synthesis-001",
+        "heldout-community-rule-design-transfer-001",
+    ]
+    assert [item["case_id"] for item in remaining] == [
+        "heldout-water-boiling-point-001",
+        "heldout-practical-trust-001",
+    ]
+    assert len(priority) + len(remaining) == len(cases)
