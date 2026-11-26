@@ -14,6 +14,12 @@ SUITE = ROOT / "docs/qa/guide_learning_evaluation_set.json"
 CRITICAL_SUITE = ROOT / "docs/qa/guide_live_critical_evaluation_cases.json"
 PRIMARY = "https://living-archive-backend.onrender.com"
 ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
+# Run provider-sensitive critical transfer cases before the sampled Gold Standards.
+# This preserves every acceptance criterion while reducing false failures from shared TPM exhaustion.
+PROVIDER_PRIORITY_HELDOUT_IDS = (
+    "heldout-transparency-trust-relational-synthesis-001",
+    "heldout-community-rule-design-transfer-001",
+)
 # Use a distinct but semantically equivalent question so the attribution probe
 # cannot inherit a cached answer from the primary visitor smoke.
 # This probe tests fresh provider attribution only; it does not certify Gold Star application.
@@ -118,6 +124,22 @@ def select_gold_standard_sample(records, limit=6):
         return [ordered[len(ordered) // 2]]
     indices = [round(index * (len(ordered) - 1) / (limit - 1)) for index in range(limit)]
     return [ordered[index] for index in indices]
+
+
+def prioritize_heldout_cases(cases):
+    """Return provider-sensitive critical cases first without dropping or duplicating any case."""
+    priority_ids = set(PROVIDER_PRIORITY_HELDOUT_IDS)
+    by_id = {
+        str(case.get("case_id")): case
+        for case in cases
+        if isinstance(case, dict) and case.get("case_id")
+    }
+    priority = [by_id[case_id] for case_id in PROVIDER_PRIORITY_HELDOUT_IDS if case_id in by_id]
+    remaining = [
+        case for case in cases
+        if not isinstance(case, dict) or str(case.get("case_id") or "") not in priority_ids
+    ]
+    return priority, remaining
 
 
 def classify_llm_payload(body):
@@ -448,7 +470,8 @@ def main():
     records=select_gold_standard_sample(eligible_records,args.max_gold_standards)
     expected_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None
     runtime_identity=verify_runtime_identity(base,expected_commit,args.identity_wait_seconds)
-    workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in heldout_cases]
+    priority_heldout_cases,remaining_heldout_cases=prioritize_heldout_cases(heldout_cases)
+    workload=[("held_out",x) for x in priority_heldout_cases]+[("gold_standard",x) for x in records]+[("held_out",x) for x in remaining_heldout_cases]
     report={"report_schema_version":"1.2.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"critical_evaluation_suite_id":critical_suite.get("suite_id"),"critical_evaluation_suite_version":critical_suite.get("suite_version"),"critical_evaluation_suite_file_sha256":hashlib.sha256(cb).hexdigest(),"git_commit":expected_commit,"runtime_identity":runtime_identity,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(heldout_cases),"calibration_heldout_count":len(core_cases),"critical_live_case_count":len(critical_cases),"results":[]}
     # Run the bounded attribution probe first, before the held-out workload consumes
     # shared provider TPM capacity. It uses a concise no-link prompt to avoid
