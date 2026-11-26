@@ -27,6 +27,76 @@ _CURRENT_ATTEMPT_TRACE = ContextVar("gold_star_current_attempt_trace", default=N
 _REQUEST_ID_PATTERN = re.compile(r"^[0-9a-f]{32}$")
 
 
+REQUEST_ELIGIBILITY_DISPOSITIONS = {
+    "gold_star_seam_reached",
+    "safety_bypass",
+    "deterministic_answer_bypass",
+    "native_handoff",
+    "specialist_delegation",
+    "invalid_or_empty_request",
+    "request_error",
+    "boundary_incomplete",
+    "unclassified",
+}
+
+
+def classify_request_disposition(
+    *,
+    payload: Any,
+    status_code: Any,
+    response_completed: bool,
+    has_query: bool,
+    gold_star_seam_reached: bool,
+) -> str:
+    """Classify request disposition without retaining or logging visitor content.
+
+    The adjudication seam flag is authoritative. Other labels are assigned only
+    from explicit, content-free response metadata; ambiguous routes stay
+    unclassified rather than being guessed from HTTP success or composer entry.
+    """
+    if gold_star_seam_reached:
+        return "gold_star_seam_reached"
+    if not response_completed:
+        return "boundary_incomplete"
+    if not has_query:
+        return "invalid_or_empty_request"
+    if not isinstance(payload, Mapping):
+        return "unclassified"
+
+    intent = str(payload.get("intent") or "").strip().upper()
+    if intent in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
+        return "safety_bypass"
+
+    if any(
+        isinstance(payload.get(key), Mapping)
+        for key in ("formation_delegation", "systems_delegation", "specialist_delegation")
+    ):
+        return "specialist_delegation"
+
+    if (
+        payload.get("handoff_pending") is True
+        and str(payload.get("return_mode") or "").strip().casefold().startswith("native_")
+    ):
+        return "native_handoff"
+
+    provenance = payload.get("response_provenance")
+    provenance_class = (
+        str(provenance.get("class") or "").strip().casefold()
+        if isinstance(provenance, Mapping) else ""
+    )
+    if provenance_class in {"deterministic_recovery", "deterministic_by_design"}:
+        return "deterministic_answer_bypass"
+
+    try:
+        status = int(status_code)
+    except (TypeError, ValueError):
+        status = 0
+    if status >= 400 or payload.get("ok") is False:
+        return "request_error"
+
+    return "unclassified"
+
+
 def begin_request_context(request_id: str):
     """Start one opaque, request-local ledger context; caller owns reset."""
     value = str(request_id or "")
@@ -42,6 +112,7 @@ def begin_request_context(request_id: str):
         "provider_failure_count": 0,
         "provider_admission_denied_count": 0,
         "provider_terminal_state": "not_observed",
+        "gold_star_seam_reached": False,
         "current_provider_route": None,
     })
     trace_token = _CURRENT_ATTEMPT_TRACE.set(None)
@@ -82,6 +153,7 @@ def current_request_context() -> dict:
             "provider_failure_count": 0,
             "provider_admission_denied_count": 0,
             "provider_terminal_state": "not_observed",
+            "gold_star_seam_reached": False,
         }
     return {
         "request_id": state.get("request_id"),
@@ -93,6 +165,7 @@ def current_request_context() -> dict:
         "provider_failure_count": int(state.get("provider_failure_count") or 0),
         "provider_admission_denied_count": int(state.get("provider_admission_denied_count") or 0),
         "provider_terminal_state": str(state.get("provider_terminal_state") or "not_observed"),
+        "gold_star_seam_reached": bool(state.get("gold_star_seam_reached")),
     }
 
 
@@ -260,6 +333,9 @@ def build_adjudication_trace(contribution: Any) -> dict[str, Any]:
     }
     request = _REQUEST_CONTEXT.get()
     if isinstance(request, dict):
+        # This trace is constructed at the actual Gold Star adjudication seam.
+        # Composer entry alone is not sufficient evidence that the seam ran.
+        request["gold_star_seam_reached"] = True
         result["request_id"] = request["request_id"]
         result["attempt_ordinal"] = request.get("current_attempt_ordinal")
     _CURRENT_ATTEMPT_TRACE.set(result)
