@@ -59,8 +59,8 @@ class AnswerDoorwayMobilePresentationTests(unittest.TestCase):
         self.assertIn("font-size: 15.5px !important", DOORWAY_CSS)
 
     def test_shared_asset_version_is_bumped_for_cache_refresh(self):
-        self.assertIn("Version: 1.0.4", PLUGIN_PHP)
-        self.assertIn("LA_ANSWER_DOORWAY_VERSION', '1.0.4'", PLUGIN_PHP)
+        self.assertIn("Version: 1.0.5", PLUGIN_PHP)
+        self.assertIn("LA_ANSWER_DOORWAY_VERSION', '1.0.5'", PLUGIN_PHP)
 
 
 if __name__ == "__main__":
