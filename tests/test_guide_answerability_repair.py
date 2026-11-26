@@ -36,3 +36,38 @@ def test_does_not_classify_unrelated_nonanswer_as_conceptual_abstention():
     query = "What is the role of public commons in civic renewal?"
     response = "Could you clarify which city or municipality you mean?"
     assert not is_unjustified_conceptual_abstention(query, response)
+
+
+def test_plural_limits_question_rejects_generic_evidence_abstention():
+    query = "What are the limits of self-optimization as a model of development?"
+    response = (
+        "I can't define The limits of self-optimization as a model of development "
+        "reliably from the information available in this response alone."
+    )
+    assert is_unjustified_conceptual_abstention(query, response)
+
+
+def test_plural_conceptual_paraphrases_reject_generic_abstention():
+    cases = (
+        ("What are the risks of optimizing a system around one metric?", "I cannot explain this reliably from the information available."),
+        ("What are the boundaries of self-improvement?", "There is not enough information to answer reliably."),
+        ("What are the trade-offs of continuous optimization?", "I can't determine the answer from this response alone."),
+    )
+    for query, response in cases:
+        assert is_unjustified_conceptual_abstention(query, response), query
+
+
+def test_plural_source_only_high_stakes_and_unrelated_questions_stay_excluded():
+    refusal = "I cannot explain this reliably from the information available."
+    assert not is_unjustified_conceptual_abstention(
+        "What are the limits according to the Living Archive only?", refusal
+    )
+    assert not is_unjustified_conceptual_abstention(
+        "What are the risks of this medication?", refusal
+    )
+    assert not is_unjustified_conceptual_abstention(
+        "What are the legal limits of this contract?", refusal
+    )
+    assert not is_unjustified_conceptual_abstention(
+        "What are the opening hours tomorrow?", refusal
+    )

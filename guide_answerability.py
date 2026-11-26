@@ -18,9 +18,33 @@ _REALITY_IDEOLOGY = re.compile(
     r"|\b(?:ideolog\w*|doctrine)\b.{0,70}\b(?:reality[- ]led|reality[- ]based)\b",
     re.I,
 )
+# Conceptual questions are not limited to the singular "what is" form. In
+# particular, "what are the limits/risks/boundaries of X?" is a normal
+# explanatory request and must not bypass the shared answerability safeguard.
 _MEANING_REQUEST = re.compile(
-    r"\b(?:what does|what do|what is|how is|how do|how does|explain|meaning of|"
+    r"\b(?:what does|what do|what is|what are|what were|what can|what should|"
+    r"how is|how do|how does|how can|explain|describe|meaning of|"
     r"what would it mean|what is meant by)\b",
+    re.I,
+)
+
+_CONCEPTUAL_SUBJECT = re.compile(
+    r"\b(?:role|purpose|significance|importance|function|value|meaning|"
+    r"relationship|contribution|impact|effect|nature|concept|principle|"
+    r"limit\w*|boundar\w*|risk\w*|trade[- ]?off\w*|constraint\w*|"
+    r"potential|assumption\w*|implication\w*|mechanism\w*|"
+    r"model|framework|approach|theory|process|development|optimization|"
+    r"optimisation|self[- ]improv\w*|self[- ]optim\w*)\b",
+    re.I,
+)
+
+_GENERIC_EVIDENCE_LIMIT_REFUSAL = re.compile(
+    r"(?:\b(?:i|we)\s+(?:cannot|can't|can not|am unable to)\b.{0,120}"
+    r"(?:define|explain|establish|determine|answer|identify)|"
+    r"\bnot enough (?:information|evidence|context)\b.{0,120}"
+    r"(?:reliab|available|response|answer)|"
+    r"\binformation available in this response alone\b|"
+    r"\bcannot (?:reliably )?(?:define|explain|answer)\b)",
     re.I,
 )
 
@@ -118,20 +142,6 @@ def is_unjustified_conceptual_abstention(query: str, response: str) -> bool:
         return False
     if not _MEANING_REQUEST.search(q):
         return False
-    if not re.search(
-        r"\b(?:role|purpose|significance|importance|function|value|meaning|"
-        r"relationship|contribution|impact|effect|nature|concept|principle)\b",
-        q,
-        re.I,
-    ):
+    if not _CONCEPTUAL_SUBJECT.search(q):
         return False
-    return bool(re.search(
-        r"(?:\b(?:i|we)\s+(?:cannot|can't|can not|am unable to)\b.{0,100}"
-        r"(?:define|explain|establish|determine|answer|identify)|"
-        r"\bnot enough (?:information|evidence|context)\b.{0,100}"
-        r"(?:reliab|available|response|answer)|"
-        r"\binformation available in this response alone\b|"
-        r"\bcannot (?:reliably )?(?:define|explain|answer)\b)",
-        answer,
-        re.I,
-    ))
+    return bool(_GENERIC_EVIDENCE_LIMIT_REFUSAL.search(answer))
