@@ -125,10 +125,11 @@ GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_S
 # above the observed successful latency while preserving the next fallback slot.
 GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 5.5
 # Live acceptance showed the healthy Nemotron Lightning model exceeding its
-# EWMA-derived 5.1s ceiling by 22ms on a complete relational-synthesis answer.
-# Give this proven primary model a narrow 6s margin; half-open probes retain
-# their existing bounded probe timeout and the shared 18s route ceiling remains.
-GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS = 6.0
+# six-second ceiling by 32ms on a held-out community-rule transfer after
+# independent fallback lanes were quota-denied or timed out. Give this healthy
+# primary a 6.5s floor; half-open probes keep their separate bounded timeout,
+# and the shared 18s arbitration window remains the hard route ceiling.
+GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS = 6.5
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
