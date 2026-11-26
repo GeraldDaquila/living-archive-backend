@@ -284,3 +284,54 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
 
 def test_output_contract_is_absent_without_candidates():
     assert adjudication.build_adjudication_output_contract([]) == ""
+
+
+
+def test_partial_valid_offsets_credit_only_candidates_with_valid_answer_evidence():
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-b", "decision": "select", "reason_code": None},
+            ],
+            "application_evidence_spans": [
+                _offset("lesson-a", response, phrase),
+                {"candidate_id": "lesson-b", "start": len(response) + 10, "end": len(response) + 40},
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["status"] == "provider_reported_selected"
+    assert result["application_evidence_present"] is True
+    assert result["application_evidence_candidate_ids"] == ["lesson-a"]
+    assert result["application"] == "provider_asserted_span_present"
+    assert result["application_evidence_reason"] == "partial_selected_offsets_validated"
+
+
+def test_malformed_offset_coverage_and_rejected_candidate_offsets_still_fail_closed():
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
+    assessments = [
+        {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+        {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
+    ]
+    missing = adjudication.normalize_provider_adjudication(
+        {"candidate_assessments": assessments, "application_evidence_spans": [_offset("lesson-a", response, phrase)]},
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert missing["application_evidence_present"] is False
+    assert missing["application_evidence_reason"] == "offset_entry_count_mismatch"
+    contaminated = adjudication.normalize_provider_adjudication(
+        {"candidate_assessments": assessments, "application_evidence_spans": [
+            _offset("lesson-a", response, phrase),
+            {"candidate_id": "lesson-b", "start": 0, "end": 10},
+        ]},
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert contaminated["application_evidence_present"] is False
+    assert contaminated["application_evidence_reason"] == "rejected_offset_not_empty"
