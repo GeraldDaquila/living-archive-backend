@@ -18229,6 +18229,10 @@ async def _use_request_boundary(scope, receive, send):
                 if isinstance(payload, dict) else None
             )
             safe_payload = _guide_finalize_visitor_payload(payload, query)
+            # Layered answerability is enforced after every inner route, including
+            # deterministic provider-exhaustion recovery and cached compositions.
+            from guide_answerability import enforce_answerability_payload
+            safe_payload = enforce_answerability_payload(query, safe_payload)
             _final_status = int((captured_start or {}).get("status") or 200)
             if isinstance(safe_payload, dict):
                 if _origin_route_source:
