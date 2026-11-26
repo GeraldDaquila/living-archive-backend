@@ -1,5 +1,12 @@
 # Living Archive Gold-Standard Registry
 
+## Candidate successor under review — 2026-11-26
+
+- **Diagnostic source:** `general-guide-self-optimization-limits-development-near-miss-2026-11-26` remains preserved as the exact visitor-facing near-miss from PR #2050.
+- **Proposed successor:** `general-guide-developmental-stewardship-objective-integrity-2026-11-26` is a separately authored candidate addressing proxy drift, self-reinforcing feedback loops, the distinction between improving means and revising ends, and legitimate authority over shared objectives.
+- **Architectural change:** The Guide composition contract now requires objective/purpose alignment, feedback integrity, systemic consequences, and disciplined goal reconsideration for relevant optimization and development questions.
+- **Approval boundary:** The successor remains `CANDIDATE`, with `runtime_transfer: false`, no exact-answer authority, no deterministic fallback, no assigned serial, and no doorway authority. It is excluded from approved and active Gold Star counts pending review of the exact response and validation.
+
 ## Newly elevated 2026-11-24
 
 - **Newly elevated 2026-11-24:** `general-guide-public-commons-civic-renewal-2026-11-24` preserves the exact live visitor answer to “What is the role of public commons in civic renewal?” It demonstrates bounded conceptual answerability after provider exhaustion: answer the general question directly, distinguish general explanation from formal Archive doctrine, identify governance conditions and failure modes, and preserve a separately warranted continuation. The screenshot confirms the visible **Philippine Renewal Framework** doorway title, but not its URL; the canonical destination remains unevaluated and must not be inferred. The record is an active structural-learning contributor with deterministic-fallback eligibility disabled. Its human-facing serial remains `UNASSIGNED`. This elevation does not claim held-out adaptive transfer has been proven.
