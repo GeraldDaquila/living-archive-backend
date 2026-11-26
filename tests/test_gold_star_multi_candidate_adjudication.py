@@ -164,7 +164,7 @@ def test_top_ranked_community_rule_projection_preserves_key_operations_within_bu
         "accountability, appeal, review, correction",
         "Collective preference cannot override rights",
         "never assume limits justified",
-        "apply the selected discipline's distinct reasoning steps in the answer",
+        "apply selected reasoning in the answer",
     ):
         assert phrase in prompt
 
@@ -184,11 +184,9 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     }
     prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
 
-    assert "Identify the legitimate shared purpose and demonstrable harm" in prompt
-    assert "who benefits" in prompt
-    assert "who bears costs" in prompt
-    assert "whose liberty is restricted" in prompt
-    assert "least-restrictive workable means" in prompt
-    assert "distribute burdens fairly with reasonable accommodation" in prompt
-    assert "enforcement, appeal, and observable review criteria" in prompt
-    assert "Do not infer legality or assume necessity without case-specific evidence" in prompt
+    assert "State purpose and evidenced shared need" in prompt
+    assert "beneficiaries, burdens, restricted liberty, reciprocal duties, and accommodation" in prompt
+    assert "include affected people in design" in prompt
+    assert "test necessity, proportionality, least-restrictive means, appeal, and review" in prompt
+    assert "Name missing facts; do not invent need, infer legality, or assume necessity" in prompt
+    assert "For community rules, state purpose, evidenced need, beneficiaries/burdens/liberty" in prompt
