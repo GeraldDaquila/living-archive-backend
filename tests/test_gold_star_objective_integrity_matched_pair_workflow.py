@@ -14,14 +14,16 @@ def test_groq_qwen27b_paired_pilot_is_provider_pinned_and_provider_isolated():
     assert "objective_integrity_matched_pair_cases_groq_qwen27b.json" in workflow
 
 
-def test_provider_capture_only_runs_on_dedicated_qa_push_or_explicit_main_dispatch():
+def test_provider_capture_requires_explicit_manual_opt_in_from_main():
     workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/objective-integrity-matched-pair.yml").read_text(encoding="utf-8")
     assert "concurrency:" in workflow
     assert "cancel-in-progress: true" in workflow
-    assert "github.event_name == 'push'" in workflow
+    assert "workflow_dispatch:" in workflow
     assert "github.event_name == 'workflow_dispatch'" in workflow
     assert "github.ref == 'refs/heads/main'" in workflow
     assert "inputs.run_provider_capture == true" in workflow
+    assert "push:" not in workflow
+    assert "github.event_name == 'push'" not in workflow
     assert "github.event_name == 'pull_request' &&" not in workflow
 
 
