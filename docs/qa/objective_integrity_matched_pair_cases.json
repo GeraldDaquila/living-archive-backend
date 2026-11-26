@@ -50,7 +50,7 @@
     {
       "case_id": "heldout-objective-integrity-water-reliability-002",
       "case_family": "proxy_metric_drift",
-      "query": "A regional water utility has optimized the number of maintenance jobs closed each week. Its closure count is rising, but repeat failures and service interruptions are also increasing. What should managers examine before setting a more aggressive productivity target?",
+      "query": "A regional water utility has optimized the number of maintenance jobs closed each week. Its closure count is rising, but repeat failures and service interruptions are also increasing. What should managers examine before setting a more aggressive productivity target, and is the current performance objective still fit for purpose?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -70,7 +70,7 @@
     {
       "case_id": "heldout-objective-integrity-support-incentives-003",
       "case_family": "incentive_feedback_loops",
-      "query": "A customer-support operation is optimizing average call duration. The target is being met, but customers increasingly call back about the same unresolved problems. How should leadership assess whether the target still represents good service?",
+      "query": "A customer-support operation is optimizing average call duration. The target is being met, but customers increasingly call back about the same unresolved problems. How should leadership assess whether this performance objective still represents good service?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -90,7 +90,7 @@
     {
       "case_id": "heldout-objective-integrity-research-output-004",
       "case_family": "incentive_feedback_loops",
-      "query": "A research institute has increased the number of reports produced by optimizing its annual output target, but decision-makers rarely use the reports and staff say quality review is being squeezed. What should it do before raising the target again?",
+      "query": "A research institute has increased the number of reports produced by optimizing its annual output target, but decision-makers rarely use the reports and staff say quality review is being squeezed. What should it do before raising the target again, and how should it judge whether the objective is still fit for purpose?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
