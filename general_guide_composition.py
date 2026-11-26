@@ -389,7 +389,18 @@ def _objective_integrity_instruction(question: str) -> str:
     objective_topic = any(term in low for term in (
         "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim", "score", "indicator", "outcome", "benchmark",
     ))
-    if not (improvement_topic and objective_topic):
+    # Metric-to-purpose alignment is itself an objective-integrity task,
+    # even when the visitor does not phrase it as an improvement request.
+    metric_alignment_question = (
+        any(term in low for term in ("metric", "measure", "indicator", "success measure"))
+        and any(term in low for term in ("align", "serve", "reflect", "represent"))
+        and any(term in low for term in ("goal", "objective", "purpose", "mission", "aim"))
+    )
+    developmental_limits_question = (
+        "optim" in low
+        and any(term in low for term in ("development", "limit", "model of"))
+    )
+    if not ((improvement_topic and objective_topic) or metric_alignment_question or developmental_limits_question):
         return ""
     return (
         "OBJECTIVE INTEGRITY: Test whether the proxy/measure still serves the purpose. "
