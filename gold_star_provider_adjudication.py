@@ -182,7 +182,7 @@ def normalize_provider_adjudication(
     }
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the minimal bounded JSON report expected from the provider."""
+    """Describe the bounded report; evidence spans are zero-based Unicode code-point offsets, end-exclusive, into the exact final response."""
     index = _candidate_index(candidates)
     if not index:
         return ""
