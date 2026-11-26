@@ -307,6 +307,9 @@
     },
     "provider_exhaustion_answerability": {
       "description": "Preserve answerability under provider outages: distinguish provider availability from knowledge limits, answer the supported conceptual portion, and retain institutional and evidence boundaries."
+    },
+    "objective_integrity_and_developmental_stewardship": {
+      "description": "Distinguish improving means from reconsidering ends; test proxy alignment, reinforcing feedback, unmeasured costs, systemic consequences, and legitimate authority before optimizing further."
     }
   },
   "entries": [
