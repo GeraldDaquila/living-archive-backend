@@ -484,7 +484,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "CORE requires boundary fit; CONDITIONAL requires activation. An unclassified role is not disqualifying. "
         "Check subject/task fit, distinct contribution, redundancy, and boundary. Decide before drafting. "
         "Select one only when materially relevant and sufficient. "
-        "Apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span. "
+        "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span. "
         "Combine candidates only when each adds a distinct, necessary, compatible operation; "
         "never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
