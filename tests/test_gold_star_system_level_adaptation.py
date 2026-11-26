@@ -58,7 +58,7 @@ def test_ranked_gold_star_lesson_is_in_system_message_not_user_message(monkeypat
     assert "Reject all when none improves the answer" in system_message
     assert "If none qualifies, answer normally" in system_message
     assert "If none qualifies, answer normally" in system_message
-    assert "Never transfer exemplar answers, claims, examples, citations, or doorways" in system_message
+    assert "Never transfer exemplar content or doorways" in system_message
     assert "Combine only when each adds a distinct, necessary, compatible operation not already covered" in system_message
     assert "apply selected reasoning in the answer" in system_message
 
