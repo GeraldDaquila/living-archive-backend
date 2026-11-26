@@ -97,7 +97,7 @@ def _gold_star_adaptive_contract_for_question(question: str) -> str:
     if "stewardship" in low and "consent" in low:
         parts.append(stewardship_marker + stewardship.strip())
     parts.append(exact_marker + exact.strip())
-    return "\\n\\n".join(part for part in parts if part)
+    return "\n\n".join(part for part in parts if part)
 
 
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
