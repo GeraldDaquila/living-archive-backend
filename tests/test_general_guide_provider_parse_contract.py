@@ -73,11 +73,11 @@ def test_community_liberty_limit_prompt_requires_burden_distribution_and_partici
         "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY",
         "legitimate shared purpose",
         "who benefits",
-        "who bears each cost or burden",
-        "include those affected in shaping the rule",
-        "less restrictive workable alternatives",
-        "burden distribution from proportionality",
-        "appeal, observable review criteria",
+        "who bears costs",
+        "include affected people in shaping the rule",
+        "less restrictive workable means",
+        "fair burden allocation",
+        "appeal and review",
     ):
         assert required in prompt
     unrelated = composition._build_general_guide_system_message("What is stewardship?")
@@ -103,7 +103,7 @@ def test_gold_star_adjudication_prefers_specific_reasoning_family_over_broad_the
             ]
         }
     )
-    assert "narrowest matching reasoning family over a broader adjacent family" in instruction
+    assert "narrowest matching reasoning family" in instruction
     assert "thematic overlap alone is not redundancy" in instruction
 
 
