@@ -118,12 +118,12 @@ GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIM
 # and caused false provider exhaustion. Give recovery candidates the supported
 # minimum composition window; the shared 18s arbitration ceiling still bounds
 # the total cost and preserves the six-second integrity-repair reserve.
-GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
-# NVIDIA's Nemotron 3.5 Super VL has demonstrated successful inference near
-# five seconds, but a full eight-second half-open timeout can strand a proven
-# low-latency sibling after independent-provider failures. Keep a small margin
-# above the observed successful latency while preserving the next fallback slot.
-GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 5.5
+GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = 5.25
+# Live relational-synthesis acceptance showed half-open OpenRouter and NVIDIA
+# composition calls exceeding their 5.0s and 5.5s ceilings by 2ms and 44ms.
+# Raise only the bounded half-open floor and the observed Super VL lane; the
+# 18s arbitration window still reserves a full next-candidate timeout.
+GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 6.0
 # Live acceptance showed the healthy Nemotron Lightning model exceeding its
 # EWMA-derived 5.1s ceiling by 22ms on a complete relational-synthesis answer.
 # Give this proven primary model a narrow 6s margin; half-open probes retain
