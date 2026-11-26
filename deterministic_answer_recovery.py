@@ -2002,6 +2002,50 @@ def _public_commons_civic_renewal_recovery():
     )
 
 
+def is_self_optimization_model_limits_question(question):
+    """Recognize a bounded question about self-optimization as a development model."""
+    q = re.sub(r"\\s+", " ", _clean(question)).strip()
+    return bool(
+        re.match(
+            r"(?i)^what are the (?:limits|limitations|boundaries) of "
+            r"self[- ]optim(?:ization|isation) as (?:a|an) model of "
+            r"(?:human )?development[?.!]*$",
+            q,
+        )
+        or re.match(
+            r"(?i)^what are the (?:limits|limitations|boundaries) of "
+            r"self[- ]optim(?:ization|isation) as a developmental model[?.!]*$",
+            q,
+        )
+    )
+
+
+def _self_optimization_model_limits_recovery():
+    """Explain the useful scope and limits of optimization as a developmental model."""
+    return (
+        "Self-optimization can describe one part of development: a person, group, or system "
+        "uses feedback about its performance to adjust its methods and become more capable "
+        "of achieving an aim. It is useful when the aim is legitimate, the measures reflect "
+        "what genuinely matters, and feedback is reliable enough to guide improvement. "
+        "It helps explain learning, adaptation, and the refinement of skills or processes.\\n\\n"
+        "Its main limit is that optimization improves performance against a chosen objective; "
+        "it does not establish that the objective itself is worthwhile. If a measure is only a "
+        "proxy for what matters, a system can become better at the measure while becoming worse "
+        "at the underlying purpose. Feedback can also be incomplete or delayed, and improving "
+        "one part can damage the wider whole. A system cannot rely on its own optimization "
+        "process alone to judge its assumptions, values, or effects on others.\\n\\n"
+        "Development is broader than becoming more efficient at a fixed goal. It can involve "
+        "changing the goal, recognizing a mistaken assumption, developing judgment and "
+        "relationships, responding to new conditions, and deciding that some trade-offs are "
+        "not acceptable. Progress may be uneven and cannot always be reduced to one score. "
+        "So self-optimization is best treated as one mechanism within development, not a "
+        "complete model of it. A sound developmental process also needs external feedback, "
+        "more than one measure of success, room to revise its aims, and independent judgment "
+        "about consequences. This is a general conceptual explanation, not a formal "
+        "Living Archive definition."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -2009,6 +2053,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    if is_self_optimization_model_limits_question(q):
+        return _self_optimization_model_limits_recovery()
 
     _human_development_comparison = compose_human_development_comparison_recovery(q)
     if _human_development_comparison:
