@@ -11,7 +11,7 @@ def test_groq_qwen27b_paired_pilot_is_provider_pinned_and_provider_isolated():
     assert "CLOUDFLARE_ACCOUNT_ID" not in workflow
     assert "--provider groq" in workflow
     assert "--model qwen/qwen3.8-27b" in workflow
-    assert "objective_integrity_matched_pair_cases_groq_20b.json" in workflow
+    assert "objective_integrity_matched_pair_cases_groq_qwen27b.json" in workflow
 
 
 def test_provider_capture_only_runs_on_dedicated_qa_push_or_explicit_main_dispatch():
