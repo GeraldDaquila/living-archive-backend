@@ -187,6 +187,15 @@ def enforce_answerability_payload(query: str, payload: Any) -> Any:
     corrected["canonical_doorway"] = None
     corrected["doorway_title"] = ""
     corrected["doorway_url"] = ""
+    corrected["doorway_decision"] = "omit"
+    corrected["doorway_selection_status"] = "AUTHORIZED_OMISSION"
+    corrected["doorway_selection_evaluated"] = False
+    corrected["doorway_selection_source"] = "layered_answerability_recovery"
+    corrected["doorway_omission_reason"] = (
+        "The bounded general-knowledge recovery stands on its own; no directly relevant "
+        "canonical continuation was verified for this answer."
+    )
+    corrected["navigation_suppressed_by_task_contract"] = True
     corrected["processing"] = "final_visitor_boundary_layered_answerability_recovery"
     corrected["route_source"] = "guide_final_visitor_boundary"
     return corrected
