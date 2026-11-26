@@ -159,8 +159,11 @@ def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marke
         "questioned, and corrected. When people trust the process, they are more likely to share "
         "information, raise concerns, and take part candidly; institutions must respond honestly. "
         "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
-        "trustworthy, and trust cannot replace accountability."
+        "trustworthy, and trust cannot replace accountability. For example, publishing a decision's "
+        "reasons lets affected people compare stated grounds with actual conduct, identify inconsistencies, "
+        "and request correction. Trust becomes warranted through the institution's response, not visibility alone."
     )
+    assert has_conceptual_relationship_explanation(response, TRANSPARENCY_TRUST_QUESTION)
     parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
 
     result = parse(json.dumps({"response": response}))
