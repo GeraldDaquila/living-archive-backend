@@ -9,6 +9,7 @@ import general_guide_composition as composition
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 TRANSFER_REVIEW_PATH = ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
+MAP_PATH = ROOT / "docs" / "qa" / "gold_star_transferability_map.json"
 
 NEAR_MISS_ID = "general-guide-self-optimization-limits-development-near-miss-2026-11-26"
 SUCCESSOR_ID = "general-guide-developmental-stewardship-objective-integrity-2026-11-26"
@@ -18,18 +19,20 @@ def _registry():
     return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
 
 
-def test_objective_integrity_successor_preserves_near_miss_and_stays_non_runtime():
+def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_authority():
     registry = _registry()
     records = {item["benchmark_id"]: item for item in registry["records"]}
     near_miss = records[NEAR_MISS_ID]
     successor = records[SUCCESSOR_ID]
     review = json.loads(TRANSFER_REVIEW_PATH.read_text(encoding="utf-8"))
+    transfer_map = json.loads(MAP_PATH.read_text(encoding="utf-8"))
 
     # The original screenshot response remains a distinct, immutable diagnostic.
     assert near_miss["status"] == "CANDIDATE"
     assert near_miss["runtime_transfer"] is False
     assert "Self-optimization treats development as a continual process" in near_miss["expected_response"]
     assert near_miss["linked_successor_benchmark_id"] == SUCCESSOR_ID
+    assert near_miss["successor_state"] == "SUCCESSOR_APPROVED_AS_SEPARATE_GOLD_STAR"
 
     # A proposed successor cannot become a runtime lesson before review/approval.
     assert successor["status"] == "USER_APPROVED_GOLD_STANDARD"
@@ -37,7 +40,12 @@ def test_objective_integrity_successor_preserves_near_miss_and_stays_non_runtime
     assert successor["gold_star_capabilities"]["active_quality_contributor"] is True
     assert successor["gold_star_capabilities"]["exact_answer_authority"] is False
     assert successor["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
-    assert SUCCESSOR_ID in {item["benchmark_id"] for item in review["entries"]}
+    assert successor["user_reviewed_response"] is True
+    assert successor["explicit_user_elevation_approval"] is True
+    assert successor["elevation_approval_evidence"]
+    review_entry = next(item for item in review["entries"] if item["benchmark_id"] == SUCCESSOR_ID)
+    assert review_entry["activation"] == "active_quality_contributor"
+    assert SUCCESSOR_ID in {item["benchmark_id"] for item in transfer_map["entries"]}
     assert successor["user_reviewed_response"] is True
     assert successor["explicit_user_elevation_approval"] is True
     assert successor["elevation_approval_evidence"]
