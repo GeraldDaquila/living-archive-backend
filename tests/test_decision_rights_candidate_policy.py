@@ -126,7 +126,11 @@ def test_provider_adjudication_validates_four_candidate_dispositions_and_spans()
             for item in candidates
         ],
         "application_evidence_spans": [
-            {"candidate_id": item["benchmark_id"], "span": span}
+            {
+                "candidate_id": item["benchmark_id"],
+                "start": response.index(span),
+                "end": response.index(span) + len(span),
+            }
             for item, span in zip(candidates, spans)
         ],
     }
