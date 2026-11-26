@@ -529,7 +529,7 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
         "type": "object",
         "properties": {
             "candidate_id": {"type": "string", "enum": candidate_ids},
-            "span": {"type": "string", "minLength": 12, "maxLength": 240},
+            "span": {"type": "string", "minLength": 0, "maxLength": 240},
         },
         "required": ["candidate_id", "span"],
         "additionalProperties": False,
@@ -546,6 +546,7 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
             "application_evidence_spans": {
                 "type": "array",
                 "items": evidence_span,
+                "minItems": candidate_count,
                 "maxItems": candidate_count,
             },
         },

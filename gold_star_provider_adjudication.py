@@ -94,37 +94,46 @@ def normalize_provider_adjudication(
 
     if seen != set(index):
         return base
-    # Selection and application evidence are separate evidence stages. A
-    # malformed, missing, or non-matching span must not erase a structurally
-    # valid candidate disposition; it simply earns no application credit.
+    # Require one bounded evidence entry for every disposition. Selected
+    # candidates must point to an exact answer substring; rejected candidates
+    # must carry an empty span. This makes omission detectable without making
+    # reject-all invalid or retaining visitor content in telemetry.
     spans = value.get("application_evidence_spans")
     evidence_ids: list[str] = []
-    if not selected:
-        if spans not in (None, []):
-            return base
-    else:
-        spans_valid = isinstance(spans, list) and len(spans) == len(selected)
-        if spans_valid:
-            for item in spans:
-                if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
-                    spans_valid = False
-                    break
-                candidate_id, span = item.get("candidate_id"), item.get("span")
-                if (
-                    not isinstance(candidate_id, str)
-                    or candidate_id not in selected
-                    or candidate_id in evidence_ids
-                    or not isinstance(span, str)
-                    or not 12 <= len(span.strip()) <= MAX_EVIDENCE_SPAN
-                    or span.strip() not in str(response or "")
-                ):
-                    spans_valid = False
-                    break
-                evidence_ids.append(candidate_id)
-            if spans_valid and set(evidence_ids) != set(selected):
+    spans_valid = isinstance(spans, list) and len(spans) == len(index)
+    span_by_id: dict[str, str] = {}
+    if spans_valid:
+        for item in spans:
+            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
                 spans_valid = False
-        if not spans_valid:
-            evidence_ids = []
+                break
+            candidate_id, span = item.get("candidate_id"), item.get("span")
+            if (
+                not isinstance(candidate_id, str)
+                or candidate_id not in index
+                or candidate_id in span_by_id
+                or not isinstance(span, str)
+                or len(span) > MAX_EVIDENCE_SPAN
+            ):
+                spans_valid = False
+                break
+            span_by_id[candidate_id] = span
+        if spans_valid and set(span_by_id) != set(index):
+            spans_valid = False
+    if spans_valid:
+        for candidate_id in selected:
+            span = span_by_id.get(candidate_id, "").strip()
+            if not 12 <= len(span) <= MAX_EVIDENCE_SPAN or span not in str(response or ""):
+                spans_valid = False
+                break
+            evidence_ids.append(candidate_id)
+        if spans_valid and any(
+            span_by_id.get(candidate_id) != ""
+            for candidate_id in set(index) - set(selected)
+        ):
+            spans_valid = False
+    if not spans_valid:
+        evidence_ids = []
     span_present = bool(selected) and set(evidence_ids) == set(selected)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
@@ -152,10 +161,10 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, copy "
-        "one exact 12–240 character contiguous sentence or clause per selected ID, showing its distinctive "
-        "reasoning operation; it must be an exact substring. Include one application_evidence_spans object "
-        "per selected ID; reject if no exact span exists; use [] when none is selected. "
+        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one "
+        "span object per candidate ID: selected IDs get an exact 12–240 character contiguous sentence or "
+        "clause from the answer showing their distinctive reasoning operation (an exact substring); rejected "
+        "IDs get an empty string. Never select without a span; reject-all uses empty spans. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and exact "
