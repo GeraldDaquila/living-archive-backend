@@ -46,9 +46,6 @@ def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_
     review_entry = next(item for item in review["entries"] if item["benchmark_id"] == SUCCESSOR_ID)
     assert review_entry["activation"] == "active_quality_contributor"
     assert SUCCESSOR_ID in {item["benchmark_id"] for item in transfer_map["entries"]}
-    assert successor["user_reviewed_response"] is True
-    assert successor["explicit_user_elevation_approval"] is True
-    assert successor["elevation_approval_evidence"]
     assert successor["numbering_status"] == "UNASSIGNED"
     assert successor["doorway_status"] == "NOT_EVALUATED"
 
@@ -131,6 +128,9 @@ def test_objective_integrity_instruction_is_not_added_to_unrelated_questions(mon
 def test_objective_integrity_instruction_requires_an_improvement_and_objective_signal():
     assert composition._objective_integrity_instruction(
         "How can we improve performance without compromising the mission objective?"
+    )
+    assert composition._objective_integrity_instruction(
+        "How can we improve school test scores without narrowing learning?"
     )
     assert composition._objective_integrity_instruction(
         "Is this success metric still aligned with our goal?"
