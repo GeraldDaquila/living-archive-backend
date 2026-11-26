@@ -1041,10 +1041,15 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
             parts.append({"text": str(content or "")})
         if parts:
             contents.append({"role": "user" if message.get("role") != "assistant" else "model", "parts": parts})
-    payload = {"contents": contents, "generationConfig": {
+    generation_config = {
         "maxOutputTokens": max_tokens,
         "thinkingConfig": {"thinkingLevel": "low"},
-    }}
+    }
+    # The paired evaluator freezes sampling for both arms without changing
+    # normal visitor traffic or the ordinary Gemini adapter defaults.
+    if _current_gold_star_evaluation_context() is not None:
+        generation_config["temperature"] = 0.0
+    payload = {"contents": contents, "generationConfig": generation_config}
     if not _text_mode(schema):
         payload["generationConfig"]["responseMimeType"] = "application/json"
     if isinstance(schema, dict) and isinstance(schema.get("schema"), dict):
@@ -3244,6 +3249,11 @@ def _filter_evaluation_candidate_pool(pool, evaluation):
     ]
 
 
+def _evaluation_contract_repair_allowed(evaluation):
+    """Evaluation arms fail closed after one generation; no same-model repair call."""
+    return evaluation is None
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
     # Hard-wired 70/30 workload split for Guide composition. The secondary receives
     # its assigned share through the authenticated capability boundary; if that lane
@@ -3746,6 +3756,26 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             try:
                 parsed = _normalize_operation_result(operation, parsed, messages=effective_messages)
             except ValueError as contract_error:
+                if not _evaluation_contract_repair_allowed(evaluation):
+                    # A paired arm is one generation, not a generation plus a
+                    # hidden same-model correction. Reject the arm and let the
+                    # runner mark the pair invalid instead of changing conditions.
+                    _gold_star_trace.record_provider_candidate_outcome(operation, "failure")
+                    state["probe_in_flight"] = False
+                    contract_reason = str(contract_error)
+                    rejection_class = _contract_rejection_class(contract_reason)
+                    _record_quality_rejection(
+                        provider, model, operation, contract_reason, rejection_class
+                    )
+                    last_error = "evaluation_contract_rejection"
+                    print(
+                        "USE provider evaluation contract: "
+                        + "operation=" + operation
+                        + ", provider=" + provider
+                        + ", model=" + model
+                        + ", action=fail_pair_without_same_model_repair"
+                    )
+                    break
                 # HRN visitor-surface rejections are semantic quality failures,
                 # not JSON-schema failures. A correction call to the same model
                 # would consume the bounded stage budget and often reproduce the
@@ -4130,7 +4160,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # A local bank can be healthy enough to receive the request yet still exhaust
     # its bounded candidate budget. Give independently configured counterpart
     # capacity one bounded opportunity before deterministic recovery.
-    if operation == "general_guide_composition" and not delegated and _active_active_role() == "primary":
+    if evaluation is None and operation == "general_guide_composition" and not delegated and _active_active_role() == "primary":
         remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
         if remote:
             return remote
