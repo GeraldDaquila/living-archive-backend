@@ -145,13 +145,40 @@ def adjudicate_answer_claims(
             "claims": [],
             "claim_count": 0,
         }
-    if not isinstance(extracted, list) or not extracted or len(extracted) > _MAX_CLAIMS:
+    # Keep provider/shape dispositions distinct without retaining claim text.
+    # In particular, an empty provider list is not the same failure as a malformed
+    # structure or a list that exceeds the bounded adjudication contract.
+    if extracted is None:
+        return {
+            "version": VERSION,
+            "status": "unassessed",
+            "reason": "claim_extraction_unavailable_or_unparseable",
+            "claims": [],
+            "claim_count": 0,
+        }
+    if not isinstance(extracted, list):
         return {
             "version": VERSION,
             "status": "unassessed",
             "reason": "malformed_claim_extraction",
             "claims": [],
             "claim_count": 0,
+        }
+    if not extracted:
+        return {
+            "version": VERSION,
+            "status": "unassessed",
+            "reason": "empty_claim_extraction",
+            "claims": [],
+            "claim_count": 0,
+        }
+    if len(extracted) > _MAX_CLAIMS:
+        return {
+            "version": VERSION,
+            "status": "unassessed",
+            "reason": "claim_extraction_limit_exceeded",
+            "claims": [],
+            "claim_count": len(extracted),
         }
 
     output: list[dict[str, Any]] = []

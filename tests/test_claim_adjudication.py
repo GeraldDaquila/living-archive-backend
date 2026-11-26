@@ -104,6 +104,37 @@ def test_malformed_extraction_retains_unassessed():
     assert result["reason"] == "malformed_claim_extraction"
 
 
+def test_empty_claim_extraction_has_distinct_disposition():
+    result = adjudicate_answer_claims(
+        "answer", DOCS, adjudicate_claims=lambda _answer, _passages: []
+    )
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "empty_claim_extraction"
+    assert result["claim_count"] == 0
+    assert result["claims"] == []
+
+
+def test_unavailable_or_unparseable_combined_extractor_is_not_mislabeled_malformed():
+    result = adjudicate_answer_claims(
+        "answer", DOCS, adjudicate_claims=lambda _answer, _passages: None
+    )
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "claim_extraction_unavailable_or_unparseable"
+
+
+def test_claim_extraction_limit_has_distinct_bounded_disposition():
+    result = adjudicate_answer_claims(
+        "answer", DOCS,
+        adjudicate_claims=lambda _answer, _passages: [
+            {"claim": str(index)} for index in range(33)
+        ],
+    )
+    assert result["status"] == "unassessed"
+    assert result["reason"] == "claim_extraction_limit_exceeded"
+    assert result["claim_count"] == 33
+    assert result["claims"] == []
+
+
 def test_malformed_assessment_retains_unassessed():
     result = adjudicate_answer_claims("answer", DOCS, extract_claims=_extract, assess_claim=lambda _c, _p: ["bad"])
     assert result["claims"][0]["outcome"] == "unassessed"
@@ -136,7 +167,8 @@ def test_claim_count_is_bounded():
         assess_claim=_assess("supported", "control"),
     )
     assert result["status"] == "unassessed"
-    assert result["reason"] == "malformed_claim_extraction"
+    assert result["reason"] == "claim_extraction_limit_exceeded"
+    assert result["claim_count"] == 33
 
 
 
