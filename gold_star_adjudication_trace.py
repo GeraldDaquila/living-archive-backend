@@ -455,12 +455,16 @@ def mark_final_delivery(
     if cached_candidate_reused:
         result["contribution_retained"] = "not_verified"
     elif result.get("provider_adjudication_status") == "provider_reported_selected":
-        result["contribution_retained"] = (
-            "provider_asserted_span_retained"
-            if provider_candidate_delivered and result.get("application_evidence_present") is True
-            else "not_retained" if not provider_candidate_delivered
-            else "not_verified"
-        )
+        selected_ids = set(result.get("selected_candidate_ids") or [])
+        evidence_ids = set(result.get("application_evidence_candidate_ids") or [])
+        if not provider_candidate_delivered:
+            result["contribution_retained"] = "not_retained"
+        elif not evidence_ids or result.get("application_evidence_present") is not True:
+            result["contribution_retained"] = "not_verified"
+        elif selected_ids and evidence_ids == selected_ids:
+            result["contribution_retained"] = "provider_asserted_span_retained"
+        else:
+            result["contribution_retained"] = "provider_asserted_span_partially_retained"
     else:
         result["contribution_retained"] = "not_applicable"
     if result.get("application") == "deterministic_renderer_applied":

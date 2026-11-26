@@ -234,6 +234,29 @@ def test_partial_span_coverage_and_rejected_candidate_span_fail_closed():
     assert contaminated["application_evidence_reason"] == "rejected_span_not_empty"
 
 
+def test_partial_exact_spans_credit_only_candidates_with_valid_answer_evidence():
+    response = "Separate what was observed from what is inferred, then test the evidence. The answer also compares alternative mechanisms."
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-b", "decision": "select", "reason_code": None},
+            ],
+            "application_evidence_spans": [
+                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
+                {"candidate_id": "lesson-b", "span": "The answer distinguishes several causal mechanisms that are not in the response"},
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["status"] == "provider_reported_selected"
+    assert result["application_evidence_present"] is True
+    assert result["application_evidence_candidate_ids"] == ["lesson-a"]
+    assert result["application"] == "provider_asserted_span_present"
+    assert result["application_evidence_reason"] == "partial_selected_spans_validated"
+
+
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     contract = adjudication.build_adjudication_output_contract(CANDIDATES)
     assert len(contract) < 1600

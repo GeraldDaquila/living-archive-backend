@@ -871,3 +871,31 @@ def test_final_answer_provenance_preserves_visitor_failure_route_classification(
     assert result["response_provenance"]["class"] == "visitor_failure_recovery"
     assert result["response_provenance"]["provider"] == "provider_independent_visitor_recovery"
     assert result["response_provenance"]["llm_invoked"] is False
+
+
+def test_partial_provider_application_is_reported_as_partially_retained():
+    trace_value = trace.build_adjudication_trace({"candidates": CANDIDATES})
+    report = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-b", "decision": "select", "reason_code": None},
+            ],
+            "application_evidence_spans": [
+                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
+                {"candidate_id": "lesson-b", "span": "This sentence is not present in the answer at all"},
+            ],
+        },
+        response="Separate what was observed from what is inferred, then test the evidence.",
+        candidates=CANDIDATES,
+    )
+    trace_value = trace.mark_provider_adjudication(trace_value, report)
+    trace_value = trace.mark_composition_result(
+        trace_value,
+        provider_result={"parsed": {"response": "A provider answer."}},
+    )
+    trace_value = trace.mark_final_delivery(
+        trace_value, provider_candidate_delivered=True, final_provenance="llm"
+    )
+    assert trace_value["application_evidence_candidate_ids"] == ["lesson-a"]
+    assert trace_value["contribution_retained"] == "provider_asserted_span_partially_retained"

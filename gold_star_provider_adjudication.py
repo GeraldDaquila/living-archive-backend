@@ -128,20 +128,19 @@ def normalize_provider_adjudication(
         if spans_valid and set(span_by_id) != set(index):
             spans_valid = False
             evidence_reason = "span_candidate_coverage_incomplete"
+    selected_span_failures: list[str] = []
     if spans_valid:
         normalized_response = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
         for candidate_id in selected:
             span = re.sub(r"\s+", " ", span_by_id.get(candidate_id, "")).strip().casefold()
             if not 12 <= len(span) <= MAX_EVIDENCE_SPAN:
-                spans_valid = False
-                evidence_reason = "selected_span_missing_or_out_of_bounds"
-                break
+                selected_span_failures.append("selected_span_missing_or_out_of_bounds")
+                continue
             if span not in normalized_response:
-                spans_valid = False
-                evidence_reason = "selected_span_not_in_final_response"
-                break
+                selected_span_failures.append("selected_span_not_in_final_response")
+                continue
             evidence_ids.append(candidate_id)
-        if spans_valid and any(
+        if any(
             span_by_id.get(candidate_id) != ""
             for candidate_id in set(index) - set(selected)
         ):
@@ -149,11 +148,21 @@ def normalize_provider_adjudication(
             evidence_reason = "rejected_span_not_empty"
     if not spans_valid:
         evidence_ids = []
+    elif selected and evidence_ids:
+        evidence_reason = (
+            "exact_selected_spans_validated"
+            if len(evidence_ids) == len(selected)
+            else "partial_selected_spans_validated"
+        )
     elif selected:
-        evidence_reason = "exact_selected_spans_validated"
+        evidence_reason = (
+            selected_span_failures[0]
+            if selected_span_failures
+            else "selected_span_not_in_final_response"
+        )
     else:
         evidence_reason = "no_selected_candidates"
-    span_present = bool(selected) and set(evidence_ids) == set(selected)
+    span_present = bool(evidence_ids)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
         "selected_candidate_ids": selected,
