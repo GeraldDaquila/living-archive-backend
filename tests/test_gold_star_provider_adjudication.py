@@ -170,7 +170,7 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
 
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
     contract = adjudication.build_adjudication_output_contract(CANDIDATES)
-    assert len(contract) < 1300
+    assert len(contract) < 1600
     assert contract.endswith(
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
@@ -189,7 +189,11 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "abstention boundary",
         "exact 12–240 character span",
         "verbatim contiguous span",
-        "Never select unless you can quote an exact 12–240 character span",
+        "complete activation scope",
+        "semantically equivalent question",
+        "After drafting the final response",
+        "distinctive reasoning operation",
+        "exact substring",
         "No hidden reasoning or chain-of-thought",
         "paired evaluation",
     ):
