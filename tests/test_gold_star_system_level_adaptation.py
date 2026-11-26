@@ -95,8 +95,7 @@ def test_community_rule_candidate_prompt_preserves_qualifying_scope_and_all_dist
     ]
     prompt = composition._build_gold_star_quality_instruction({"candidates": candidates})
     assert (
-        "Use for community liberty limits justified by shared obligations, risks, safety, or coordination, "
-        "even without saying rule or policy."
+        "Use for community liberty limits justified by shared obligations, risk, or coordination, even without rule/policy wording."
     ) in prompt
     for required in (
         "who benefits",
