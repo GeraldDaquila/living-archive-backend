@@ -3261,6 +3261,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 and not _has_transparency_trust_reciprocity(candidate_for_comparison)
             ):
                 raise strict_exc
+            # Privacy/confidentiality is a substantive disclosure boundary,
+            # not a soft editorial preference. The compatibility lane must
+            # not re-admit a candidate rejected by the strict parser for omitting it.
+            if (
+                re.search(r"\btransparency\b", query, re.I)
+                and re.search(r"\btrust\b", query, re.I)
+                and is_conceptual_relationship_question(query)
+                and not _has_transparency_trust_disclosure_boundary(candidate_for_comparison)
+            ):
+                raise strict_exc
             try:
                 try:
                     parsed = json.loads(str(raw or "").strip())
