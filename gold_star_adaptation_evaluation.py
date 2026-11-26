@@ -48,7 +48,7 @@ MIN_IMPROVED_SHARE = 2 / 3
 # Two-sided 95% Student-t critical values for the small pilot cohorts used here.
 # For larger degrees of freedom, 1.96 is a close normal approximation.
 _T_CRITICAL_95 = {
-    2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
+    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
     7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201,
     12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120,
     17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086, 21: 2.080,
@@ -73,7 +73,7 @@ def _paired_mean_confidence_interval(deltas: list[float]) -> dict[str, Any]:
     mean_delta = sum(deltas) / count
     sample_sd = stdev(deltas)
     degrees = count - 1
-    critical = _T_CRITICAL_95.get(degrees, 1.96)
+    critical = _T_CRITICAL_95.get(degrees, 2.05)
     margin = critical * sample_sd / sqrt(count)
     return {
         "level": 0.95,
