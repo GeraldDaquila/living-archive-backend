@@ -28,6 +28,35 @@ def test_provider_candidate_delivery_is_explicit_and_not_quality_certification()
     assert validate_trace(delivered)["valid"] is True
 
 
+def test_provider_assisted_recovery_remains_distinct_from_pure_deterministic_recovery():
+    import gold_star_adjudication_trace as ledger
+
+    payload = {"response_provenance": {
+        "class": "provider_assisted_recovery",
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "llm_invoked": False,
+    }}
+    synchronized = ledger.synchronize_final_response_provenance(
+        payload,
+        final_provenance="provider_assisted_recovery",
+        provider_candidate_delivered=False,
+        cached_candidate_reused=False,
+    )
+    assert synchronized["response_provenance"]["class"] == "provider_assisted_recovery"
+
+    trace = ledger.build_adjudication_trace({
+        "candidates": [{"benchmark_id": "approved-example-1", "score": 0.91}]
+    })
+    delivered = ledger.mark_final_delivery(
+        trace,
+        provider_candidate_delivered=False,
+        final_provenance="provider_assisted_recovery",
+    )
+    assert delivered["final_provenance"] == "provider_assisted_recovery"
+    assert ledger.validate_trace(delivered)["valid"] is True
+
+
 def test_deterministic_final_boundary_replacement_is_not_attributed_to_provider():
     trace = build_adjudication_trace({
         "candidates": [{"benchmark_id": "approved-example-1", "score": 0.91}]
