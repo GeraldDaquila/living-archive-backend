@@ -465,7 +465,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             )
             boundary_text = (
                 "Apply only to community liberty limits and collective obligations. Do not infer legality or assume a "
-                "restriction is necessary or proportionate; require evidence, alternatives, fair allocation, accommodation, appeal, and review."
+                "restriction is necessary; require accommodation, appeal, and observable review, supported by evidence, "
+                "alternatives, fair allocation, and proportionality."
             )
         activation_value = (
             activation_text
