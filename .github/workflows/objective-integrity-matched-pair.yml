@@ -1,5 +1,9 @@
 name: Objective-integrity Gold Star matched-pair pilot
 
+concurrency:
+  group: objective-integrity-paired-pilot-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [qa/gold-star-objective-integrity-matched-pair-20261126]
