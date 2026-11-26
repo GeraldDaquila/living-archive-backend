@@ -41,7 +41,7 @@ One request generates one pair (two fresh provider generations). The process acc
 The response contains:
 
 - `blind_artifacts`: two outputs in randomized order, containing only the case ID, arm-neutral opaque artifact reference, and answer text. No doorway metadata or other ancillary fields are exposed to reviewers.
-- `operator_manifest`: private mapping of artifact references to control/treatment, plus provider/runtime/prompt/configuration/registry fingerprints, candidate-exposure metadata, and arm-specific doorway metadata.
+- `operator_manifest`: private mapping of artifact references to control/treatment, plus provider/runtime/prompt/configuration/registry fingerprints, candidate-exposure metadata, per-arm selection/application/contribution-retention trace, and arm-specific doorway metadata. These trace fields remain distinct from human-scored outcome evidence.
 
 The runner randomizes **generation order** for each pair as well as reviewer presentation order, and records the actual control/treatment generation order in the private operator manifest. This reduces systematic order effects and makes each pair auditable; it does not eliminate all provider nondeterminism or guarantee identical generation conditions beyond the recorded pins and fingerprints.
 
