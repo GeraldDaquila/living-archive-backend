@@ -18291,6 +18291,8 @@ async def _use_request_boundary(scope, receive, send):
                     if re.fullmatch(r"[0-9a-f]{32}", _request_correlation_id)
                     else None
                 )
+                _gold_star_terminal_payload = dict(safe_payload)
+                _gold_star_terminal_status = _outer_status
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
@@ -18955,11 +18957,14 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
     # One opaque correlation token spans the full HTTP request, including retries.
     _gold_star_request_context_token = _gold_star_ledger.begin_request_context(secrets.token_hex(16))
     _gold_star_response_completed = False
+    _gold_star_terminal_payload = None
+    _gold_star_terminal_status = None
     captured_start = None
     captured_chunks = []
 
     async def _capture_json_response(message):
         nonlocal captured_start, captured_chunks, _gold_star_response_completed
+        nonlocal _gold_star_terminal_payload, _gold_star_terminal_status
         message_type = message.get("type")
         if message_type == "http.response.start":
             headers = message.get("headers") or []
@@ -18989,6 +18994,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
             )
             safe_payload = _guide_finalize_visitor_payload(payload, query)
             _outer_status = int((captured_start or {}).get("status") or 200)
+            _gold_star_terminal_status = _outer_status
             if isinstance(safe_payload, dict):
                 if _origin_route_source:
                     safe_payload.setdefault("origin_route_source", _origin_route_source)
@@ -19142,6 +19148,14 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
         try:
             _ledger_state = _gold_star_ledger.current_request_context()
             _ledger_attempts = int(_ledger_state.get("composition_attempt_count") or 0)
+            _gold_star_seam_reached = bool(_ledger_state.get("gold_star_seam_reached"))
+            _eligibility_disposition = _gold_star_ledger.classify_request_disposition(
+                payload=_gold_star_terminal_payload,
+                status_code=_gold_star_terminal_status,
+                response_completed=_gold_star_response_completed,
+                has_query=bool(query),
+                gold_star_seam_reached=_gold_star_seam_reached,
+            )
             _ledger_terminal_state = (
                 "boundary_incomplete" if not _gold_star_response_completed
                 else "composition_attempted" if _ledger_attempts
@@ -19158,6 +19172,8 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                 provider_failure_count=int(_ledger_state.get("provider_failure_count") or 0),
                 provider_admission_denied_count=int(_ledger_state.get("provider_admission_denied_count") or 0),
                 provider_terminal_state=str(_ledger_state.get("provider_terminal_state") or "not_observed"),
+                gold_star_seam_reached=_gold_star_seam_reached,
+                eligibility_disposition=_eligibility_disposition,
                 terminal_state=_ledger_terminal_state,
             )
         except Exception:
