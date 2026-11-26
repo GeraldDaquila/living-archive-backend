@@ -39,6 +39,7 @@ def test_selected_candidate_requires_complete_disposition_and_exact_answer_span(
     assert result["reasoning_discipline_ids"] == ["evidence_discernment"]
     assert result["application_evidence_present"] is True
     assert result["application"] == "provider_asserted_span_present"
+    assert result["application_evidence_reason"] == "exact_selected_spans_validated"
 
 
 def test_reject_all_requires_reason_for_every_candidate():
@@ -60,6 +61,7 @@ def test_reject_all_requires_reason_for_every_candidate():
     assert result["selected_candidate_ids"] == []
     assert len(result["rejection_reason_codes"]) == 2
     assert result["application"] == "not_observed"
+    assert result["application_evidence_reason"] == "no_selected_candidates"
 
 
 def test_incomplete_or_unknown_candidate_adjudication_fails_closed():
@@ -96,6 +98,7 @@ def test_span_must_be_exactly_present_and_bounded():
     assert result["status"] == "provider_reported_selected"
     assert result["application_evidence_present"] is False
     assert result["application"] == "not_observed"
+    assert result["application_evidence_reason"] == "selected_span_not_in_final_response"
 
 
 def test_selected_without_exact_span_can_be_delivered_but_never_earns_application_credit():
@@ -181,6 +184,54 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
     assert final["outcome"] == "not_evaluated"
     assert trace.validate_trace(final)["valid"]
 
+
+
+def test_selected_span_matching_normalizes_whitespace_but_remains_contiguous():
+    response = "Separate what was observed\nfrom what is inferred, then test the evidence."
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
+            ],
+            "application_evidence_spans": [
+                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
+                {"candidate_id": "lesson-b", "span": ""},
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["application"] == "provider_asserted_span_present"
+    assert result["application_evidence_reason"] == "exact_selected_spans_validated"
+
+
+def test_partial_span_coverage_and_rejected_candidate_span_fail_closed():
+    base_report = {
+        "candidate_assessments": [
+            {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
+            {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
+        ],
+    }
+    partial = adjudication.normalize_provider_adjudication(
+        {**base_report, "application_evidence_spans": [
+            {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"}
+        ]},
+        response="Separate what was observed from what is inferred, then test the evidence.",
+        candidates=CANDIDATES,
+    )
+    assert partial["application"] == "not_observed"
+    assert partial["application_evidence_reason"] == "span_entry_count_mismatch"
+    contaminated = adjudication.normalize_provider_adjudication(
+        {**base_report, "application_evidence_spans": [
+            {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
+            {"candidate_id": "lesson-b", "span": "This rejected candidate must not claim an application"},
+        ]},
+        response="Separate what was observed from what is inferred, then test the evidence.",
+        candidates=CANDIDATES,
+    )
+    assert contaminated["application"] == "not_observed"
+    assert contaminated["application_evidence_reason"] == "rejected_span_not_empty"
 
 
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
