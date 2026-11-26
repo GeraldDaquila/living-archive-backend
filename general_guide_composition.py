@@ -383,15 +383,13 @@ def _is_community_liberty_limit_question(question: str) -> bool:
 def _objective_integrity_instruction(question: str) -> str:
     """Add goal/metric reasoning only to questions where it is relevant."""
     low = " ".join(str(question or "").casefold().split())
-    optimization_topic = any(term in low for term in (
-        "self-optimization", "self optimization", "optimisation", "optimization",
-        "optimize", "optimise", "performance improvement", "improve performance",
-        "development model", "model of development",
+    improvement_topic = any(term in low for term in (
+        "optim", "improv", "performance", "development",
     ))
     objective_topic = any(term in low for term in (
-        "goal", "objective", "purpose", "metric", "measure", "target", "development",
+        "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim",
     ))
-    if not (optimization_topic and objective_topic):
+    if not (improvement_topic and objective_topic):
         return ""
     return (
         "OBJECTIVE INTEGRITY: Test whether the proxy/measure still serves the purpose. "
