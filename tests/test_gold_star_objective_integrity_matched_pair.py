@@ -42,3 +42,51 @@ def test_each_case_has_a_case_specific_rubric_and_primary_transfer_dimension():
         assert len(case["rubric"]) >= 4
         assert "objective_integrity_reasoning" in case["critical_dimensions"]
         assert len(set(case["critical_dimensions"])) == len(case["critical_dimensions"])
+
+def test_gemini_pilot_is_separately_preregistered_after_groq_control_arm_rate_limit():
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_gemini.json"
+    suite, cases, target = _load_cases(path)
+    assert suite["evaluation_id"] == "gold-star-objective-integrity-heldout-pilot-gemini-2026-11-26"
+    assert target == TARGET_ID
+    assert suite["design"]["provider_pin"] == {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+    }
+    assert len(cases) == 6
+    assert len({case["case_family"] for case in cases}) == 3
+    assert "before any treatment arm ran" in suite["purpose"]
+
+
+def test_gemini_heldout_queries_retrieve_target_and_negative_control_excludes_it():
+    import gold_star_lessons
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_gemini.json"
+    suite, cases, target = _load_cases(path)
+    for case in cases:
+        selected = gold_star_lessons.select_lesson_candidates(case["query"], limit=4)
+        assert target in {item["benchmark_id"] for item in selected}, case["case_id"]
+    negative = gold_star_lessons.select_lesson_candidates(suite["negative_control_query"], limit=4)
+    assert target not in {item["benchmark_id"] for item in negative}
+
+
+def test_generation_fingerprint_describes_actual_gemini_payload_not_groq_defaults():
+    from scripts.capture_gold_star_matched_pairs import _generation_config_for_lane
+
+    config = _generation_config_for_lane("gemini", "gemini-3.8-flash", {
+        "route_operation": "general_guide_composition",
+        "max_tokens": 1800,
+        "schema_mode": "json_schema_best_effort",
+        "schema_sha256": "effective-gemini-schema-sha",
+        "provider_timeout_seconds": 10,
+    }, 65)
+    assert config["max_output_tokens"] == 1800
+    assert config["temperature"] == "not_supplied_provider_default"
+    assert config["response_mime_type"] == "application/json"
+    assert config["response_schema_transform"] == "gemini_compatible_drop_additionalProperties"
+    assert config["system_instruction"] == "separate_systemInstruction"
+    assert config["thinking_level"] == "low"
+    assert "reasoning_effort" not in config
+    assert "max_completion_tokens" not in config
