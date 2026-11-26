@@ -83,8 +83,33 @@ def test_objective_integrity_guardrail_is_injected_into_real_composition_contrac
     assert result is not None
     messages = captured["messages"]
     system_message = next(item["content"] for item in messages if item["role"] == "system")
-    assert "OBJECTIVE INTEGRITY AND GOAL RECONSIDERATION" in system_message
+    assert "OBJECTIVE INTEGRITY:" in system_message
     assert "proxy" in system_message.casefold()
     assert "feedback loops" in system_message.casefold()
-    assert "legitimate decision authority" in system_message.casefold()
+    assert "legitimate authority" in system_message.casefold()
     assert "A rising metric alone does not prove" in system_message
+
+
+
+def test_objective_integrity_instruction_is_not_added_to_unrelated_questions(monkeypatch):
+    captured = {}
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        return {"parsed": {"response": "Photosynthesis converts light energy into chemical energy."}}
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _query: None)
+    composition._COMPOSITION_CACHE.clear()
+
+    result = composition.compose(
+        use_core=object(),
+        query="What is photosynthesis?",
+        context_data={},
+    )
+
+    assert result is not None
+    system_message = next(
+        item["content"] for item in captured["messages"] if item["role"] == "system"
+    )
+    assert "OBJECTIVE INTEGRITY:" not in system_message
