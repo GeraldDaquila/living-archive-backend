@@ -566,7 +566,7 @@ def test_general_guide_reserves_the_next_half_open_composition_timeout(monkeypat
     # rather than seven calls that cannot finish a substantive answer.
     assert len(calls) == 3
     assert all(
-        timeout == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
     assert clock.value == pytest.approx(15.75)
