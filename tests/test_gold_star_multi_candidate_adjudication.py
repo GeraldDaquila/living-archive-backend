@@ -83,7 +83,7 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
         "Return exact 12–120-character response offsets",
         "rejected IDs use 0,0. Reject if no range",
         "Community rules: name a legitimate shared purpose",
-        "coordination need and evidence required. Do not treat majority preference as proof or invent facts.",
+        "majority preference is not proof.",
         "Combine only when each adds a distinct, necessary, compatible operation not already covered.",
         "Reject all when none improves the answer ",
         "or relevance is merely lexical.",
