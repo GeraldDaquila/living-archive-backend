@@ -3,6 +3,13 @@ import ast
 from pathlib import Path
 
 import gold_star_adjudication_trace as trace
+import gold_star_provider_adjudication as adjudication
+CANDIDATES = [
+    {"benchmark_id": "lesson-one", "score": 0.83, "exact": False, "reasoning_family": "evidence_discernment"},
+    {"benchmark_id": "lesson-two", "score": 0.72, "exact": True, "reasoning_family": "causal_analysis"},
+]
+
+
 from gold_star_adjudication_trace import (
     mark_composition_result,
     mark_final_delivery,
