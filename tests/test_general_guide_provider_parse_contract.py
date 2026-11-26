@@ -63,10 +63,6 @@ def _gold_star_parse(payload):
     )(json.dumps(payload))
 
 
-@pytest.mark.parametrize(
-    "adjudication",
-    [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
-)
 def test_community_liberty_limit_prompt_requires_burden_distribution_and_participation():
     question = (
         "How should a community decide whether limits on personal liberty are justified "
