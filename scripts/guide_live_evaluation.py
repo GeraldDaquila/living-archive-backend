@@ -340,7 +340,14 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "neither guarantees", "does not guarantee", "not guarantee", "not the same",
             "not equivalent", "conditional, not automatic", "one does not substitute for the other",
         ))
-        limits = any(term in low for term in ("privacy", "confidential", "context", "mislead", "accountability"))
+        privacy_boundary = any(term in low for term in (
+            "privacy", "confidential", "confidentiality", "sensitive information",
+            "personal information", "private information",
+        ))
+        contextual_accountability = any(term in low for term in (
+            "context", "mislead", "accountability", "answerable",
+        ))
+        limits = privacy_boundary and contextual_accountability
         retrieval_only = (
             len(low.split()) < 65
             or low.startswith("the archive material available here offers")
@@ -351,7 +358,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             check("distinct_concept_roles", distinct_roles, "Distinguish transparency as inspectability/disclosure from trust as justified reliance."),
             check("relationship_mechanism", mechanism, "Explain how transparency enables scrutiny and correction that can support justified trust."),
             check("reciprocal_but_not_identical", reciprocal and boundary, "Explain reciprocal reinforcement without equating the concepts or treating either as a guarantee."),
-            check("legitimate_disclosure_limits", limits, "Preserve context, accountability, privacy, and legitimate confidentiality limits."),
+            check("legitimate_disclosure_limits", limits, "Explicitly preserve a privacy/confidentiality boundary as well as context or accountability; accountability alone is insufficient."),
             check("not_retrieval_fragment", not retrieval_only, "A source excerpt or short retrieval fragment is not an answer to a relational question."),
             check("no_unapproved_doorway", rec in (None, {}), f"This benchmark has no approved doorway; observed {rec!r}."),
         ]
@@ -372,13 +379,26 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "who benefits", "who bears", "who carries", "fairly distributed", "fair burden",
             "fair burden allocation", "reciprocal", "accommodation", "reasonable accommodation",
         ))
-        participation=(
-            any(x in low for x in (
-                "people most affected", "affected people", "those affected", "shape the decision",
-                "participate", "participation", "meaningful opportunity", "meaningful participation",
-            ))
-            or "solicit input from those whose liberty would be curtailed" in low
-        )
+        # Participation must occur in forming the rule/decision. A later right
+        # to appeal or request review is a separate safeguard and cannot satisfy
+        # this dimension by itself.
+        participation=any(x in low for x in (
+            "people most affected should have a meaningful opportunity to shape",
+            "affected people should have a meaningful opportunity to shape",
+            "those affected should have a meaningful opportunity to shape",
+            "meaningful participation from those affected",
+            "meaningful participation by affected",
+            "meaningful participation in designing",
+            "shape the decision",
+            "shape the rule",
+            "participate in setting the rule",
+            "participate in designing the rule",
+            "participate in shaping the rule",
+            "include affected people in designing",
+            "include those affected in shaping",
+            "input from those affected before",
+            "solicit input from those whose liberty would be curtailed",
+        ))
         appeal=any(x in low for x in ("appeal","question the rule","challenge its application","review point","review the rule","observable criteria"))
         majority_only=(
             bool(re.search(r"\bmajority\b.{0,40}\b(?:can|may|should|is entitled to|has the right to)\b.{0,80}\b(?:restrict|limit|control)\b", low))
@@ -403,7 +423,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             check("legitimate_shared_purpose",purpose,"Name a legitimate shared purpose and demonstrable shared need."),
             check("necessity_and_least_restrictive_means",proportionality,"Test necessity, proportionality, and less restrictive workable means."),
             check("fair_burden_allocation",burden,"Make benefits, costs, reciprocal duties, and accommodation visible."),
-            check("affected_party_participation",participation,"Include people most affected in shaping the rule."),
+            check("affected_party_participation",participation,"Require meaningful participation in designing or shaping the rule; later appeal alone does not qualify."),
             check("appeal_and_review",appeal,"Provide appeal or challenge and observable review criteria."),
             check("no_majority_or_convenience_shortcut",not majority_only,"Do not treat majority preference or convenience as sufficient justification."),
             check("relevant_archive_doorway",doorway,"Provide a separate, optional, verified Archive doorway after the answer."),

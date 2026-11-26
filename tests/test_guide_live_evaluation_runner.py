@@ -687,7 +687,8 @@ def test_transparency_trust_accepts_live_two_direction_reciprocity_paraphrase():
         "share information, ask questions, and engage openly. Institutions that trust their members often "
         "receive more candid disclosure in return. This reciprocity is conditional, not automatic. Publishing "
         "information does not make poor conduct trustworthy, and trusting someone does not remove the need "
-        "for accountability. The relationship works best when both sides treat openness and confidence as "
+        "for accountability. Legitimate privacy and confidentiality still limit what should be disclosed. "
+        "The relationship works best when both sides treat openness and confidence as "
         "mutually reinforcing, not as substitutes for performance or responsibility."
     )
     transport = {
@@ -708,6 +709,33 @@ def test_transparency_trust_accepts_live_two_direction_reciprocity_paraphrase():
     }
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
+
+
+def test_transparency_trust_accountability_alone_does_not_satisfy_disclosure_limits():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency and trust influence each other in two directions. Transparency—making decisions, "
+        "reasons, evidence, and conduct open to scrutiny—can support justified trust by allowing others to "
+        "verify and correct what is done. Conversely, reasonable trust can make transparency more possible "
+        "because people are more willing to share information and raise concerns. This reciprocity is "
+        "conditional, not automatic. Publishing information does not make poor conduct trustworthy, and "
+        "trusting someone does not remove the need for accountability."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm", "provider": "test-provider", "model": "test-model", "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    limits = next(item for item in checks if item["name"] == "legitimate_disclosure_limits")
+    assert limits["passed"] is False, checks
 
 
 def test_community_rule_live_paraphrases_pass_purpose_and_participation_but_not_missing_burden_allocation():
@@ -751,6 +779,41 @@ def test_community_rule_live_paraphrases_pass_purpose_and_participation_but_not_
     assert by_name["legitimate_shared_purpose"]["passed"], checks
     assert by_name["affected_party_participation"]["passed"], checks
     assert by_name["fair_burden_allocation"]["passed"] is False, checks
+
+
+def test_community_rule_appeal_does_not_substitute_for_participation_in_rule_design():
+    case = {"case_id": "heldout-community-rule-design-transfer-001"}
+    answer = (
+        "A community should identify the shared purpose and demonstrable harm before limiting liberty. "
+        "Any restriction should be necessary and proportionate, using the least restrictive workable means. "
+        "It should identify who benefits and who bears the burden, and affected people should have a meaningful "
+        "avenue to appeal or request review after the rule is adopted. The rule should be reviewed periodically."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+                "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+                "rationale": "This resource offers a relevant perspective on human-scale governance.",
+            },
+            "response_provenance": {
+                "class": "llm", "provider": "test-provider", "model": "test-model", "llm_invoked": True,
+            },
+        },
+    }
+    expected = {
+        "title": "The Barangay Before the State: Human-Scale Governance in Practice",
+        "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected)
+    participation = next(item for item in checks if item["name"] == "affected_party_participation")
+    appeal = next(item for item in checks if item["name"] == "appeal_and_review")
+    assert participation["passed"] is False, checks
+    assert appeal["passed"] is True, checks
 
 
 def test_live_evaluation_requires_request_local_correlation_id():
