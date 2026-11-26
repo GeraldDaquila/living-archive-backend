@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "records": [
+    {
+      "schema_version": "1.0.0",
+      "evidence_id": "guide-live-application-self-optimization-2026-11-26-01",
+      "observed_date": "2026-11-26",
+      "benchmark_id": "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
+      "reasoning_family": "objective_integrity_and_developmental_stewardship",
+      "evidence_class": "QUALITATIVE_SINGLE_OBSERVATION_ONLY",
+      "source": {
+        "type": "user_provided_live_visitor_screenshot",
+        "context": "User supplied a screenshot of the production Living Archive Guide response to the same self-optimization question after the answerability correction was deployed.",
+        "archived_image": false,
+        "request_id": null,
+        "trace_id": null
+      },
+      "observed_behavior": {
+        "query": "What are the limits of self-optimization as a model of development?",
+        "assessment": "The visitor response gives a substantive explanation of proxy drift, self-reinforcing feedback, the distinction between improving methods and reconsidering objectives, and the need to consider wider consequences and legitimate authority.",
+        "reasoning_family_alignment": "QUALITATIVELY_ALIGNED",
+        "visitor_facing_refusal_regression": "NOT_OBSERVED_IN_THIS_SCREENSHOT",
+        "continuation_link_relevance": "UNRESOLVED; the displayed Governance System resource is only indirectly related to the question and should not be counted as supporting evidence for the answer."
+      },
+      "attribution": {
+        "adaptive_lesson_selected": "NOT_VERIFIED",
+        "contribution_injected_into_request": "NOT_VERIFIED",
+        "contribution_retained_in_final_answer": "NOT_VERIFIED",
+        "provider_invocation_attributable": "NOT_VERIFIED",
+        "deterministic_or_cached_path_excluded": "NOT_VERIFIED"
+      },
+      "outcome": {
+        "individual_answer_quality_assessment": "QUALITATIVE_ONLY",
+        "assistant_assessment_out_of_10": 9.2,
+        "independent_blind_scores": [],
+        "matched_control_answer": null,
+        "paired_quality_delta": null,
+        "confidence_interval": null,
+        "repeated_heldout_trials": 0,
+        "visitor_outcome_measurement": "NOT_MEASURED",
+        "measured_adaptive_improvement": false
+      },
+      "interpretation": "This is a useful live visitor-facing qualitative application observation. It supports that the deployed Guide can produce a substantive answer in the approved reasoning family. It does not establish that the adaptive engine selected or applied this Gold Star, that the Gold Star caused the answer, or that enabling adaptive learning measurably improves answers compared with a matched baseline.",
+      "next_evidence_required": [
+        "Capture a request-level trace for a fresh qualifying visitor query, including selected Gold Star benchmark ID, contribution injection, retained contribution evidence, provider/model invocation, and final disposition.",
+        "Run a preregistered matched-pair evaluation on held-out qualifying questions with adaptive learning enabled versus disabled, keeping model/provider budgets and other conditions comparable.",
+        "Blind-score both conditions using a fixed rubric for correctness, relevance, reasoning quality, calibration, safety, and task usefulness; use independent raters and report inter-rater agreement.",
+        "Report paired effect size and confidence interval against a practical improvement threshold declared before evaluation.",
+        "Run unrelated-question negative controls and report regressions, abstentions, latency, provider failures, and safety outcomes.",
+        "Repeat on a later unseen cohort or prospective visitor sample to establish persistence and generalization."
+      ],
+      "status": "OPEN_FOR_ATTRIBUTED_AND_COMPARATIVE_VALIDATION"
+    }
+  ]
+}
