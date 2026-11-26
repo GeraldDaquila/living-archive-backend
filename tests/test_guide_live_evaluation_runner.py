@@ -439,6 +439,8 @@ def test_provider_probe_is_concise_and_forbids_inline_urls_and_resources():
     query = live_evaluation.PROVIDER_PROBE_QUERY.casefold()
     assert "employees" in query and "customers" in query and "residents" in query
     assert "one concise paragraph" in query
+    assert "explicitly name employees, customers, and nearby residents" in query
+    assert "explain who benefits and who bears the costs" in query
     assert "do not include urls" in query
     assert "resource recommendations" in query
 
