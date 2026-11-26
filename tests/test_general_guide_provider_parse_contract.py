@@ -104,7 +104,7 @@ def test_gold_star_adjudication_prefers_specific_reasoning_family_over_broad_the
         }
     )
     assert "narrowest matching reasoning family" in instruction
-    assert "thematic overlap alone is not redundancy" in instruction
+    assert "thematic overlap is not redundancy" in instruction
 
 
 @pytest.mark.parametrize(
