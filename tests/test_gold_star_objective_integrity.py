@@ -149,3 +149,23 @@ def test_objective_integrity_instruction_requires_an_improvement_and_objective_s
     assert composition._objective_integrity_instruction(
         "What is photosynthesis?"
     ) == ""
+
+
+def test_live_application_screenshot_is_not_misrepresented_as_measured_adaptive_improvement():
+    evidence_path = ROOT / "docs" / "qa" / "live_application_evidence.json"
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    item = next(
+        record for record in evidence["records"]
+        if record["evidence_id"] == "guide-live-application-self-optimization-2026-11-26-01"
+    )
+
+    assert item["benchmark_id"] == SUCCESSOR_ID
+    assert item["evidence_class"] == "QUALITATIVE_SINGLE_OBSERVATION_ONLY"
+    assert item["observed_behavior"]["reasoning_family_alignment"] == "QUALITATIVELY_ALIGNED"
+    assert item["attribution"]["adaptive_lesson_selected"] == "NOT_VERIFIED"
+    assert item["attribution"]["contribution_injected_into_request"] == "NOT_VERIFIED"
+    assert item["attribution"]["contribution_retained_in_final_answer"] == "NOT_VERIFIED"
+    assert item["outcome"]["measured_adaptive_improvement"] is False
+    assert item["outcome"]["paired_quality_delta"] is None
+    assert item["outcome"]["repeated_heldout_trials"] == 0
+    assert item["status"] == "OPEN_FOR_ATTRIBUTED_AND_COMPARATIVE_VALIDATION"
