@@ -1544,10 +1544,10 @@ def compose_task_specific_recovery(question):
                 "Trust becomes practical when an organization makes its decisions and commitments observable and dependable. "
                 "Start with a decision that affects people: ask those affected what they see before deciding, distinguish "
                 "observed facts from assumptions, explain the reasons for the decision, and name who owns the decision and "
-                "the next action. Then follow through when promised, and tell people promptly when something changes.\\n\\n"
+                "the next action. Then follow through when promised, and tell people promptly when something changes.\n\n"
                 "Create safe ways to raise concerns and disagree. Respond without retaliation, correct mistakes openly, and "
                 "repair harm rather than asking people simply to trust the organization. Share the information people need "
-                "to act responsibly, and apply agreed rules consistently across roles and teams.\\n\\n"
+                "to act responsibly, and apply agreed rules consistently across roles and teams.\n\n"
                 "Check whether trust is actually improving: are commitments kept, are concerns raised earlier, do people "
                 "understand how decisions were made, and are mistakes addressed? These observable behaviors are more reliable "
                 "indicators than statements of good intent alone."
@@ -2004,7 +2004,7 @@ def _public_commons_civic_renewal_recovery():
 
 def is_self_optimization_model_limits_question(question):
     """Recognize a bounded question about self-optimization as a development model."""
-    q = re.sub(r"\\s+", " ", _clean(question)).strip()
+    q = re.sub(r"\s+", " ", _clean(question)).strip()
     return bool(
         re.match(
             r"(?i)^what are the (?:limits|limitations|boundaries) of "
@@ -2027,13 +2027,13 @@ def _self_optimization_model_limits_recovery():
         "uses feedback about its performance to adjust its methods and become more capable "
         "of achieving an aim. It is useful when the aim is legitimate, the measures reflect "
         "what genuinely matters, and feedback is reliable enough to guide improvement. "
-        "It helps explain learning, adaptation, and the refinement of skills or processes.\\n\\n"
+        "It helps explain learning, adaptation, and the refinement of skills or processes.\n\n"
         "Its main limit is that optimization improves performance against a chosen objective; "
         "it does not establish that the objective itself is worthwhile. If a measure is only a "
         "proxy for what matters, a system can become better at the measure while becoming worse "
         "at the underlying purpose. Feedback can also be incomplete or delayed, and improving "
         "one part can damage the wider whole. A system cannot rely on its own optimization "
-        "process alone to judge its assumptions, values, or effects on others.\\n\\n"
+        "process alone to judge its assumptions, values, or effects on others.\n\n"
         "Development is broader than becoming more efficient at a fixed goal. It can involve "
         "changing the goal, recognizing a mistaken assumption, developing judgment and "
         "relationships, responding to new conditions, and deciding that some trade-offs are "
