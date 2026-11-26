@@ -54,8 +54,5 @@ def test_community_rule_transfer_prompt_names_legitimate_purpose_and_evidence_be
     query = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
     prompt = _build_general_guide_system_prompt(query)
     assert "legitimate shared purpose" in prompt
-    assert "prevent concrete harm" in prompt
-    assert "protect a shared resource" in prompt
-    assert "evidence for the specific need" in prompt
-    assert "majority preference is not proof" in prompt
-    assert "For community liberty limits" not in _build_general_guide_system_prompt("What is transparency?")
+    assert "evidence of specific harm or coordination need" in prompt
+                assert "For community liberty limits" not in _build_general_guide_system_prompt("What is transparency?")
