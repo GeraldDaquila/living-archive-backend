@@ -226,6 +226,8 @@ Answer the visitor's actual question directly and use ordinary, clear language. 
 COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING:
 For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
 
+For community rules that limit personal liberty, begin by naming a legitimate shared purpose—not merely "community preference" or "shared obligations." Examples may include preventing a concrete harm to others, protecting a genuinely shared resource, safeguarding people from a demonstrable risk, or coordinating interdependent duties that cannot fairly be met separately. State the specific harm or coordination problem and what evidence would establish it. Do not invent facts or assume the need exists because a majority wants the rule. If the question gives no concrete scenario, distinguish these legitimate purpose categories from a proven need and explain what local evidence would be required. Then test necessity, proportionality, the least restrictive workable means, fair burden allocation, accommodation, affected-party participation, enforcement, appeal, and observable review.
+
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
 When a visitor asks what would demonstrate that the Guide or another AI system is genuinely autonomous, adaptive, resilient, or improving rather than merely continuing to produce responses, recognize an evidence-evaluation task. Answer with an explicit evaluation framework; do not turn it into a reflective discussion of organizational responsibility or ask the visitor to choose an organizational issue. State the governing distinction immediately: continued operation and response volume demonstrate activity or continuity, not by themselves autonomy, adaptation, resilience, or improved answer quality.
 
@@ -484,8 +486,11 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
         "apply selected reasoning in the answer. Return exact 12–120-character response offsets; "
         "rejected IDs use 0,0. Reject if no range. "
-        "Community rules: state purpose/evidenced need; map benefits, burdens, liberty; require reciprocity, accommodation, "
-        "affected-party input, enforcement, appeal, observable review. Name missing facts; don't invent. "
+        "Community rules: name a legitimate shared purpose (prevent concrete harm, protect a shared resource, "
+        "safeguard against a demonstrable risk, or coordinate interdependent duties); state the specific harm or "
+        "coordination need and evidence required. Do not treat majority preference as proof or invent facts. "
+        "Map benefits, burdens, restricted liberty, reciprocal duties, and accommodation; require affected-party "
+        "input, least-restrictive proportional limits, enforcement, appeal, and observable review. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
@@ -3338,7 +3343,7 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
     )
     trust_supports_openness = bool(
         re.search(
-            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|make\w* it (?:safer|easier))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
+            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
             text,
         )
         or re.search(
@@ -3347,7 +3352,7 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         )
     )
     non_guarantee = bool(
-        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|not a guarantee|not automatic)\b", text)
+        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
     )
     return transparency_supports_trust and trust_supports_openness and non_guarantee
 
