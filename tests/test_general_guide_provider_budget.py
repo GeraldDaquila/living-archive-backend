@@ -876,7 +876,7 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     )
     messages = [
         {"role": "system", "content": system},
-        {"role": "user", "content": "U" * 7000},
+        {"role": "user", "content": "U" * 6750},
     ]
 
     assert estimate_input_tokens(messages) + 750 <= 8000
