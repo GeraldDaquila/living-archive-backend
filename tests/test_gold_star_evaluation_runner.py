@@ -25,6 +25,16 @@ def _fake_compose_factory(*, mismatch=False, rewrite=False, no_treatment_guidanc
                 else "not_included" if no_treatment_guidance
                 else "included_in_provider_prompt"
             ),
+            "candidate_ids": [] if arm == "control" else ["candidate-1"],
+            "provider_adjudication_status": "not_observed" if arm == "control" else "validated",
+            "selection": "not_applicable" if arm == "control" else "selected",
+            "selected_candidate_ids": [] if arm == "control" else ["candidate-1"],
+            "reasoning_discipline_ids": [] if arm == "control" else ["discipline-1"],
+            "application": "not_observed" if arm == "control" else "provider_reported",
+            "application_evidence_present": arm == "treatment",
+            "application_evidence_candidate_ids": [] if arm == "control" else ["candidate-1"],
+            "contribution_retained": "not_evaluated" if arm == "control" else "provider_asserted_span_retained",
+            "outcome": "not_evaluated",
         }
         return {
             "provider": "other-provider" if mismatch else context.provider,
@@ -109,6 +119,9 @@ def test_runner_generates_blinded_fresh_pair_from_fixed_heldout_case(
     assert manifest["treatment"]["doorway_url"] == "https://example.test/treatment"
     assert manifest["treatment_guidance_candidate_count"] == 1
     assert manifest["treatment_guidance_exposure"] == "included_in_provider_prompt"
+    assert manifest["control"]["adjudication"]["application_evidence_present"] is False
+    assert manifest["treatment"]["adjudication"]["application_evidence_present"] is True
+    assert manifest["treatment"]["adjudication"]["contribution_retained"] == "provider_asserted_span_retained"
     assert manifest["adaptation_scope"] == "approved_cross_question_structural_guidance_only"
     assert "query" not in manifest
     assert "question" not in manifest
