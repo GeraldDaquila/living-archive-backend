@@ -234,6 +234,20 @@ def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: 
     return eligible[0]
 
 
+def _effective_max_tokens(provider: str, model: str, operation: str, requested: int) -> int:
+    """Mirror Provider Bank model/operation ceilings for the captured payload fingerprint."""
+    effective = max(1, int(requested))
+    model_limit = int(
+        provider_bank.MODEL_LIMITS.get((provider, model), {}).get("max_completion_tokens", 0) or 0
+    )
+    operation_limit = int(
+        provider_bank.OPERATION_MODEL_LIMITS.get((operation, provider, model), 0) or 0
+    )
+    if operation_limit > 0:
+        model_limit = min(model_limit, operation_limit) if model_limit > 0 else operation_limit
+    return min(effective, model_limit) if model_limit > 0 else effective
+
+
 def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inter_call_delay_seconds: float) -> dict:
     """Fingerprint the effective provider payload settings, not another lane's defaults."""
     common = {
@@ -242,6 +256,8 @@ def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inte
         "model": model,
         "schema_mode": arm_state.get("schema_mode"),
         "schema_sha256": arm_state.get("schema_sha256"),
+        "requested_max_tokens": arm_state.get("requested_max_tokens"),
+        "effective_max_tokens": arm_state.get("max_tokens"),
         "provider_timeout_seconds": arm_state.get("provider_timeout_seconds"),
         "inter_call_delay_seconds": inter_call_delay_seconds,
         "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
@@ -280,7 +296,11 @@ def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inte
                 "omitted_text_mode" if arm_state.get("schema_mode") == "text"
                 else "json_schema" if arm_state.get("schema_sha256") else "json_object"
             ),
-            "reasoning_effort": "low" if model.startswith("openai/gpt-oss-") else "provider_default",
+            "reasoning_effort": (
+                "none" if model == "qwen/qwen3.8-27b"
+                else "low" if model.startswith("openai/gpt-oss-") else "provider_default"
+            ),
+            "reasoning_format": "hidden" if model == "qwen/qwen3.8-27b" else "not_supplied",
             "include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable",
             "provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked",
         }
@@ -502,7 +522,10 @@ async def capture(args) -> dict:
         ):
             state = CAPTURE_CONTEXT.get()
             if state is not None:
-                state["max_tokens"] = max_tokens
+                state["requested_max_tokens"] = max_tokens
+                state["max_tokens"] = _effective_max_tokens(
+                    provider, model, effective_operation, max_tokens
+                )
                 effective_schema = schema
                 if provider in {"gemini", "workers_ai"} and isinstance(schema, dict):
                     nested_schema = schema.get("schema")
