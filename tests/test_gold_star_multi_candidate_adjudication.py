@@ -187,6 +187,6 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     assert "State purpose/evidenced need" in prompt
     assert "beneficiaries, burden-bearers, restricted liberty, reciprocal duties, and accommodation" in prompt
     assert "include affected people in design" in prompt
-    assert "test necessity, proportionality, least-restrictive means, appeal, and review" in prompt
+    assert "require least-restrictive proportional limits, enforcement, appeal, and observable review" in prompt
     assert "Name missing facts; do not invent need, infer legality, or assume necessity" in prompt
     assert "For community rules, state purpose, evidenced need, beneficiaries/burdens/liberty" in prompt
