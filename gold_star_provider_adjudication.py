@@ -131,25 +131,23 @@ def normalize_provider_adjudication(
         if offsets_valid and set(offsets_by_id) != set(index):
             offsets_valid = False
             evidence_reason = "offset_candidate_coverage_incomplete"
+    selected_offset_failures: list[str] = []
     if offsets_valid:
         answer = str(response or "")
         for candidate_id in selected:
             offset_start, offset_end = offsets_by_id[candidate_id]
             span_length = offset_end - offset_start
             if not MIN_EVIDENCE_SPAN <= span_length <= MAX_EVIDENCE_SPAN:
-                offsets_valid = False
-                evidence_reason = "selected_offset_span_missing_or_out_of_bounds"
-                break
+                selected_offset_failures.append("selected_offset_span_missing_or_out_of_bounds")
+                continue
             if offset_end > len(answer):
-                offsets_valid = False
-                evidence_reason = "selected_offset_outside_final_response"
-                break
+                selected_offset_failures.append("selected_offset_outside_final_response")
+                continue
             if not answer[offset_start:offset_end].strip():
-                offsets_valid = False
-                evidence_reason = "selected_offset_span_empty"
-                break
+                selected_offset_failures.append("selected_offset_span_empty")
+                continue
             evidence_ids.append(candidate_id)
-        if offsets_valid and any(
+        if any(
             offsets_by_id.get(candidate_id) != (0, 0)
             for candidate_id in set(index) - set(selected)
         ):
@@ -157,11 +155,21 @@ def normalize_provider_adjudication(
             evidence_reason = "rejected_offset_not_empty"
     if not offsets_valid:
         evidence_ids = []
+    elif selected and evidence_ids:
+        evidence_reason = (
+            "exact_selected_offsets_validated"
+            if len(evidence_ids) == len(selected)
+            else "partial_selected_offsets_validated"
+        )
     elif selected:
-        evidence_reason = "exact_selected_offsets_validated"
+        evidence_reason = (
+            selected_offset_failures[0]
+            if selected_offset_failures
+            else "selected_offset_span_missing_or_out_of_bounds"
+        )
     else:
         evidence_reason = "no_selected_candidates"
-    evidence_present = bool(selected) and set(evidence_ids) == set(selected)
+    evidence_present = bool(evidence_ids)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
         "selected_candidate_ids": selected,
