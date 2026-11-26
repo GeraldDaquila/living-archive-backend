@@ -1,4 +1,4 @@
-name: Objective-integrity Gold Star matched-pair Workers AI pilot
+name: Objective-integrity Gold Star matched-pair Groq 20B pilot
 
 concurrency:
   group: objective-integrity-paired-pilot-${{ github.ref }}
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       run_provider_capture:
-        description: "Authorize the 12-call same-provider Cloudflare Workers AI objective-integrity pilot"
+        description: "Authorize the 12-call same-provider Groq GPT-OSS 20B objective-integrity pilot"
         required: true
         default: false
         type: boolean
@@ -42,7 +42,7 @@ jobs:
           python -m pip install -r requirements.txt httpx pytest
       - name: Validate pre-registered objective-integrity cohort
         run: |
-          test -f docs/qa/objective_integrity_matched_pair_cases_workers_ai.json
+          test -f docs/qa/objective_integrity_matched_pair_cases_groq_20b.json
           PYTHONPATH=. python -m pytest -q tests/test_gold_star_objective_integrity_matched_pair.py tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py tests/test_gold_star_objective_integrity_matched_pair_workflow.py tests/test_gold_star_adaptation_evaluation.py
       - name: Verify candidate-local suite wiring
         run: python -m compileall -q scripts/capture_gold_star_matched_pairs.py
@@ -55,10 +55,8 @@ jobs:
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "1"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "workers_ai"
-      USE_WORKERS_AI_MODELS: "@cf/zai-org/glm-4.7-flash"
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      USE_LLM_PROVIDER_ORDER: "groq"
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
     steps:
@@ -75,15 +73,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt httpx
-      - name: Run six same-provider, same-model Workers AI control/treatment pairs
+      - name: Run six same-provider, same-model Groq GPT-OSS 20B control/treatment pairs
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --case-set docs/qa/objective_integrity_matched_pair_cases.json
-          --provider workers_ai
-          --model @cf/zai-org/glm-4.7-flash
+          --provider groq
+          --model openai/gpt-oss-20b
           --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
-          --output-dir artifacts/objective-integrity-matched-pairs-workers-ai
+          --output-dir artifacts/objective-integrity-matched-pairs-groq-20b
       - name: Upload blinded reviewer package
         if: always()
         uses: actions/upload-artifact@v4
