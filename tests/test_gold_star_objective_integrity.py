@@ -38,6 +38,9 @@ def test_objective_integrity_successor_preserves_near_miss_and_stays_non_runtime
     assert successor["gold_star_capabilities"]["exact_answer_authority"] is False
     assert successor["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert SUCCESSOR_ID in {item["benchmark_id"] for item in review["entries"]}
+    assert successor["user_reviewed_response"] is True
+    assert successor["explicit_user_elevation_approval"] is True
+    assert successor["elevation_approval_evidence"]
     assert successor["numbering_status"] == "UNASSIGNED"
     assert successor["doorway_status"] == "NOT_EVALUATED"
 
