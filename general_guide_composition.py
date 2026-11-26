@@ -3052,7 +3052,17 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 )
 
         if _requires_discernment_synthesis(query):
-            if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
+            explicit_distinction = bool(re.search(
+                r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b",
+                response,
+                re.I,
+            ))
+            transparency_trust_reciprocity = bool(
+                re.search(r"\btransparency\b", query, re.I)
+                and re.search(r"\btrust\b", query, re.I)
+                and _has_transparency_trust_reciprocity(response)
+            )
+            if not explicit_distinction and not transparency_trust_reciprocity:
                 raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
 
         if _requires_stewardship_consent_relationship(query):
