@@ -76,7 +76,7 @@ jobs:
       - name: Run six same-provider, same-model Groq GPT-OSS 20B control/treatment pairs
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --case-set docs/qa/objective_integrity_matched_pair_cases.json
+          --case-set docs/qa/objective_integrity_matched_pair_cases_groq_20b.json
           --provider groq
           --model openai/gpt-oss-20b
           --provider-timeout-seconds 10
@@ -87,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: objective-integrity-blind-review-${{ github.run_id }}
-          path: artifacts/objective-integrity-matched-pairs/blind-review-package.json
+          path: artifacts/objective-integrity-matched-pairs-groq-20b/blind-review-package.json
           if-no-files-found: warn
           retention-days: 90
       - name: Upload unblinding evidence separately
@@ -96,8 +96,8 @@ jobs:
         with:
           name: objective-integrity-unblinding-evidence-${{ github.run_id }}
           path: |
-            artifacts/objective-integrity-matched-pairs/matched-pair-evidence.json
-            artifacts/objective-integrity-matched-pairs/unblinding-key.json
-            artifacts/objective-integrity-matched-pairs/paired-evaluation-template.json
+            artifacts/objective-integrity-matched-pairs-groq-20b/matched-pair-evidence.json
+            artifacts/objective-integrity-matched-pairs-groq-20b/unblinding-key.json
+            artifacts/objective-integrity-matched-pairs-groq-20b/paired-evaluation-template.json
           if-no-files-found: warn
           retention-days: 90
