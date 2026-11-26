@@ -421,12 +421,33 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             if item.get("score") is None
             else str(item.get("score"))
         )
+        # The highest-ranked community freedom/shared-responsibility lesson has
+        # a compact, operation-preserving projection. Ordinary head/tail
+        # truncation cut its middle and removed fair-burden allocation; sending
+        # the entire record exceeded the Groq 8k TPM budget. Keep this prompt
+        # projection bounded without changing the immutable registry record.
+        family = str(item.get("reasoning_family") or "")
+        community_rule_projection = (
+            index == 1
+            and family == "community_freedom_shared_responsibility_proportionate_decision"
+        )
+        discipline_text = item.get("transferable_discipline") or item.get("discipline")
+        boundary_text = item.get("abstention_boundary")
+        if community_rule_projection:
+            discipline_text = (
+                "Protect rights/agency; evidence shared need/harm; include affected, less influential people; "
+                "distinguish duties from majority preference; test least-restrictive, proportionate limits; "
+                "distribute burdens fairly; require transparent, consistent rules, accountability, appeal, review, correction."
+            )
+            boundary_text = (
+                "Collective preference cannot override rights; never assume limits justified or decide without facts."
+            )
         candidate_lines.append(
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={_compact_gold_star_prompt_field(item.get('activation_condition'), 48) or 'none'}; "
-            f"score={score_label}; family={_compact_gold_star_prompt_field(item.get('reasoning_family'), 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(item.get('transferable_discipline') or item.get('discipline'), 320)}; "
-            f"boundary={_compact_gold_star_prompt_field(item.get('abstention_boundary'), 100)}"
+            f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 320)}; "
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
@@ -437,7 +458,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "its activation condition. An unclassified role is not disqualifying. Test direct subject/task fit, "
         "distinct contribution, redundancy, and boundary fit. "
         "Select one only when materially relevant and sufficient. Decide before drafting; "
-        "apply the selected discipline in the visitor answer; quote an exact contiguous span from that answer as evidence. "
+        "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span as evidence. "
         "Combine candidates only when each adds a distinct, necessary, compatible operation. Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. Never override the "
