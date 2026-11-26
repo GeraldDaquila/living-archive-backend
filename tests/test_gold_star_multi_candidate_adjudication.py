@@ -185,3 +185,8 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     assert "distribute burdens fairly" in prompt
     assert "accommodation, appeal, and observable review" in prompt
     assert "Do not infer legality or assume a restriction is necessary" in prompt
+    assert "COMMUNITY LIBERTY-LIMIT ANSWER REQUIREMENTS" in prompt
+    assert "evidence of the actual risk or obligation" in prompt
+    assert "identify whose liberty is limited, who benefits, who bears costs" in prompt
+    assert "observable review or revision criteria" in prompt
+    assert "Do not conclude that a restriction is justified without case-specific evidence" in prompt
