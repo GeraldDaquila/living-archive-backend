@@ -456,12 +456,11 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
                 "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
             )
             discipline_text = (
-                "Identify the legitimate shared purpose and demonstrable harm; include affected people; name who benefits, who bears costs, "
-                "whose liberty is restricted; test necessity, proportionality, least-restrictive workable means; distribute burdens fairly "
-                "with reasonable accommodation; set enforcement, appeal, and observable review criteria."
+                "State purpose and evidenced shared need; map beneficiaries, burdens, restricted liberty, reciprocal duties, and accommodation; "
+                "include affected people in design; test necessity, proportionality, least-restrictive means, appeal, and review."
             )
             boundary_text = (
-                "Do not infer legality or assume necessity without case-specific evidence; require fair allocation, accommodation, appeal, and review."
+                "Name missing facts; do not invent need, infer legality, or assume necessity."
             )
         activation_value = (
             activation_text
@@ -483,14 +482,10 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Check subject/task fit, contribution, redundancy, and boundary. Decide before drafting. "
         "Select the smallest sufficient set; prefer one specific candidate when it covers the task. "
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
-        "apply the selected discipline's distinct reasoning steps in the answer. Copy-paste a 12–120 character "
-        "span from the exact response text, preserving every word and punctuation mark; no paraphrase, ellipsis, "
-        "or added quotation marks. Verify it is an exact substring before returning; reject if unable. "
-        "For community-rule design, explicitly state the legitimate shared purpose, specific harm/coordination need "
-        "and evidence required; map who benefits, who bears costs, whose liberty is restricted, reciprocal duties "
-        "and reasonable accommodation; give affected people meaningful influence before adoption. If case facts "
-        "are absent, state what must be established, not invented. Generic fairness or consultation alone is insufficient. "
-        "Never combine candidates to reward their number or similarity ranking. "
+        "apply selected reasoning in the answer. Copy an exact 12–120-character response substring verbatim, "
+        "including punctuation; no paraphrase, ellipsis, or quotes. Reject if impossible. "
+        "For community rules, state purpose, evidenced need, beneficiaries/burdens/liberty, reciprocal duties, "
+        "accommodation, and affected-party influence. Name missing facts; do not invent them. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
