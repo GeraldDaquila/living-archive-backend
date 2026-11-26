@@ -387,7 +387,7 @@ def _objective_integrity_instruction(question: str) -> str:
         "optim", "improv", "performance", "development",
     ))
     objective_topic = any(term in low for term in (
-        "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim",
+        "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim", "score", "indicator", "outcome", "benchmark",
     ))
     if not (improvement_topic and objective_topic):
         return ""
