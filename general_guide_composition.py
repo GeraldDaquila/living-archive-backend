@@ -488,9 +488,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "An unclassified role is not disqualifying. Decide before drafting; select the smallest sufficient set; "
         "reject lexical-only matches. Apply the selected discipline's distinct reasoning steps in the answer; "
         "quote an exact contiguous span. Never transfer exemplar content or override the visitor question, evidence, "
-        "or response shape.\\n"
-        "Ranked candidates (for adjudication, not automatic application):\\n"
-        + candidate_evidence + "\\n\\n"
+        "or response shape.\n"
+        "Ranked candidates (for adjudication, not automatic application):\n"
+        + candidate_evidence + "\n\n"
     )
     if community_rule_present:
         instruction += (
