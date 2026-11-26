@@ -70,9 +70,6 @@ Apply these eight dimensions as quality expectations, not as eight mandatory sec
 
 Select the smallest response architecture that fully serves the actual question. A factual lookup may be brief; a comparison may need criteria; a practical request may need ordered actions; a strategic question may need trade-offs; an uncertain claim may need evidence boundaries. Do not add sections merely to display the standard. When no approved lesson is relevant, answer competently without forcing a Gold Star analogy.
 
-OBJECTIVE INTEGRITY AND GOAL RECONSIDERATION:
-When a visitor asks about optimization, improvement, performance, or development, distinguish improving execution against an existing objective from evaluating whether that objective still serves its underlying purpose. Check whether a measured proxy still represents what matters; identify feedback loops that can amplify a flawed metric or conceal unmeasured costs; consider external constraints, affected people, system-level effects, and longer-term consequences. If the objective remains legitimate but execution is weak, improve the means. If the objective is misaligned with its purpose, causes unacceptable wider harm, or rests on materially invalid assumptions, surface the case for reconsidering the objective before optimizing further. Do not treat difficulty, disagreement, or disappointing metrics alone as proof that a goal should be abandoned, and do not treat a rising metric as proof that it remains worthwhile. Any proposed revision must be grounded in evidence and respect legitimate decision authority. Use concrete examples when they clarify the distinction; never transfer an exemplar's wording, facts, examples, citations, or doorway.
-
 RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:
 When a visitor asks about the relationship, connection, or interplay between concepts, answer the relationship itself rather than giving adjacent mini-definitions or a generic explanation of only one term. Briefly establish each concept's distinct role, state the mechanism connecting them, explain whether the relationship is reciprocal, one-way, or conditional, and identify a meaningful boundary or tension and its practical implication. Preserve differences; connection does not mean equivalence. Do not let keyword overlap substitute for a causal or normative explanation.
 
@@ -383,6 +380,29 @@ def _is_community_liberty_limit_question(question: str) -> bool:
     return has_liberty and has_limit and has_community
 
 
+def _objective_integrity_instruction(question: str) -> str:
+    """Add goal/metric reasoning only to questions where it is relevant."""
+    low = " ".join(str(question or "").casefold().split())
+    optimization_topic = any(term in low for term in (
+        "self-optimization", "self optimization", "optimisation", "optimization",
+        "optimize", "optimise", "performance improvement", "improve performance",
+        "development model", "model of development",
+    ))
+    objective_topic = any(term in low for term in (
+        "goal", "objective", "purpose", "metric", "measure", "target", "development",
+    ))
+    if not (optimization_topic and objective_topic):
+        return ""
+    return (
+        "OBJECTIVE INTEGRITY: Test whether the measure still serves the purpose. "
+        "Distinguish improving methods for a sound goal from revising a goal that "
+        "is misaligned, harmful, or based on failed assumptions. Check feedback loops, "
+        "unmeasured costs, affected people, evidence, and legitimate authority. "
+        "Difficulty alone does not invalidate a goal; a rising metric does not prove "
+        "the goal remains worthwhile."
+    )
+
+
 def _build_general_guide_system_message(
     question: str,
     *,
@@ -391,6 +411,7 @@ def _build_general_guide_system_message(
     integrity_recovery_instruction: str = "",
     gold_star_quality_instruction: str = "",
     public_live_source_instruction: str = "",
+    objective_integrity_instruction: str = "",
 ) -> str:
     """Assemble only the system contracts required by this request."""
     parts = [
@@ -402,6 +423,8 @@ def _build_general_guide_system_message(
         _GOLD_STAR_ADAPTIVE_INTELLIGENCE_SYSTEM_CONTRACT,
         _LAYERED_ANSWERABILITY_ARCHITECTURAL_CONTRACT,
     ]
+    if objective_integrity_instruction:
+        parts.append(objective_integrity_instruction.strip())
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
@@ -4981,6 +5004,7 @@ def compose(
     )
 
     public_live_source_instruction = _public_live_source_security_instruction(context_data)
+    objective_integrity_instruction = _objective_integrity_instruction(question)
 
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
@@ -5332,6 +5356,7 @@ def compose(
                     integrity_recovery_instruction=integrity_recovery_instruction,
                     gold_star_quality_instruction=gold_star_quality_instruction,
                     public_live_source_instruction=public_live_source_instruction,
+                    objective_integrity_instruction=objective_integrity_instruction,
                 )},
                 {"role": "user", "content": user_content[:7000]},
             ],
@@ -5374,6 +5399,7 @@ def compose(
                 integrity_recovery_instruction=integrity_recovery_instruction,
                 gold_star_quality_instruction=gold_star_quality_instruction,
                 public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
             ) + (
                 "\n\nANSWERABILITY REPAIR — THIS IS A GENERAL CONCEPTUAL QUESTION. "
                 "Do not repeat a generic statement that the available response lacks enough "
