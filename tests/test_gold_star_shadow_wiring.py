@@ -18,6 +18,6 @@ def test_gold_star_active_quality_contribution_remains_wired_into_composition():
     source = Path("general_guide_composition.py").read_text(encoding="utf-8")
     assert "_gold_star_active_quality_contribution(question)" in source
     assert "GOLD STAR MULTI-CANDIDATE ADJUDICATION" in source
-    assert "Select one " in source
-    assert "Combine candidates only when each adds a distinct" in source
+    assert "Select the smallest sufficient set; prefer one specific candidate when it covers the task." in source
+    assert "Combine only when each adds a distinct, necessary, compatible operation not already covered." in source
     assert "Reject all when none improves the answer" in source

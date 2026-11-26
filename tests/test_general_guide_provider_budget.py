@@ -427,6 +427,24 @@ def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
 
+def test_healthy_nvidia_lightning_gets_six_point_five_second_margin_after_live_timeout(monkeypatch):
+    model = "nvidia/nemotron-3.5-lightning-30b-a3b"
+    # 2.74s EWMA produces the former 5.1s timeout; live acceptance later
+    # observed 6.032s on a complete held-out community-rule transfer.
+    monkeypatch.setitem(provider_bank._PROVIDER_LATENCY_EWMA, ("nvidia", model), 2.74)
+    healthy = {**_item("nvidia", model), "health_state": "healthy"}
+    timeout = provider_bank._provider_call_timeout("general_guide_composition", healthy)
+    assert timeout == pytest.approx(6.5)
+    assert timeout > 6.032
+    assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+
+    # Do not lengthen half-open probes; preserve their existing bounded policy.
+    half_open = {**healthy, "health_state": "half_open"}
+    assert provider_bank._provider_call_timeout(
+        "general_guide_composition", half_open
+    ) == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+
+
 def test_general_guide_half_open_candidates_receive_composition_timeout_and_preserve_fallbacks(monkeypatch):
     _isolate(monkeypatch)
     candidates = [
@@ -845,7 +863,8 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     adjudication_instruction = guide_composition._build_gold_star_quality_instruction(quality)
     assert "An unclassified role is not disqualifying" in adjudication_instruction
     assert "Decide before drafting" in adjudication_instruction
-    assert "quote an exact contiguous span" in adjudication_instruction
+    assert "Return exact 12–120-character response offsets" in adjudication_instruction
+    assert "rejected IDs use 0,0. Reject if no range" in adjudication_instruction
     system = guide_composition._build_general_guide_system_message(
         question,
         has_gold_star_guidance=True,

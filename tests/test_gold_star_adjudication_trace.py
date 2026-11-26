@@ -871,3 +871,51 @@ def test_final_answer_provenance_preserves_visitor_failure_route_classification(
     assert result["response_provenance"]["class"] == "visitor_failure_recovery"
     assert result["response_provenance"]["provider"] == "provider_independent_visitor_recovery"
     assert result["response_provenance"]["llm_invoked"] is False
+
+
+
+def test_partial_provider_offset_application_is_reported_as_partially_retained():
+    from gold_star_provider_adjudication import normalize_provider_adjudication
+
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
+    initial = trace.build_adjudication_trace(_contribution())
+    report = normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-one", "decision": "select", "reason_code": None},
+                {"candidate_id": "lesson-two", "decision": "select", "reason_code": None},
+            ],
+            "application_evidence_spans": [
+                {"candidate_id": "lesson-one", "start": response.index(phrase), "end": response.index(phrase) + len(phrase)},
+                {"candidate_id": "lesson-two", "start": len(response) + 5, "end": len(response) + 25},
+            ],
+        },
+        response=response,
+        candidates=[
+            {"benchmark_id": "lesson-one", "reasoning_family": "evidence_discernment"},
+            {"benchmark_id": "lesson-two", "reasoning_family": "causal_analysis"},
+        ],
+    )
+    traced = trace.mark_provider_adjudication(initial, report)
+    composed = trace.mark_composition_result(traced, provider_result={"parsed": {"response": response}})
+    delivered = trace.mark_final_delivery(composed, provider_candidate_delivered=True, final_provenance="llm")
+    assert delivered["application_evidence_candidate_ids"] == ["lesson-one"]
+    assert delivered["contribution_retained"] == "provider_asserted_span_partially_retained"
+    assert trace.validate_trace(delivered)["valid"] is True
+
+
+def test_trace_rejects_inconsistent_partial_retention_claim():
+    initial = trace.build_adjudication_trace(_contribution())
+    initial.update({
+        "provider_adjudication_status": "provider_reported_selected",
+        "selected_candidate_ids": ["lesson-one", "lesson-two"],
+        "rejection_reason_codes": [],
+        "reasoning_discipline_ids": ["evidence_discernment", "causal_analysis"],
+        "application": "provider_asserted_span_present",
+        "application_evidence_present": True,
+        "application_evidence_candidate_ids": ["lesson-one", "lesson-two"],
+        "final_delivery": "provider_candidate_delivered",
+        "contribution_retained": "provider_asserted_span_partially_retained",
+    })
+    assert trace.validate_trace(initial)["valid"] is False

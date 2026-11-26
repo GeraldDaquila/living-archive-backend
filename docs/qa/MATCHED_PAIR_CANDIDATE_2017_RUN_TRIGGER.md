@@ -1,7 +1,7 @@
 # Candidate-local matched-pair QA run
 
-This one-use QA branch is pinned to final candidate source commit `d6e6686f0e34ba03a7a1a4240320963e13dd4632` from PR #2018, which carries the PR #2017 implementation and regression corrections.
+This one-use QA branch is a merge snapshot of current `main` at commit `6cbec8a8180a2285517f79b1c0dd9465f0c0fded`. It preserves the dedicated QA marker and uses the exact current production candidate source, registry, and held-out case set.
 
-This marker update requests the dedicated GitHub Actions push gate. The application source, registry, held-out cases, and provider/model pins are inherited unchanged from the candidate source commit.
+This marker update requests the dedicated GitHub Actions push gate. The provider-backed capture is restricted to Groq `openai/gpt-oss-120b`, with the workflow's bounded timeout and inter-call spacing. No Render task or production deployment is involved.
 
-The capture is restricted to Groq `openai/gpt-oss-120b`, with the workflow's bounded timeout and inter-call spacing. No Render task or production deployment is involved.
+The capture is an experiment: it does not by itself establish Gold Star efficacy. Blind-review evidence and the unblinding key are retained as separate workflow artifacts.

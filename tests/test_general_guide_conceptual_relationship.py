@@ -7,6 +7,7 @@ from general_guide_composition import (
     _conceptual_relationship_recovery,
     _has_transparency_trust_reciprocity,
     _build_general_guide_system_prompt,
+    _parse_factory,
     has_conceptual_relationship_explanation,
     is_conceptual_relationship_question,
 )
@@ -149,3 +150,42 @@ def test_provider_parser_rejects_one_way_transparency_trust_answer():
 
     with pytest.raises(ValueError, match="transparency-trust answer must explain both directions"):
         parse(json.dumps({"response": one_way_answer}))
+
+
+
+
+def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marker():
+    response = (
+        "Transparency supports justified trust because decisions and reasons can be inspected, "
+        "questioned, and corrected. When people trust the process, they are more likely to share "
+        "information, raise concerns, and take part candidly; institutions must respond honestly. "
+        "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
+        "trustworthy, and trust cannot replace accountability. For example, publishing a decision's "
+        "reasons lets affected people compare stated grounds with actual conduct, identify inconsistencies, "
+        "and request correction. Trust becomes warranted through the institution's response, not visibility alone."
+    )
+    assert has_conceptual_relationship_explanation(response, TRANSPARENCY_TRUST_QUESTION)
+    parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
+
+    result = parse(json.dumps({"response": response}))
+
+    assert result["response"] == response
+
+
+def test_transparency_trust_accepts_equivalent_reciprocal_mechanism_wording():
+    response = (
+        "Transparency supports justified trust because decisions and reasons can be inspected, "
+        "questioned, and corrected. When people trust the process, they are more likely to share "
+        "information, raise concerns, and take part candidly; institutions must respond honestly. "
+        "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
+        "trustworthy, and trust cannot replace accountability."
+    )
+    assert _has_transparency_trust_reciprocity(response)
+
+
+def test_transparency_trust_still_rejects_reciprocity_without_a_non_guarantee_boundary():
+    response = (
+        "Transparency supports trust by making decisions open to scrutiny. Trust encourages people "
+        "to share information and raise concerns, and institutions should respond candidly."
+    )
+    assert not _has_transparency_trust_reciprocity(response)

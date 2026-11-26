@@ -67,17 +67,43 @@ def _gold_star_parse(payload):
     "adjudication",
     [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
 )
-def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudication(adjudication):
+def test_provider_response_with_candidates_preserves_answer_without_valid_adjudication(adjudication):
     payload = {
         "response": GOLD_STAR_RESPONSE,
         "response_shape": "direct",
         "adaptive_adjudication": adjudication,
     }
-    with pytest.raises(ValueError, match="Gold Star adjudication report is missing or incomplete"):
-        _gold_star_parse(payload)
+    parsed = _gold_star_parse(payload)
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    import gold_star_provider_adjudication as adjudication_contract
+    report = adjudication_contract.normalize_provider_adjudication(
+        parsed.get("adaptive_adjudication"),
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
+    assert report["status"] == "not_observed"
+    assert report["selected_candidate_ids"] == []
+    assert report["application"] == "not_observed"
 
 
-def test_provider_selected_candidate_requires_exact_application_span():
+def test_provider_response_without_adjudication_field_preserves_complete_answer():
+    parsed = _gold_star_parse({
+        "response": GOLD_STAR_RESPONSE,
+        "response_shape": "direct",
+    })
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    assert parsed.get("adaptive_adjudication") is None
+    import gold_star_provider_adjudication as adjudication_contract
+    report = adjudication_contract.normalize_provider_adjudication(
+        parsed.get("adaptive_adjudication"),
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
+    assert report["status"] == "not_observed"
+    assert report["application"] == "not_observed"
+
+
+def test_provider_selected_candidate_without_exact_span_is_delivered_without_application_credit():
     payload = {
         "response": GOLD_STAR_RESPONSE,
         "response_shape": "direct",
@@ -85,11 +111,20 @@ def test_provider_selected_candidate_requires_exact_application_span():
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
             ],
-            "application_evidence_spans": [],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
         },
     }
-    with pytest.raises(ValueError, match="exact answer-span application evidence"):
-        _gold_star_parse(payload)
+    parsed = _gold_star_parse(payload)
+    assert parsed["response"] == GOLD_STAR_RESPONSE
+    import gold_star_provider_adjudication as adjudication
+    report = adjudication.normalize_provider_adjudication(
+        parsed["adaptive_adjudication"],
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
+    assert report["status"] == "provider_reported_selected"
+    assert report["application_evidence_present"] is False
+    assert report["application"] == "not_observed"
 
 
 def test_provider_may_validly_reject_all_gold_star_candidates():
@@ -100,7 +135,7 @@ def test_provider_may_validly_reject_all_gold_star_candidates():
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
             ],
-            "application_evidence_spans": [],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
         },
     }
     parsed = _gold_star_parse(payload)
@@ -117,20 +152,22 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
                 {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": span}
+                {"candidate_id": "lesson-a", "start": GOLD_STAR_RESPONSE.index(span), "end": GOLD_STAR_RESPONSE.index(span) + len(span)}
             ],
         },
     }
     parsed = _gold_star_parse(payload)
-    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
+    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["start"] == GOLD_STAR_RESPONSE.index(span)
+    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["end"] == GOLD_STAR_RESPONSE.index(span) + len(span)
 
 
-def test_provider_composition_schema_requires_candidate_adjudication_object():
+def test_provider_composition_schema_requires_adjudication_when_candidates_exist():
     schema = composition._build_provider_composition_schema(GOLD_STAR_CANDIDATES)
     assert schema is not None
     assert schema["strict"] is False
     root = schema["schema"]
     assert "adaptive_adjudication" in root["required"]
+    assert "adaptive_adjudication" in root["properties"]
     adjudication = root["properties"]["adaptive_adjudication"]
     assert set(adjudication["required"]) == {
         "candidate_assessments",
@@ -142,8 +179,11 @@ def test_provider_composition_schema_requires_candidate_adjudication_object():
     assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
     assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
     spans = adjudication["properties"]["application_evidence_spans"]
-    assert spans["items"]["properties"]["span"]["minLength"] == 12
-    assert spans["items"]["properties"]["span"]["maxLength"] == 240
+    assert spans["minItems"] == spans["maxItems"] == 1
+    assert spans["items"]["properties"]["start"]["type"] == "integer"
+    assert spans["items"]["properties"]["end"]["type"] == "integer"
+    assert spans["items"]["properties"]["start"]["minimum"] == 0
+    assert spans["items"]["properties"]["end"]["minimum"] == 0
 
 
 def test_provider_composition_schema_is_not_added_without_candidates():
@@ -199,7 +239,7 @@ def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
                 "candidate_assessments": [
                     {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
                 ],
-                "application_evidence_spans": [],
+                "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
             },
         }
         return {
