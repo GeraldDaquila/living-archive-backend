@@ -499,6 +499,21 @@ def test_transparency_trust_accepts_conditional_reciprocity_and_earned_trust_par
     assert all(item["passed"] for item in checks), checks
 
 
+def test_provider_probe_runs_before_the_heldout_workload_to_preserve_provider_budget():
+    import inspect
+
+    source = inspect.getsource(live_evaluation.main)
+    assert source.index("provider_probe_started_at") < source.index("for index,(split,item) in enumerate(workload)")
+
+
+def test_provider_probe_query_is_concise_and_forbids_inline_navigation_links():
+    query = live_evaluation.PROVIDER_PROBE_QUERY.casefold()
+    assert "employees" in query and "customers" in query and "residents" in query
+    assert "one concise paragraph" in query
+    assert "do not include urls" in query
+    assert "resource recommendations" in query
+
+
 def test_provider_probe_requires_stakeholder_tradeoff_explanation():
     accurate = (
         "Leaders face a persistent tension: decisions that improve one stakeholder group often create trade-offs "
