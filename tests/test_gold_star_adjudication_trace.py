@@ -906,3 +906,4 @@ def test_partial_provider_application_is_reported_as_partially_retained():
     )
     assert trace_value["application_evidence_candidate_ids"] == ["lesson-a"]
     assert trace_value["contribution_retained"] == "provider_asserted_span_partially_retained"
+    assert trace.validate_trace(trace_value)["valid"]

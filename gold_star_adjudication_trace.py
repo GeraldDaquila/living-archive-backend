@@ -557,7 +557,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     if type(trace.get("application_evidence_present", False)) is not bool:
         return {"valid": False, "reason": "invalid_application_evidence_state"}
     if trace.get("contribution_retained", "not_evaluated") not in {
-        "not_evaluated", "not_applicable", "provider_asserted_span_retained", "not_retained", "not_verified"
+        "not_evaluated", "not_applicable", "provider_asserted_span_retained", "provider_asserted_span_partially_retained", "not_retained", "not_verified"
     }:
         return {"valid": False, "reason": "invalid_contribution_retention_state"}
     if trace.get("deterministic_contribution_retained", "not_applicable") not in {
@@ -609,10 +609,11 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         return {"valid": False, "reason": "deterministic_selection_without_application"}
     elif trace.get("application_evidence_present") is True and (
         not selected_ids
-        or set(evidence_ids) != set(selected_ids)
+        or not evidence_ids
+        or not set(evidence_ids).issubset(set(selected_ids))
         or any(candidate_id not in ids for candidate_id in evidence_ids)
     ):
-        return {"valid": False, "reason": "application_span_without_complete_selected_candidate_coverage"}
+        return {"valid": False, "reason": "application_span_without_selected_candidate_evidence"}
     elif trace.get("application_evidence_present") is not True and evidence_ids:
         return {"valid": False, "reason": "application_evidence_ids_without_verified_spans"}
     if not deterministic_application and any(
@@ -623,11 +624,19 @@ def validate_trace(trace: Any) -> dict[str, Any]:
         )
     ):
         return {"valid": False, "reason": "deterministic_application_metadata_without_application"}
-    if trace.get("contribution_retained") == "provider_asserted_span_retained" and (
+    if trace.get("contribution_retained") in {
+        "provider_asserted_span_retained", "provider_asserted_span_partially_retained"
+    } and (
         trace.get("final_delivery") != "provider_candidate_delivered"
         or trace.get("application_evidence_present") is not True
     ):
         return {"valid": False, "reason": "retention_claim_without_delivered_verified_span"}
+    if trace.get("contribution_retained") == "provider_asserted_span_retained" and set(evidence_ids) != set(selected_ids):
+        return {"valid": False, "reason": "complete_retention_claim_without_complete_evidence"}
+    if trace.get("contribution_retained") == "provider_asserted_span_partially_retained" and (
+        not evidence_ids or set(evidence_ids) == set(selected_ids)
+    ):
+        return {"valid": False, "reason": "partial_retention_claim_without_partial_evidence"}
     if "composition" in trace and trace["composition"] not in {"provider_candidate_returned", "provider_no_result", "cached_candidate_reused"}:
         return {"valid": False, "reason": "invalid_composition_state"}
     if "final_delivery" in trace and trace["final_delivery"] not in {
