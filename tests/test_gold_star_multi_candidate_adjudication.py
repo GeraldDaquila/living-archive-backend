@@ -184,7 +184,7 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     }
     prompt = composition._build_gold_star_quality_instruction({"candidates": [candidate]})
 
-    assert "State purpose and evidenced shared need" in prompt
+    assert "State purpose/evidenced need" in prompt
     assert "beneficiaries, burdens, restricted liberty, reciprocal duties, and accommodation" in prompt
     assert "include affected people in design" in prompt
     assert "test necessity, proportionality, least-restrictive means, appeal, and review" in prompt
