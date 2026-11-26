@@ -7,6 +7,7 @@ from general_guide_composition import (
     _conceptual_relationship_recovery,
     _has_transparency_trust_reciprocity,
     _build_general_guide_system_prompt,
+    _parse_factory,
     has_conceptual_relationship_explanation,
     is_conceptual_relationship_question,
 )
