@@ -9,6 +9,8 @@ on:
     paths:
       - ".github/workflows/guide-live-evaluation.yml"
       - "scripts/guide_live_evaluation.py"
+      - "claim_adjudication.py"
+      - "tests/test_claim_adjudication.py"
       - "main.py"
       - "general_guide_*.py"
       - "gold_star_*.py"
