@@ -161,7 +161,7 @@ def test_top_ranked_community_rule_projection_preserves_key_operations_within_bu
         "accountability, appeal, review, correction",
         "Collective preference cannot override rights",
         "never assume limits justified",
-        "operationalizing its distinct reasoning steps and constraints",
+        "apply the selected discipline's distinct reasoning steps in the answer",
     ):
         assert phrase in prompt
 
