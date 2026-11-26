@@ -101,7 +101,7 @@ def test_community_rule_candidate_prompt_preserves_qualifying_scope_and_all_dist
         "beneficiaries",
         "burden-bearers",
         "restricted liberty",
-        "least-restrictive means",
+        "least-restrictive proportional limits",
         "accommodation",
         "enforcement, appeal, and observable review",
     ):
