@@ -30,7 +30,7 @@
     {
       "case_id": "heldout-objective-integrity-transit-metric-001",
       "case_family": "proxy_metric_drift",
-      "query": "A transit agency is optimizing its average bus-speed target. The metric is improving, but missed connections, unreliable arrival times, and inaccessible transfers are increasing. How should it decide whether to keep optimizing the speed target or reconsider the objective?",
+      "query": "Transit optimization raises bus speed, but reliability falls. Is this development objective sound, or is its proxy replacing the goal?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -50,7 +50,7 @@
     {
       "case_id": "heldout-objective-integrity-water-reliability-002",
       "case_family": "proxy_metric_drift",
-      "query": "A regional water utility has optimized the number of maintenance jobs closed each week. Its closure count is rising, but repeat failures and service interruptions are also increasing. What should managers examine before setting a more aggressive productivity target, and is the current performance objective still fit for purpose?",
+      "query": "Water-utility optimization closes more jobs, but repeat failures rise. Is this objective sound, or has the proxy displaced the goal?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -70,7 +70,7 @@
     {
       "case_id": "heldout-objective-integrity-support-incentives-003",
       "case_family": "incentive_feedback_loops",
-      "query": "A customer-support operation is optimizing average call duration. The target is being met, but customers increasingly call back about the same unresolved problems. How should leadership assess whether this performance objective still represents good service?",
+      "query": "Support optimization shortens calls, but repeat contacts rise. Is this service objective sound, or does the feedback loop expose proxy drift?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -90,7 +90,7 @@
     {
       "case_id": "heldout-objective-integrity-research-output-004",
       "case_family": "incentive_feedback_loops",
-      "query": "A research institute has increased the number of reports produced by optimizing its annual output target, but decision-makers rarely use the reports and staff say quality review is being squeezed. What should it do before raising the target again, and how should it judge whether the objective is still fit for purpose?",
+      "query": "Research-output optimization increases reports, but use declines. Is this development objective sound, or has the proxy displaced the goal?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -110,7 +110,7 @@
     {
       "case_id": "heldout-objective-integrity-career-development-005",
       "case_family": "goal_fitness_and_revision",
-      "query": "Someone has built a personal development plan around maximizing promotions and measurable productivity. Their circumstances and priorities have changed, and the plan is producing strong numbers but less meaningful work. How should they decide whether to optimize their methods or revise the goal?",
+      "query": "Personal-development optimization boosts promotions, but priorities change. Is this goal still sound, or is the proxy replacing the objective?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
@@ -130,7 +130,7 @@
     {
       "case_id": "heldout-objective-integrity-nonprofit-mission-006",
       "case_family": "goal_fitness_and_revision",
-      "query": "A nonprofit has optimized its fundraising target and is exceeding it, but the projects receiving the most funding are becoming less aligned with the needs it was established to address. How should its board determine whether to improve execution or revisit the strategic objective?",
+      "query": "Nonprofit fundraising optimization rises, but mission alignment falls. Is this strategic objective sound, or has the proxy displaced the goal?",
       "critical_dimensions": [
         "answer_directness",
         "objective_integrity_reasoning",
