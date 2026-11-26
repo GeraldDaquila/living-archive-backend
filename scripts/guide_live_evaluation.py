@@ -34,7 +34,7 @@ def build_provider_probe_query():
     """Return a semantically stable probe with a unique cache key per evaluation run."""
     return (
         PROVIDER_PROBE_QUERY
-        + "\\nDiagnostic uniqueness token: "
+        + "\nDiagnostic uniqueness token: "
         + uuid.uuid4().hex
         + ". Do not mention this token in the answer."
     )
