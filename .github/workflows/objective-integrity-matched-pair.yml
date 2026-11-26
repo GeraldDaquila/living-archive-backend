@@ -5,8 +5,6 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  push:
-    branches: [qa/gold-star-objective-integrity-matched-pair-20261126]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -49,7 +47,7 @@ jobs:
 
   matched-pair-capture:
     needs: matched-pair-contract
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/qa/gold-star-objective-integrity-matched-pair-20261126') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_provider_capture == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
