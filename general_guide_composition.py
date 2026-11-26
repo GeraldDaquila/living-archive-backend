@@ -5264,37 +5264,6 @@ def compose(
         else ""
     )
     gold_star_quality_instruction = _build_gold_star_quality_instruction(gold_star_quality)
-    evaluation_base_prompt_fingerprint = ""
-    if evaluation is not None:
-        # Both arms retain the same generic Gold Star integration contract.
-        # Only the treatment receives the candidate-specific lesson instruction.
-        shared_base_system_message = _build_general_guide_system_message(
-            question,
-            has_gold_star_guidance=True,
-            incomplete_knowledge_plan=incomplete_knowledge_plan,
-            integrity_recovery_instruction=integrity_recovery_instruction,
-            gold_star_quality_instruction="",
-            public_live_source_instruction=public_live_source_instruction,
-            objective_integrity_instruction=objective_integrity_instruction,
-        )
-        base_prompt_material = {
-            "fingerprint_version": GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION,
-            "operation": OPERATION,
-            "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
-            "max_tokens": 750,
-            "messages": [
-                {"role": "system", "content": shared_base_system_message},
-                {"role": "user", "content": user_content[:7000]},
-            ],
-        }
-        evaluation_base_prompt_fingerprint = hashlib.sha256(
-            json.dumps(
-                base_prompt_material,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        ).hexdigest()
     gold_star_adjudication_trace = _mark_gold_star_guidance_exposure(
         gold_star_adjudication_trace,
         included_in_provider_prompt=bool(gold_star_quality_instruction),
@@ -5362,6 +5331,38 @@ def compose(
                "No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.")
         )
     )
+
+    evaluation_base_prompt_fingerprint = ""
+    if evaluation is not None:
+        # Both arms retain the same generic Gold Star integration contract.
+        # Only the treatment receives the candidate-specific lesson instruction.
+        shared_base_system_message = _build_general_guide_system_message(
+            question,
+            has_gold_star_guidance=True,
+            incomplete_knowledge_plan=incomplete_knowledge_plan,
+            integrity_recovery_instruction=integrity_recovery_instruction,
+            gold_star_quality_instruction="",
+            public_live_source_instruction=public_live_source_instruction,
+            objective_integrity_instruction=objective_integrity_instruction,
+        )
+        base_prompt_material = {
+            "fingerprint_version": GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION,
+            "operation": OPERATION,
+            "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
+            "max_tokens": 750,
+            "messages": [
+                {"role": "system", "content": shared_base_system_message},
+                {"role": "user", "content": user_content[:7000]},
+            ],
+        }
+        evaluation_base_prompt_fingerprint = hashlib.sha256(
+            json.dumps(
+                base_prompt_material,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
 
     cache_key = _composition_cache_key(
         question,
