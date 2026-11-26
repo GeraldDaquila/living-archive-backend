@@ -1,4 +1,4 @@
-name: Objective-integrity Gold Star matched-pair Gemini pilot
+name: Objective-integrity Gold Star matched-pair Workers AI pilot
 
 concurrency:
   group: objective-integrity-paired-pilot-${{ github.ref }}
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       run_provider_capture:
-        description: "Authorize the 12-call same-provider Gemini objective-integrity pilot"
+        description: "Authorize the 12-call same-provider Cloudflare Workers AI objective-integrity pilot"
         required: true
         default: false
         type: boolean
@@ -42,7 +42,7 @@ jobs:
           python -m pip install -r requirements.txt httpx pytest
       - name: Validate pre-registered objective-integrity cohort
         run: |
-          test -f docs/qa/objective_integrity_matched_pair_cases_gemini.json
+          test -f docs/qa/objective_integrity_matched_pair_cases_workers_ai.json
           PYTHONPATH=. python -m pytest -q tests/test_gold_star_objective_integrity_matched_pair.py tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py tests/test_gold_star_objective_integrity_matched_pair_workflow.py tests/test_gold_star_adaptation_evaluation.py
       - name: Verify candidate-local suite wiring
         run: python -m compileall -q scripts/capture_gold_star_matched_pairs.py
@@ -54,9 +54,11 @@ jobs:
     timeout-minutes: 35
     env:
       PYTHONPATH: .
-      USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "gemini"
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      USE_PROVIDER_BANK_MAX_ATTEMPTS: "1"
+      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "workers_ai"
+      USE_WORKERS_AI_MODELS: "@cf/zai-org/glm-4.7-flash"
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
     steps:
@@ -73,15 +75,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt httpx
-      - name: Run six same-provider, same-model Gemini control/treatment pairs
+      - name: Run six same-provider, same-model Workers AI control/treatment pairs
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --case-set docs/qa/objective_integrity_matched_pair_cases.json
-          --provider gemini
-          --model gemini-3.8-flash
+          --provider workers_ai
+          --model @cf/zai-org/glm-4.7-flash
           --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
-          --output-dir artifacts/objective-integrity-matched-pairs-gemini
+          --output-dir artifacts/objective-integrity-matched-pairs-workers-ai
       - name: Upload blinded reviewer package
         if: always()
         uses: actions/upload-artifact@v4
