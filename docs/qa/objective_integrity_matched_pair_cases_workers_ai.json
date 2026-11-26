@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "evaluation_id": "gold-star-objective-integrity-heldout-pilot-workers-ai-2026-11-26",
+  "target_benchmark_id": "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
+  "purpose": "Separate provider-stratified rerun after the pre-registered Groq and Gemini attempts were blocked by account/provider quota responses before any treatment arm ran. This run pins both arms to one Cloudflare Workers AI model and does not pool earlier attempts.",
+  "case_ids": [
+    "heldout-objective-integrity-transit-metric-001",
+    "heldout-objective-integrity-water-reliability-002",
+    "heldout-objective-integrity-support-incentives-003",
+    "heldout-objective-integrity-research-output-004",
+    "heldout-objective-integrity-career-development-005",
+    "heldout-objective-integrity-nonprofit-mission-006"
+  ],
+  "negative_control_query": "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?",
+  "design": {
+    "treatment": "The approved Gold Star structural lesson is enabled through the normal candidate-local Guide path.",
+    "control": "Gold Star guidance is disabled; the same Guide path, question, provider, model, base system prompt, generation settings and runtime commit are retained.",
+    "provider_pin": {
+      "provider": "workers_ai",
+      "model": "@cf/zai-org/glm-4.7-flash"
+    },
+    "call_order": "Counterbalanced control-first/treatment-first across adjacent cases; randomized blind A/B labels independently.",
+    "spacing_seconds": 65,
+    "scoring": "Independent blind reviewers score each answer against case-specific criteria and common objective-integrity reasoning. Do not unblind until scoring is complete.",
+    "primary_outcome": "Paired change in substantive objective-integrity reasoning and answer quality, not lexical overlap or provider-reported selection.",
+    "practical_threshold": "Mean treatment improvement >= 0.25 points on the 0-2 rubric scale, at least two-thirds of cases judged improved, no hard-gate failures, and a 95% paired uncertainty interval above zero.",
+    "limitations": "Six curated cases are an initial pilot, not a random sample of all visitor queries. Even a passing pilot requires a later unseen cohort and prospective visitor validation before claiming durable general improvement.",
+    "rationale_for_provider_amendment": "Groq returned HTTP 429 on the first control request; Gemini returned a quota/billing rejection on its first control request. Neither attempt reached treatment or produced a valid pair. This is a separate provider-specific evaluation ID, not a substitution within prior pairs."
+  },
+  "cases": [
+    {
+      "case_id": "heldout-objective-integrity-transit-metric-001",
+      "case_family": "proxy_metric_drift",
+      "query": "Transit optimization raises bus speed, but reliability falls. Is this development objective sound, or is its proxy replacing the goal?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "proxy_purpose_alignment",
+        "unmeasured_consequences",
+        "method_vs_goal_decision",
+        "affected_party_authority"
+      ],
+      "rubric": [
+        "Distinguish the speed metric from the underlying public-service purpose, such as reliable and accessible journeys.",
+        "Explain how optimizing the proxy can conceal worsening outcomes that the metric omits.",
+        "Identify affected riders and unequal consequences rather than treating the aggregate metric as sufficient.",
+        "Recommend improving operations if the goal remains sound, but reconsidering the objective or metric if it misrepresents the purpose.",
+        "Require evidence, affected-party input, external constraints, and legitimate authority before changing the agency's objective."
+      ]
+    },
+    {
+      "case_id": "heldout-objective-integrity-water-reliability-002",
+      "case_family": "proxy_metric_drift",
+      "query": "Water-utility optimization closes more jobs, but repeat failures rise. Is this objective sound, or has the proxy displaced the goal?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "proxy_purpose_alignment",
+        "unmeasured_consequences",
+        "method_vs_goal_decision",
+        "practical_review_criteria"
+      ],
+      "rubric": [
+        "Identify the distinction between completed-job counts and the actual purpose of reliable, safe service.",
+        "Explain how incentives around closure counts can reward premature closure or shift attention away from recurrence.",
+        "Identify unmeasured consequences and the need to inspect repeat-failure evidence.",
+        "Distinguish improving maintenance methods from revising the target or performance objective.",
+        "Specify observable review criteria and avoid recommending a target change without evidence."
+      ]
+    },
+    {
+      "case_id": "heldout-objective-integrity-support-incentives-003",
+      "case_family": "incentive_feedback_loops",
+      "query": "Support optimization shortens calls, but repeat contacts rise. Is this service objective sound, or does the feedback loop expose proxy drift?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "feedback_loop_analysis",
+        "proxy_purpose_alignment",
+        "unmeasured_consequences",
+        "method_vs_goal_decision"
+      ],
+      "rubric": [
+        "Explain how incentives to shorten calls can create a feedback loop that rewards speed over resolution.",
+        "Identify repeat-contact and issue-resolution measures as evidence that the proxy may be misaligned.",
+        "Distinguish a process improvement opportunity from a flawed performance objective.",
+        "Recommend a balanced measure set and review process without assuming that speed is never useful.",
+        "Make the reasoning practical and proportionate to the evidence."
+      ]
+    },
+    {
+      "case_id": "heldout-objective-integrity-research-output-004",
+      "case_family": "incentive_feedback_loops",
+      "query": "Research-output optimization increases reports, but use declines. Is this development objective sound, or has the proxy displaced the goal?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "feedback_loop_analysis",
+        "proxy_purpose_alignment",
+        "unmeasured_consequences",
+        "affected_party_authority"
+      ],
+      "rubric": [
+        "Distinguish report volume from the institute's underlying research or decision-support purpose.",
+        "Explain how incentives can reinforce volume while weakening usefulness and review quality.",
+        "Identify evidence needed about report use, quality, and affected staff or decision-makers.",
+        "Distinguish better production methods from reconsidering the output objective.",
+        "Respect the legitimate authority and participation of those responsible for setting the institute's mission and targets."
+      ]
+    },
+    {
+      "case_id": "heldout-objective-integrity-career-development-005",
+      "case_family": "goal_fitness_and_revision",
+      "query": "Personal-development optimization boosts promotions, but priorities change. Is this goal still sound, or is the proxy replacing the objective?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "method_vs_goal_decision",
+        "unmeasured_consequences",
+        "uncertainty_honesty",
+        "practical_review_criteria"
+      ],
+      "rubric": [
+        "Separate improving the methods used to pursue a goal from deciding whether the goal still fits the person's purpose and circumstances.",
+        "Avoid assuming that changed priorities automatically invalidate the goal; ask what evidence and trade-offs matter.",
+        "Identify costs that productivity and promotion metrics may not capture.",
+        "Offer a practical reflection and review process that preserves the person's agency.",
+        "Avoid prescriptive claims about what the person should value."
+      ]
+    },
+    {
+      "case_id": "heldout-objective-integrity-nonprofit-mission-006",
+      "case_family": "goal_fitness_and_revision",
+      "query": "Nonprofit fundraising optimization rises, but mission alignment falls. Is this strategic objective sound, or has the proxy displaced the goal?",
+      "critical_dimensions": [
+        "answer_directness",
+        "objective_integrity_reasoning",
+        "proxy_purpose_alignment",
+        "affected_party_authority",
+        "unmeasured_consequences",
+        "method_vs_goal_decision"
+      ],
+      "rubric": [
+        "Distinguish fundraising success from fidelity to the nonprofit's underlying mission.",
+        "Identify how the funding metric and incentives may redirect effort toward what is easiest to raise money for.",
+        "Consider evidence about beneficiaries, mission alignment, and longer-term consequences.",
+        "Distinguish better fundraising methods from revising the strategy or target.",
+        "Respect board governance, affected communities, and legitimate decision authority; do not assume the board alone has all relevant knowledge."
+      ]
+    }
+  ]
+}
