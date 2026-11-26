@@ -458,7 +458,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "its activation condition. An unclassified role is not disqualifying. Test direct subject/task fit, "
         "distinct contribution, redundancy, and boundary fit. "
         "Select one only when materially relevant and sufficient. Decide before drafting; "
-        "apply the selected discipline in the visitor answer by operationalizing its distinct reasoning steps and constraints, not merely naming its topic; quote an exact contiguous span from that answer as evidence. "
+        "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span as evidence. "
         "Combine candidates only when each adds a distinct, necessary, compatible operation. Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. Never override the "
