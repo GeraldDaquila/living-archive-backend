@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import Any
-import re
 
 MAX_CANDIDATES = 4
-MAX_EVIDENCE_SPAN = 240
+MIN_EVIDENCE_SPAN = 12
+MAX_EVIDENCE_SPAN = 120
 REASON_CODES = frozenset({
     "subject_mismatch",
     "lexical_overlap_only",
@@ -42,7 +42,7 @@ def _candidate_index(candidates: Any) -> dict[str, Mapping[str, Any]]:
 def normalize_provider_adjudication(
     value: Any, *, response: str, candidates: Any
 ) -> dict[str, Any]:
-    """Validate a provider report without treating it as semantic proof."""
+    """Validate provider-reported decisions and answer offsets, not semantic proof."""
     base = {
         "status": "not_observed",
         "selected_candidate_ids": [],
@@ -56,14 +56,12 @@ def normalize_provider_adjudication(
     index = _candidate_index(candidates)
     if not index or not isinstance(value, Mapping):
         return base
-
     allowed = {"candidate_assessments", "application_evidence_spans"}
     if set(value) != allowed:
         return base
     assessments = value.get("candidate_assessments")
     if not isinstance(assessments, list) or len(assessments) != len(index):
         return base
-
     seen: set[str] = set()
     selected: list[str] = []
     rejected: list[dict[str, str]] = []
@@ -93,78 +91,87 @@ def normalize_provider_adjudication(
             if not isinstance(reason, str) or reason not in REASON_CODES:
                 return base
             rejected.append({"candidate_id": candidate_id, "reason_code": reason})
-
     if seen != set(index):
         return base
-    # Require one bounded evidence entry for every disposition. Selected
-    # candidates must point to an exact answer substring; rejected candidates
-    # must carry an empty span. This makes omission detectable without making
-    # reject-all invalid or retaining visitor content in telemetry.
-    spans = value.get("application_evidence_spans")
+
+    # Providers point into their final answer instead of copying a second
+    # representation of the text. The runtime extracts the exact substring.
+    # Rejected candidates use the 0,0 sentinel; telemetry stores no answer text.
+    offsets = value.get("application_evidence_spans")
     evidence_ids: list[str] = []
-    evidence_reason = "span_entry_count_mismatch"
-    spans_valid = isinstance(spans, list) and len(spans) == len(index)
-    span_by_id: dict[str, str] = {}
-    if spans_valid:
-        for item in spans:
-            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "span"}:
-                spans_valid = False
-                evidence_reason = "invalid_span_entry"
+    evidence_reason = "offset_entry_count_mismatch"
+    offsets_valid = isinstance(offsets, list) and len(offsets) == len(index)
+    offsets_by_id: dict[str, tuple[int, int]] = {}
+    if offsets_valid:
+        for item in offsets:
+            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "start", "end"}:
+                offsets_valid = False
+                evidence_reason = "invalid_offset_entry"
                 break
-            candidate_id, span = item.get("candidate_id"), item.get("span")
+            candidate_id, offset_start, offset_end = (
+                item.get("candidate_id"), item.get("start"), item.get("end")
+            )
             if (
                 not isinstance(candidate_id, str)
                 or candidate_id not in index
-                or candidate_id in span_by_id
+                or candidate_id in offsets_by_id
             ):
-                spans_valid = False
-                evidence_reason = "invalid_span_candidate_id"
+                offsets_valid = False
+                evidence_reason = "invalid_offset_candidate_id"
                 break
-            if not isinstance(span, str) or len(span) > MAX_EVIDENCE_SPAN:
-                spans_valid = False
-                evidence_reason = "invalid_span_length"
+            if (
+                not isinstance(offset_start, int) or isinstance(offset_start, bool)
+                or not isinstance(offset_end, int) or isinstance(offset_end, bool)
+                or offset_start < 0 or offset_end < offset_start
+            ):
+                offsets_valid = False
+                evidence_reason = "invalid_offset_bounds"
                 break
-            span_by_id[candidate_id] = span
-        if spans_valid and set(span_by_id) != set(index):
-            spans_valid = False
-            evidence_reason = "span_candidate_coverage_incomplete"
-    if spans_valid:
-        normalized_response = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
+            offsets_by_id[candidate_id] = (offset_start, offset_end)
+        if offsets_valid and set(offsets_by_id) != set(index):
+            offsets_valid = False
+            evidence_reason = "offset_candidate_coverage_incomplete"
+    if offsets_valid:
+        answer = str(response or "")
         for candidate_id in selected:
-            span = re.sub(r"\s+", " ", span_by_id.get(candidate_id, "")).strip().casefold()
-            if not 12 <= len(span) <= MAX_EVIDENCE_SPAN:
-                spans_valid = False
-                evidence_reason = "selected_span_missing_or_out_of_bounds"
+            offset_start, offset_end = offsets_by_id[candidate_id]
+            span_length = offset_end - offset_start
+            if not MIN_EVIDENCE_SPAN <= span_length <= MAX_EVIDENCE_SPAN:
+                offsets_valid = False
+                evidence_reason = "selected_offset_span_missing_or_out_of_bounds"
                 break
-            if span not in normalized_response:
-                spans_valid = False
-                evidence_reason = "selected_span_not_in_final_response"
+            if offset_end > len(answer):
+                offsets_valid = False
+                evidence_reason = "selected_offset_outside_final_response"
+                break
+            if not answer[offset_start:offset_end].strip():
+                offsets_valid = False
+                evidence_reason = "selected_offset_span_empty"
                 break
             evidence_ids.append(candidate_id)
-        if spans_valid and any(
-            span_by_id.get(candidate_id) != ""
+        if offsets_valid and any(
+            offsets_by_id.get(candidate_id) != (0, 0)
             for candidate_id in set(index) - set(selected)
         ):
-            spans_valid = False
-            evidence_reason = "rejected_span_not_empty"
-    if not spans_valid:
+            offsets_valid = False
+            evidence_reason = "rejected_offset_not_empty"
+    if not offsets_valid:
         evidence_ids = []
     elif selected:
-        evidence_reason = "exact_selected_spans_validated"
+        evidence_reason = "exact_selected_offsets_validated"
     else:
         evidence_reason = "no_selected_candidates"
-    span_present = bool(selected) and set(evidence_ids) == set(selected)
+    evidence_present = bool(selected) and set(evidence_ids) == set(selected)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
         "selected_candidate_ids": selected,
         "rejection_reason_codes": rejected,
         "reasoning_discipline_ids": sorted(disciplines),
-        "application_evidence_present": span_present,
+        "application_evidence_present": evidence_present,
         "application_evidence_candidate_ids": evidence_ids,
-        "application": "provider_asserted_span_present" if span_present else "not_observed",
+        "application": "provider_asserted_span_present" if evidence_present else "not_observed",
         "application_evidence_reason": evidence_reason,
     }
-
 
 def build_adjudication_output_contract(candidates: Any) -> str:
     """Describe the minimal bounded JSON report expected from the provider."""
@@ -182,13 +189,13 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
         "questions. Select only distinct, relevant candidates. After drafting the final response, emit one "
-        "span object per candidate ID: selected IDs get an exact 12–240 character contiguous sentence or "
-        "clause from the answer showing their distinctive reasoning operation (an exact substring); rejected "
-        "IDs get an empty string. Never select without a span; reject-all uses empty spans. "
+        "offset object per candidate ID: selected IDs give zero-based Unicode character start/end offsets "
+        "(end exclusive) into the final response, length 12–120; rejected IDs use 0,0. Select only when the "
+        "range shows the candidate's distinctive operation; reject-all uses 0,0. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
-        "the runtime validates IDs, complete disposition, reason codes, and exact "
-        "span presence. Improvement still requires paired evaluation. "
+        "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "
+        "the exact answer substring. Improvement still requires paired evaluation. "
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'

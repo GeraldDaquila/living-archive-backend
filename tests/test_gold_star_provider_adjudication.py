@@ -18,8 +18,16 @@ CANDIDATES = [
 ]
 
 
-def test_selected_candidate_requires_complete_disposition_and_exact_answer_span():
+def _offset(candidate_id, response, phrase=None):
+    if phrase is None:
+        return {"candidate_id": candidate_id, "start": 0, "end": 0}
+    start = response.index(phrase)
+    return {"candidate_id": candidate_id, "start": start, "end": start + len(phrase)}
+
+
+def test_selected_candidate_requires_complete_disposition_and_validated_answer_offsets():
     response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
     result = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [
@@ -27,8 +35,8 @@ def test_selected_candidate_requires_complete_disposition_and_exact_answer_span(
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
-                {"candidate_id": "lesson-b", "span": ""},
+                _offset("lesson-a", response, phrase),
+                _offset("lesson-b", response),
             ],
         },
         response=response,
@@ -39,10 +47,11 @@ def test_selected_candidate_requires_complete_disposition_and_exact_answer_span(
     assert result["reasoning_discipline_ids"] == ["evidence_discernment"]
     assert result["application_evidence_present"] is True
     assert result["application"] == "provider_asserted_span_present"
-    assert result["application_evidence_reason"] == "exact_selected_spans_validated"
+    assert result["application_evidence_reason"] == "exact_selected_offsets_validated"
 
 
-def test_reject_all_requires_reason_for_every_candidate():
+def test_reject_all_requires_reason_and_zero_offsets_for_every_candidate():
+    response = "A substantive answer that does not use either lesson."
     result = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [
@@ -50,11 +59,11 @@ def test_reject_all_requires_reason_for_every_candidate():
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "boundary_mismatch"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": ""},
-                {"candidate_id": "lesson-b", "span": ""},
+                _offset("lesson-a", response),
+                _offset("lesson-b", response),
             ],
         },
-        response="A substantive answer that does not use either lesson.",
+        response=response,
         candidates=CANDIDATES,
     )
     assert result["status"] == "provider_reported_rejected_all"
@@ -70,7 +79,7 @@ def test_incomplete_or_unknown_candidate_adjudication_fails_closed():
             "candidate_assessments": [
                 {"candidate_id": "unknown", "decision": "select", "reason_code": None},
             ],
-            "application_evidence_spans": [{"candidate_id": "lesson-a", "span": "Some exact answer text here"}],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 20}],
         },
         response="Some exact answer text here",
         candidates=CANDIDATES,
@@ -80,7 +89,8 @@ def test_incomplete_or_unknown_candidate_adjudication_fails_closed():
     assert result["application"] == "not_observed"
 
 
-def test_span_must_be_exactly_present_and_bounded():
+def test_offsets_must_be_bounded_inside_the_final_response():
+    response = "The answer is otherwise substantive and sufficiently long."
     result = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [
@@ -88,20 +98,20 @@ def test_span_must_be_exactly_present_and_bounded():
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "lexical_overlap_only"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": "This phrase is not in the answer."},
-                {"candidate_id": "lesson-b", "span": ""},
+                {"candidate_id": "lesson-a", "start": 1000, "end": 1030},
+                _offset("lesson-b", response),
             ],
         },
-        response="The answer is otherwise substantive and sufficiently long.",
+        response=response,
         candidates=CANDIDATES,
     )
     assert result["status"] == "provider_reported_selected"
     assert result["application_evidence_present"] is False
     assert result["application"] == "not_observed"
-    assert result["application_evidence_reason"] == "selected_span_not_in_final_response"
+    assert result["application_evidence_reason"] == "selected_offset_outside_final_response"
 
 
-def test_selected_without_exact_span_can_be_delivered_but_never_earns_application_credit():
+def test_selected_without_valid_offsets_can_be_delivered_but_never_earns_application_credit():
     response = "Separate what was observed from what is inferred, then test the evidence."
     initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
     report = adjudication.normalize_provider_adjudication(
@@ -111,8 +121,8 @@ def test_selected_without_exact_span_can_be_delivered_but_never_earns_applicatio
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": ""},
-                {"candidate_id": "lesson-b", "span": ""},
+                _offset("lesson-a", response),
+                _offset("lesson-b", response),
             ],
         },
         response=response,
@@ -134,6 +144,8 @@ def test_selected_without_exact_span_can_be_delivered_but_never_earns_applicatio
 
 
 def test_trace_keeps_provider_report_distinct_from_human_review_and_tracks_retention():
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
     initial = trace.build_adjudication_trace({"candidates": CANDIDATES})
     report = adjudication.normalize_provider_adjudication(
         {
@@ -142,16 +154,16 @@ def test_trace_keeps_provider_report_distinct_from_human_review_and_tracks_reten
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
-                {"candidate_id": "lesson-b", "span": ""},
+                _offset("lesson-a", response, phrase),
+                _offset("lesson-b", response),
             ],
         },
-        response="Separate what was observed from what is inferred, then test the evidence.",
+        response=response,
         candidates=CANDIDATES,
     )
     traced = trace.mark_provider_adjudication(initial, report)
     composed = trace.mark_composition_result(
-        traced, provider_result={"parsed": {"response": "Separate what was observed from what is inferred."}}
+        traced, provider_result={"parsed": {"response": response}}
     )
     delivered = trace.mark_final_delivery(
         composed, provider_candidate_delivered=True, final_provenance="llm"
@@ -185,9 +197,9 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
     assert trace.validate_trace(final)["valid"]
 
 
-
-def test_selected_span_matching_normalizes_whitespace_but_remains_contiguous():
+def test_offsets_select_the_exact_multiline_answer_substring():
     response = "Separate what was observed\nfrom what is inferred, then test the evidence."
+    phrase = "Separate what was observed\nfrom what is inferred"
     result = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [
@@ -195,18 +207,20 @@ def test_selected_span_matching_normalizes_whitespace_but_remains_contiguous():
                 {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "redundant_contribution"},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
-                {"candidate_id": "lesson-b", "span": ""},
+                _offset("lesson-a", response, phrase),
+                _offset("lesson-b", response),
             ],
         },
         response=response,
         candidates=CANDIDATES,
     )
     assert result["application"] == "provider_asserted_span_present"
-    assert result["application_evidence_reason"] == "exact_selected_spans_validated"
+    assert result["application_evidence_reason"] == "exact_selected_offsets_validated"
 
 
-def test_partial_span_coverage_and_rejected_candidate_span_fail_closed():
+def test_partial_offset_coverage_and_rejected_candidate_offsets_fail_closed():
+    response = "Separate what was observed from what is inferred, then test the evidence."
+    phrase = "Separate what was observed from what is inferred"
     base_report = {
         "candidate_assessments": [
             {"candidate_id": "lesson-a", "decision": "select", "reason_code": None},
@@ -215,23 +229,23 @@ def test_partial_span_coverage_and_rejected_candidate_span_fail_closed():
     }
     partial = adjudication.normalize_provider_adjudication(
         {**base_report, "application_evidence_spans": [
-            {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"}
+            _offset("lesson-a", response, phrase)
         ]},
-        response="Separate what was observed from what is inferred, then test the evidence.",
+        response=response,
         candidates=CANDIDATES,
     )
     assert partial["application"] == "not_observed"
-    assert partial["application_evidence_reason"] == "span_entry_count_mismatch"
+    assert partial["application_evidence_reason"] == "offset_entry_count_mismatch"
     contaminated = adjudication.normalize_provider_adjudication(
         {**base_report, "application_evidence_spans": [
-            {"candidate_id": "lesson-a", "span": "Separate what was observed from what is inferred"},
-            {"candidate_id": "lesson-b", "span": "This rejected candidate must not claim an application"},
+            _offset("lesson-a", response, phrase),
+            {"candidate_id": "lesson-b", "start": 0, "end": 10},
         ]},
-        response="Separate what was observed from what is inferred, then test the evidence.",
+        response=response,
         candidates=CANDIDATES,
     )
     assert contaminated["application"] == "not_observed"
-    assert contaminated["application_evidence_reason"] == "rejected_span_not_empty"
+    assert contaminated["application_evidence_reason"] == "rejected_offset_not_empty"
 
 
 def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
@@ -253,15 +267,15 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "lesson-b",
         "select/reject",
         "abstention boundary",
-        "exact 12–240 character contiguous sentence or clause",
-        "span object per candidate ID",
-        "rejected IDs get an empty string",
-        "reject-all uses empty spans",
+        "offset object per candidate ID",
+        "zero-based Unicode character start/end offsets",
+        "rejected IDs use 0,0",
+        "reject-all uses 0,0",
         "activation scope",
         "semantically equivalent question",
         "After drafting the final response",
-        "distinctive reasoning operation",
-        "exact substring",
+        "distinctive operation",
+        "exact answer substring",
         "No hidden reasoning or chain-of-thought",
         "paired evaluation",
     ):
