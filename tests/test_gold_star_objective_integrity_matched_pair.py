@@ -166,3 +166,32 @@ def test_groq_20b_heldout_queries_retrieve_target_and_negative_control_excludes_
         assert target in {item["benchmark_id"] for item in selected}, case["case_id"]
     negative = gold_star_lessons.select_lesson_candidates(suite["negative_control_query"], limit=4)
     assert target not in {item["benchmark_id"] for item in negative}
+
+
+def test_groq_qwen27b_pilot_is_separately_preregistered_after_two_model_scoped_rate_limits():
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_groq_qwen27b.json"
+    suite, cases, target = _load_cases(path)
+    assert suite["evaluation_id"] == "gold-star-objective-integrity-heldout-pilot-groq-qwen27b-2026-11-26"
+    assert target == TARGET_ID
+    assert suite["design"]["provider_pin"] == {
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+    }
+    assert len(cases) == 6
+    assert len({case["case_family"] for case in cases}) == 3
+    assert "1,000-token completion ceiling" in suite["design"]["rationale_for_model_amendment"]
+
+
+def test_groq_qwen27b_heldout_queries_retrieve_target_and_negative_control_excludes_it():
+    import gold_star_lessons
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+
+    path = ROOT / "docs" / "qa" / "objective_integrity_matched_pair_cases_groq_qwen27b.json"
+    suite, cases, target = _load_cases(path)
+    for case in cases:
+        selected = gold_star_lessons.select_lesson_candidates(case["query"], limit=4)
+        assert target in {item["benchmark_id"] for item in selected}, case["case_id"]
+    negative = gold_star_lessons.select_lesson_candidates(suite["negative_control_query"], limit=4)
+    assert target not in {item["benchmark_id"] for item in negative}
