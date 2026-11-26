@@ -81,6 +81,20 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("limited trial", answer)
         self.assertNotIn("Hindsight blame assumes", answer)
 
+    def test_shared_obligations_liberty_limits_question_gets_specific_community_rule_recovery(self):
+        question = (
+            "How should a community decide whether limits on personal liberty are justified "
+            "by shared obligations and risks?"
+        )
+        answer = compose_recovery(question)
+        self.assertIn("legitimate shared purpose", answer)
+        self.assertIn("demonstrable shared need", answer)
+        self.assertIn("meaningful opportunity to shape", answer)
+        self.assertIn("reasonable accommodation", answer)
+        self.assertIn("least restrictive workable means", answer)
+        self.assertIn("question or appeal", answer)
+        self.assertNotIn("Competing stakeholder obligations should be assessed", answer)
+
     def test_individual_freedom_and_shared_responsibility_get_direct_recovery(self):
         question = (
             "When a community faces a difficult trade-off between individual freedom and shared "
