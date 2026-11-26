@@ -182,7 +182,7 @@ def normalize_provider_adjudication(
     }
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the minimal bounded JSON report expected from the provider."""
+    """Describe the bounded report; evidence spans are zero-based Unicode code-point offsets, end-exclusive, into the exact final response."""
     index = _candidate_index(candidates)
     if not index:
         return ""
@@ -196,10 +196,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one "
-        "offset object per candidate ID: selected IDs give zero-based Unicode character start/end offsets "
-        "(end exclusive) into the final response, length 12–120; rejected IDs use 0,0. Select only when the "
-        "range shows the candidate's distinctive operation; reject-all uses 0,0. "
+        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one offset object per candidate: selected IDs use exact zero-based Unicode 12–120-character spans showing the distinctive operation; rejected IDs use 0,0; reject-all uses 0,0. Prefer few candidates; never estimate. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "

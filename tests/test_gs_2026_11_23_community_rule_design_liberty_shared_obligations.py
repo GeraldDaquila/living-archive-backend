@@ -46,3 +46,13 @@ def test_community_rule_design_selector_recognizes_decision_noun_in_unseen_quest
     assert main._select_verified_doorway_conceptual_family(query) == (
         "community_rule_design_personal_liberty_shared_obligations"
     )
+
+
+def test_community_rule_transfer_prompt_names_legitimate_purpose_and_evidence_before_limits():
+    from general_guide_composition import _build_general_guide_system_prompt
+
+    query = "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    prompt = _build_general_guide_system_prompt(query)
+    assert "legitimate purpose" in prompt
+    assert "evidence of harm/coordination need" in prompt
+    assert "For community liberty limits" not in _build_general_guide_system_prompt("What is transparency?")

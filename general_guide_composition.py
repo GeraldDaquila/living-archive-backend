@@ -224,7 +224,9 @@ _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of 
 Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. Choose the response form that best performs the visitor's actual task. the response form remains task-dependent; the Gold Star is a quality floor, not a fixed template. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
 
 COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING:
-For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
+For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. For community liberty limits, require legitimate purpose and evidence of harm/coordination need; majority preference is not proof. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
+
+
 
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
 When a visitor asks what would demonstrate that the Guide or another AI system is genuinely autonomous, adaptive, resilient, or improving rather than merely continuing to produce responses, recognize an evidence-evaluation task. Answer with an explicit evaluation framework; do not turn it into a reflective discussion of organizational responsibility or ask the visitor to choose an organizational issue. State the governing distinction immediately: continued operation and response volume demonstrate activity or continuity, not by themselves autonomy, adaptation, resilience, or improved answer quality.
@@ -484,10 +486,10 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
         "apply selected reasoning in the answer. Return exact 12–120-character response offsets; "
         "rejected IDs use 0,0. Reject if no range. "
-        "Community rules: state purpose/evidenced need; map benefits, burdens, liberty; require reciprocity, accommodation, "
-        "affected-party input, enforcement, appeal, observable review. Name missing facts; don't invent. "
+        "Community rules: state legitimate shared purpose and evidence of need; majority preference is not proof. "
+        "Map burdens and liberty; require accommodation, affected-party input, appeal, and review. "
         "Reject all when none improves the answer or relevance is merely lexical. "
-        "Never transfer exemplar answers, claims, examples, citations, or doorways. "
+        "Never transfer exemplar content or doorways. "
         "Never override the visitor question, evidence, or response shape. If none qualifies, answer normally.\n"
         "Ranked candidates (for adjudication, not automatic application):\n"
         + candidate_evidence + "\n\n"
@@ -3338,7 +3340,7 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
     )
     trust_supports_openness = bool(
         re.search(
-            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|make\w* it (?:safer|easier))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
+            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
             text,
         )
         or re.search(
@@ -3347,7 +3349,7 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         )
     )
     non_guarantee = bool(
-        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|not a guarantee|not automatic)\b", text)
+        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
     )
     return transparency_supports_trust and trust_supports_openness and non_guarantee
 
