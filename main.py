@@ -8571,6 +8571,8 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         final_provenance = (
             "llm" if delivered or cached_candidate_reused
+            else "provider_assisted_recovery"
+            if original_class == "provider_assisted_recovery"
             else "deterministic_by_design"
             if original_class == "deterministic_by_design"
             else "deterministic_recovery" if final_response
