@@ -63,6 +63,50 @@ def _gold_star_parse(payload):
     )(json.dumps(payload))
 
 
+def test_community_liberty_limit_prompt_requires_burden_distribution_and_participation():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified "
+        "by shared obligations and risks?"
+    )
+    prompt = composition._build_general_guide_system_message(question)
+    for required in (
+        "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY",
+        "legitimate shared purpose",
+        "who benefits",
+        "who bears costs",
+        "include affected people in shaping the rule",
+        "less restrictive workable means",
+        "fair burden allocation",
+        "appeal and review",
+    ):
+        assert required in prompt
+    unrelated = composition._build_general_guide_system_message("What is stewardship?")
+    assert "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY" not in unrelated
+
+
+def test_gold_star_adjudication_prefers_specific_reasoning_family_over_broad_thematic_overlap():
+    instruction = composition._build_gold_star_quality_instruction(
+        {
+            "candidates": [
+                {
+                    "benchmark_id": "broad-community-freedom",
+                    "reasoning_family": "community_freedom_shared_responsibility_proportionate_decision",
+                    "discipline": "Protect rights while weighing shared responsibility.",
+                    "abstention_boundary": "Do not assume restrictions are justified.",
+                },
+                {
+                    "benchmark_id": "specific-community-rule-design",
+                    "reasoning_family": "community_rule_design_personal_liberty_shared_obligations",
+                    "discipline": "Identify who benefits, who bears costs, and whose liberty is restricted.",
+                    "abstention_boundary": "Do not infer legal authority without facts.",
+                },
+            ]
+        }
+    )
+    assert "narrowest matching reasoning family" in instruction
+    assert "thematic overlap is not redundancy" in instruction
+
+
 @pytest.mark.parametrize(
     "adjudication",
     [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
