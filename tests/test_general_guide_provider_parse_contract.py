@@ -92,7 +92,15 @@ def test_provider_response_without_adjudication_field_preserves_complete_answer(
         "response_shape": "direct",
     })
     assert parsed["response"] == GOLD_STAR_RESPONSE
-    assert "adaptive_adjudication" not in parsed
+    assert parsed.get("adaptive_adjudication") is None
+    import gold_star_provider_adjudication as adjudication_contract
+    report = adjudication_contract.normalize_provider_adjudication(
+        parsed.get("adaptive_adjudication"),
+        response=parsed["response"],
+        candidates=GOLD_STAR_CANDIDATES,
+    )
+    assert report["status"] == "not_observed"
+    assert report["application"] == "not_observed"
 
 
 def test_provider_selected_candidate_without_exact_span_is_delivered_without_application_credit():
