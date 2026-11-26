@@ -166,7 +166,7 @@ The composition contract should test for:
 
 Difficulty or disappointing performance alone does not justify abandoning a goal. A rising metric alone does not prove that the goal remains worthwhile. This is a reasoning safeguard, not permission for the model to autonomously change visitor, institutional, or product objectives.
 
-The 2026-11-26 self-optimization near-miss remains immutable diagnostic evidence. Its separately authored successor is a candidate only; it must not become runtime-active or be counted as a Gold Star until the exact response is user-reviewed and the governed validation gates pass.
+The 2026-11-26 self-optimization response remains immutable diagnostic near-miss evidence. Its separately authored successor, Developmental Stewardship and Objective Integrity, was explicitly approved by the user on 2026-11-26 after candidate behavioral and matched-pair gates passed. It is an active structural-learning contributor for qualifying optimization, performance, development, metric, target, and goal-setting questions. Exact-answer authority and deterministic fallback remain disabled. This approval does not claim live visitor application or measured outcome improvement.
 
 ## 10. Runtime enforcement boundary
 
