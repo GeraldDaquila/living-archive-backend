@@ -93,3 +93,42 @@
     color: #222 !important;
   }
 }
+
+
+/* Visitor readability: semantic idea chunks in the Guide's answer body. */
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text {
+  max-width: 72ch;
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+}
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text > p {
+  margin: 0 0 1.05em !important;
+  line-height: 1.72 !important;
+}
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text > p:last-child {
+  margin-bottom: 0 !important;
+}
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h2,
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h3 {
+  margin: 1.35em 0 .55em !important;
+  line-height: 1.35 !important;
+}
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text ul,
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text ol {
+  margin: .45em 0 1.05em !important;
+  padding-left: 1.45em !important;
+}
+.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text li {
+  margin: .35em 0 !important;
+  line-height: 1.65 !important;
+}
+@media (max-width: 700px) {
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text {
+    max-width: none;
+    line-height: 1.75;
+  }
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text > p {
+    margin-bottom: 1.15em !important;
+    line-height: 1.75 !important;
+  }
+}
