@@ -370,3 +370,19 @@ def test_skipped_arm_includes_all_generation_fingerprint_fields():
     assert skipped["schema_sha256"] is None
     assert skipped["schema_mode"] is None
     assert skipped["provider_timeout_seconds"] is None
+
+
+def test_exact_provider_model_candidate_filter_excludes_all_sibling_fallbacks():
+    from scripts.capture_gold_star_matched_pairs import _exact_provider_model_candidates
+
+    candidates = [
+        {"provider": "workers_ai", "model": "@cf/zai-org/glm-4.7-flash"},
+        {"provider": "workers_ai", "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"},
+        {"provider": "gemini", "model": "gemini-3.8-flash"},
+    ]
+    assert _exact_provider_model_candidates(
+        candidates, "workers_ai", "@cf/zai-org/glm-4.7-flash"
+    ) == [candidates[0]]
+    assert _exact_provider_model_candidates(
+        candidates, "workers_ai", "missing-model"
+    ) == []
