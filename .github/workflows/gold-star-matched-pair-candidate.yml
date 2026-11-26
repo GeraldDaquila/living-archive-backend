@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Pin the registered Groq GPT-OSS 120B lane; both arms use this exact provider/model.
+# Pin the registered Groq Qwen 3.8 27B lane; both arms use this exact provider/model.
 
 on:
   pull_request:
@@ -79,7 +79,7 @@ jobs:
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
           --provider groq
-          --model openai/gpt-oss-120b
+          --model qwen/qwen3.8-27b
           --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
