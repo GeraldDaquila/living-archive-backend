@@ -38,7 +38,7 @@ def test_candidate_local_matched_pair_capture_is_exactly_pinned_and_provider_iso
     assert "OPENROUTER_API_KEY" not in workflow
     assert "GEMINI_API_KEY" not in workflow
     assert "--provider groq" in workflow
-    assert "--model openai/gpt-oss-120b" in workflow
+    assert "--model qwen/qwen3.8-27b" in workflow
     assert "scripts/capture_gold_star_matched_pairs.py" in workflow
     assert "actions/checkout@v4" in workflow
     assert "gold-star-blind-review-" in workflow
