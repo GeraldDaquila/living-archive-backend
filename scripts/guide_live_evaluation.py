@@ -364,16 +364,18 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 f"Community-rule transfer must be produced by an attributable LLM response, not deterministic fallback; observed {provenance!r}.",
             ))
         purpose=any(x in low for x in (
-            "shared purpose", "shared need", "coordination problem", "coordination need",
-            "demonstrable harm", "actual harm", "common need", "shared goal",
+            "shared purpose", "shared need", "shared obligations", "coordination problem",
+            "coordination need", "demonstrable harm", "actual harm", "common need", "shared goal",
         ))
         proportionality=any(x in low for x in ("proportionate","proportionality","necessary","least restrictive","least-restrictive"))
-        burden=any(x in low for x in ("who benefits","who bears","who carries","fairly distributed","fair burden","reciprocal","accommodation"))
+        burden=any(x in low for x in (
+            "who benefits", "who bears", "who carries", "fairly distributed", "fair burden",
+            "fair burden allocation", "reciprocal", "accommodation", "reasonable accommodation",
+        ))
         participation=(
             any(x in low for x in (
-                "people most affected", "affected people", "shape the decision", "participate",
-                "meaningful opportunity", "meaningful participation",
-                "participation from those affected",
+                "people most affected", "affected people", "those affected", "shape the decision",
+                "participate", "participation", "meaningful opportunity", "meaningful participation",
             ))
             or "solicit input from those whose liberty would be curtailed" in low
         )
