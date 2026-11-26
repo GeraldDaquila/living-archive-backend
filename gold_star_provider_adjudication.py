@@ -196,7 +196,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one offset object per candidate ID: selected IDs give zero-based Unicode character start/end offsets (end exclusive), length 12–120, into the final answer; rejected IDs use 0,0. Reject-all uses 0,0. Prefer the smallest sufficient set; each span must show the distinctive operation; never estimate. "
+        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one offset object per candidate: selected IDs use exact zero-based Unicode 12–120-character spans showing the distinctive operation; rejected IDs use 0,0; reject-all uses 0,0. Prefer the smallest sufficient set; never estimate. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "
