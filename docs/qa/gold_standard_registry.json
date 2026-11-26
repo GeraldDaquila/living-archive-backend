@@ -9043,7 +9043,7 @@
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "NO_DISPLAY_SERIAL_REQUESTED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "User approved Gold Star elevation without requesting a display serial; no serial is inferred or assigned.",
       "approval_evidence": {
         "approval_date": "2026-11-26",
