@@ -77,11 +77,11 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
     required = (
         "GOLD STAR MULTI-CANDIDATE ADJUDICATION",
         "An unclassified role is not disqualifying",
-        "Select one only when materially relevant and sufficient.",
+        "Select the smallest sufficient set; prefer one specific candidate when it covers the task.",
         "Decide before drafting",
         "apply the selected discipline's distinct reasoning steps in the answer",
         "quote an exact contiguous span",
-        "Combine candidates only when each adds a distinct, necessary, compatible operation",
+        "Combine only when each adds a distinct, necessary, compatible operation not already covered.",
         "Reject all when none improves the answer ",
         "or relevance is merely lexical.",
         "answer normally",
