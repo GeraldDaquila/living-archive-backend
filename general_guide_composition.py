@@ -389,7 +389,13 @@ def _objective_integrity_instruction(question: str) -> str:
     objective_topic = any(term in low for term in (
         "goal", "objective", "purpose", "metric", "measure", "target", "mission", "aim", "development", "score", "indicator", "outcome", "benchmark",
     ))
-    if not (improvement_topic and objective_topic):
+    measurement_alignment_topic = (
+        any(term in low for term in ("metric", "measure", "indicator", "score", "benchmark"))
+        and any(term in low for term in (
+            "align", "alignment", "reflect", "represent", "proxy", "purpose", "goal",
+        ))
+    )
+    if not (improvement_topic and objective_topic) and not measurement_alignment_topic:
         return ""
     return (
         "OBJECTIVE INTEGRITY: Test whether the proxy/measure still serves the purpose. "
