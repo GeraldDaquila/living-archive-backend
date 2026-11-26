@@ -567,6 +567,7 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
                 "response",
                 "doorway_title",
                 "response_shape",
+                "adaptive_adjudication",
             ],
             "additionalProperties": True,
         },
