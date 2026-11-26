@@ -338,6 +338,7 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         / "scripts/capture_gold_star_matched_pairs.py"
     ).read_text(encoding="utf-8")
     for field in (
+        'def _generation_config_for_lane(',
         '"temperature": 0.0',
         '"top_p": "not_supplied_provider_default"',
         '"stop": "not_supplied"',
@@ -346,14 +347,18 @@ def test_generation_configuration_fingerprint_contract_names_effective_groq_sett
         '"chat_template_kwargs": "not_supplied"',
         '"extra_body": "not_supplied"',
         '"response_format":',
-        '"schema_sha256":',
-        '"reasoning_effort": "low"',
-        '"include_reasoning": False',
-        '"provider_timeout_seconds": control["provider_timeout_seconds"]',
-        '"provider_sdk_max_retries": (',
+        '"schema_sha256": arm_state.get("schema_sha256")',
+        '"reasoning_effort": (',
+        '"none" if model == "qwen/qwen3.8-27b"',
+        '"reasoning_format": "hidden" if model == "qwen/qwen3.8-27b" else "not_supplied"',
+        '"include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable"',
+        '"requested_max_tokens": arm_state.get("requested_max_tokens")',
+        '"effective_max_tokens": arm_state.get("max_tokens")',
+        '"provider_timeout_seconds": arm_state.get("provider_timeout_seconds")',
+        '"provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked"',
         '"arm_call_order": list(attempted_arm_order)',
         '"arm_evaluation_order": list(call_order)',
-        '"schema_mode": control["schema_mode"]',
+        '"schema_mode": arm_state.get("schema_mode")',
         'def evaluation_quota_guarded_call(',
         'effective_operation = operation or provider_bank._PROVIDER_OPERATION_CONTEXT.get()',
         'timeout_override=timeout_override',
@@ -369,3 +374,45 @@ def test_skipped_arm_includes_all_generation_fingerprint_fields():
     assert skipped["schema_sha256"] is None
     assert skipped["schema_mode"] is None
     assert skipped["provider_timeout_seconds"] is None
+
+
+def test_exact_provider_model_candidate_filter_excludes_all_sibling_fallbacks():
+    from scripts.capture_gold_star_matched_pairs import _exact_provider_model_candidates
+
+    candidates = [
+        {"provider": "workers_ai", "model": "@cf/zai-org/glm-4.7-flash"},
+        {"provider": "workers_ai", "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"},
+        {"provider": "gemini", "model": "gemini-3.8-flash"},
+    ]
+    assert _exact_provider_model_candidates(
+        candidates, "workers_ai", "@cf/zai-org/glm-4.7-flash"
+    ) == [candidates[0]]
+    assert _exact_provider_model_candidates(
+        candidates, "workers_ai", "missing-model"
+    ) == []
+
+
+def test_effective_max_tokens_respects_provider_bank_model_and_operation_ceilings():
+    from scripts.capture_gold_star_matched_pairs import _effective_max_tokens
+
+    assert _effective_max_tokens("groq", "openai/gpt-oss-20b", "general_guide_composition", 1800) == 1800
+    assert _effective_max_tokens("groq", "qwen/qwen3.8-27b", "general_guide_composition", 1800) == 1000
+    assert _effective_max_tokens("groq", "openai/gpt-oss-20b", "hrn_relational", 1800) == 700
+
+
+def test_qwen_groq_generation_fingerprint_matches_actual_reasoning_and_token_limits():
+    from scripts.capture_gold_star_matched_pairs import _generation_config_for_lane
+
+    config = _generation_config_for_lane("groq", "qwen/qwen3.8-27b", {
+        "route_operation": "general_guide_composition",
+        "max_tokens": 1000,
+        "requested_max_tokens": 1800,
+        "schema_mode": "json_schema_best_effort",
+        "schema_sha256": "effective-groq-schema-sha",
+        "provider_timeout_seconds": 10,
+    }, 65)
+    assert config["max_completion_tokens"] == 1000
+    assert config["effective_max_tokens"] == 1000
+    assert config["requested_max_tokens"] == 1800
+    assert config["reasoning_effort"] == "none"
+    assert config["reasoning_format"] == "hidden"

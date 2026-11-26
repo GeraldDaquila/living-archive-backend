@@ -152,13 +152,33 @@ def _install_observers(composition, main_module):
     return restore
 
 
-def _load_cases():
-    suite = json.loads(CASE_SET_PATH.read_text(encoding="utf-8"))
-    by_id = {item["case_id"]: item for item in suite.get("cases", [])}
-    missing = [case_id for case_id in CASE_IDS if case_id not in by_id]
+def _load_cases(case_set_path: Path = CASE_SET_PATH):
+    """Load a pre-registered held-out suite and its explicit target lesson."""
+    suite = json.loads(Path(case_set_path).read_text(encoding="utf-8"))
+    raw_cases = suite.get("cases", [])
+    if not isinstance(raw_cases, list) or not raw_cases:
+        raise RuntimeError("Held-out evaluation case set must contain a non-empty cases list.")
+    by_id = {
+        str(item.get("case_id") or ""): item
+        for item in raw_cases if isinstance(item, dict)
+    }
+    configured_ids = suite.get("case_ids")
+    case_ids = list(configured_ids) if isinstance(configured_ids, list) else (
+        list(CASE_IDS) if Path(case_set_path) == CASE_SET_PATH else list(by_id)
+    )
+    if len(case_ids) < 3 or len(set(case_ids)) != len(case_ids):
+        raise RuntimeError("Held-out evaluation requires at least three distinct case IDs.")
+    missing = [case_id for case_id in case_ids if case_id not in by_id]
     if missing:
         raise RuntimeError("Held-out evaluation cases missing: " + ", ".join(missing))
-    return suite, [by_id[case_id] for case_id in CASE_IDS]
+    cases = [by_id[case_id] for case_id in case_ids]
+    families = {str(item.get("case_family") or "") for item in cases}
+    if "" in families or len(families) < 2:
+        raise RuntimeError("Held-out evaluation requires at least two named case families.")
+    target_id = str(suite.get("target_benchmark_id") or TARGET_LESSON_ID).strip()
+    if not target_id:
+        raise RuntimeError("Held-out evaluation suite must name its target_benchmark_id.")
+    return suite, cases, target_id
 
 
 def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
@@ -183,6 +203,15 @@ def _safe_provider_identity(payload: dict) -> tuple[str, str, bool]:
     return provider, model, bool(attributable)
 
 
+def _exact_provider_model_candidates(candidates: list[dict], provider: str, model: str) -> list[dict]:
+    """Return only the exact pinned lane; never admit sibling-model fallback."""
+    return [
+        item for item in candidates
+        if str(item.get("provider") or "").strip() == str(provider or "").strip()
+        and str(item.get("model") or "").strip() == str(model or "").strip()
+    ]
+
+
 def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: str = "") -> dict:
     """Choose one exact eligible provider/model pair; never silently substitute."""
     provider = str(provider or "").strip()
@@ -203,6 +232,98 @@ def _choose_provider_candidate(eligible: list[dict], provider: str = "", model: 
     if not eligible:
         raise RuntimeError("No eligible provider/model is configured in this GitHub Actions runner.")
     return eligible[0]
+
+
+def _effective_max_tokens(provider: str, model: str, operation: str, requested: int) -> int:
+    """Mirror Provider Bank model/operation ceilings for the captured payload fingerprint."""
+    import provider_bank
+
+    effective = max(1, int(requested))
+    model_limit = int(
+        provider_bank.MODEL_LIMITS.get((provider, model), {}).get("max_completion_tokens", 0) or 0
+    )
+    operation_limit = int(
+        provider_bank.OPERATION_MODEL_LIMITS.get((operation, provider, model), 0) or 0
+    )
+    if operation_limit > 0:
+        model_limit = min(model_limit, operation_limit) if model_limit > 0 else operation_limit
+    return min(effective, model_limit) if model_limit > 0 else effective
+
+
+def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inter_call_delay_seconds: float) -> dict:
+    """Fingerprint the effective provider payload settings, not another lane's defaults."""
+    common = {
+        "operation": arm_state.get("route_operation"),
+        "provider": provider,
+        "model": model,
+        "schema_mode": arm_state.get("schema_mode"),
+        "schema_sha256": arm_state.get("schema_sha256"),
+        "requested_max_tokens": arm_state.get("requested_max_tokens"),
+        "effective_max_tokens": arm_state.get("max_tokens"),
+        "provider_timeout_seconds": arm_state.get("provider_timeout_seconds"),
+        "inter_call_delay_seconds": inter_call_delay_seconds,
+        "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
+    }
+    if provider == "gemini":
+        return {
+            **common,
+            "max_output_tokens": arm_state.get("max_tokens"),
+            "temperature": "not_supplied_provider_default",
+            "top_p": "not_supplied_provider_default",
+            "response_mime_type": (
+                "omitted_text_mode"
+                if arm_state.get("schema_mode") == "text"
+                else "application/json"
+            ),
+            "response_schema_transform": (
+                "gemini_compatible_drop_additionalProperties"
+                if arm_state.get("schema_sha256") else "none"
+            ),
+            "system_instruction": "separate_systemInstruction",
+            "thinking_level": "low",
+            "transport_retry_policy": "single_http_attempt_no_sdk_retry",
+        }
+    if provider == "groq":
+        return {
+            **common,
+            "max_completion_tokens": arm_state.get("max_tokens"),
+            "temperature": 0.0,
+            "top_p": "not_supplied_provider_default",
+            "stop": "not_supplied",
+            "presence_penalty": "not_supplied_provider_default",
+            "frequency_penalty": "not_supplied_provider_default",
+            "chat_template_kwargs": "not_supplied",
+            "extra_body": "not_supplied",
+            "response_format": (
+                "omitted_text_mode" if arm_state.get("schema_mode") == "text"
+                else "json_schema" if arm_state.get("schema_sha256") else "json_object"
+            ),
+            "reasoning_effort": (
+                "none" if model == "qwen/qwen3.8-27b"
+                else "low" if model.startswith("openai/gpt-oss-") else "provider_default"
+            ),
+            "reasoning_format": "hidden" if model == "qwen/qwen3.8-27b" else "not_supplied",
+            "include_reasoning": False if model.startswith("openai/gpt-oss-") else "not_applicable",
+            "provider_sdk_max_retries": 0 if arm_state.get("provider_timeout_seconds") is not None else "not_invoked",
+        }
+    if provider == "workers_ai":
+        return {
+            **common,
+            "max_tokens": arm_state.get("max_tokens"),
+            "temperature": 0.0,
+            "response_format": (
+                "omitted_text_mode" if arm_state.get("schema_mode") == "text"
+                else "json_schema" if arm_state.get("schema_sha256") else "json_object"
+            ),
+            "options_reject_if_busy": True,
+            "chat_template_kwargs": (
+                {"enable_thinking": False}
+                if model == "@cf/google/gemma-4-26b-a4b-it" else "not_supplied"
+            ),
+            "message_adapter": "_workers_normalize_messages",
+            "transport_retry_policy": "single_http_attempt_no_provider_sdk_retry",
+        }
+    raise ValueError(f"Matched-pair generation fingerprint is not defined for provider: {provider}")
 
 
 async def _request_arm(client, evaluation_context, provider, model, query, arm):
@@ -325,16 +446,16 @@ async def capture(args) -> dict:
     from gold_star_evaluation_context import evaluation_context
     from general_guide_composition import CONTRACT_VERSION as COMPOSITION_CONTRACT_VERSION
 
-    suite, cases = _load_cases()
+    suite, cases, target_lesson_id = _load_cases(getattr(args, "case_set", CASE_SET_PATH))
     runtime_commit = _git_sha()
     registry_bytes = (
         ROOT / "docs" / "qa" / "gold_standard_registry.json"
     ).read_bytes()
     registry_sha = _sha256(registry_bytes)
 
-    negative_control_query = (
+    negative_control_query = str(suite.get("negative_control_query") or (
         "Why does a metal spoon feel colder than a wooden spoon when both are at the same room temperature?"
-    )
+    ))
     negative_control_candidates = gold_star_lessons.select_lesson_candidates(
         negative_control_query, limit=4
     )
@@ -343,9 +464,9 @@ async def capture(args) -> dict:
         for item in negative_control_candidates
         if isinstance(item, dict)
     ]
-    negative_control_passed = TARGET_LESSON_ID not in negative_control_ids
+    negative_control_passed = target_lesson_id not in negative_control_ids
 
-    eligible = provider_bank.select(
+    eligible = provider_bank.candidates(
         main.use_core, operation="general_guide_composition"
     )
     try:
@@ -367,6 +488,15 @@ async def capture(args) -> dict:
     # production configuration, or the shared request deadline.
     original_provider_call_timeout = provider_bank._provider_call_timeout
     original_quota_guarded_call = provider_bank._quota_guarded_call
+    original_select = provider_bank.select
+
+    def evaluation_select(use_core, operation="generic", schema=None):
+        if operation == "general_guide_composition":
+            current = provider_bank.candidates(
+                use_core, operation=operation, schema=schema
+            )
+            return _exact_provider_model_candidates(current, provider, model)[:1]
+        return original_select(use_core, operation=operation, schema=schema)
 
     def evaluation_provider_call_timeout(operation, item=None, attempt_index=1):
         timeout = original_provider_call_timeout(operation, item, attempt_index)
@@ -394,10 +524,21 @@ async def capture(args) -> dict:
         ):
             state = CAPTURE_CONTEXT.get()
             if state is not None:
-                state["max_tokens"] = max_tokens
+                state["requested_max_tokens"] = max_tokens
+                state["max_tokens"] = _effective_max_tokens(
+                    provider, model, effective_operation, max_tokens
+                )
+                effective_schema = schema
+                if provider in {"gemini", "workers_ai"} and isinstance(schema, dict):
+                    nested_schema = schema.get("schema")
+                    if isinstance(nested_schema, dict):
+                        effective_schema = (
+                            provider_bank._gemini_compatible_response_schema(nested_schema)
+                            if provider == "gemini" else nested_schema
+                        )
                 state["schema_sha256"] = (
-                    _sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")))
-                    if isinstance(schema, dict) else None
+                    _sha256(json.dumps(effective_schema, sort_keys=True, separators=(",", ":")))
+                    if isinstance(effective_schema, dict) else None
                 )
                 state["schema_mode"] = schema.get("mode") if isinstance(schema, dict) else None
                 state["provider_timeout_seconds"] = timeout_override
@@ -408,11 +549,13 @@ async def capture(args) -> dict:
 
     provider_bank._provider_call_timeout = evaluation_provider_call_timeout
     provider_bank._quota_guarded_call = evaluation_quota_guarded_call
+    provider_bank.select = evaluation_select
     restore_observers = _install_observers(composition, main)
     def restore():
         restore_observers()
         provider_bank._provider_call_timeout = original_provider_call_timeout
         provider_bank._quota_guarded_call = original_quota_guarded_call
+        provider_bank.select = original_select
 
     records = []
     blind_cases = []
@@ -486,23 +629,23 @@ async def capture(args) -> dict:
                     failures.append("paired_generation_configuration_mismatch")
 
                 target_in_treatment = any(
-                    item["benchmark_id"] == TARGET_LESSON_ID
+                    item["benchmark_id"] == target_lesson_id
                     for item in treatment["retrieved_candidates"]
                 )
-                target_selected = TARGET_LESSON_ID in (
+                target_selected = target_lesson_id in (
                     treatment["provider_adjudication"]["selected_candidate_ids"]
                 )
-                target_span = TARGET_LESSON_ID in (
+                target_span = target_lesson_id in (
                     treatment["provider_adjudication"]["application_evidence_candidate_ids"]
                 )
                 if not target_in_treatment:
-                    failures.append("community_rule_gold_star_not_retrieved")
+                    failures.append("target_gold_star_not_retrieved")
                 if not target_selected:
-                    failures.append("community_rule_gold_star_not_selected_by_provider")
+                    failures.append("target_gold_star_not_selected_by_provider")
                 if not target_span:
-                    failures.append("community_rule_application_span_not_observed")
+                    failures.append("target_gold_star_application_span_not_observed")
                 if not negative_control_passed:
-                    failures.append("community_rule_gold_star_cross_domain_selector_leak")
+                    failures.append("target_gold_star_cross_domain_selector_leak")
 
                 case_family = str(
                     case.get("case_family") or case.get("question_type") or case["case_id"]
@@ -516,35 +659,9 @@ async def capture(args) -> dict:
                     + "\nUSER_CONTENT_SHA256\n"
                     + str(control["user_content_sha256"] or "")
                 )
-                # Effective Groq payload contract for the exact pinned lane,
-                # verified against provider_bank._groq. Schema identity is hashed.
-                generation_config = {
-                    "operation": control["route_operation"],
-                    "max_completion_tokens": control["max_tokens"],
-                    "provider": provider,
-                    "model": model,
-                    "temperature": 0.0,
-                    "top_p": "not_supplied_provider_default",
-                    "stop": "not_supplied",
-                    "presence_penalty": "not_supplied_provider_default",
-                    "frequency_penalty": "not_supplied_provider_default",
-                    "chat_template_kwargs": "not_supplied",
-                    "extra_body": "not_supplied",
-                    "response_format": (
-                        "omitted_text_mode" if control["schema_mode"] == "text"
-                        else "json_schema" if control["schema_sha256"] else "json_object"
-                    ),
-                    "schema_sha256": control["schema_sha256"],
-                    "schema_mode": control["schema_mode"],
-                    "reasoning_effort": "low",
-                    "include_reasoning": False,
-                    "provider_timeout_seconds": control["provider_timeout_seconds"],
-                    "provider_sdk_max_retries": (
-                        0 if control["provider_timeout_seconds"] is not None else "not_invoked"
-                    ),
-                    "inter_call_delay_seconds": args.inter_call_delay_seconds,
-                    "evaluation_retry_policy": "one exact pinned provider/model; no alternate lane",
-                }
+                generation_config = _generation_config_for_lane(
+                    provider, model, control, args.inter_call_delay_seconds
+                )
                 generation_fingerprint = _sha256(
                     json.dumps(generation_config, sort_keys=True, separators=(",", ":"))
                 )
@@ -569,9 +686,9 @@ async def capture(args) -> dict:
                     "acceptance": {
                         "passed": not failures,
                         "failures": failures,
-                        "community_rule_candidate_retrieved": target_in_treatment,
-                        "community_rule_candidate_selected": target_selected,
-                        "community_rule_application_span_observed": target_span,
+                        "target_gold_star_candidate_retrieved": target_in_treatment,
+                        "target_gold_star_candidate_selected": target_selected,
+                        "target_gold_star_application_span_observed": target_span,
                         "semantic_application_certified": False,
                     },
                 }
@@ -606,6 +723,8 @@ async def capture(args) -> dict:
     return {
         "schema_version": "1.0",
         "evaluation_id": suite["evaluation_id"],
+        "target_benchmark_id": target_lesson_id,
+        "case_set_sha256": _sha256(CASE_SET_PATH.read_bytes() if getattr(args, "case_set", CASE_SET_PATH) == CASE_SET_PATH else Path(args.case_set).read_bytes()),
         "evaluation_mode": "local_candidate_same_provider_model_paired_generation",
         "semantic_certification": False,
         "runtime_commit": runtime_commit,
@@ -619,7 +738,7 @@ async def capture(args) -> dict:
         "selector_negative_control": {
             "query": negative_control_query,
             "selected_candidate_ids": negative_control_ids,
-            "community_rule_gold_star_excluded": negative_control_passed,
+            "target_gold_star_excluded": negative_control_passed,
             "semantic_certification": False,
         },
         "case_count": len(records),
@@ -725,6 +844,7 @@ def _build_evaluation_template(report: dict) -> dict:
 def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/gold-star-matched-pairs"))
+    parser.add_argument("--case-set", type=Path, default=CASE_SET_PATH, help="Pre-registered held-out evaluation case-set JSON.")
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     parser.add_argument(
         "--provider-timeout-seconds", type=float, default=8.0,
@@ -783,7 +903,7 @@ def main_cli() -> int:
     )
     summary = {
         key: report[key] for key in (
-            "runtime_commit", "provider", "model", "case_count",
+            "runtime_commit", "provider", "model", "target_benchmark_id", "case_count",
             "passed_case_count", "failed_case_count",
         )
     }

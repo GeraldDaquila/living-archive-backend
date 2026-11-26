@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import datetime
-from math import ceil
+from math import ceil, sqrt
+from statistics import stdev
 from typing import Any
 
 VERSION = "1.1"
@@ -43,6 +44,45 @@ MIN_PAIRED_CASES = 3
 MIN_CASE_FAMILIES = 2
 MIN_MEAN_SCORE_DELTA = 0.25
 MIN_IMPROVED_SHARE = 2 / 3
+
+# Two-sided 95% Student-t critical values for the small pilot cohorts used here.
+# For larger degrees of freedom, 1.96 is a close normal approximation.
+_T_CRITICAL_95 = {
+    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
+    7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201,
+    12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120,
+    17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086, 21: 2.080,
+    22: 2.074, 23: 2.069, 24: 2.064, 25: 2.060, 26: 2.056,
+    27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
+}
+
+
+def _paired_mean_confidence_interval(deltas: list[float]) -> dict[str, Any]:
+    """Return a two-sided 95% paired-t interval over case-level score deltas.
+
+    This is descriptive for a curated held-out cohort; it is not a population
+    guarantee or a substitute for replication on a later unseen cohort.
+    """
+    count = len(deltas)
+    if count < 2:
+        return {
+            "level": 0.95, "lower": None, "upper": None,
+            "method": "paired_student_t_interval",
+            "interpretation": "insufficient_pairs",
+        }
+    mean_delta = sum(deltas) / count
+    sample_sd = stdev(deltas)
+    degrees = count - 1
+    critical = _T_CRITICAL_95.get(degrees, 2.05)
+    margin = critical * sample_sd / sqrt(count)
+    return {
+        "level": 0.95,
+        "lower": round(mean_delta - margin, 4),
+        "upper": round(mean_delta + margin, 4),
+        "method": "paired_student_t_interval",
+        "degrees_of_freedom": degrees,
+        "interpretation": "descriptive_curated_cohort_interval_not_population_certification",
+    }
 
 
 def _contains_forbidden_content(value: Any) -> bool:
@@ -242,6 +282,7 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
         }
     families = {item["case_family"] for item in evaluated}
     mean_delta = round(sum(item["mean_score_delta"] for item in evaluated) / count, 4) if count else 0.0
+    confidence_interval = _paired_mean_confidence_interval([item["mean_score_delta"] for item in evaluated])
     improved = sum(item["reviewer_verdict"] == "improved" for item in evaluated)
     regressions = sum(
         bool(item["treatment_hard_gate_failures"])
@@ -257,6 +298,8 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
         reasons.append("insufficient_case_family_coverage")
     if mean_delta < MIN_MEAN_SCORE_DELTA:
         reasons.append("mean_improvement_below_threshold")
+    if confidence_interval["lower"] is None or confidence_interval["lower"] <= 0:
+        reasons.append("confidence_interval_not_above_zero")
     if improved < ceil(count * MIN_IMPROVED_SHARE):
         reasons.append("insufficient_human_reviewed_improvements")
     if regressions:
@@ -275,6 +318,7 @@ def evaluate_batch(records: Any) -> dict[str, Any]:
         "paired_case_count": count,
         "case_family_count": len(families),
         "mean_score_delta": mean_delta,
+        "confidence_interval_95": confidence_interval,
         "human_reviewed_improvement_count": improved,
         "regression_count": regressions,
         "reasons": reasons,
