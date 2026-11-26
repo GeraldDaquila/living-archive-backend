@@ -115,3 +115,18 @@ def test_objective_integrity_instruction_is_not_added_to_unrelated_questions(mon
         item["content"] for item in captured["messages"] if item["role"] == "system"
     )
     assert "OBJECTIVE INTEGRITY:" not in system_message
+
+
+def test_objective_integrity_instruction_requires_an_improvement_and_objective_signal():
+    assert composition._objective_integrity_instruction(
+        "How can we improve performance without compromising the mission objective?"
+    )
+    assert composition._objective_integrity_instruction(
+        "Is this success metric still aligned with our goal?"
+    )
+    assert composition._objective_integrity_instruction(
+        "How can I improve my running time?"
+    ) == ""
+    assert composition._objective_integrity_instruction(
+        "What is photosynthesis?"
+    ) == ""
