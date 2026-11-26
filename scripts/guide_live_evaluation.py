@@ -382,8 +382,9 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "costs and benefits", "benefits and costs",
         ))
         accommodation=any(x in low for x in (
-            "accommodation", "reasonable accommodation", "accommodate different needs",
-            "adjustment for disability", "individual adjustment",
+            "accommodation", "accommodated", "reasonable accommodation", "accommodate different needs",
+            "accommodate if possible", "accommodate where possible", "reasonable adjustments",
+            "adjustments where needed", "adjustment for disability", "individual adjustment",
         ))
         # Participation must occur in forming the rule/decision. A later right
         # to appeal or request review is a separate safeguard and cannot satisfy
@@ -394,6 +395,10 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "those affected should have a meaningful opportunity to shape",
             "affected people's participation in shaping",
             "affected people’s participation in shaping",
+            "shaped by the people most affected",
+            "shaped by people most affected",
+            "shaped by those most affected",
+            "shaped by affected people",
             "people affected participate in shaping",
             "participation of affected people in shaping",
             "participation by affected people in shaping",
