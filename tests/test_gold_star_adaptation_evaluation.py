@@ -298,3 +298,10 @@ def test_batch_with_positive_mean_but_uncertain_small_sample_does_not_pass_scree
     assert result["confidence_interval_95"]["lower"] < 0
     assert "confidence_interval_not_above_zero" in result["reasons"]
     assert result["status"] == "evidence_insufficient"
+
+
+def test_two_pair_interval_uses_one_degree_of_freedom_t_critical_value():
+    interval = evaluation._paired_mean_confidence_interval([0.0, 1.0])
+    assert interval["degrees_of_freedom"] == 1
+    assert interval["lower"] < 0
+    assert interval["upper"] > 0
