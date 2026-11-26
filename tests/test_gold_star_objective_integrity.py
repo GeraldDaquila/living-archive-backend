@@ -32,12 +32,14 @@ def test_objective_integrity_successor_preserves_near_miss_and_stays_non_runtime
     assert near_miss["linked_successor_benchmark_id"] == SUCCESSOR_ID
 
     # A proposed successor cannot become a runtime lesson before review/approval.
-    assert successor["status"] == "CANDIDATE"
-    assert successor["runtime_transfer"] is False
-    assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert successor["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert successor["runtime_transfer"] is True
+    assert successor["gold_star_capabilities"]["active_quality_contributor"] is True
     assert successor["gold_star_capabilities"]["exact_answer_authority"] is False
     assert successor["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
-    assert SUCCESSOR_ID not in {item["benchmark_id"] for item in review["entries"]}
+    assert SUCCESSOR_ID in {item["benchmark_id"] for item in review["entries"]}
+    assert successor["numbering_status"] == "UNASSIGNED"
+    assert successor["doorway_status"] == "NOT_EVALUATED"
 
     response = successor["expected_response"].casefold()
     for required_concept in (
