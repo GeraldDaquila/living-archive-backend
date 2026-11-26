@@ -483,9 +483,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "CORE requires boundary fit; CONDITIONAL requires activation. An unclassified role is not disqualifying. "
         "Check subject/task fit, contribution, redundancy, and boundary. Decide before drafting. "
         "Select the smallest sufficient set; prefer one specific candidate when it covers the task. "
-        "Combine only for distinct necessary operations not already covered. "
+        "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
         "apply the selected discipline's distinct reasoning steps in the answer; quote an exact contiguous span. "
-        "Combine candidates only when each adds a distinct, necessary, compatible operation; "
         "Never combine candidates to reward their number or similarity ranking. "
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar answers, claims, examples, citations, or doorways. "
@@ -2843,9 +2842,9 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
     titles = {item["title"] for item in documents}
 
     def _require_complete_gold_star_adjudication(parsed: Dict[str, Any], response: str) -> None:
-        # When candidates were supplied, do not admit a provider response as a
-        # valid composition if its required disposition report is absent or
-        # malformed. Exact-span evidence governs adaptation credit, not answer delivery.
+        # Candidate adjudication is auxiliary adaptation evidence, not a
+        # prerequisite for a valid visitor composition. Exact-span evidence
+        # governs adaptation credit, not answer delivery.
         if not gold_star_candidates:
             return
         report = _normalize_gold_star_provider_adjudication(
