@@ -67,6 +67,26 @@ def _gold_star_parse(payload):
     "adjudication",
     [None, {}, {"candidate_assessments": [], "application_evidence_spans": []}],
 )
+def test_gold_star_adaptive_contract_keeps_specialized_sections_conditional():
+    community = composition._gold_star_adaptive_contract_for_question(
+        "How should a community decide whether limits on personal liberty are justified?"
+    )
+    assert "GOLD STAR ADAPTIVE INTELLIGENCE STANDARD v2.0" in community
+    assert "Exact approved answers remain exact-query bounded." in community
+    assert "TRANSPARENCY AND TRUST RECIPROCITY" not in community
+    assert "For questions about stewardship and consent" not in community
+
+    transparency = composition._gold_star_adaptive_contract_for_question(
+        "What is the relationship between transparency and trust?"
+    )
+    assert "TRANSPARENCY AND TRUST RECIPROCITY" in transparency
+
+    stewardship = composition._gold_star_adaptive_contract_for_question(
+        "How do stewardship and consent relate?"
+    )
+    assert "For questions about stewardship and consent" in stewardship
+
+
 def test_provider_response_with_candidates_rejects_missing_or_incomplete_adjudication(adjudication):
     payload = {
         "response": GOLD_STAR_RESPONSE,
