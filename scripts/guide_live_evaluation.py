@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Manually invoked, bounded live response evaluation for The Guide."""
 from __future__ import annotations
-import argparse, hashlib, json, re, subprocess, sys, time
+import argparse, hashlib, json, re, subprocess, sys, time, uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -29,6 +29,16 @@ PROVIDER_PROBE_QUERY = (
     "Explicitly name employees, customers, and nearby residents, and explain who benefits and who bears the costs. "
     "Answer directly in one concise paragraph. Do not include URLs, links, or resource recommendations."
 )
+
+def build_provider_probe_query():
+    """Return a semantically stable probe with a unique cache key per evaluation run."""
+    return (
+        PROVIDER_PROBE_QUERY
+        + "\nDiagnostic uniqueness token: "
+        + uuid.uuid4().hex
+        + ". Do not mention this token in the answer."
+    )
+
 
 def file_commit(path):
     try:
@@ -515,8 +525,9 @@ def main():
     # Run the bounded attribution probe first, before the held-out workload consumes
     # shared provider TPM capacity. It uses a concise no-link prompt to avoid
     # provider-authored navigation URLs being mistaken for final answer prose.
+    provider_probe_query_value=build_provider_probe_query()
     provider_probe_started_at=datetime.now(timezone.utc).isoformat()
-    provider_probe_transport=post(base,PROVIDER_PROBE_QUERY)
+    provider_probe_transport=post(base,provider_probe_query_value)
     provider_probe_completed_at=datetime.now(timezone.utc).isoformat()
     provider_probe_body=provider_probe_transport.get("body")
     provider_probe_body=provider_probe_body if isinstance(provider_probe_body,dict) else {}
@@ -532,7 +543,7 @@ def main():
         check("provider_invocation_id",bool(provider_probe_invocation_id),"The final visitor response must include a provider invocation ID; a provider label alone is insufficient."),
         check("request_correlation_id",bool(provider_probe_correlation_id),"The provider probe must expose the request-local ID used by final-delivery telemetry."),
     ]
-    report["provider_probe"]={"purpose":"provider_attribution_only_not_gold_star_effectiveness","query":PROVIDER_PROBE_QUERY,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"request_correlation_id":provider_probe_correlation_id,"provider_invocation_id":provider_probe_invocation_id,"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
+    report["provider_probe"]={"purpose":"provider_attribution_only_not_gold_star_effectiveness","query":provider_probe_query_value,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"request_correlation_id":provider_probe_correlation_id,"provider_invocation_id":provider_probe_invocation_id,"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
         question=item["query"]

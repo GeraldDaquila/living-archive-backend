@@ -13,6 +13,15 @@ from scripts.guide_live_evaluation import (
 )
 
 
+def test_provider_attribution_probe_uses_unique_cache_key_per_run():
+    first = live_evaluation.build_provider_probe_query()
+    second = live_evaluation.build_provider_probe_query()
+    assert first != second
+    assert first.startswith(live_evaluation.PROVIDER_PROBE_QUERY)
+    assert second.startswith(live_evaluation.PROVIDER_PROBE_QUERY)
+    assert "Do not mention this token" in first
+
+
 def test_exact_approved_answer_is_enforced():
     record = {
         "status": "USER_APPROVED_GOLD_STANDARD",

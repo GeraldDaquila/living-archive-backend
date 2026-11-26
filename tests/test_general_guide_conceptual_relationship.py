@@ -134,6 +134,7 @@ def test_transparency_trust_prompt_requires_both_directions_and_non_guarantee():
     assert "TRANSPARENCY AND TRUST RECIPROCITY" in prompt
     assert "explain both directions of influence" in prompt
     assert "Do not describe the relationship as one-way" in prompt
+    assert "protect privacy, personal and sensitive information, and legitimate confidentiality" in prompt
 
 
 def test_provider_parser_rejects_one_way_transparency_trust_answer():
@@ -154,6 +155,19 @@ def test_provider_parser_rejects_one_way_transparency_trust_answer():
 
 
 
+def test_provider_parser_rejects_transparency_trust_answer_without_privacy_boundary():
+    from general_guide_composition import _parse_factory
+
+    answer = (
+        "Transparency supports justified trust because decisions and reasons can be inspected, questioned, and corrected. "
+        "Reasonable trust encourages people to share information and engage candidly. Neither guarantees the other; "
+        "disclosure does not make poor conduct trustworthy, and trust does not remove accountability."
+    )
+    parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
+    with pytest.raises(ValueError, match="explicitly preserve privacy and legitimate confidentiality"):
+        parse(json.dumps({"response": answer}))
+
+
 def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marker():
     response = (
         "Transparency supports justified trust because decisions and reasons can be inspected, "
@@ -162,7 +176,8 @@ def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marke
         "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
         "trustworthy, and trust cannot replace accountability. For example, publishing a decision's "
         "reasons lets affected people compare stated grounds with actual conduct, identify inconsistencies, "
-        "and request correction. Trust becomes warranted through the institution's response, not visibility alone."
+        "and request correction. Trust becomes warranted through the institution's response, not visibility alone. "
+        "Transparency must protect privacy and legitimate confidentiality rather than expose private information indiscriminately."
     )
     assert has_conceptual_relationship_explanation(response, TRANSPARENCY_TRUST_QUESTION)
     parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)

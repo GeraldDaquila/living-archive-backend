@@ -355,6 +355,8 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; "
             "institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: "
             "disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. "
+            "Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality "
+            "while keeping decisions and uses of power accountable. "
             "Do not describe the relationship as one-way or imply that either concept guarantees the other."
         )
     return rendered
@@ -490,6 +492,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         community_rule_projection = (
             family == "community_rule_design_personal_liberty_shared_obligations"
         )
+        relational_synthesis_projection = family == "relational_synthesis_concept_pairs"
         discipline_text = item.get("transferable_discipline") or item.get("discipline")
         boundary_text = item.get("abstention_boundary")
         activation_text = item.get("activation_condition")
@@ -518,6 +521,18 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             boundary_text = (
                 "Name missing facts; do not invent need, infer legality, or assume necessity."
             )
+        elif relational_synthesis_projection:
+            # Preserve the privacy/confidentiality boundary in the transmitted
+            # discipline; generic truncation of the abstention boundary can
+            # otherwise remove this domain-specific limit from the provider prompt.
+            discipline_text = (
+                "Distinguish each concept's role; explain the connecting mechanism and direction(s) of influence; "
+                "state conditionality and non-equivalence; identify a meaningful boundary or tension, including "
+                "privacy and legitimate confidentiality for transparency questions; ground source claims and give a usable implication."
+            )
+            boundary_text = (
+                "Do not infer unsupported causation, reciprocity, guarantees, or universal rules; preserve privacy and legitimate confidentiality."
+            )
         activation_value = (
             activation_text
             if community_rule_projection
@@ -527,8 +542,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={activation_value or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection) else 360)}; "
-            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if community_rule_projection else 100)}"
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection or relational_synthesis_projection) else 360)}; "
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if (community_rule_projection or relational_synthesis_projection) else 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
@@ -3007,6 +3022,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 "transparency-trust answer must explain both directions of influence and the non-guarantee boundary"
             )
 
+        if (
+            re.search(r"\btransparency\b", query, re.I)
+            and re.search(r"\btrust\b", query, re.I)
+            and is_conceptual_relationship_question(query)
+            and not _has_transparency_trust_disclosure_boundary(response)
+        ):
+            raise ValueError(
+                "transparency-trust answer must explicitly preserve privacy and legitimate confidentiality"
+            )
+
         # A complete practical next-step question must receive an actionable
         # move, not only abstract analysis or a request for more context. If the
         # provider misses this, reject the candidate so Provider Bank can retry.
@@ -3419,6 +3444,15 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
     )
     return transparency_supports_trust and trust_supports_openness and non_guarantee
+
+
+def _has_transparency_trust_disclosure_boundary(response: str) -> bool:
+    """Require an explicit privacy/confidentiality limit on transparency."""
+    text = _normalize_space(response).casefold()
+    return bool(re.search(
+        r"\b(?:privacy|confidential(?:ity)?|private information|sensitive information|personal information)\b",
+        text,
+    ))
 
 
 def _archive_voice_meaning_question(question: str) -> bool:

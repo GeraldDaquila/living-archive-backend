@@ -882,6 +882,26 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     assert estimate_input_tokens(messages) + 750 <= 8000
 
 
+def test_relational_synthesis_gold_star_prompt_preserves_privacy_boundary():
+    quality = {
+        "candidates": [{
+            "benchmark_id": "general-guide-relational-synthesis-concept-pairs-2026-11-24",
+            "role": "CORE",
+            "reasoning_family": "relational_synthesis_concept_pairs",
+            "transferable_discipline": "Distinguish each concept's role and explain the mechanism.",
+            "abstention_boundary": (
+                "Do not force relational synthesis onto simple definitions. Preserve domain-specific evidence limits, "
+                "privacy, and legitimate confidentiality. Never infer unsupported causation or guarantees."
+            ),
+            "activation_condition": "active_quality_contributor",
+            "score": 1.0,
+        }]
+    }
+    instruction = guide_composition._build_gold_star_quality_instruction(quality)
+    assert "privacy and legitimate confidentiality" in instruction
+    assert "meaningful boundary or tension" in instruction
+
+
 def test_gold_star_quality_standard_remains_active_when_no_candidate_is_available():
     prompt = guide_composition._build_general_guide_system_message(
         "How should a community make a fair decision?",
