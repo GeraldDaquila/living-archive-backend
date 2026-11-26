@@ -354,3 +354,90 @@ def test_public_api_asgi_path_applies_real_unseen_gold_star_fallback(monkeypatch
     assert body["gold_star_v2_quality_floor"]["answer_envelope"]["route"]["source"] == (
         "guide_basic_inquiry_recovery"
     )
+
+
+def test_outer_boundary_emits_one_content_free_terminal_disposition(monkeypatch):
+    import main
+
+    query = "What is a bounded deterministic answer?"
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": "A bounded deterministic answer follows predefined rules.",
+        "response_provenance": {"class": "deterministic_recovery"},
+    }
+    events = []
+    monkeypatch.setattr(
+        main, "_emit_guide_outcome",
+        lambda event, **fields: events.append((event, fields)),
+    )
+
+    result, status = _run_outer_visitor_boundary(monkeypatch, payload)
+    terminal = [fields for event, fields in events if event == "gold_star_request_terminal"]
+
+    assert status == 200
+    assert result["ok"] is True
+    assert len(terminal) == 1
+    assert terminal[0]["eligibility_disposition"] == "deterministic_answer_bypass"
+    assert terminal[0]["gold_star_seam_reached"] is False
+    assert terminal[0]["composition_attempt_count"] == 0
+    assert not ({"query", "question", "answer", "response", "user_id", "session_id"} & set(terminal[0]))
+
+
+def test_outer_boundary_terminal_disposition_uses_actual_adjudication_seam(monkeypatch):
+    import asyncio
+    import json
+    import main
+
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: None)
+    monkeypatch.setattr(main, "_apply_exact_gold_standard_authority_to_payload", lambda value: value)
+    monkeypatch.setattr(main, "_apply_registered_personal_decision_agency_contract", lambda value, query: value)
+    monkeypatch.setattr(main, "is_ai_workforce_restructuring_question", lambda query: False)
+    monkeypatch.setattr(main, "_guide_enforce_terminal_doorway_policy", lambda value, query: value)
+    monkeypatch.setattr(main, "_gold_star_doorway_omission_is_justified", lambda standard: False)
+
+    events = []
+    monkeypatch.setattr(
+        main, "_emit_guide_outcome",
+        lambda event, **fields: events.append((event, fields)),
+    )
+
+    query = "How should a group make a fair decision?"
+    payload = {
+        "ok": True,
+        "query": query,
+        "intent": "TOPICAL_INQUIRY",
+        "response": "A fair decision makes its reasons and burdens visible.",
+        "response_provenance": {"class": "deterministic_recovery"},
+    }
+
+    async def fake_request_boundary(scope, receive, send):
+        main._gold_star_ledger.begin_composition_attempt()
+        main._gold_star_ledger.build_adjudication_trace({"candidates": []})
+        await main._use_send_json(send, payload)
+
+    monkeypatch.setattr(main, "_use_request_boundary", fake_request_boundary)
+    request_body = json.dumps({"query": query}).encode("utf-8")
+    received = False
+
+    async def receive():
+        nonlocal received
+        if received:
+            return {"type": "http.disconnect"}
+        received = True
+        return {"type": "http.request", "body": request_body, "more_body": False}
+
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {"type": "http", "method": "POST", "path": "/api/query"}
+    asyncio.run(main._guide_outer_visitor_response_boundary(scope, receive, send))
+    terminal = [fields for event, fields in events if event == "gold_star_request_terminal"]
+
+    assert len(terminal) == 1
+    assert terminal[0]["eligibility_disposition"] == "gold_star_seam_reached"
+    assert terminal[0]["gold_star_seam_reached"] is True
+    assert terminal[0]["composition_attempt_count"] == 1
