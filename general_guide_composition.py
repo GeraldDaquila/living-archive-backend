@@ -499,7 +499,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             "include affected people, fair accommodation, appeal, and observable review. "
             "Do not assume justification without case-specific evidence."
         )
-    return instruction + "\\n\\n" + _build_gold_star_adjudication_output_contract(candidates)
+    return instruction + "\n\n" + _build_gold_star_adjudication_output_contract(candidates)
 
 
 def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Dict[str, Any]]:
