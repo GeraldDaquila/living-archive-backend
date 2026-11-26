@@ -124,6 +124,11 @@ GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_S
 # low-latency sibling after independent-provider failures. Keep a small margin
 # above the observed successful latency while preserving the next fallback slot.
 GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 5.5
+# Live acceptance showed the healthy Nemotron Lightning model exceeding its
+# EWMA-derived 5.1s ceiling by 22ms on a complete relational-synthesis answer.
+# Give this proven primary model a narrow 6s margin; half-open probes retain
+# their existing bounded probe timeout and the shared 18s route ceiling remains.
+GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS = 6.0
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
@@ -2925,6 +2930,12 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
             GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
             min(GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS, baseline),
         )
+        if (
+            provider == "nvidia"
+            and model == "nvidia/nemotron-3.5-lightning-30b-a3b"
+            and str((item or {}).get("health_state") or "") != "half_open"
+        ):
+            timeout = max(timeout, GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS)
         if str((item or {}).get("health_state") or "") == "half_open":
             if (
                 provider == "nvidia"
