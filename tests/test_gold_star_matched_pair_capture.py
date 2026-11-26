@@ -386,3 +386,29 @@ def test_exact_provider_model_candidate_filter_excludes_all_sibling_fallbacks():
     assert _exact_provider_model_candidates(
         candidates, "workers_ai", "missing-model"
     ) == []
+
+
+def test_effective_max_tokens_respects_provider_bank_model_and_operation_ceilings():
+    from scripts.capture_gold_star_matched_pairs import _effective_max_tokens
+
+    assert _effective_max_tokens("groq", "openai/gpt-oss-20b", "general_guide_composition", 1800) == 1800
+    assert _effective_max_tokens("groq", "qwen/qwen3.8-27b", "general_guide_composition", 1800) == 1000
+    assert _effective_max_tokens("groq", "openai/gpt-oss-20b", "hrn_relational", 1800) == 700
+
+
+def test_qwen_groq_generation_fingerprint_matches_actual_reasoning_and_token_limits():
+    from scripts.capture_gold_star_matched_pairs import _generation_config_for_lane
+
+    config = _generation_config_for_lane("groq", "qwen/qwen3.8-27b", {
+        "route_operation": "general_guide_composition",
+        "max_tokens": 1000,
+        "requested_max_tokens": 1800,
+        "schema_mode": "json_schema_best_effort",
+        "schema_sha256": "effective-groq-schema-sha",
+        "provider_timeout_seconds": 10,
+    }, 65)
+    assert config["max_completion_tokens"] == 1000
+    assert config["effective_max_tokens"] == 1000
+    assert config["requested_max_tokens"] == 1800
+    assert config["reasoning_effort"] == "none"
+    assert config["reasoning_format"] == "hidden"
