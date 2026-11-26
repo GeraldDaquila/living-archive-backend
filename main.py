@@ -595,7 +595,7 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
     },
     "oversoul_free_will": {
-        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "title": "Eternal Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
         "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
     },
