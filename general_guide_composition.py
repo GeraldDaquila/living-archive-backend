@@ -440,9 +440,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         if community_freedom_projection:
             discipline_text = (
                 "Protect rights/agency; evidence shared need/harm; include affected, less influential people; "
-                "distinguish necessary duties from majority preference; test less-restrictive alternatives and proportionality; "
+                "distinguish necessary duties from majority preference; test least-restrictive, proportionate limits and alternatives; "
                 "identify who benefits, who bears costs, and who is constrained; distribute burdens fairly; "
-                "require transparent, consistent rules, accountability, appeal, review, and correction."
+                "require transparent, consistent rules, accountability, appeal, review, correction."
             )
             boundary_text = (
                 "Collective preference cannot override rights; never assume limits justified or decide without facts."
@@ -458,14 +458,14 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
                 "shared obligations, risks, safety, or coordination, even when phrased without the words rule or policy."
             )
             discipline_text = (
-                "Name legitimate shared purpose and demonstrable harm/coordination need; include affected people; "
+                "Identify the legitimate shared purpose and demonstrable harm or coordination need; include affected people; "
                 "identify who benefits, who bears costs, and whose liberty is restricted; test necessity, proportionality, "
-                "and least-restrictive workable means; distribute obligations fairly with reasonable accommodation; "
-                "explain enforcement, appeal, and observable review criteria."
+                "and least-restrictive workable means; distribute burdens fairly with reasonable accommodation; "
+                "explain enforcement and appeal; set observable review criteria."
             )
             boundary_text = (
-                "Only for community liberty limits and collective obligations. Do not infer legal validity or assume "
-                "necessity/proportionality; require evidence, alternatives, fair allocation, accommodation, appeal, and review."
+                "Apply only to community liberty limits and collective obligations. Do not infer legality or assume a "
+                "restriction is necessary or proportionate; require evidence, alternatives, fair allocation, accommodation, appeal, and review."
             )
         activation_value = (
             activation_text
@@ -476,7 +476,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={activation_value or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if community_rule_projection else 360)}; "
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection) else 360)}; "
             f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if community_rule_projection else 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
