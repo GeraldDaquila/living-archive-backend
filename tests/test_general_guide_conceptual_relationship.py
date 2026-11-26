@@ -151,6 +151,23 @@ def test_provider_parser_rejects_one_way_transparency_trust_answer():
         parse(json.dumps({"response": one_way_answer}))
 
 
+
+
+def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marker():
+    response = (
+        "Transparency supports justified trust because decisions and reasons can be inspected, "
+        "questioned, and corrected. When people trust the process, they are more likely to share "
+        "information, raise concerns, and take part candidly; institutions must respond honestly. "
+        "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
+        "trustworthy, and trust cannot replace accountability."
+    )
+    parse = _parse_factory([], query=TRANSPARENCY_TRUST_QUESTION, emit_telemetry=False)
+
+    result = parse(json.dumps({"response": response}))
+
+    assert result["response"] == response
+
+
 def test_transparency_trust_accepts_equivalent_reciprocal_mechanism_wording():
     response = (
         "Transparency supports justified trust because decisions and reasons can be inspected, "
