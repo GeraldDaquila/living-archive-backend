@@ -82,7 +82,7 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
         "apply selected reasoning in the answer",
         "Return exact 12–120-character response offsets",
         "rejected IDs use 0,0. Reject if no range",
-        "Community rules: state purpose and evidence of harm/coordination need",
+        "Community rules: state legitimate shared purpose and evidence of harm/coordination need",
         "majority preference is not proof.",
         "Combine only when each adds a distinct, necessary, compatible operation not already covered.",
         "Reject all when none improves the answer ",
@@ -189,4 +189,4 @@ def test_provider_prompt_uses_registry_transferable_discipline_field():
     assert "include affected people in design" in prompt
     assert "require least-restrictive proportional limits, enforcement, appeal, and observable review" in prompt
     assert "Name missing facts; do not invent need, infer legality, or assume necessity" in prompt
-    assert "Community rules: state purpose and evidence of harm/coordination need" in prompt
+    assert "Community rules: state legitimate shared purpose and evidence of harm/coordination need" in prompt
