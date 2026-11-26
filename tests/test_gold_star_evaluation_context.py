@@ -146,3 +146,42 @@ def test_control_and_treatment_each_generate_without_composition_cache(monkeypat
     assert candidate["benchmark_id"] in treatment_system
     assert candidate["discipline"] not in control_system
     assert candidate["discipline"] in treatment_system
+
+
+def test_evaluation_contract_failure_does_not_allow_same_model_repair():
+    assert provider_bank._evaluation_contract_repair_allowed(None) is True
+    with evaluation_context(
+        arm="control", provider="gemini", model="gemini-2.5-flash"
+    ) as evaluation:
+        assert provider_bank._evaluation_contract_repair_allowed(evaluation) is False
+
+
+def test_gemini_sampling_is_frozen_only_inside_evaluation_context(monkeypatch):
+    payloads = []
+
+    def fake_http_json(url, headers, payload, provider, model, timeout=None):
+        payloads.append(payload)
+        return {
+            "candidates": [{
+                "content": {"parts": [{"text": "A valid synthetic answer."}]}
+            }]
+        }
+
+    monkeypatch.setattr(provider_bank, "_http_json", fake_http_json)
+    messages = [{"role": "user", "content": "Synthetic evaluation question."}]
+
+    ordinary = provider_bank._gemini(
+        "test-key", "gemini-2.5-flash", messages, 100
+    )
+    assert ordinary == "A valid synthetic answer."
+    assert "temperature" not in payloads[-1]["generationConfig"]
+
+    with evaluation_context(
+        arm="treatment", provider="gemini", model="gemini-2.5-flash"
+    ):
+        evaluated = provider_bank._gemini(
+            "test-key", "gemini-2.5-flash", messages, 100
+        )
+
+    assert evaluated == "A valid synthetic answer."
+    assert payloads[-1]["generationConfig"]["temperature"] == 0.0
