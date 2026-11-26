@@ -52,6 +52,8 @@ def test_approved_objective_integrity_successor_preserves_near_miss_and_bounded_
     review_entry = next(item for item in review["entries"] if item["benchmark_id"] == SUCCESSOR_ID)
     assert review_entry["activation"] == "active_quality_contributor"
     assert SUCCESSOR_ID in {item["benchmark_id"] for item in transfer_map["entries"]}
+    assert successor["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
+    assert "NOT_EVALUATED" in successor["gold_star_capabilities"]["abstention_boundary"]
     assert successor["numbering_status"] == "UNASSIGNED"
     assert successor["doorway_status"] == "NOT_EVALUATED"
 
