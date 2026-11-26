@@ -530,9 +530,10 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
         "type": "object",
         "properties": {
             "candidate_id": {"type": "string", "enum": candidate_ids},
-            "span": {"type": "string", "minLength": 0, "maxLength": 240},
+            "start": {"type": "integer", "minimum": 0},
+            "end": {"type": "integer", "minimum": 0},
         },
-        "required": ["candidate_id", "span"],
+        "required": ["candidate_id", "start", "end"],
         "additionalProperties": False,
     }
     adjudication = {

@@ -111,7 +111,7 @@ def test_provider_selected_candidate_without_exact_span_is_delivered_without_app
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
             ],
-            "application_evidence_spans": [{"candidate_id": "lesson-a", "span": ""}],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
         },
     }
     parsed = _gold_star_parse(payload)
@@ -152,12 +152,13 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
                 {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-a", "span": span}
+                {"candidate_id": "lesson-a", "start": GOLD_STAR_RESPONSE.index(span), "end": GOLD_STAR_RESPONSE.index(span) + len(span)}
             ],
         },
     }
     parsed = _gold_star_parse(payload)
-    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
+    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["start"] == GOLD_STAR_RESPONSE.index(span)
+    assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["end"] == GOLD_STAR_RESPONSE.index(span) + len(span)
 
 
 def test_provider_composition_schema_requires_adjudication_when_candidates_exist():
@@ -179,8 +180,10 @@ def test_provider_composition_schema_requires_adjudication_when_candidates_exist
     assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
     spans = adjudication["properties"]["application_evidence_spans"]
     assert spans["minItems"] == spans["maxItems"] == 1
-    assert spans["items"]["properties"]["span"]["minLength"] == 0
-    assert spans["items"]["properties"]["span"]["maxLength"] == 240
+    assert spans["items"]["properties"]["start"]["type"] == "integer"
+    assert spans["items"]["properties"]["end"]["type"] == "integer"
+    assert spans["items"]["properties"]["start"]["minimum"] == 0
+    assert spans["items"]["properties"]["end"]["minimum"] == 0
 
 
 def test_provider_composition_schema_is_not_added_without_candidates():
@@ -236,7 +239,7 @@ def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
                 "candidate_assessments": [
                     {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
                 ],
-                "application_evidence_spans": [],
+                "application_evidence_spans": [{"candidate_id": "lesson-a", "start": 0, "end": 0}],
             },
         }
         return {
