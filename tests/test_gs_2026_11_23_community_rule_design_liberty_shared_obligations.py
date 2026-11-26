@@ -55,4 +55,4 @@ def test_community_rule_transfer_prompt_names_legitimate_purpose_and_evidence_be
     prompt = _build_general_guide_system_prompt(query)
     assert "legitimate shared purpose" in prompt
     assert "evidence of specific harm or coordination need" in prompt
-                assert "For community liberty limits" not in _build_general_guide_system_prompt("What is transparency?")
+    assert "For community liberty limits" not in _build_general_guide_system_prompt("What is transparency?")
