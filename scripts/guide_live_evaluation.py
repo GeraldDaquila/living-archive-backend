@@ -20,6 +20,7 @@ ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
 PROVIDER_PROBE_QUERY = (
     "A policy helps employees but shifts costs to customers and nearby residents. "
     "How should leaders compare these benefits and burdens and decide who should bear the costs? "
+    "Explicitly name employees, customers, and nearby residents, and explain who benefits and who bears the costs. "
     "Answer directly in one concise paragraph. Do not include URLs, links, or resource recommendations."
 )
 
