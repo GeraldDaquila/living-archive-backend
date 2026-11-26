@@ -111,7 +111,7 @@ def test_provider_selected_candidate_without_exact_span_is_delivered_without_app
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "select", "reason_code": None}
             ],
-            "application_evidence_spans": [],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "span": ""}],
         },
     }
     parsed = _gold_star_parse(payload)
@@ -135,7 +135,7 @@ def test_provider_may_validly_reject_all_gold_star_candidates():
             "candidate_assessments": [
                 {"candidate_id": "lesson-a", "decision": "reject", "reason_code": "subject_mismatch"}
             ],
-            "application_evidence_spans": [],
+            "application_evidence_spans": [{"candidate_id": "lesson-a", "span": ""}],
         },
     }
     parsed = _gold_star_parse(payload)
@@ -178,7 +178,8 @@ def test_provider_composition_schema_requires_adjudication_when_candidates_exist
     assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
     assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
     spans = adjudication["properties"]["application_evidence_spans"]
-    assert spans["items"]["properties"]["span"]["minLength"] == 12
+    assert spans["minItems"] == spans["maxItems"] == 1
+    assert spans["items"]["properties"]["span"]["minLength"] == 0
     assert spans["items"]["properties"]["span"]["maxLength"] == 240
 
 
