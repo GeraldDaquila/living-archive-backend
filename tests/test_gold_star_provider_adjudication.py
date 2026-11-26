@@ -187,7 +187,7 @@ def test_deterministic_replacement_cannot_claim_retained_adaptation():
 
 
 def test_selected_span_matching_normalizes_whitespace_but_remains_contiguous():
-    response = "Separate what was observed\\nfrom what is inferred, then test the evidence."
+    response = "Separate what was observed\nfrom what is inferred, then test the evidence."
     result = adjudication.normalize_provider_adjudication(
         {
             "candidate_assessments": [

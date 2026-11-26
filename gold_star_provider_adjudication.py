@@ -129,9 +129,9 @@ def normalize_provider_adjudication(
             spans_valid = False
             evidence_reason = "span_candidate_coverage_incomplete"
     if spans_valid:
-        normalized_response = re.sub(r"\\s+", " ", str(response or "")).strip().casefold()
+        normalized_response = re.sub(r"\s+", " ", str(response or "")).strip().casefold()
         for candidate_id in selected:
-            span = re.sub(r"\\s+", " ", span_by_id.get(candidate_id, "")).strip().casefold()
+            span = re.sub(r"\s+", " ", span_by_id.get(candidate_id, "")).strip().casefold()
             if not 12 <= len(span) <= MAX_EVIDENCE_SPAN:
                 spans_valid = False
                 evidence_reason = "selected_span_missing_or_out_of_bounds"
