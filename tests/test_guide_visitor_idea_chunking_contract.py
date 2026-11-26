@@ -31,6 +31,9 @@ def test_guide_answer_css_gives_semantic_chunks_readable_spacing_and_mobile_rhyt
     assert "@media (max-width: 700px)" in source
     assert "margin-bottom: 1.15em" in source
     assert "#archive-response-text li" in source
+    plugin = (ROOT / "wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php").read_text(encoding="utf-8")
+    assert "Version: 1.0.5" in plugin
+    assert "define('LA_ANSWER_DOORWAY_VERSION', '1.0.5')" in plugin
 
 
 def test_guide_answer_renderer_preserves_backend_semantic_boundaries_instead_of_splitting_sentences():
