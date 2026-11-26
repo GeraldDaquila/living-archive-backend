@@ -152,7 +152,7 @@ def test_groq_20b_pilot_is_separately_preregistered_after_model_scoped_120b_rate
     }
     assert len(cases) == 6
     assert len({case["case_family"] for case in cases}) == 3
-    assert "model-scoped HTTP 429" in suite["design"]["rationale_for_provider_amendment"]
+    assert "model-scoped HTTP 429" in suite["design"]["rationale_for_model_amendment"]
 
 
 def test_groq_20b_heldout_queries_retrieve_target_and_negative_control_excludes_it():
