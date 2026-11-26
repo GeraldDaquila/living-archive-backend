@@ -453,7 +453,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             # while the 48-character activation fragment obscured when this
             # conditional lesson should apply.
             activation_text = (
-                "Use for community liberty limits involving shared obligations, risk, or coordination."
+                "Use for community liberty limits tied to shared obligations, risk, or coordination, even without rule/policy wording."
             )
             discipline_text = (
                 "Identify the legitimate shared purpose and evidence of demonstrable harm; compare necessity, proportionality, and "
