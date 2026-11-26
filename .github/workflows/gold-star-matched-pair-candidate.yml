@@ -1,5 +1,5 @@
 name: Gold Star candidate-local matched-pair evaluation
-# Pin the registered Groq Qwen 3.8 27B lane; both arms use this exact provider/model.
+# Select one configured healthy provider/model; the capture runner pins it for every arm.
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       run_provider_capture:
-        description: "Explicitly authorize the six-call Groq matched-pair capture"
+        description: "Explicitly authorize the six-call same-provider/model matched-pair capture"
         required: true
         default: false
         type: boolean
@@ -55,8 +55,13 @@ jobs:
     env:
       PYTHONPATH: .
       USE_PROVIDER_BANK_MAX_ATTEMPTS: "2"
-      USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq"
-      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      USE_LLM_PROVIDER_ORDER: "openrouter,nvidia,gemini,mistral,workers_ai"
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
     steps:
@@ -78,8 +83,6 @@ jobs:
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
-          --provider groq
-          --model qwen/qwen3.8-27b
           --provider-timeout-seconds 10
           --inter-call-delay-seconds 65
           --output-dir artifacts/gold-star-matched-pairs
