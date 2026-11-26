@@ -160,12 +160,12 @@ def test_provider_selected_candidate_with_exact_answer_span_is_admitted():
     assert parsed["adaptive_adjudication"]["application_evidence_spans"][0]["span"] == span
 
 
-def test_provider_composition_schema_keeps_adjudication_optional():
+def test_provider_composition_schema_requires_adjudication_when_candidates_exist():
     schema = composition._build_provider_composition_schema(GOLD_STAR_CANDIDATES)
     assert schema is not None
     assert schema["strict"] is False
     root = schema["schema"]
-    assert "adaptive_adjudication" not in root["required"]
+    assert "adaptive_adjudication" in root["required"]
     assert "adaptive_adjudication" in root["properties"]
     adjudication = root["properties"]["adaptive_adjudication"]
     assert set(adjudication["required"]) == {
