@@ -889,7 +889,7 @@ def test_partial_provider_application_is_reported_as_partially_retained():
                 {"candidate_id": "lesson-two", "decision": "select", "reason_code": None},
             ],
             "application_evidence_spans": [
-                {"candidate_id": "lesson-one", "span": "Separate observation from inference"},
+                {"candidate_id": "lesson-one", "span": "Separate what was observed from what is inferred"},
                 {"candidate_id": "lesson-two", "span": "This sentence is not present in the answer at all"},
             ],
         },
