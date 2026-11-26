@@ -145,3 +145,49 @@ def is_unjustified_conceptual_abstention(query: str, response: str) -> bool:
     if not _CONCEPTUAL_SUBJECT.search(q):
         return False
     return bool(_GENERIC_EVIDENCE_LIMIT_REFUSAL.search(answer))
+
+def enforce_answerability_payload(query: str, payload: Any) -> Any:
+    """Enforce layered answerability at the final visitor boundary.
+
+    This catches generic evidence-limit refusals regardless of whether the
+    candidate came from a provider, deterministic recovery, a cache, or a
+    delegated path. It answers only the bounded conceptual portion and never
+    manufactures Archive-specific authority.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    response = str(payload.get("response") or payload.get("answer") or "")
+    if not is_unjustified_conceptual_abstention(query, response):
+        return payload
+
+    try:
+        # Lazy import avoids coupling the classifier to the recovery catalogue
+        # during module initialization.
+        from deterministic_answer_recovery import compose_recovery
+        recovered = str(compose_recovery(query) or "").strip()
+    except Exception:
+        return payload
+    if not recovered or is_unjustified_conceptual_abstention(query, recovered):
+        return payload
+
+    corrected = dict(payload)
+    corrected["response"] = recovered
+    if "answer" in corrected:
+        corrected["answer"] = recovered
+    corrected["response_shape"] = "explanatory"
+    corrected["answer_basis"] = {
+        "kind": "general_knowledge",
+        "label": "General knowledge",
+        "explanation": (
+            "A bounded general-knowledge explanation, distinct from any "
+            "formal Living Archive definition or endorsement."
+        ),
+    }
+    corrected["recommendation"] = None
+    corrected["canonical_doorway"] = None
+    corrected["doorway_title"] = ""
+    corrected["doorway_url"] = ""
+    corrected["processing"] = "final_visitor_boundary_layered_answerability_recovery"
+    corrected["route_source"] = "guide_final_visitor_boundary"
+    return corrected
+
