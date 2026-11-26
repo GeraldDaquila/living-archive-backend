@@ -480,7 +480,7 @@ def synchronize_final_response_provenance(
         # final_provenance independently records how the surviving answer
         # was produced; it must not erase the route that delivered it.
         return payload
-    allowed = {"deterministic_by_design", "deterministic_recovery", "unresolved"}
+    allowed = {"deterministic_by_design", "deterministic_recovery", "provider_assisted_recovery", "unresolved"}
     provenance_class = (
         final_provenance if final_provenance in allowed else "unresolved"
     )
@@ -721,7 +721,7 @@ def validate_trace(trace: Any) -> dict[str, Any]:
     }:
         return {"valid": False, "reason": "invalid_final_delivery_state"}
     if "final_provenance" in trace and trace["final_provenance"] not in {
-        "llm", "deterministic_by_design", "deterministic_recovery", "unresolved"
+        "llm", "deterministic_by_design", "deterministic_recovery", "provider_assisted_recovery", "unresolved"
     }:
         return {"valid": False, "reason": "invalid_final_provenance"}
     if trace.get("state") not in {"no_candidates", "candidates_supplied"}:
