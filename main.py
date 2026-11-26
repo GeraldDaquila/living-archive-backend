@@ -982,12 +982,16 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         exact_standard is None
         and _is_transparency_trust_relational_synthesis_question(query)
     )
+    answerability_recovery_omission = (
+        safe.get("doorway_selection_source") == "layered_answerability_recovery"
+        and safe.get("navigation_suppressed_by_task_contract") is True
+    )
     # Provider/recovery omission text is advisory, not a terminal routing decision.
     # The shared boundary must still attempt canonical retrieval and the approved
     # Guide Node registry before deciding that no relevant continuation exists.
     # Reviewed standards, explicit visitor requests, and the bounded no-doorway
     # relational-synthesis contract are terminal exceptions.
-    if reviewed_omission or explicit_no_doorway or unmapped_relational_synthesis:
+    if reviewed_omission or explicit_no_doorway or unmapped_relational_synthesis or answerability_recovery_omission:
         # Clear every public doorway alias together. Leaving even one populated
         # field allows a frontend renderer or compatibility path to resurrect
         # the same recommendation under a different field name.
@@ -1019,7 +1023,8 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         safe["doorway_selection_source"] = (
             "reviewed_gold_star_exception" if reviewed_omission
             else "explicit_visitor_refusal" if explicit_no_doorway
-            else "unmapped_transparency_trust_relational_synthesis"
+            else "unmapped_transparency_trust_relational_synthesis" if unmapped_relational_synthesis
+            else "layered_answerability_recovery"
         )
         if not str(safe.get("doorway_omission_reason") or "").strip():
             safe["doorway_omission_reason"] = (
@@ -1028,6 +1033,8 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
                 else "The visitor explicitly requested no navigation handoff."
                 if explicit_no_doorway
                 else "This general transparency-and-trust relationship has no reviewed canonical doorway; the answer stands on its own."
+                if unmapped_relational_synthesis
+                else "The bounded answerability recovery stands on its own; no directly relevant canonical continuation was verified."
             )
         if unmapped_relational_synthesis:
             safe["navigation_suppressed_by_task_contract"] = True
@@ -18229,6 +18236,10 @@ async def _use_request_boundary(scope, receive, send):
                 if isinstance(payload, dict) else None
             )
             safe_payload = _guide_finalize_visitor_payload(payload, query)
+            # Layered answerability is enforced after every inner route, including
+            # deterministic provider-exhaustion recovery and cached compositions.
+            from guide_answerability import enforce_answerability_payload
+            safe_payload = enforce_answerability_payload(query, safe_payload)
             _final_status = int((captured_start or {}).get("status") or 200)
             if isinstance(safe_payload, dict):
                 if _origin_route_source:

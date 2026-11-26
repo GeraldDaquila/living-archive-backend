@@ -1656,6 +1656,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     text = _normalize_space(response).casefold()
     if not text:
         return True
+    if _is_unjustified_conceptual_abstention(query, response):
+        return True
     if is_verification_abstention_for_known_concept(query, response):
         return True
     # Archive-owned meaning questions are answer obligations. A fluent
