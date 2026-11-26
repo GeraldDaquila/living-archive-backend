@@ -74,7 +74,7 @@ RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:
 When a visitor asks about the relationship, connection, or interplay between concepts, answer the relationship itself rather than giving adjacent mini-definitions or a generic explanation of only one term. Briefly establish each concept's distinct role, state the mechanism connecting them, explain whether the relationship is reciprocal, one-way, or conditional, and identify a meaningful boundary or tension and its practical implication. Preserve differences; connection does not mean equivalence. Do not let keyword overlap substitute for a causal or normative explanation.
 
 TRANSPARENCY AND TRUST RECIPROCITY:
-When asked about the relationship between transparency and trust, explain both directions of influence. Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. Do not describe the relationship as one-way or imply that either concept guarantees the other.
+When asked about the relationship between transparency and trust, explain both directions of influence. Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality while keeping decisions and uses of power accountable. Do not describe the relationship as one-way or imply that either concept guarantees the other.
 
 For questions about stewardship and consent, make the governing distinction explicit: stewardship names a responsibility to care for something entrusted to one's attention or role; consent concerns whether and within what limits another person's participation, choices, body, information, property, resources, or interests may legitimately be involved. Being entrusted with responsibility does not automatically confer authority to decide for affected people. Consent is not merely consultation or a steward's good intention. Where consent is the relevant basis for participation or use, it should be informed, voluntary, and specific to what is being agreed to; it may need to be renewed, renegotiated, or respected when withdrawn. Do not turn this into a universal legal test or imply that every routine act of care requires individual permission. Distinguish matters a steward may responsibly manage within an authorized role from decisions that require permission, shared authority, or respect for refusal. Preserve affected people's agency and name the practical consequence: responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.
  Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
@@ -355,6 +355,8 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; "
             "institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: "
             "disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. "
+            "Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality "
+            "while keeping decisions and uses of power accountable. "
             "Do not describe the relationship as one-way or imply that either concept guarantees the other."
         )
     return rendered
@@ -490,6 +492,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         community_rule_projection = (
             family == "community_rule_design_personal_liberty_shared_obligations"
         )
+        relational_synthesis_projection = family == "relational_synthesis_concept_pairs"
         discipline_text = item.get("transferable_discipline") or item.get("discipline")
         boundary_text = item.get("abstention_boundary")
         activation_text = item.get("activation_condition")
@@ -518,6 +521,18 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             boundary_text = (
                 "Name missing facts; do not invent need, infer legality, or assume necessity."
             )
+        elif relational_synthesis_projection:
+            # Preserve the privacy/confidentiality boundary in the transmitted
+            # discipline; generic truncation of the abstention boundary can
+            # otherwise remove this domain-specific limit from the provider prompt.
+            discipline_text = (
+                "Distinguish each concept's role; explain the connecting mechanism and direction(s) of influence; "
+                "state conditionality and non-equivalence; identify a meaningful boundary or tension, including "
+                "privacy and legitimate confidentiality for transparency questions; ground source claims and give a usable implication."
+            )
+            boundary_text = (
+                "Do not infer unsupported causation, reciprocity, guarantees, or universal rules; preserve privacy and legitimate confidentiality."
+            )
         activation_value = (
             activation_text
             if community_rule_projection
@@ -527,8 +542,8 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             f"{index}. ID={item.get('benchmark_id')}; role={item.get('role') or 'unclassified'}; "
             f"activation={activation_value or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
-            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection) else 360)}; "
-            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if community_rule_projection else 100)}"
+            f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection or relational_synthesis_projection) else 360)}; "
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if (community_rule_projection or relational_synthesis_projection) else 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
@@ -3007,6 +3022,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 "transparency-trust answer must explain both directions of influence and the non-guarantee boundary"
             )
 
+        if (
+            re.search(r"\btransparency\b", query, re.I)
+            and re.search(r"\btrust\b", query, re.I)
+            and is_conceptual_relationship_question(query)
+            and not _has_transparency_trust_disclosure_boundary(response)
+        ):
+            raise ValueError(
+                "transparency-trust answer must explicitly preserve privacy and legitimate confidentiality"
+            )
+
         # A complete practical next-step question must receive an actionable
         # move, not only abstract analysis or a request for more context. If the
         # provider misses this, reject the candidate so Provider Bank can retry.
@@ -3419,6 +3444,15 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
     )
     return transparency_supports_trust and trust_supports_openness and non_guarantee
+
+
+def _has_transparency_trust_disclosure_boundary(response: str) -> bool:
+    """Require an explicit privacy/confidentiality limit on transparency."""
+    text = _normalize_space(response).casefold()
+    return bool(re.search(
+        r"\b(?:privacy|confidential(?:ity)?|private information|sensitive information|personal information)\b",
+        text,
+    ))
 
 
 def _archive_voice_meaning_question(question: str) -> bool:
