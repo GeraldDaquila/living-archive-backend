@@ -189,7 +189,7 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "abstention boundary",
         "exact 12–240 character contiguous sentence or clause",
         "one application_evidence_spans object per selected ID",
-        "complete activation scope",
+        "activation scope",
         "semantically equivalent question",
         "After drafting the final response",
         "distinctive reasoning operation",
