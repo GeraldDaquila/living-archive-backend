@@ -79,7 +79,7 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
         "An unclassified role is not disqualifying",
         "Select one only when materially relevant and sufficient.",
         "Decide before drafting",
-        "apply the selected discipline in the visitor answer",
+        "apply the selected discipline's distinct reasoning steps in the answer",
         "quote an exact contiguous span",
         "Combine candidates only when each adds a distinct, necessary, compatible operation",
         "Reject all when none improves the answer ",
