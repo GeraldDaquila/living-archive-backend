@@ -458,7 +458,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             discipline_text = (
                 "Identify the legitimate shared purpose and demonstrable harm; include affected people; name who benefits, who bears costs, "
                 "whose liberty is restricted; test necessity, proportionality, least-restrictive workable means; distribute burdens fairly "
-                "with reasonable accommodation; set enforcement, appeal, observable review criteria."
+                "with reasonable accommodation; set enforcement, appeal, and observable review criteria."
             )
             boundary_text = (
                 "Community liberty limits only. Do not infer legality or assume a restriction is necessary; require evidence, fair allocation, "
