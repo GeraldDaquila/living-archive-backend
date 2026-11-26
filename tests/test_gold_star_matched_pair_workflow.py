@@ -31,14 +31,21 @@ def test_provider_capture_requires_explicit_manual_opt_in_from_main():
     assert "qa/gold-star-matched-pair-main-1969" not in workflow
 
 
-def test_candidate_local_matched_pair_capture_is_exactly_pinned_and_provider_isolated():
+def test_candidate_local_capture_selects_one_configured_provider_and_pins_it_for_both_arms():
     workflow = _workflow_text()
-    assert 'USE_GUIDE_EVALUATION_PROVIDER_ORDER: "groq"' in workflow
-    assert "GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}" in workflow
-    assert "OPENROUTER_API_KEY" not in workflow
-    assert "GEMINI_API_KEY" not in workflow
-    assert "--provider groq" in workflow
-    assert "--model qwen/qwen3.8-27b" in workflow
+    assert 'USE_LLM_PROVIDER_ORDER: "openrouter,nvidia,gemini,mistral,workers_ai"' in workflow
+    for credential in (
+        "OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}",
+        "NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}",
+        "GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}",
+        "MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}",
+        "CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}",
+        "CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}",
+    ):
+        assert credential in workflow
+    assert "GROQ_API_KEY" not in workflow
+    assert "--provider groq" not in workflow
+    assert "--model qwen/qwen3.8-27b" not in workflow
     assert "scripts/capture_gold_star_matched_pairs.py" in workflow
     assert "actions/checkout@v4" in workflow
     assert "gold-star-blind-review-" in workflow
