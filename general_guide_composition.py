@@ -362,16 +362,13 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
 
 
 _COMMUNITY_LIBERTY_LIMIT_DECISION_CONTRACT = (
-    "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: When a visitor asks whether a community "
-    "may limit personal liberty for shared obligations or risks, do not stop at a generic "
-    "proportionality checklist. State the legitimate shared purpose and demonstrable harm or "
-    "coordination need; identify who benefits, who bears each cost or burden, and whose freedom "
+    "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: State the legitimate shared purpose and "
+    "demonstrable harm; identify who benefits, who bears each cost or burden, and whose freedom "
     "is restricted; include those affected in shaping the rule; test less restrictive workable "
-    "alternatives and reasonable accommodation; require necessity and proportionality; and "
-    "provide appeal, observable review criteria, and a way to revise the rule. Distinguish "
-    "burden distribution from proportionality: showing that a restriction is necessary does "
-    "not by itself show that its costs are fairly allocated. Majority preference or collective "
-    "convenience alone is not sufficient authority to restrict liberty."
+    "alternatives and reasonable accommodation; require necessity and proportionality; provide "
+    "appeal, observable review criteria, and revision. Distinguish burden distribution from "
+    "proportionality: necessity alone does not prove fair costs. Majority preference or "
+    "convenience alone cannot justify restricting liberty."
 )
 
 
