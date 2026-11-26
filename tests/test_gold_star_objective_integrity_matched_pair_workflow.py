@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def test_groq_20b_paired_pilot_is_provider_pinned_and_provider_isolated():
+def test_groq_qwen27b_paired_pilot_is_provider_pinned_and_provider_isolated():
     workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/objective-integrity-matched-pair.yml").read_text(encoding="utf-8")
     assert 'USE_LLM_PROVIDER_ORDER: "groq"' in workflow
     assert "GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}" in workflow
@@ -10,7 +10,7 @@ def test_groq_20b_paired_pilot_is_provider_pinned_and_provider_isolated():
     assert "CLOUDFLARE_API_TOKEN" not in workflow
     assert "CLOUDFLARE_ACCOUNT_ID" not in workflow
     assert "--provider groq" in workflow
-    assert "--model openai/gpt-oss-20b" in workflow
+    assert "--model qwen/qwen3.8-27b" in workflow
     assert "objective_integrity_matched_pair_cases_groq_20b.json" in workflow
 
 
