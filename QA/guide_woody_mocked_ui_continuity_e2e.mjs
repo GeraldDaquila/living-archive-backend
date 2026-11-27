@@ -486,7 +486,11 @@ try {
     return current.length > 35 && current !== before.trim();
   }, { selector: ROOT + " #archive-response-text", before: answerBeforeReply });
 
-  const replyRequest = apiRequests[apiRequests.length - 1];
+  // The in-page fetch mock intercepts before Playwright's network route.
+  // Read the exact request ledger populated by that mock; the outer network
+  // ledger is not authoritative for intercepted fetch calls.
+  const pageApiRequests = await page.evaluate(() => window.__guideApiRequests || []);
+  const replyRequest = pageApiRequests[pageApiRequests.length - 1];
   const serialized = JSON.stringify(replyRequest?.body || {});
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
@@ -511,7 +515,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 6) throw new Error("Expected exactly 6 intercepted API requests, got " + apiRequests.length);
+  if (pageApiRequests.length !== 6) throw new Error("Expected exactly 6 intercepted API requests, got " + pageApiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
   if (pageErrors.length) throw new Error("Uncaught browser errors: " + JSON.stringify(pageErrors));
