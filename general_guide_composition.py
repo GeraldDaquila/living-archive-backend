@@ -51,6 +51,7 @@ from gold_star_provider_adjudication import (
     normalize_provider_adjudication as _normalize_gold_star_provider_adjudication,
 )
 
+from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -384,7 +385,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         and "TRANSPARENCY AND TRUST RECIPROCITY" not in rendered
     ):
         rendered += (
-            "\n\nTRANSPARENCY AND TRUST RECIPROCITY:\n"
+            "\n\nHUMILITY AND SPIRITUAL MATURITY:\nWhen asked about the relationship between humility and spiritual maturity, answer that relationship directly and name both concepts. Explain in a sentence how humility supports spiritual maturity through learning, honest self-appraisal, and openness to correction or accountability. Describe maturity as lived conduct in actions and relationships, not a claimed status. Explicitly distinguish humility from self-erasure, diminished self-worth, or self-contempt; preserve appropriate personal boundaries; distinguish humility from passivity, blind obedience, or automatic compliance; and state that humility alone does not guarantee spiritual maturity. Do not present spiritual status as objectively certified.\n\nTRANSPARENCY AND TRUST RECIPROCITY:\n"
             "When asked about the relationship between transparency and trust, explain both directions of influence. "
             "Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. "
             "Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; "
@@ -3192,6 +3193,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        humility_report = evaluate_humility_spiritual_maturity_response(query, response)
+        if humility_report.get("applies") and not humility_report.get("passed"):
+            raise ValueError(
+                "humility/spiritual-maturity answer is incomplete: "
+                + ",".join(humility_report.get("missing") or [])
+            )
 
         community_rule_report = evaluate_community_rule_response(query, response)
         if community_rule_report.get("applies") and not community_rule_report.get("passed"):
