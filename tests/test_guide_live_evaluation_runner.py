@@ -1213,3 +1213,15 @@ def test_humility_live_case_is_in_the_provider_priority_invocation_id_gate():
     source = Path(live_evaluation.__file__).read_text(encoding="utf-8")
     assert 'if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:' in source
     assert 'check("provider_invocation_id"' in source
+
+
+def test_primary_live_provider_acceptance_workflows_share_concurrency_group():
+    live_evaluation_workflow = Path(".github/workflows/guide-live-evaluation.yml").read_text()
+    browser_workflow = Path(".github/workflows/guide-healthy-community-live-e2e.yml").read_text()
+
+    assert (
+        "group: guide-primary-provider-budgeted-live-validation-${{ github.event.inputs.target_service || 'primary' }}"
+        in live_evaluation_workflow
+    )
+    assert "group: guide-primary-provider-budgeted-live-validation-primary" in browser_workflow
+    assert "cancel-in-progress: false" in browser_workflow
