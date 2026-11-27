@@ -101,3 +101,17 @@ def test_final_response_floor_enforces_lived_reflective_task_fit():
     assert result["semantic_enforcement"]["enforced"] is True
     assert result["semantic_enforcement"]["status"] == "fail"
     assert result["semantic_enforcement"]["question_type"] == "lived_reflective_inquiry"
+
+def test_off_target_lived_response_gets_one_bounded_repair_without_touching_evaluation_arms():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    repair = source.index("LIVED-REFLECTIVE TASK-FIT REPAIR")
+    guard = source.rfind("evaluation is None", 0, repair)
+    deadline = source.index("deadline_monotonic=provider_deadline_monotonic", repair)
+    assert guard >= 0
+    assert deadline > repair
+    assert "on_target_repair_accepted" in source
+    assert "repair_unavailable_or_still_off_target" in source
