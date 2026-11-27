@@ -375,7 +375,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         )
     if epistemic_distress:
         rendered += (
-            "\\n\\nMETAPHYSICAL UNCERTAINTY DURING DISTRESS: Recognize the human need behind certainty-seeking without diagnosing or assuming the visitor's history. Distinguish personal experience, belief, interpretation, tradition-specific teaching, and verifiable evidence. Never present unverifiable metaphysical claims as established fact or exploit distress by positioning the Guide as an oracle or final authority. Respect the visitor's beliefs without endorsing unsupported certainty; support independent judgment, grounded choices, and appropriate human support if safety is at risk. Do not substitute governance, stakeholder, outcome, or decision-accountability frameworks for this epistemic and human question."
+            "\n\nMETAPHYSICAL UNCERTAINTY DURING DISTRESS: Recognize the human need behind certainty-seeking without diagnosing or assuming the visitor's history. Distinguish personal experience, belief, interpretation, tradition-specific teaching, and verifiable evidence. Never present unverifiable metaphysical claims as established fact or exploit distress by positioning the Guide as an oracle or final authority. Respect the visitor's beliefs without endorsing unsupported certainty; support independent judgment, grounded choices, and appropriate human support if safety is at risk. Do not substitute governance, stakeholder, outcome, or decision-accountability frameworks for this epistemic and human question."
         )
     if classify_inquiry_family(question).get("family") == "personal_lived_reflective":
         rendered += (
