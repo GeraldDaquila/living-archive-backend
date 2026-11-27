@@ -384,3 +384,54 @@ def test_strict_parser_applies_content_preserving_long_answer_reflow():
     parsed = parse(json.dumps({"response": " ".join(sentences)}))
     assert "\n\n" in parsed["response"]
     assert re.sub(r"\s+", " ", parsed["response"]) == re.sub(r"\s+", " ", " ".join(sentences))
+
+
+def test_attributed_source_excerpt_blocks_are_removed_without_treating_apostrophes_as_quotes():
+    excerpt = (
+        '"Through the lenses of the Akashic Records, this piece also reveals the deeper '
+        "evolutionary context of humanity's collective spiritual test, as it navigates "
+        'the thinning veil between illusion and illumination." '
+        '(🔥 Spiritual Bypass Recovery)'
+    )
+    assert composition._sanitize_candidate(excerpt) == ""
+
+
+def test_multiple_attributed_excerpt_blocks_cannot_masquerade_as_a_visitor_answer():
+    excerpts = (
+        '"This Guide is Not This guide is not a critique of spirituality or spiritual '
+        'practice but a trauma-processing manual." (🔥 Spiritual Bypass Recovery)\n\n'
+        '"This dissertation investigates the phenomenon of spiritual misinformation '
+        'in the AI era from a multidisciplinary perspective." '
+        '(Discernment vs. Distraction: Surviving Spiritual Misinformation in the AI Age)'
+    )
+    assert composition._sanitize_candidate(excerpts) == ""
+
+
+def test_integrated_explanation_with_a_cited_quote_is_not_discarded():
+    response = (
+        "Humility is an honest recognition of one's limits and continuing capacity to learn. "
+        'A source describes "the willingness to be corrected" (A Grounded Practice), '
+        "but spiritual maturity is shown by how that recognition changes conduct over time."
+    )
+    assert composition._sanitize_candidate(response) == response
+
+
+def test_final_visitor_boundary_fails_closed_when_only_source_excerpts_remain():
+    excerpt = (
+        '"Through the lenses of the Akashic Records, this piece reveals humanity '
+        'collective spiritual test and the thinning veil between illusion and illumination." '
+        '(🔥 Spiritual Bypass Recovery)'
+    )
+    with pytest.raises(ValueError, match="attributed source excerpts"):
+        composition.enforce_response_contracts(
+            "What is the relationship between humility and spiritual maturity?",
+            excerpt,
+        )
+
+
+def test_quoted_explanation_with_ordinary_parenthetical_is_preserved():
+    response = (
+        '"A person can acknowledge uncertainty while remaining open to correction." '
+        '(for example, in a difficult conversation)'
+    )
+    assert composition._sanitize_candidate(response) == response
