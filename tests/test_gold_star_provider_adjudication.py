@@ -276,6 +276,8 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "After drafting the final response",
         "do not count character offsets",
         "exact quote occurs once",
+        "must occur exactly once",
+        "choose a longer distinctive contiguous span",
         "distinctive operation",
         "No hidden reasoning or chain-of-thought",
         "paired evaluation",
@@ -383,6 +385,29 @@ def test_quote_evidence_validates_unicode_substrings():
     )
     assert result["application_evidence_present"] is True
     assert result["application_evidence_reason"] == "exact_selected_quotes_validated"
+
+
+def test_quote_evidence_fails_closed_when_exact_quote_occurs_more_than_once():
+    phrase = "protect meaningful agency while addressing avoidable harm"
+    response = f"A fair rule must {phrase}. A second section must {phrase}."
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": ""},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "subject_mismatch"},
+            ],
+            "application_evidence_quotes": [
+                _quote("lesson-a", phrase),
+                _quote("lesson-b", ""),
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["status"] == "provider_reported_selected"
+    assert result["application_evidence_present"] is False
+    assert result["application"] == "not_observed"
+    assert result["application_evidence_reason"] == "selected_quote_not_unique_exact_substring"
 
 
 def test_quote_evidence_fails_closed_when_quote_is_not_an_exact_substring():
