@@ -463,6 +463,19 @@ def test_provider_probe_is_diagnostic_not_a_second_acceptance_gate():
     assert '"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks)' not in source
 
 
+def test_primary_live_smoke_runs_after_live_evaluation_and_shares_its_concurrency_lock():
+    root = Path(__file__).resolve().parents[1]
+    live = (root / ".github" / "workflows" / "guide-live-evaluation.yml").read_text(encoding="utf-8")
+    smoke = (root / ".github" / "workflows" / "live-gold-star-visitor-smoke.yml").read_text(encoding="utf-8")
+
+    assert "group: guide-primary-provider-budgeted-live-validation-${{ inputs.target_service || 'primary' }}" in live
+    assert "group: guide-primary-provider-budgeted-live-validation-primary" in smoke
+    assert 'workflows: ["Guide Live Evaluation"]' in smoke
+    assert "types: [completed]" in smoke
+    assert "github.event.workflow_run.head_sha || github.sha" in smoke
+    assert "push:" not in smoke.split("workflow_dispatch:", 1)[0]
+
+
 def test_provider_probe_is_concise_and_forbids_inline_urls_and_resources():
     query = live_evaluation.PROVIDER_PROBE_QUERY.casefold()
     assert "employees" in query and "customers" in query and "residents" in query
