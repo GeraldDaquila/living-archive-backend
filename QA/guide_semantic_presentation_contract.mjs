@@ -8,7 +8,7 @@ const controller = readFileSync("wordpress/living-archive-answer-doorway-standar
 assert.match(prompt, /VISITOR IDEA-CHUNKING AND READABILITY — SEMANTIC PRESENTATION CONTRACT/);
 assert.match(prompt, /2–4 sentences/);
 assert.match(prompt, /70 words/);
-assert.match(prompt, /Preserve the reasoning, causal links, examples, qualifications/);
+assert.match(prompt, /Preserve reasoning, examples, qualifications, and uncertainty/);
 assert.match(css, /#archive-response-text[\s\S]*?font-size: 16px !important/);
 assert.match(css, /max-width: 66ch/);
 assert.match(css, /line-height: 1\.78 !important/);
