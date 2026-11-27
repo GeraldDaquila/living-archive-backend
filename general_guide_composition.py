@@ -3488,46 +3488,46 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
 def _has_transparency_trust_reciprocity(response: str) -> bool:
     """Require sentence-level evidence for both causal directions and limits.
 
-    Sentence scoping is deliberate: a one-way claim that transparency supports
-    trust must not borrow a later mention of disclosure to impersonate the
-    reverse mechanism (trust enabling candid openness).
+    Sentence scoping prevents a one-way claim from borrowing a later mention
+    of disclosure to impersonate the reverse mechanism.
     """
     text = _normalize_space(response).casefold()
     sentences = [
         part.strip()
-        for part in re.split(r"(?<=[.!?])\\s+|;\\s+", text)
+        for part in re.split(r"(?<=[.!?])\s+|;\s+", text)
         if part.strip()
     ]
     transparency_supports_trust = any(
-        re.search(r"\\btransparency\\b.{0,180}\\b(?:trust|confidence)\\b", sentence)
-        and re.search(r"\\b(?:scrutiny|inspect|examin|accountab|correction|correct|verify|review)\\w*\\b", sentence)
+        re.search(r"\btransparency\b.{0,180}\b(?:trust|confidence)\b", sentence)
+        and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct|verify|review)\w*\b", sentence)
         for sentence in sentences
     )
     trust_supports_openness = any(
-        re.search(r"\\btrust\\b", sentence)
+        re.search(r"\btrust\b", sentence)
         and re.search(
-            r"\\b(?:encourag\\w*|enabl\\w*|support\\w*|foster\\w*|invit\\w*|"
-            r"more willing to|more likely to|permit\\w*|allow\\w*|facilitat\\w*|"
-            r"promot\\w*|make\\w* transparency more possible|make\\w* it (?:safer|easier))\\b",
+            r"\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|"
+            r"more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|"
+            r"promot\w*|make\w* transparency more possible|make\w* it (?:safer|easier))\b",
             sentence,
         )
         and re.search(
-            r"\\b(?:openness|disclos\\w*|share\\w*|engag\\w*|raise concerns|"
-            r"speak up|ask candid questions)\\b",
+            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|"
+            r"speak up|ask candid questions)\b",
             sentence,
         )
         for sentence in sentences
     )
     non_guarantee = bool(re.search(
-        r"\\b(?:neither(?: transparency nor trust)? guarantees? the other|"
+        r"\b(?:neither(?: transparency nor trust)? guarantees? the other|"
         r"not automatically|does not guarantee|doesn't guarantee|cannot guarantee|"
         r"can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|"
         r"not sufficient|cannot by itself create|can't by itself create|"
         r"disclosure cannot make .{0,80} trustworthy|disclosure does not make .{0,80} trustworthy|"
-        r"trust cannot replace|trust does not remove|trust doesn't remove)\\b",
+        r"trust cannot replace|trust does not remove|trust doesn't remove)\b",
         text,
     ))
     return transparency_supports_trust and trust_supports_openness and non_guarantee
+
 
 
 def _has_transparency_trust_disclosure_boundary(response: str) -> bool:
