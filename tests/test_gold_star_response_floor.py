@@ -203,6 +203,9 @@ def test_shared_sender_e2e_withholds_invalid_completed_answer(monkeypatch):
     body = json.loads(next(item["body"] for item in sent if item["type"] == "http.response.body"))
     assert next(item["status"] for item in sent if item["type"] == "http.response.start") == 503
     assert body["error_type"] == "gold_star_v2_quality_floor_rejected"
+    assert body["failure_kind"] == "application_contract"
+    assert body["retryable"] is False
+    assert body["visitor_acceptance_contract"] == "v1"
     assert body["gold_star_v2_quality_floor"]["reason"] == "missing_answer"
 
 

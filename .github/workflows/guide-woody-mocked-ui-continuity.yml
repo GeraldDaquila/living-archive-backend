@@ -22,6 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Validate candidate controller syntax and acceptance source contract
+        run: |
+          node --check wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js
+          node QA/guide_controller_acceptance_source_contract.mjs
+      - name: Verify visitor acceptance and transport failover behavior
+        run: node QA/guide_controller_acceptance_behavior.mjs
       - name: Install Playwright
         run: |
           npm install --no-save playwright
