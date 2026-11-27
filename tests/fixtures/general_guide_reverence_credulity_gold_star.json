@@ -1,0 +1,10 @@
+{
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "What is the difference between reverence and credulity?",
+  "expected_response": "Reverence and credulity differ fundamentally in their relationship to evidence and critical judgment. Reverence is a posture of deep respect, awe, or solemn regard for something perceived as sacred, valuable, or profound. It can coexist with rigorous inquiry; one can revere a tradition, a person, or a concept while actively testing its claims and maintaining intellectual autonomy. Credulity, by contrast, is the tendency to believe something too easily, often without sufficient evidence or critical scrutiny.\n\nIt involves a suspension of judgment that makes a person susceptible to deception or error. The key distinction is that reverence is an emotional or ethical stance that does not require blind acceptance, whereas credulity is a cognitive failure characterized by a lack of discernment. One can hold something in high regard while still asking questions; credulity, however, bypasses the questioning process entirely in favor of immediate acceptance.",
+  "expected_doorway": null,
+  "visible_continuation_title": "The Difference Between Intelligence and Consciousness",
+  "doorway_status": "NOT_EVALUATED",
+  "rating_out_of_10": 9.1,
+  "benchmark_id": "general-guide-reverence-credulity-critical-judgment-2026-11-28"
+}
