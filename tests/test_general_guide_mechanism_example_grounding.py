@@ -73,3 +73,27 @@ def test_parser_accepts_mechanism_explanation_with_bounded_illustration():
     parse = guide._parse_factory([], query=QUESTION, emit_telemetry=False)
     result = parse(json.dumps({"response": response}))
     assert result["response"] == response
+
+
+def test_abstract_mechanism_after_decorative_example_cannot_satisfy_grounding():
+    response = (
+        "For example, a flag is a colored piece of cloth displayed at public events. "
+        "More broadly, symbols coordinate collective behavior and reinforce shared identity."
+    )
+    assert not guide._has_grounded_illustrative_example(response)
+
+
+def test_mechanism_claim_after_example_boundary_cannot_spoof_the_example():
+    response = (
+        "For example, a flag is displayed at the entrance. "
+        "The community coordinates behavior through shared symbols and rituals."
+    )
+    assert not guide._has_grounded_illustrative_example(response)
+
+
+def test_example_can_explain_mechanism_in_a_single_grounded_sentence():
+    response = (
+        "A shared story may be repeated at a public gathering. "
+        "For example, a community pledge reminds members of their mutual obligations."
+    )
+    assert guide._has_grounded_illustrative_example(response)
