@@ -375,6 +375,26 @@ def _select_verified_doorway_conceptual_family(query):
     )
     if stewardship_significance:
         return "stewardship_significance"
+    # Questions asking how to evaluate extraordinary claims need the Archive's
+    # constitutional distinction among observation, interpretation,
+    # explanation, framework, speculation, and metaphysical reflection.
+    # Require both an unusual-claim signal and an explicit evidence/judgment
+    # task; ordinary legal/insurance claims and casual mentions do not qualify.
+    extraordinary_claim_discernment = (
+        re.search(
+            r"\b(?:extraordinary|unusual|remarkable|anomalous|unverified|unsupported|implausible)\b",
+            text,
+            re.I,
+        )
+        and re.search(r"\b(?:claims?|assertions?|theories|phenomena)\b", text, re.I)
+        and re.search(
+            r"\b(?:evidence|verify|verification|assess|evaluate|respond|response|credible|credibility|warrant|accept|acceptance|discern)\w*\b",
+            text,
+            re.I,
+        )
+    )
+    if extraordinary_claim_discernment:
+        return "extraordinary_claim_discernment"
     # Humility/spiritual-maturity questions have a direct, verified Archive
     # continuation. Require the relational task plus both concepts; generic
     # mentions of humility or spirituality alone must not capture navigation.
@@ -571,6 +591,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
+    "extraordinary_claim_discernment": {
+        "title": "Levels of Claim",
+        "url": "https://geralddaquila.com/levels-of-claim/",
+        "rationale": (
+            "This Living Archive reference distinguishes observation, interpretation, explanation, "
+            "framework, speculation, and metaphysical reflection, clarifying why different kinds "
+            "of claims do not carry equal evidential weight. It offers a disciplined next step for "
+            "identifying what kind of claim is being made before judging what evidence can support it."
+        ),
+    },
     "community_rule_design_personal_liberty_shared_obligations": {
         "title": "The Barangay Before the State: Human-Scale Governance in Practice",
         "url": "https://geralddaquila.com/2026/09/21/the-barangay-before-the-state-human-scale-governance-in-practice/",
@@ -6497,6 +6527,24 @@ def _guide_restore_verified_doorway(payload, query):
         and not _gold_star_doorway_omission_is_justified(exact_standard)
     ):
         _family = _select_verified_doorway_conceptual_family(query)
+        if _family == "extraordinary_claim_discernment":
+            _family_candidate = _normalize_authoritative_recommendation(
+                _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
+            )
+            if _family_candidate is not None:
+                safe["recommendation"] = _family_candidate
+                safe["canonical_doorway"] = _family_candidate
+                safe["authoritative_doorway"] = _family_candidate
+                safe["doorway_title"] = _family_candidate["title"]
+                safe["doorway_url"] = _family_candidate["url"]
+                safe["doorway_rationale"] = _family_candidate["rationale"]
+                safe["doorway_decision"] = "selected"
+                safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                safe["doorway_selection_evaluated"] = True
+                safe["doorway_selection_source"] = "reviewed_extraordinary_claim_discernment_family"
+                safe["doorway_omission_reason"] = None
+                safe["doorway_omission_exception_reason"] = None
+                return safe
         if _family == "humility_spiritual_maturity":
             _family_candidate = _normalize_authoritative_recommendation(
                 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
