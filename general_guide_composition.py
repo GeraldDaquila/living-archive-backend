@@ -952,16 +952,26 @@ def _sanitize_candidate(text: Any) -> str:
         r"status\s*:)"
     )
     source_title_attribution = re.compile(
-        r"[“\"'][^\"'\n]{20,500}[”\"']\s*\([^()]{3,140}\)"
+        r"\s*\(\s*(?:[\U0001F300-\U0001FAFF]\s*)?(?=[A-Z])[^()\n]{3,180}\s*\)\s*[.!?]?\s*$"
     )
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", raw) if part.strip()]
     retained = []
     for paragraph in paragraphs:
         if retrieval_metadata.search(paragraph):
             continue
-        # A block made of quoted source prose attributed to a page title is
-        # retrieval evidence, not a composed explanation. Drop that block.
-        if source_title_attribution.search(paragraph) and len(re.findall(r"[“\"']", paragraph)) >= 2:
+        # Reject a paragraph only when it is predominantly one or more
+        # explicitly quoted passages and ends in a source-title attribution.
+        # Integrated visitor prose may quote a source, but is retained when
+        # the quotation is a minority of the paragraph or is not the whole block.
+        quoted_spans = list(quoted_source_spans.finditer(paragraph))
+        quoted_chars = sum(len(match.group(0)) for match in quoted_spans)
+        starts_as_quote = bool(re.match(r'^\s*(?:“|")', paragraph))
+        attributed = bool(quoted_spans and source_title_attribution.search(paragraph))
+        if (
+            starts_as_quote
+            and attributed
+            and quoted_chars >= len(paragraph) * 0.55
+        ):
             continue
         retained.append(paragraph)
     raw = "\n\n".join(retained)
@@ -4725,6 +4735,13 @@ def enforce_response_contracts(question: str, response: str) -> str:
             raise RuntimeError("Ethical trade-off response contract failed after final recovery.")
 
     candidate = _remove_visitor_meta_commentary(candidate)
+    # Source excerpts are grounding evidence, never a substitute for synthesis.
+    # If the final boundary removes an excerpt-only response, fail closed rather
+    # than returning an empty answer or letting the visitor see a source dump.
+    if not candidate.strip():
+        raise ValueError(
+            "visitor response contained only attributed source excerpts; a composed answer is required"
+        )
     # Validate after all governed deterministic recoveries have had the
     # opportunity to replace a rejected provider candidate.
     if _requires_archive_scoped_meaning(question):
