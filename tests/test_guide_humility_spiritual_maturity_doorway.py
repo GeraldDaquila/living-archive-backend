@@ -1,4 +1,5 @@
 import main
+import general_guide_composition as composition
 
 
 def test_humility_and_spiritual_maturity_relationship_selects_verified_archive_doorway():
@@ -58,3 +59,29 @@ def test_terminal_humility_family_doorway_overrides_generic_preselected_candidat
     assert result["recommendation"]["url"] == expected["url"]
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["doorway_selection_source"] == "reviewed_humility_spiritual_maturity_family"
+
+def test_relational_answer_contract_distinguishes_humility_from_self_erasure():
+    question = "What is the relationship between humility and spiritual maturity?"
+    prompt = composition._build_general_guide_system_message(question)
+    for required in (
+        "HUMILITY AND SPIRITUAL MATURITY",
+        "learning",
+        "honest self-appraisal",
+        "self-erasure",
+        "diminished self-worth",
+        "appropriate boundaries",
+        "lived conduct",
+    ):
+        assert required in prompt
+
+
+def test_relational_humility_contract_does_not_capture_adjacent_questions():
+    unrelated_questions = (
+        "What does humility mean?",
+        "What is spiritual maturity?",
+        "Why does psychological integration matter more than spiritual performance?",
+        "How does humility relate to psychological integration?",
+    )
+    for question in unrelated_questions:
+        prompt = composition._build_general_guide_system_message(question)
+        assert "HUMILITY AND SPIRITUAL MATURITY" not in prompt, question
