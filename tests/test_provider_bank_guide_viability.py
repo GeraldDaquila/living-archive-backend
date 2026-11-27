@@ -244,13 +244,15 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
 def test_humility_contract_repair_instruction_expands_only_missing_dimensions():
     instruction = provider_bank._guide_contract_repair_instruction(
         "humility/spiritual-maturity answer is incomplete: "
-        "humility_supports_learning_and_correction,not_passivity_or_automatic_compliance"
+        "humility_supports_learning_and_correction,not_passivity_or_automatic_compliance,"
+        "not_self_erasure_or_self_contempt"
     )
     assert instruction is not None
     assert "willingness to learn" in instruction
     assert "honest self-appraisal" in instruction
     assert "accepting correction" in instruction
     assert "blind obedience" in instruction
+    assert "State explicitly that humility is not self-erasure" in instruction
     assert "automatic compliance" in instruction
     assert "State explicitly that humility is not passivity" in instruction
     assert "appropriate boundaries" not in instruction

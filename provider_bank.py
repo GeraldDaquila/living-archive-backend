@@ -839,7 +839,9 @@ def _guide_contract_repair_instruction(contract_reason):
             "Describe spiritual maturity as lived conduct in actions and relationships, not claimed status."
         ),
         "not_self_erasure_or_self_contempt": (
-            "Distinguish humility from self-erasure, diminished self-worth, and self-contempt."
+            "State explicitly that humility is not self-erasure, diminished self-worth, or self-contempt. "
+            "A clear sentence such as 'Humility is not self-erasure, diminished self-worth, or self-contempt' "
+            "is acceptable; do not leave this distinction implied."
         ),
         "preserves_appropriate_boundaries": (
             "State that humility does not require surrendering appropriate boundaries."
