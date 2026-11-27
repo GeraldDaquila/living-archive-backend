@@ -54,7 +54,7 @@ def has_grounded_mechanism_example(response: str) -> bool:
         example
     ))
     collective_effect = bool(re.search(
-        r"\b(?:coordinates?|organizes?|organises?|brings? together|"
+        r"\b(?:coordinates?|organizes?|organises?|brings? together|turns? .*? into|makes? .*? part of .*?(?:identity|belonging|culture)|"
         r"makes? .*?(?:visible|public|expected|legitimate)|"
         r"creates? a shared|reinforces?|establishes?|signals?|defines?|"
         r"shapes? .*?(?:belonging|expectations|obligations|identity|authority)|"
