@@ -118,3 +118,12 @@ def test_visitor_floor_rejects_abstract_only_mechanism_answer():
     result = evaluate_response_floor(QUESTION, {"ok": True, "response": answer})
     assert result["status"] == "fail"
     assert result["reason"] == "social_mechanism_example_not_demonstrated"
+
+
+
+def test_mechanism_elements_split_across_sentences_do_not_form_a_causal_example():
+    response = (
+        "For example, a village displays a flag. Residents sing at an annual gathering. "
+        "The town coordinates mutual aid because shared symbols reinforce identity."
+    )
+    assert not has_grounded_mechanism_example(response)
