@@ -16,6 +16,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from inquiry_family_transfer_contract import classify_inquiry_family
 from guide_request_budget import composition_provider_deadline
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from guide_answerability import (
@@ -306,11 +307,14 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         r"measure|benchmark|held[- ]?out|transfer|adaptive learning|autonomy|"
         r"adaptivity|resilience|improvement)\b"
     )
+    lived_reflective = (
+        classify_inquiry_family(question).get("family") == "personal_lived_reflective"
+    )
     practical = has(
         r"\b(?:how should|how do i|how can i|how to|what should|steps?|"
         r"procedure|decision|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|practical|recommend)\b"
-    )
+    ) and not lived_reflective
     consequential = has(
         r"\b(?:decision|decide|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|trade[- ]?off|proportionate|liberty)\b"
@@ -363,6 +367,17 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality "
             "while keeping decisions and uses of power accountable. "
             "Do not describe the relationship as one-way or imply that either concept guarantees the other."
+        )
+    if classify_inquiry_family(question).get("family") == "personal_lived_reflective":
+        rendered += (
+            "\n\nLIVED EXPERIENCE AND IDENTITY BOUNDARY: "
+            "Answer the person's lived question itself. Distinguish having or carrying pain "
+            "from being defined entirely by it. Acknowledge the experience without denying, "
+            "romanticizing, diagnosing, or assuming the visitor's history. Make room for the "
+            "person's continuing identity, relationships, values, interests, and agency. "
+            "Do not substitute institutional governance, stakeholder, outcome, or decision "
+            "accountability frameworks unless the visitor explicitly asks about those subjects. "
+            "Offer humane explanation, not a task checklist or an imposed therapeutic exercise."
         )
     return rendered
 
@@ -5533,7 +5548,7 @@ def compose(
                     parse=_parse_factory(
                         documents,
                         effective_question,
-                        gold_star_quality.get("candidates") if gold_star_quality else None,
+                        None,
                     ),
                     schema=_build_provider_composition_schema(
                         gold_star_quality.get("candidates") if gold_star_quality else None
@@ -5572,6 +5587,95 @@ def compose(
                     "conceptual_answerability_repair",
                     stage="repair_provider_error",
                     error_type=type(_repair_error).__name__,
+                )
+
+    # Lived-reflective task fit gets one bounded repair opportunity before
+    # the shared final response floor. Evaluation arms are excluded so matched
+    # pairs remain one-generation and cannot receive a hidden repair advantage.
+    if (
+        result
+        and evaluation is None
+        and classify_inquiry_family(question).get("family") == "personal_lived_reflective"
+    ):
+        _first_payload = result.get("parsed") if isinstance(result, dict) else None
+        if not isinstance(_first_payload, dict):
+            _first_payload = result if isinstance(result, dict) else {}
+        _first_response = str(_first_payload.get("response") or "")
+        from gold_star_semantic_contract import evaluate_semantic_contract as _evaluate_lived_semantic_contract
+        _first_semantic = _evaluate_lived_semantic_contract(
+            question, {"ok": True, "response": _first_response}
+        )
+        if _first_semantic.get("status") == "fail":
+            _emit_guide_outcome(
+                "lived_reflective_task_fit_repair",
+                stage="off_target_candidate_rejected",
+                failed_checks=",".join(_first_semantic.get("hard_failures") or []),
+            )
+            _repair_system_message = _build_general_guide_system_message(
+                question,
+                has_gold_star_guidance=False,
+                incomplete_knowledge_plan=incomplete_knowledge_plan,
+                integrity_recovery_instruction=integrity_recovery_instruction,
+                public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
+            ) + (
+                "\n\nLIVED-REFLECTIVE TASK-FIT REPAIR: The previous candidate did not answer "
+                "the visitor's lived question. Do not reuse its institutional, governance, "
+                "stakeholder, outcome, or decision-accountability framework. Answer the "
+                "experience named in the question directly and explain its relationship to "
+                "the person's identity without diagnosing or assuming personal history. "
+                "Preserve the person's agency and use a humane, unhurried explanation."
+            )
+            try:
+                _repaired_result = route_with_model_bank(
+                    use_core=use_core,
+                    operation=OPERATION,
+                    messages=[
+                        {"role": "system", "content": _repair_system_message},
+                        {"role": "user", "content": user_content[:7000]},
+                    ],
+                    max_tokens=750,
+                    parse=_parse_factory(
+                        documents,
+                        effective_question,
+                        None,
+                    ),
+                    schema=_build_provider_composition_schema(None),
+                    deadline_monotonic=provider_deadline_monotonic,
+                )
+                _repaired_payload = (
+                    _repaired_result.get("parsed")
+                    if isinstance(_repaired_result, dict)
+                    else None
+                )
+                if not isinstance(_repaired_payload, dict):
+                    _repaired_payload = (
+                        _repaired_result if isinstance(_repaired_result, dict) else {}
+                    )
+                _repaired_response = str(_repaired_payload.get("response") or "")
+                _repaired_semantic = _evaluate_lived_semantic_contract(
+                    question, {"ok": True, "response": _repaired_response}
+                )
+                if (
+                    _repaired_result
+                    and _repaired_response
+                    and _repaired_semantic.get("status") != "fail"
+                ):
+                    result = _repaired_result
+                    _emit_guide_outcome(
+                        "lived_reflective_task_fit_repair",
+                        stage="on_target_repair_accepted",
+                    )
+                else:
+                    _emit_guide_outcome(
+                        "lived_reflective_task_fit_repair",
+                        stage="repair_unavailable_or_still_off_target",
+                    )
+            except Exception as _lived_repair_error:
+                _emit_guide_outcome(
+                    "lived_reflective_task_fit_repair",
+                    stage="repair_provider_error",
+                    error_type=type(_lived_repair_error).__name__,
                 )
 
     # A provider may technically return a parsed response while still producing

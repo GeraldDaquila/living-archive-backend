@@ -11,6 +11,7 @@ import re
 from typing import Any, Dict
 
 from gold_star_semantic_contract import classify_question as _classify_question_candidate
+from inquiry_family_transfer_contract import classify_inquiry_family
 
 from guide_reflexive_critique import build_reflexive_critique_plan
 
@@ -20,7 +21,7 @@ from personal_reference_resolution import (
     is_teaching_conflict_reference,
 )
 
-VERSION = "1.3"
+VERSION = "1.4"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
@@ -84,6 +85,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         epistemic_category_distinction = False
         epistemic_distinction_contract = None
 
+    inquiry_family = classify_inquiry_family(normalized)
     task_candidate = (
         {"type": "guide_meta_coverage_policy"}
         if meta_coverage_policy
@@ -96,6 +98,8 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             )
         )
     )
+    if inquiry_family.get("family") == "personal_lived_reflective":
+        task_candidate = {"type": "lived_reflective_inquiry"}
     institutional_learning_failure = task_candidate.get("type") == "institutional_learning_failure" and not multi_intent
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
@@ -108,6 +112,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     contract = {
         "version": VERSION,
         "state": "multi_intent_candidate" if multi_intent else ("single_intent_candidate" if normalized else "unknown"),
+        "inquiry_family": inquiry_family,
         "task": {
             "primary": (f"{task_candidate.get('type')}_candidate" if task_candidate.get("type") != "unknown" and not multi_intent else "unresolved"),
             "secondary": [],
@@ -144,8 +149,8 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "task_candidate_confidence": "not_semantically_certified",
         },
         "response": {
-            "shape": "task_adaptive",
-            "completion_criteria": ["answer_the_actual_request", "respect_explicit_constraints", "state_material_limits"],
+            "shape": "reflective_explanation" if inquiry_family.get("family") == "personal_lived_reflective" else "task_adaptive",
+            "completion_criteria": (["address_the_named_lived_experience", "preserve_the_person_experience_distinction", "avoid_unrequested_governance_framework"] if inquiry_family.get("family") == "personal_lived_reflective" else ["answer_the_actual_request", "respect_explicit_constraints", "state_material_limits"]),
         },
         "resolution": {
             "clarification": "only_if_materially_needed",
@@ -181,6 +186,30 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         }
         contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
         contract["meta_governance"] = meta_governance_contract
+    elif inquiry_family.get("family") == "personal_lived_reflective":
+        contract["domain"] = {
+            "primary": "human_experience",
+            "subdomain": "lived_reflection_and_identity",
+        }
+        contract["requested_outcome"] = "understand_lived_experience_without_identity_reduction"
+        contract["reasoning_mode"] = "lived_reflective_discernment"
+        contract["evidence"] = {
+            "standard": "humane_general_knowledge_with_personal_context_boundary",
+            "provenance_required": False,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "the_persons_specific_history_and_needs_are_not_assumed"
+        ]
+        contract["response"] = {
+            "shape": "reflective_explanation",
+            "completion_criteria": [
+                "address_the_named_lived_experience",
+                "preserve_the_person_experience_distinction",
+                "avoid_unrequested_governance_or_task_framework",
+                "avoid_diagnosis_and_assumed_personal_history",
+            ],
+        }
+        contract["resolution"]["clarification"] = "only_if_the_persons_actual_need_is_unclear"
     elif institutional_learning_failure:
         contract["domain"] = {
             "primary": "organizational_systems",

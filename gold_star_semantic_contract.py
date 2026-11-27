@@ -7,12 +7,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from inquiry_family_transfer_contract import classify_inquiry_family
+
 from institutional_learning_failure_contract import (
     institutional_learning_failure_response_checks,
     is_institutional_learning_failure_question,
 )
 
-VERSION = "1.4"
+VERSION = "1.5"
 _PATTERNS = {
     "explicit_no_handoff": re.compile(r"\b(?:do not|don't|without|no)\b.{0,80}\b(?:links?|resources?|recommendations?|follow[- ]?up|next steps?|doorways?)\b", re.I),
     "epistemic_category_distinction": re.compile(
@@ -41,6 +43,8 @@ def classify_question(query: str) -> dict[str, Any]:
         return {"version": VERSION, "type": "unknown", "confidence": "none"}
     if is_institutional_learning_failure_question(q):
         return {"version": VERSION, "type": "institutional_learning_failure", "confidence": "high"}
+    if classify_inquiry_family(q).get("family") == "personal_lived_reflective":
+        return {"version": VERSION, "type": "lived_reflective_inquiry", "confidence": "high"}
     # Explicit user constraints take precedence over generic task verbs.
     for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
@@ -221,6 +225,23 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             )),
             "Where relevant, explain how the compared concepts relate without collapsing them.",
         )
+    elif kind == "lived_reflective_inquiry":
+        experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|hardship|identity|selfhood|personhood|belonging|who i am|sense of self)\b", low))
+        experience_identity_relation = bool(re.search(
+            r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|identity|selfhood|personhood|belonging|who i am|sense of self)\b"
+            r".{0,180}\b(?:not|without|rather than|does not|doesn't|more than|no longer|all|whole)\b"
+            r".{0,100}\b(?:identity|self|whole|person|story|who you are|who they are)\b"
+            r"|\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|identity|selfhood|personhood|belonging|who i am|sense of self)\b"
+            r".{0,120}\bpart of\b.{0,100}\b(?:identity|self|person|story)\b"
+            r".{0,100}\b(?:without|not|rather than|whole|more than)\b"
+            r"|\b(?:identity|self|who you are|who they are)\b"
+            r".{0,100}\b(?:more than|not defined by|not reduced to|not the whole of)\b"
+            r".{0,100}\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|identity|selfhood|personhood|belonging|who i am|sense of self)\b",
+            low,
+        ))
+        add("addresses_named_lived_experience", experience_present, "The answer must engage the experience named by the visitor, not replace it with an adjacent planning framework.", hard=True)
+        if classify_inquiry_family(query).get("identity_focus"):
+            add("preserves_experience_identity_distinction", experience_identity_relation, "The answer must explicitly relate the experience to identity without allowing the experience to define the whole person.", hard=True)
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
     elif kind == "conceptual_explanation":

@@ -15,6 +15,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from inquiry_family_transfer_contract import lesson_transfer_compatibility
+
 CONTRACT_VERSION = "v1"
 _TELEMETRY_LOG = logging.getLogger("use.gold_star.shadow")
 _REGISTRY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
@@ -463,6 +465,29 @@ def select_lesson_candidates(
         return [_lesson_candidate_payload(exact[0], 1.0, exact=True)]
 
     candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
+
+    # A cross-question lesson must first belong to the visitor's inquiry family.
+    # This is a hard retrieval boundary, not a prompt suggestion for later
+    # provider adjudication. Exact-query authority above remains unchanged.
+    compatible_candidates = []
+    blocked_families = set()
+    for candidate in candidates:
+        transfer = lesson_transfer_compatibility(query, candidate)
+        if transfer.get("compatible"):
+            compatible_candidates.append(candidate)
+        else:
+            blocked_families.add(str(candidate.get("reasoning_family") or "unknown"))
+    if len(compatible_candidates) != len(candidates):
+        _TELEMETRY_LOG.info(
+            "gold_star_transfer_boundary inquiry_family=personal_lived_reflective "
+            "eligible_candidates=%s blocked_candidates=%s blocked_families=%s",
+            len(compatible_candidates),
+            len(candidates) - len(compatible_candidates),
+            ",".join(sorted(blocked_families)) or "none",
+        )
+    candidates = compatible_candidates
+    if not candidates:
+        return []
 
     # A tightly scoped provider-exhaustion policy preserves a reviewed
     # answerability discipline when the visitor explicitly asks for a general

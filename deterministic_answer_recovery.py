@@ -2,6 +2,7 @@
 import re
 
 from personal_reference_resolution import is_personal_reference_question, personal_reference_fallback
+from inquiry_family_transfer_contract import classify_inquiry_family
 
 
 def _clean(value):
@@ -1145,6 +1146,7 @@ def has_registered_recovery(question):
         or is_guide_meta_coverage_policy_question(question)
         or is_epistemic_category_distinction_question(question)
         or is_human_development_comparison_question(question)
+        or classify_inquiry_family(question).get("family") == "personal_lived_reflective"
         or bool(compose_task_specific_recovery(question))
     )
 
@@ -2268,6 +2270,26 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "A reasonable decision at the time does not excuse refusing to learn afterward. Accountability means "
             "acknowledging the outcome, correcting what can be corrected, and improving the decision process without "
             "rewriting the past to make blame easier."
+        )
+    # Lived/reflective inquiries must be answered on their own terms before
+    # the generic "how" recovery. A question about holding pain is not an
+    # invitation to run an institutional decision-accountability checklist.
+    elif classify_inquiry_family(q).get("family") == "personal_lived_reflective":
+        _lived_signals = classify_inquiry_family(q).get("signals") or []
+        _lived_subject = str(_lived_signals[0] if _lived_signals else "experience").strip()
+        if _lived_subject in {"identity", "selfhood", "personhood", "belonging", "who i am", "sense of self"}:
+            _lived_subject = "experience"
+        _lived_subject = _lived_subject[:40]
+        answer = (
+            f"{_lived_subject[:1].upper() + _lived_subject[1:]} can be part of a person's life "
+            "without becoming the whole of who they are. Holding it means acknowledging what "
+            "hurt and allowing it to matter, without mistaking that experience for a complete "
+            "account of the self. A person remains more than the experience: relationships, "
+            "values, interests, capacities, memories, and hopes also belong to their identity.\n\n"
+            "This does not mean denying the experience, romanticizing it, or forcing it to become "
+            "a lesson. It means giving it an honest place without letting it occupy every place. "
+            "The experience can shape a life deeply without becoming the only story that life "
+            "is allowed to tell."
         )
     # Ethical conflicts must outrank generic "how" / practical-action patterns.
     elif _is_ethical_tradeoff(q):
