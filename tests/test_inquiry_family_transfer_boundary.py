@@ -406,3 +406,26 @@ def test_epistemic_distress_contract_does_not_leak_into_ordinary_governance():
     answer = OFF_TARGET_EPISTEMIC_GOVERNANCE_ANSWER
     result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
     assert result["question_type"] != "epistemic_distress_guidance"
+
+
+def test_epistemic_distress_gate_rejects_governance_framework_even_with_incidental_empathy_words():
+    query = EPISTEMIC_DISTRESS_QUESTION
+    disguised = (
+        "I understand this is difficult. Start by defining the outcome the change must achieve, "
+        "the responsibilities that cannot be lost, and the people who will live with the consequences. "
+        "Compare realistic options, examine who bears the costs, and decide what evidence would justify "
+        "changing direction. I care about supporting you."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": disguised})
+    assert result["status"] == "fail"
+    assert "avoids_governance_substitution" in result["hard_failures"]
+    assert "opens_by_meeting_distress" in result["hard_failures"]
+
+
+def test_epistemic_distress_recovery_satisfies_structural_not_just_keyword_contract():
+    answer = compose_recovery(EPISTEMIC_DISTRESS_QUESTION)
+    result = evaluate_semantic_contract(EPISTEMIC_DISTRESS_QUESTION, {"ok": True, "response": answer})
+    assert result["status"] == "pass"
+    assert result["hard_failures"] == []
+    assert "opens_by_meeting_distress" in {item["name"] for item in result["checks"]}
+    assert "offers_human_connection_when_needed" in {item["name"] for item in result["checks"]}
