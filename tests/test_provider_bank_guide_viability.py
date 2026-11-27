@@ -229,7 +229,7 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
     assert parser_calls == ["first-output", "repaired-output"]
     assert len(provider_messages) == 2
     assert any(
-        "Your preceding Guide composition failed a response contract" in message.get("content", "")
+        "Your preceding Guide answer omitted required humility/spiritual-maturity distinctions" in message.get("content", "")
         for message in provider_messages[1]
         if message.get("role") == "user"
     )
