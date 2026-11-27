@@ -419,6 +419,11 @@ try {
         if (!node) return { found: false };
         const rect = node.getBoundingClientRect();
         const style = getComputedStyle(node);
+        const wrapper = node.closest("#gt_float_wrapper");
+        const wrapperRect = wrapper && wrapper.getBoundingClientRect();
+        const wrapperStyle = wrapper && getComputedStyle(wrapper);
+        const wrapperParent = wrapper && wrapper.parentElement;
+        const wrapperParentStyle = wrapperParent && getComputedStyle(wrapperParent);
         const ancestors = [];
         let ancestor = node;
         while (ancestor && ancestors.length < 5) {
@@ -458,10 +463,26 @@ try {
           left: rect.left,
           top: rect.top,
           overlapsAnswer,
+          wrapperPosition: wrapperStyle && wrapperStyle.position,
+          wrapperTop: wrapperRect && wrapperRect.top,
+          wrapperBottom: wrapperRect && wrapperRect.bottom,
+          wrapperWidth: wrapperRect && wrapperRect.width,
+          wrapperHeight: wrapperRect && wrapperRect.height,
+          wrapperOverlapsAnswer: !!answerRect && !!wrapperRect &&
+            wrapperRect.left < answerRect.right && wrapperRect.right > answerRect.left &&
+            wrapperRect.top < answerRect.bottom && wrapperRect.bottom > answerRect.top,
+          wrapperParentHeight: wrapperParent && wrapperParent.getBoundingClientRect().height,
+          wrapperParentPosition: wrapperParentStyle && wrapperParentStyle.position,
           parentTag: node.parentElement && node.parentElement.tagName,
           parentClass: node.parentElement && node.parentElement.className
         };
       }, ROOT);
+      if (languageSwitcherMetrics.found &&
+          (languageSwitcherMetrics.wrapperPosition !== "static" ||
+           languageSwitcherMetrics.wrapperOverlapsAnswer ||
+           languageSwitcherMetrics.wrapperParentHeight < 1)) {
+        throw new Error("Mobile language selector still overlays Guide answer content: " + JSON.stringify(languageSwitcherMetrics));
+      }
       mkdirSync("artifacts", { recursive: true });
       await page.screenshot({ path: "artifacts/guide-mobile-render.png", fullPage: true });
       mark("mobile_render_evidence", { ...mobileMetrics, languageSwitcherMetrics });
