@@ -49,6 +49,8 @@ def test_user_elevated_compassionate_response_is_a_separate_frozen_gold_star_exe
     assert record["gold_star_capabilities"]["generation_class"] == "user_approved_response_quality_exemplar"
     assert record["gold_star_capabilities"]["active_quality_contributor"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
+    assert record["gold_star_capabilities"]["abstention_boundary"] == fixture["gold_star_capabilities"]["abstention_boundary"]
 
 
 def test_registry_audit_counts_reconcile_without_changing_active_learning_population():
