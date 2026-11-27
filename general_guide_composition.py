@@ -3352,6 +3352,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError("provider response too short for basic visitor bounds")
                 if len(response) > 7000:
                     raise ValueError("provider response too long for basic visitor bounds")
+                # Social-mechanism example grounding is a task-specific meaning
+                # requirement, not a stylistic preference. Preserve it across
+                # both parser lanes so compatibility fallback cannot re-admit
+                # the abstract-only answer rejected by strict composition.
+                if _requires_grounded_mechanism_example(query) and not _has_grounded_illustrative_example(response):
+                    raise ValueError(
+                        "provider response failed the hard social-mechanism grounding boundary: "
+                        "one concrete illustrative example that demonstrates the mechanism is required"
+                    )
                 # Answer-first is constitutional at the visitor boundary. The
                 # soft-contract lane may relax paragraph count or examples, but
                 # it may never admit an announced answer or an echoed question.
