@@ -1131,7 +1131,9 @@ def _openai_compatible_text(content):
         for item in content:
             if isinstance(item, str):
                 if item.strip():
-                    chunks.append(item.strip())
+                    # Preserve boundary whitespace: providers may encode
+                    # paragraph separators at the edge of adjacent text blocks.
+                    chunks.append(item)
                 continue
             if not isinstance(item, dict):
                 continue
@@ -1139,7 +1141,9 @@ def _openai_compatible_text(content):
                 continue
             value = item.get("text")
             if isinstance(value, str) and value.strip():
-                chunks.append(value.strip())
+                # Trim only the completed message, never each block: doing so
+                # collapses paragraph boundaries carried between typed blocks.
+                chunks.append(value)
         return "".join(chunks).strip()
     return ""
 
