@@ -50,6 +50,36 @@ jobs:
       - name: Check out evaluated source and registry
         uses: actions/checkout@v4
 
+      - name: Wait for exact candidate API deployment
+        timeout-minutes: 5
+        env:
+          TARGET_SERVICE: ${{ inputs.target_service || 'primary' }}
+        run: |
+          if [ "$TARGET_SERVICE" = "mirror" ]; then
+            BASE_URL="https://living-archive-backend-mirror.onrender.com"
+          else
+            BASE_URL="https://living-archive-backend.onrender.com"
+          fi
+          expected_version="$(sed -n '1s/^# USE PRODUCTION VERSION: \\([^ ]*\\).*/\\1/p' main.py)"
+          expected_sha="$GITHUB_SHA"
+          if [ -z "$expected_version" ] || [ -z "$expected_sha" ]; then
+            echo "Could not read expected USE version or commit SHA."
+            exit 1
+          fi
+          echo "Waiting for exact runtime version=$expected_version commit=$expected_sha at $BASE_URL"
+          for attempt in $(seq 1 30); do
+            payload="$(curl -fsS --max-time 12 "$BASE_URL/api/provider-health-readiness" || true)"
+            actual_version="$(printf '%s' "$payload" | python -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))' 2>/dev/null || true)"
+            actual_sha="$(printf '%s' "$payload" | python -c 'import json,sys; print(json.load(sys.stdin).get("deployment_commit_sha", ""))' 2>/dev/null || true)"
+            if [ "$actual_version" = "$expected_version" ] && [ "$actual_sha" = "$expected_sha" ]; then
+              echo "Exact candidate is live: version=$actual_version commit=$actual_sha"
+              exit 0
+            fi
+            echo "Attempt $attempt/30: runtime version='${actual_version:-unavailable}' commit='${actual_sha:-unavailable}', waiting for version=$expected_version commit=$expected_sha."
+            sleep 10
+          done
+          echo "Target API did not report the exact candidate before timeout."
+          exit 1
       - name: Run registry-derived live evaluation
         id: evaluation
         continue-on-error: true
