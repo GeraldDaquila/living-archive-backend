@@ -18,6 +18,10 @@ from gold_star_question_contract import build_question_contract, validate_questi
 from gold_star_answer_envelope import build_answer_envelope, validate_answer_envelope
 from gold_star_evidence_validation import validate_evidence_payload
 from institutional_learning_failure_contract import is_institutional_learning_failure_question
+from social_mechanism_grounding_contract import (
+    requires_grounded_mechanism_example,
+    has_grounded_mechanism_example,
+)
 
 VERSION = "2.2"
 SEMANTIC_SHADOW_VERSION = "1.1"
@@ -123,6 +127,26 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         return {"version": VERSION, "status": "fail", "reason": "generic_nonanswer"}
     if not str(query or "").strip():
         return {"version": VERSION, "status": "fail", "reason": "missing_query_context"}
+    # This contract is enforced at the outer visitor response floor as well as
+    # inside provider parsing. It therefore covers deterministic recovery,
+    # cache reuse, compatibility paths, and late response transformations.
+    # Exact approved answers remain immutable and are evaluated by their own
+    # registry contract.
+    if (
+        not exact_standard
+        and requires_grounded_mechanism_example(query)
+        and not has_grounded_mechanism_example(answer)
+    ):
+        return {
+            "version": VERSION,
+            "status": "fail",
+            "reason": "social_mechanism_example_not_demonstrated",
+            "social_mechanism_grounding": {
+                "version": "1.0",
+                "required": True,
+                "demonstrated": False,
+            },
+        }
 
     answer_envelope = build_answer_envelope(
         query, payload, question_contract, exact_standard=exact_standard
