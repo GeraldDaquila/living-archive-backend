@@ -16,7 +16,7 @@ def test_epistemic_distress_gold_star_is_frozen_and_structural_only():
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_response"].count("\\n\\n") == 2
+    assert record["expected_response"].count("\n\n") == 2
     assert record["explicit_user_elevation_approval"] is True
     assert record["rating"] is None
     assert record["assistant_assessment_out_of_10"] == 8.6
