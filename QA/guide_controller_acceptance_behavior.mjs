@@ -4,11 +4,11 @@ import { readFileSync } from "node:fs";
 
 const controller = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js","utf8");
 const start = controller.indexOf("function createGuideApplicationContractError");
-const end = controller.indexOf("/* ================================================================\\n   SAFETY BOUNDARY", start);
+const end = controller.indexOf("/* ================================================================\n   SAFETY BOUNDARY", start);
 const safetyStart = controller.indexOf("function hasAuthoritativeSafetyPayload");
 const safetyEnd = controller.indexOf("function naturalizeSafetyMessage", safetyStart);
 assert.ok(start >= 0 && end > start && safetyStart > end && safetyEnd > safetyStart);
-const functions = controller.slice(start,end) + "\\n" + controller.slice(safetyStart,safetyEnd);
+const functions = controller.slice(start,end) + "\n" + controller.slice(safetyStart,safetyEnd);
 
 async function scenario(queue) {
   const calls = [];
@@ -25,7 +25,7 @@ async function scenario(queue) {
       return next;
     }
   };
-  vm.runInNewContext(functions + "\\nthis.runFetchUSE = fetchUSE;", context);
+  vm.runInNewContext(functions + "\nthis.runFetchUSE = fetchUSE;", context);
   return { calls, run: context.runFetchUSE };
 }
 const response = (status, payload) => ({
