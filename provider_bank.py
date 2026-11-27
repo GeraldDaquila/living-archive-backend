@@ -818,7 +818,7 @@ def _guide_contract_repair_instruction(contract_reason):
     """Translate known Guide contract codes into concise, task-specific correction guidance."""
     text = str(contract_reason or "").casefold()
     match = re.search(
-        r"humility/spiritual-maturity answer is incomplete:\\s*([a-z_, ]+)", text
+        r"humility/spiritual-maturity answer is incomplete:\s*([a-z_, ]+)", text
     )
     if not match:
         return None
