@@ -1,7 +1,10 @@
 from pathlib import Path
 import inspect
+import json
+import pytest
 
 import general_guide_composition as composition
+from general_guide_composition import _parse_factory
 from humility_spiritual_maturity_contract import (
     evaluate_humility_spiritual_maturity_response,
     is_humility_spiritual_maturity_question,
@@ -54,3 +57,27 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
     assert "humility/spiritual-maturity answer is incomplete" in parser_source
     assert "HUMILITY AND SPIRITUAL MATURITY:" in composition._GENERAL_GUIDE_SYSTEM_COMPACT
     assert "humility supports spiritual maturity" in composition._GENERAL_GUIDE_SYSTEM_COMPACT
+
+
+def test_provider_parser_rejects_incomplete_humility_relationship_answer():
+    parser = _parse_factory([], QUERY, None)
+    weak = (
+        "Humility and spiritual maturity are related. Humility helps people learn. "
+        "Spiritual maturity is shown in daily conduct. Humility does not guarantee maturity."
+    )
+    with pytest.raises(ValueError, match="humility/spiritual-maturity answer is incomplete"):
+        parser(json.dumps({
+            "response": weak,
+            "doorway_title": "",
+            "response_shape": "explanatory",
+        }))
+
+
+def test_provider_parser_accepts_complete_humility_relationship_answer():
+    parser = _parse_factory([], QUERY, None)
+    parsed = parser(json.dumps({
+        "response": COMPLETE_ANSWER,
+        "doorway_title": "",
+        "response_shape": "explanatory",
+    }))
+    assert parsed["response"] == COMPLETE_ANSWER
