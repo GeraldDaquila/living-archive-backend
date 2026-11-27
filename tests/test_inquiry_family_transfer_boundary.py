@@ -425,7 +425,13 @@ def test_epistemic_distress_gate_rejects_governance_framework_even_with_incident
 def test_epistemic_distress_recovery_satisfies_structural_not_just_keyword_contract():
     answer = compose_recovery(EPISTEMIC_DISTRESS_QUESTION)
     result = evaluate_semantic_contract(EPISTEMIC_DISTRESS_QUESTION, {"ok": True, "response": answer})
-    assert result["status"] == "pass"
+    # The heuristic contract can reject observable violations, but it does not
+    # replace human semantic review or certify the answer on its own.
+    assert result["status"] == "review_required"
+    assert result["reason"] == "human_review_required"
+    assert result["failed_checks"] == []
     assert result["hard_failures"] == []
+    assert result["review_flags"] == []
+    assert result["semantic_certification"] is False
     assert "opens_by_meeting_distress" in {item["name"] for item in result["checks"]}
     assert "offers_human_connection_when_needed" in {item["name"] for item in result["checks"]}
