@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/guide-live-evaluation.yml"
+      - ".github/workflows/live-gold-star-visitor-smoke.yml"
       - ".github/workflows/guide-live-evaluation-runner.yml"
       - "scripts/guide_live_evaluation.py"
       - "gold_star_semantic_contract.py"

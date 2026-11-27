@@ -1,12 +1,20 @@
 name: Live Gold Star visitor smoke
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Guide Live Evaluation"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# Serialize with the primary live evaluation; the smoke must not consume provider
+# capacity before the critical held-out evaluation has completed.
+concurrency:
+  group: guide-primary-provider-budgeted-live-validation-primary
+  cancel-in-progress: false
 
 jobs:
   live-visitor-smoke:
@@ -16,7 +24,7 @@ jobs:
       - name: Verify primary production revision and exercise visitor endpoint
         env:
           BASE_URL: https://living-archive-backend.onrender.com
-          EXPECTED_COMMIT: ${{ github.sha }}
+          EXPECTED_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           python - <<'PY'
           import json
