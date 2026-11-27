@@ -4,7 +4,15 @@ import { readFileSync, mkdirSync } from "node:fs";
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.333.js";
-const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
+const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8")
+  .replace(
+    "guideConversationHistory.push({\\n        role: 'assistant',\\n        content: data.response\\n      });",
+    "guideConversationHistory.push({\\n        role: 'assistant',\\n        content: data.response\\n      });\\n      console.log('[Guide QA HISTORY MAIN]', JSON.stringify(guideConversationHistory));"
+  )
+  .replace(
+    "guideConversationHistory.push({ role: 'visitor', content: answer });",
+    "guideConversationHistory.push({ role: 'visitor', content: answer });\\n  console.log('[Guide QA HISTORY FOLLOWUP]', JSON.stringify(guideConversationHistory));"
+  );
 const CANDIDATE_ANSWER_CSS = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css", "utf8");
 let candidateControllerServed = false;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
