@@ -233,6 +233,21 @@ def test_epistemic_distress_prompt_disables_generic_practical_template():
     assert "METAPHYSICAL UNCERTAINTY DURING DISTRESS" not in governance_prompt
 
 
+def test_epistemic_distress_off_target_provider_answer_gets_one_bounded_repair_outside_evaluation():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    repair = source.index("EPISTEMIC-DISTRESS TASK-FIT REPAIR")
+    guard = source.rfind("evaluation is None", 0, repair)
+    deadline = source.index("deadline_monotonic=provider_deadline_monotonic", repair)
+    assert guard >= 0
+    assert deadline > repair
+    assert "epistemic_distress_task_fit_repair" in source[repair:deadline]
+    assert "unverifiable metaphysical claims as fact" in source[repair:deadline]
+
+
 def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_how_template():
     answer = compose_recovery(PAIN_IDENTITY_QUESTION)
     assert has_registered_recovery(PAIN_IDENTITY_QUESTION) is True
