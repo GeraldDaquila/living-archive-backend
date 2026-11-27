@@ -190,3 +190,17 @@ def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeyp
     assert result["doorway_selection_status"] == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
     assert result["doorway_selection_evaluated"] is True
     assert result["doorway_selection_source"] == "canonical_search_and_existing_relevance_gates"
+
+def test_multi_party_liberty_tradeoff_keeps_deterministic_answer_as_fallback_but_defers_early_route_to_provider():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    )
+    recovery = compose_task_specific_recovery(question)
+    assert recovery["recovery_id"] == "task_fair_community_rule_liberty_and_collective_obligations"
+    assert main._task_recovery_requires_attributable_composition(recovery) is True
+    assert main._task_recovery_requires_attributable_composition(CASES[0] and compose_task_specific_recovery(CASES[0][0])) is False
+
+
+def test_provider_precedence_helper_fails_closed_for_unrecognized_recovery_ids():
+    assert main._task_recovery_requires_attributable_composition({"recovery_id": "unknown"}) is False
+    assert main._task_recovery_requires_attributable_composition(None) is False
