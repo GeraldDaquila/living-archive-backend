@@ -259,3 +259,135 @@ def test_humility_contract_repair_instruction_expands_only_missing_dimensions():
     assert provider_bank._guide_contract_repair_instruction(
         "unrelated provider failure"
     ) is None
+
+
+def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch):
+    primary = {
+        "provider": "primary_provider",
+        "model": "primary-model",
+        "health_state": "healthy",
+        "quality_failures": 0,
+        "transport_failures": 0,
+        "consecutive_failures": 0,
+        "last_success": 0,
+        "capabilities": ["composition", "json_schema_strict"],
+    }
+    fallback = {
+        "provider": "fallback_provider",
+        "model": "fallback-model",
+        "health_state": "healthy",
+        "quality_failures": 0,
+        "transport_failures": 0,
+        "consecutive_failures": 0,
+        "last_success": 0,
+        "capabilities": ["composition", "json_schema_strict"],
+    }
+    state = {"state": "healthy", "probe_in_flight": False}
+    raw_outputs = iter(("incomplete-primary-output", "complete-fallback-output"))
+    provider_calls = []
+    parser_calls = []
+
+    monkeypatch.setattr(provider_bank, "_active_active_primary_assignment", lambda *args: False)
+    monkeypatch.setattr(provider_bank, "_current_gold_star_evaluation_context", lambda: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_bounded_request_provider_timeout",
+        lambda timeout, _deadline, **kwargs: timeout,
+    )
+    monkeypatch.setattr(provider_bank, "_active_active_role", lambda: "secondary")
+    monkeypatch.setattr(provider_bank, "refresh_server_capacity_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: [primary, fallback])
+    monkeypatch.setattr(provider_bank, "provider_input_exceeds_tpm_budget", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_capacity_begin_request", lambda: None)
+    monkeypatch.setattr(provider_bank, "_capacity_end_request", lambda **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_state", lambda *args: state)
+    monkeypatch.setattr(provider_bank, "_blocked_for_operation", lambda *args, **kwargs: False)
+    monkeypatch.setattr(provider_bank, "acquire_probe", lambda _state: True)
+    monkeypatch.setattr(provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 5.64)
+    monkeypatch.setattr(provider_bank, "_capabilities", lambda *args, **kwargs: {"json_schema_strict"})
+    monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, **kwargs: parsed)
+    monkeypatch.setattr(provider_bank, "_record_predictive_shadow", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_predictive_shadow_metrics",
+        lambda *args, **kwargs: {
+            "ewma_latency_seconds": 1.0,
+            "timeout_risk": 0.0,
+            "deadline_fit": True,
+        },
+    )
+    monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_record_quality_rejection", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_quota_guarded_call",
+        lambda _core, item, _messages, *_args, **_kwargs: (
+            provider_calls.append((item["provider"], item["model"])) or next(raw_outputs)
+        ),
+    )
+    monkeypatch.setattr(
+        provider_bank._gold_star_trace,
+        "set_provider_route_candidate_count",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        provider_bank._gold_star_trace,
+        "record_provider_candidate_outcome",
+        lambda *args, **kwargs: None,
+    )
+
+    def parse(raw):
+        parser_calls.append(raw)
+        if raw == "incomplete-primary-output":
+            raise ValueError(
+                "humility/spiritual-maturity answer is incomplete: "
+                "humility_supports_learning_and_correction"
+            )
+        return {"response": "A complete answer from the independent provider."}
+
+    result = provider_bank.route(
+        use_core=object(),
+        messages=[{"role": "user", "content": "What is the relationship between humility and spiritual maturity?"}],
+        max_tokens=750,
+        parse=parse,
+        operation="general_guide_composition",
+    )
+
+    assert result["provider"] == "fallback_provider"
+    assert result["model"] == "fallback-model"
+    assert provider_calls == [
+        ("primary_provider", "primary-model"),
+        ("fallback_provider", "fallback-model"),
+    ]
+    assert parser_calls == ["incomplete-primary-output", "complete-fallback-output"]
+
+
+def test_guide_contract_repair_preserves_viable_independent_fallback_timeout():
+    # A 5.64-second request remainder cannot support both a 5-second repair
+    # and a 5-second independent candidate. Skip repair rather than stranding
+    # the fallback after a successful but incomplete provider response.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        5.64, 5.64, "healthy"
+    ) == 0.0
+
+    # When both calls fit, bound the repair to the time remaining after the
+    # fallback's supported minimum timeout.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        12.0, 6.5, "healthy"
+    ) == 7.0
+
+
+def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
+    # A candidate already below its supported minimum is not a viable fallback;
+    # do not waste the current provider's repair opportunity reserving for it.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        5.64, 4.99, "healthy"
+    ) == 5.64
+
+    # Half-open candidates retain their explicitly supported probe minimum.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        10.0, 6.5, "half_open"
+    ) == 5.0
+
