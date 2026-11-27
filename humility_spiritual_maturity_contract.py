@@ -13,12 +13,12 @@ from gold_star_semantic_contract import remove_question_echo
 
 
 def is_humility_spiritual_maturity_question(query: str) -> bool:
-    question = re.sub(r"\\s+", " ", str(query or "")).strip().casefold()
+    question = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
     return bool(
-        re.search(r"\\bhumility\\b", question)
-        and re.search(r"\\bspiritual maturit(?:y|ies)\\b", question)
+        re.search(r"\bhumility\b", question)
+        and re.search(r"\bspiritual maturit(?:y|ies)\b", question)
         and re.search(
-            r"\\b(?:relationship|relation|connection|interplay|between|how do|how does|relate)\\b",
+            r"\b(?:relationship|relation|connection|interplay|between|how do|how does|relate)\b",
             question,
         )
     )
@@ -29,11 +29,11 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
     if not is_humility_spiritual_maturity_question(query):
         return {"applies": False, "passed": True, "checks": {}}
     low = re.sub(
-        r"\\s+", " ",
+        r"\s+", " ",
         remove_question_echo(str(query or ""), str(answer or "")).casefold(),
     ).strip()
     humility_present = "humility" in low
-    maturity_present = bool(re.search(r"\\bspiritual maturit(?:y|ies)\\b", low))
+    maturity_present = bool(re.search(r"\bspiritual maturit(?:y|ies)\b", low))
     learning_mechanism = (
         any(term in low for term in ("learning", "willing to learn", "remain teachable", "teachability"))
         and any(term in low for term in (
@@ -65,8 +65,8 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
             "not unquestioning compliance", "not blind obedience",
         ))
         or bool(re.search(
-            r"\\b(?:humility|it)\\s+(?:is not|isn't|does not mean|doesn't mean)\\b"
-            r"[^.!?;]{0,180}\\b(?:passivity|blind obedience|automatic compliance)\\b",
+            r"\b(?:humility|it)\s+(?:is not|isn't|does not mean|doesn't mean)\b"
+            r"[^.!?;]{0,180}\b(?:passivity|blind obedience|automatic compliance)\b",
             low,
         ))
     )
