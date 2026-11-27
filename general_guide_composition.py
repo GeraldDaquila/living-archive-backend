@@ -1061,10 +1061,10 @@ def _reflow_visitor_idea_chunking(response: str) -> str:
     text = str(response or "").strip()
     if not _requires_visitor_idea_chunking(text):
         return text
-    if re.search(r"\\n\\s*\\n+", text):
+    if re.search(r"\n\s*\n+", text):
         return text
 
-    matches = list(re.finditer(r"[^.!?]+[.!?](?=\\s|$)", text))
+    matches = list(re.finditer(r"[^.!?]+[.!?](?=\s|$)", text))
     if len(matches) < 5:
         return text
     sentences = [match.group(0).strip() for match in matches]
@@ -1077,7 +1077,7 @@ def _reflow_visitor_idea_chunking(response: str) -> str:
         r"the relationship|the practical test|a practical test|"
         r"finally|in practice|another|a second|the other direction|"
         r"in contrast|to apply|start by|begin by|make the obligations|"
-        r"the next question|the next step|the key test|a useful test)\\b",
+        r"the next question|the next step|the key test|a useful test)\b",
         re.I,
     )
     midpoint = len(sentences) / 2
@@ -1093,7 +1093,7 @@ def _reflow_visitor_idea_chunking(response: str) -> str:
             boundary,
         ))
     boundary = max(candidates)[2]
-    return " ".join(sentences[:boundary]) + "\\n\\n" + " ".join(sentences[boundary:])
+    return " ".join(sentences[:boundary]) + "\n\n" + " ".join(sentences[boundary:])
 
 
 def _requires_visitor_idea_chunking(response: str) -> bool:
