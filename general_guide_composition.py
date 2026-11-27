@@ -1087,7 +1087,7 @@ def _sanitize_candidate(text: Any) -> str:
     # an actually open single-quoted span; an unrelated earlier quote must not
     # mask a later orphan. Apostrophes inside words and terminal possessives are
     # not quote delimiters.
-    terminal_quote = re.search(r"(?<=[.!?])(['’])\\s*$", result)
+    terminal_quote = re.search(r"(?<=[.!?])(['’])\s*$", result)
     if terminal_quote:
         open_single_quote = False
         for index, char in enumerate(result[:terminal_quote.start(1)]):
