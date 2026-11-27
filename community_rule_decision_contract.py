@@ -118,5 +118,5 @@ def build_community_rule_decision_instruction() -> str:
         "test necessity, proportionality, and less restrictive workable means; state who benefits and "
         "who bears costs; address reasonable accommodation and fair burden allocation; include affected "
         "people in shaping the rule; specify appeal and review criteria. Treat each as distinct evidence, "
-        "not implied by fairness. Use coherent prose, not checklists; majority is not proof."
+        "not implied by fairness. Use prose, not checklists; majority is not proof."
     )
