@@ -1096,6 +1096,8 @@ def _sanitize_candidate(text: Any) -> str:
             if char == "‘":
                 open_single_quote = True
             elif char == "’":
+                if previous.isalnum() and following.isalnum():
+                    continue  # curly apostrophe inside a word
                 if open_single_quote:
                     open_single_quote = False
             elif char == "'":
