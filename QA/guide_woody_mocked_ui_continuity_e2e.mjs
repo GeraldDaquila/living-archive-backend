@@ -1,8 +1,11 @@
 import { chromium } from "playwright";
+import { readFileSync } from "node:fs";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
-const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.329.js";
+const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.332.js";
+const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js", "utf8");
+let candidateControllerServed = false;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
   "What does stewardship mean in everyday life?",
@@ -201,9 +204,25 @@ await page.route("**/*", async route => {
   mark("api_route_fulfill_completed", { query, requestCount: apiRequests.length });
 });
 
+
+// Replace only the page's controller asset with the PR candidate. The live
+// WordPress HTML/CSS and page structure remain real; API traffic stays mocked.
+// This executes v489.332 in-browser without activating it on production.
+await page.route("**/*", async route => {
+  const url = route.request().url();
+  if (/guide-controller-v489\\.\\d+\\.js(?:\\?|$)/.test(url)) {
+    candidateControllerServed = true;
+    mark("candidate_controller_injected", { requestedUrl: url, candidate: EXPECTED_CONTROLLER_ARTIFACT, bytes: CANDIDATE_CONTROLLER_SOURCE.length });
+    await route.fulfill({ status: 200, contentType: "application/javascript; charset=utf-8", body: CANDIDATE_CONTROLLER_SOURCE });
+    return;
+  }
+  await route.continue();
+});
+
 try {
   mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
+  if (!candidateControllerServed) throw new Error("Candidate controller v489.332 was not requested/injected; browser test would otherwise exercise production code.");
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
