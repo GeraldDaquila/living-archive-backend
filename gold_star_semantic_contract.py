@@ -228,12 +228,15 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
     elif kind == "lived_reflective_inquiry":
         experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*|hardship|experience)\b", low))
         experience_identity_relation = bool(re.search(
-            r"\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*)\b"
-            r".{0,180}\b(?:part of|not|without|rather than|does not|doesn't|more than|whole)\b"
-            r".{0,100}\b(?:identity|self|whole|person|story|who you are|who they are)\b"
-            r"|\b(?:identity|self|who you are|who they are)\b"
-            r".{0,160}\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*)\b"
-            r".{0,100}\b(?:not|without|rather than|part of|more than|whole)\b",
+            r"\\b(?:pain|suffer\\w*|hurt|grief|loss|trauma|shame|fear|wound\\w*)\\b"
+            r".{0,180}\\b(?:not|without|rather than|does not|doesn't|more than|no longer|all|whole)\\b"
+            r".{0,100}\\b(?:identity|self|whole|person|story|who you are|who they are)\\b"
+            r"|\\b(?:pain|suffer\\w*|hurt|grief|loss|trauma|shame|fear|wound\\w*)\\b"
+            r".{0,120}\\bpart of\\b.{0,100}\\b(?:identity|self|person|story)\\b"
+            r".{0,100}\\b(?:without|not|rather than|whole|more than)\\b"
+            r"|\\b(?:identity|self|who you are|who they are)\\b"
+            r".{0,100}\\b(?:more than|not defined by|not reduced to|not the whole of)\\b"
+            r".{0,100}\\b(?:pain|suffer\\w*|hurt|grief|loss|trauma|shame|fear|wound\\w*)\\b",
             low,
         ))
         add("addresses_named_lived_experience", experience_present, "The answer must engage the experience named by the visitor, not replace it with an adjacent planning framework.", hard=True)
