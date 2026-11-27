@@ -36,7 +36,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: guide-primary-provider-budgeted-live-validation-${{ inputs.target_service || 'primary' }}
+  group: guide-primary-provider-budgeted-live-validation-${{ github.event.inputs.target_service || 'primary' }}
   cancel-in-progress: false
 
 jobs:
