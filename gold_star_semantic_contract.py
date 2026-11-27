@@ -230,7 +230,11 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         )
     elif kind in {"epistemic_distress", "epistemic_distress_guidance"}:
         distress_present = bool(re.search(r"\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering|anguish)\b", low))
-        epistemic_boundary = bool(re.search(r"\b(?:evidence|belief|interpretation|experience|cannot establish|cannot know|not know|unverifiable|uncertain|uncertainty|not proven)\b", low))
+        epistemic_boundary = (
+            bool(re.search(r"\b(?:experience|experienced)\b", low))
+            and bool(re.search(r"\b(?:belief|interpretation|tradition)\b", low))
+            and bool(re.search(r"\b(?:evidence|verifiable|establish)\b", low))
+        )
         uncertainty_calibrated = bool(re.search(r"\b(?:cannot be known|cannot be established|cannot establish|cannot know|cannot verify|not know|not verifiable|unverifiable|uncertain|uncertainty|not proven|beyond available evidence|no reliable way to establish)\b", low))
         no_false_certainty = not bool(re.search(r"\b(?:definitely true|certainly true|proven beyond doubt|i can guarantee|i know with certainty)\b", low))
         agency_present = bool(re.search(r"\b(?:agency|choice|decide|reflect|think|grounded|autonomy|without dependence)\b", low))
