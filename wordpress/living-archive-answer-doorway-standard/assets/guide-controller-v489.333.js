@@ -2155,8 +2155,8 @@ async function useGuideSubmit(event) {
        * any of them must never erase a valid backend answer or be mislabeled
        * as a service connection failure.
        */
-      renderGuideAnswerContent(responseText, data.response);
-      var responseForPresentation = String(data.response || '').trim();
+      if (guideActiveRequestToken === requestToken) {
+        renderGuideAnswerContent(responseText, data.response);
         responseText.dataset.guideRequestToken = String(requestToken);
         responseText.dataset.guideResponseQuery = query;
       }
