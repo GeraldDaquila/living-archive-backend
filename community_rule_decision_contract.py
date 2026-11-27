@@ -114,7 +114,7 @@ def evaluate_community_rule_response(query: str, response: str) -> dict[str, Any
 
 def build_community_rule_decision_instruction() -> str:
     return (
-        "COMMUNITY LIBERTY LIMITS: State legitimate shared purpose and demonstrable harm; "
+        "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: State legitimate shared purpose and demonstrable harm; "
         "test necessity, proportionality, and less restrictive workable means; show who "
         "benefits, who bears costs, and whose liberty is restricted; include affected "
         "people in shaping the rule; require reasonable accommodation, fair burden "
