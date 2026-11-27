@@ -708,7 +708,7 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
         "type": "object",
         "properties": {
             "candidate_id": {"type": "string", "enum": candidate_ids},
-            "quote": {"type": "string"},
+            "quote": {"type": "string", "maxLength": 240},
         },
         "required": ["candidate_id", "quote"],
         "additionalProperties": False,
@@ -3704,6 +3704,13 @@ def _has_grounded_illustrative_example(response: str) -> bool:
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
+    # A narrower task-specific relational contract is authoritative when it
+    # applies. Do not let the generic mechanism lexicon reject a complete
+    # humility/spiritual-maturity answer merely because it uses a valid
+    # mechanism verb such as "cultivates" rather than a generic cue.
+    humility_report = evaluate_humility_spiritual_maturity_response(question, response)
+    if humility_report.get("applies"):
+        return humility_report.get("passed") is True
     text = _normalize_space(response).casefold()
     mechanism = bool(re.search(
         r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables|by letting|by allowing|through|creates? opportunities|more willing to|more likely to)\b",
