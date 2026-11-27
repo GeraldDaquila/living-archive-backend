@@ -4,15 +4,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.333.js";
-const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8")
-  .replace(
-    "guideConversationHistory.push({\n        role: 'assistant',\n        content: data.response\n      });",
-    "guideConversationHistory.push({\n        role: 'assistant',\n        content: data.response\n      });\n      console.log('[Guide QA HISTORY MAIN]', JSON.stringify(guideConversationHistory));"
-  )
-  .replace(
-    "guideConversationHistory.push({ role: 'visitor', content: answer });",
-    "guideConversationHistory.push({ role: 'visitor', content: answer });\n  console.log('[Guide QA HISTORY FOLLOWUP]', JSON.stringify(guideConversationHistory));"
-  );
+const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
 const CANDIDATE_ANSWER_CSS = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css", "utf8");
 let candidateControllerServed = false;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
@@ -48,7 +40,6 @@ page.on("console", message => {
   const messageText = message.text();
   if (message.type() === "error") consoleErrors.push(messageText);
   if (messageText.startsWith("[Guide QA]")) mark("browser_event_trace", { message: messageText });
-  if (messageText.startsWith("[Guide QA HISTORY")) mark("conversation_history_trace", { message: messageText });
   if (messageText.startsWith("[Guide QA API]")) {
     try { apiRequests.push(JSON.parse(messageText.slice("[Guide QA API] ".length))); } catch {}
   }
@@ -521,7 +512,6 @@ try {
     expectedHistoryItemCount: expectedHistoryItems.length,
     foundHistoryItemCount: foundHistoryItems.length,
     foundHistoryItems,
-    historySnapshot: Array.isArray(replyRequest?.body?.history) ? replyRequest.body.history.map(item => ({ role: item.role, content: item.content })) : null,
     continuityPassed,
     pageErrors,
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
