@@ -1131,7 +1131,9 @@ def _openai_compatible_text(content):
         for item in content:
             if isinstance(item, str):
                 if item.strip():
-                    chunks.append(item.strip())
+                    # Preserve boundary whitespace: providers may encode
+                    # paragraph separators at the edge of adjacent text blocks.
+                    chunks.append(item)
                 continue
             if not isinstance(item, dict):
                 continue
@@ -1139,7 +1141,9 @@ def _openai_compatible_text(content):
                 continue
             value = item.get("text")
             if isinstance(value, str) and value.strip():
-                chunks.append(value.strip())
+                # Trim only the completed message, never each block: doing so
+                # collapses paragraph boundaries carried between typed blocks.
+                chunks.append(value)
         return "".join(chunks).strip()
     return ""
 
@@ -1733,6 +1737,11 @@ def select(use_core, operation="generic", schema=None):
                     groq_120b_priority,
                     0 if last_success > 0 else 1,
                     int(item.get("consecutive_failures", 0) or 0),
+                    # Within the same health tier, give a model with an explicit
+                    # low-latency capability the first usable slot. A more recent
+                    # but slower sibling must not consume the bounded window and
+                    # strand the proven fast candidate behind it.
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
                     # Prefer demonstrated recent viability before stale lifetime
                     # transport totals or static model preferences. A model that
                     # just completed a real inference must not sit behind a
@@ -1743,7 +1752,6 @@ def select(use_core, operation="generic", schema=None):
                     nvidia_direct_answer_priority,
                     int(item.get("quality_failures", 0) or 0),
                     prediction_penalty,
-                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
                 )
             models.sort(key=_predictive_rank)
         else:

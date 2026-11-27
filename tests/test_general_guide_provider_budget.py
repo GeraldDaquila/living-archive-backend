@@ -1284,7 +1284,7 @@ def test_openai_compatible_adapter_extracts_typed_text_blocks(monkeypatch):
         timeout=5,
     )
 
-    assert str(output) == '{"response":"A grounded answer."}'
+    assert str(output) == '{"response": "A grounded answer."}'
     assert output.completion_tokens == 42
 
 
@@ -1333,3 +1333,76 @@ def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monke
 )
 def test_contract_rejection_reason_telemetry_is_bounded_and_content_free(reason, expected):
     assert provider_bank._contract_rejection_reason_code(reason) == expected
+
+
+
+def test_openai_compatible_adapter_preserves_paragraph_separators_between_text_blocks(monkeypatch):
+    monkeypatch.setattr(
+        provider_bank,
+        "_http_json",
+        lambda *args, **kwargs: {
+            "choices": [{
+                "message": {
+                    "content": [
+                        {"type": "reasoning", "text": "must remain hidden"},
+                        {"type": "text", "text": "First paragraph has a distinct function. It develops one idea.\n\n"},
+                        {"type": "output_text", "text": "Second paragraph advances the next idea. It adds a consequence."},
+                    ],
+                },
+                "finish_reason": "stop",
+            }],
+        },
+    )
+
+    output = provider_bank._openai_compatible(
+        "https://api.nvidia.com/v1",
+        "test-key",
+        "nvidia",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        [{"role": "user", "content": "test"}],
+        200,
+        schema={"mode": "text"},
+        timeout=5,
+    )
+
+    assert str(output) == (
+        "First paragraph has a distinct function. It develops one idea.\n\n"
+        "Second paragraph advances the next idea. It adds a consequence."
+    )
+    assert "must remain hidden" not in str(output)
+
+
+
+def test_guide_nvidia_lane_prefers_proven_low_latency_model_over_newer_slow_sibling(monkeypatch):
+    candidates = [
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+            "health_state": "half_open",
+            "last_success": 2000.0,
+            "transport_failures": 10,
+            "consecutive_failures": 1,
+            "quality_failures": 0,
+            "capabilities": ["composition", "reasoning"],
+        },
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            "health_state": "half_open",
+            "last_success": 1000.0,
+            "transport_failures": 100,
+            "consecutive_failures": 1,
+            "quality_failures": 0,
+            "capabilities": ["composition", "reasoning", "low_latency"],
+        },
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: [])
+    monkeypatch.setattr(provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 5.0)
+    monkeypatch.setattr(
+        provider_bank,
+        "_STATE",
+        {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}},
+    )
+
+    selected = provider_bank.select(object(), operation="general_guide_composition")
+
+    assert selected[0]["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
