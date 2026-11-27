@@ -1132,3 +1132,28 @@ def test_explicit_exact_answer_authority_enforces_frozen_answer():
     checks = evaluate_gold(record, transport)
     exact = next(item for item in checks if item["name"] == "exact_answer")
     assert exact["passed"] is False
+
+def test_live_browser_acceptance_covers_exact_humility_question_on_mobile_and_uploads_evidence():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    browser_script = (root / "QA" / "guide_healthy_community_live_e2e.mjs").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "guide-healthy-community-live-e2e.yml").read_text(encoding="utf-8")
+
+    assert 'viewport: { width: 390, height: 844 }' in browser_script
+    assert "deviceScaleFactor: 2" in browser_script
+    assert "isMobile: true" in browser_script
+    assert 'const humilityQuery = "What is the relationship between humility and spiritual maturity?";' in browser_script
+    assert "provenance.provider_invocation_id" in browser_script
+    assert "Spirituality Without Escapism: Staying Human During Awakening Narratives" in browser_script
+    assert "guide-humility-live-mobile.png" in browser_script
+    assert "guide-humility-live-mobile.png" in workflow
+    assert "if: github.event_name != 'pull_request'" in workflow
+    assert "Upload real mobile visitor rendering evidence" in workflow
+
+
+def test_humility_live_case_is_in_the_provider_priority_invocation_id_gate():
+    assert "heldout-humility-spiritual-maturity-nearmiss-001" in live_evaluation.PROVIDER_PRIORITY_HELDOUT_IDS
+    source = Path(live_evaluation.__file__).read_text(encoding="utf-8")
+    assert 'if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:' in source
+    assert 'check("provider_invocation_id"' in source
