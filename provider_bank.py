@@ -1737,6 +1737,11 @@ def select(use_core, operation="generic", schema=None):
                     groq_120b_priority,
                     0 if last_success > 0 else 1,
                     int(item.get("consecutive_failures", 0) or 0),
+                    # Within the same health tier, give a model with an explicit
+                    # low-latency capability the first usable slot. A more recent
+                    # but slower sibling must not consume the bounded window and
+                    # strand the proven fast candidate behind it.
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
                     # Prefer demonstrated recent viability before stale lifetime
                     # transport totals or static model preferences. A model that
                     # just completed a real inference must not sit behind a
@@ -1747,7 +1752,6 @@ def select(use_core, operation="generic", schema=None):
                     nvidia_direct_answer_priority,
                     int(item.get("quality_failures", 0) or 0),
                     prediction_penalty,
-                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
                 )
             models.sort(key=_predictive_rank)
         else:
