@@ -3470,11 +3470,11 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
     )
     trust_supports_openness = bool(
         re.search(
-            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
+            r"\btrust\b[^.!?]{0,100}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b[^.!?]{0,100}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
             text,
         )
         or re.search(
-            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b.{0,120}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b.{0,100}\btrust\b",
+            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b[^.!?]{0,100}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b[^.!?]{0,100}\btrust\b",
             text,
         )
         or (
