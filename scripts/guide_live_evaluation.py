@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from gold_star_semantic_contract import remove_question_echo as _remove_question_echo
+from community_rule_decision_contract import evaluate_community_rule_response
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
@@ -385,56 +386,15 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 attributable,
                 f"Community-rule transfer must be produced by an attributable LLM response, not deterministic fallback; observed {provenance!r}.",
             ))
-        purpose=any(x in low for x in (
-            "shared purpose", "shared need", "shared obligations", "coordination problem",
-            "coordination need", "demonstrable harm", "actual harm", "common need", "shared goal",
-        ))
-        proportionality=any(x in low for x in ("proportionate","proportionality","necessary","least restrictive","least-restrictive"))
-        burden=any(x in low for x in (
-            "who benefits", "who bears", "who carries", "fairly distributed", "fair burden",
-            "fair burden allocation", "bears burdens fairly", "burdens fairly", "burden fairly",
-            "does not disproportionately fall", "not disproportionately borne",
-            "costs and benefits", "benefits and costs",
-        ))
-        accommodation=any(x in low for x in (
-            "accommodation", "accommodated", "reasonable accommodation", "accommodate different needs",
-            "accommodate if possible", "accommodate where possible", "reasonable adjustments",
-            "adjustments where needed", "adjustment for disability", "individual adjustment",
-        ))
-        # Participation must occur in forming the rule/decision. A later right
-        # to appeal or request review is a separate safeguard and cannot satisfy
-        # this dimension by itself.
-        participation=any(x in low for x in (
-            "people most affected should have a meaningful opportunity to shape",
-            "affected people should have a meaningful opportunity to shape",
-            "those affected should have a meaningful opportunity to shape",
-            "affected people's participation in shaping",
-            "affected people’s participation in shaping",
-            "shaped by the people most affected",
-            "shaped by people most affected",
-            "shaped by those most affected",
-            "shaped by affected people",
-            "people affected participate in shaping",
-            "participation of affected people in shaping",
-            "participation by affected people in shaping",
-            "meaningful participation from those affected",
-            "meaningful participation by affected",
-            "meaningful participation in designing",
-            "shape the decision",
-            "shape the rule",
-            "participate in setting the rule",
-            "participate in designing the rule",
-            "participate in shaping the rule",
-            "include affected people in designing",
-            "include those affected in shaping",
-            "input from those affected before",
-            "solicit input from those whose liberty would be curtailed",
-        ))
-        appeal=any(x in low for x in ("appeal","question the rule","challenge its application","review point","review the rule","observable criteria"))
-        majority_only=(
-            bool(re.search(r"\bmajority\b.{0,40}\b(?:can|may|should|is entitled to|has the right to)\b.{0,80}\b(?:restrict|limit|control)\b", low))
-            or any(x in low for x in ("majority preference is enough","majority alone justifies","collective convenience alone justifies"))
-        )
+        community_report = evaluate_community_rule_response(case.get("query", ""), answer)
+        community_checks = community_report.get("checks") or {}
+        purpose = community_checks.get("legitimate_shared_purpose", False)
+        proportionality = community_checks.get("necessity_and_least_restrictive_means", False)
+        burden = community_checks.get("fair_burden_allocation", False)
+        accommodation = community_checks.get("reasonable_accommodation", False)
+        participation = community_checks.get("affected_party_participation", False)
+        appeal = community_checks.get("appeal_and_review", False)
+        majority_only = bool(community_report.get("majority_only"))
         doorway_title=str(rec.get("title") or "") if isinstance(rec,dict) else ""
         doorway_url=str(rec.get("url") or "") if isinstance(rec,dict) else ""
         expected_title=str((expected_doorway or {}).get("title") or "").strip()
