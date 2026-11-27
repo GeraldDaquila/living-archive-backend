@@ -17,7 +17,7 @@ def test_user_approved_pain_identity_gold_star_is_frozen_exactly():
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_response"].count("\\n\\n") == 4
+    assert record["expected_response"].count("\n\n") == 4
     assert record["rating"] is None
     assert record["assistant_assessment_out_of_10"] == 9.0
     assert record["explicit_user_elevation_approval"] is True
