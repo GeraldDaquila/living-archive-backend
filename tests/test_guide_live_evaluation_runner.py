@@ -438,11 +438,29 @@ def test_provider_probe_query_is_distinct_from_primary_visitor_smoke_to_avoid_ca
     assert all(term in probe.casefold() for term in ("employees", "customers", "residents"))
 
 
-def test_provider_probe_runs_before_heldout_workload_to_preserve_shared_tpm_budget():
+def test_provider_probe_runs_after_heldout_workload_to_preserve_critical_provider_capacity():
     import inspect
 
     source = inspect.getsource(live_evaluation.main)
-    assert source.index("provider_probe_started_at") < source.index("for index,(split,item) in enumerate(workload)")
+    assert source.index("for index,(split,item) in enumerate(workload)") < source.index("provider_probe_started_at")
+    assert source.index('report["provider_probe"]') < source.index('gold=[x for x in report["results"]')
+
+
+def test_critical_heldout_cases_require_final_provider_invocation_id():
+    import inspect
+
+    source = inspect.getsource(live_evaluation.main)
+    assert 'if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:' in source
+    assert '"provider_invocation_id"' in source
+    assert "bool(provider_invocation_id(body))" in source
+
+
+def test_provider_probe_is_diagnostic_not_a_second_acceptance_gate():
+    import inspect
+
+    source = inspect.getsource(live_evaluation.main)
+    assert '"overall_pass":all(x["passed"] for x in report["results"])' in source
+    assert '"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks)' not in source
 
 
 def test_provider_probe_is_concise_and_forbids_inline_urls_and_resources():
