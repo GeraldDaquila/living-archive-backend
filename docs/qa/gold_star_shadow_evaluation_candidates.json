@@ -17,7 +17,8 @@
       "deterministic_fallback_eligible": false,
       "exact_answer_authority": false,
       "production_selector_visible": false,
-      "evaluation_only": true
+      "evaluation_only": true,
+      "evaluation_abstention_boundary": "Apply this reasoning discipline only when a question combines metaphysical or spiritual certainty-seeking with credible fear, grief, or distress. Do not copy the exemplar's exact answer, diagnose the person, infer their beliefs or history, claim special authority, or present unverifiable metaphysical claims as fact. Preserve personal meaning without treating it as proof. Do not apply this distress-oriented response to ordinary philosophical, theological, or academic questions; abstain when the qualifying context is absent."
     }
   ]
 }
