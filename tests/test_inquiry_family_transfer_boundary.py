@@ -97,7 +97,9 @@ def test_semantic_contract_rejects_governance_substitution_and_accepts_lived_ans
 def test_final_response_floor_enforces_lived_reflective_task_fit():
     result = evaluate_response_floor(
         PAIN_IDENTITY_QUESTION,
-        {"ok": True, "intent": "TOPICAL_INQUIRY", "response": OFF_TARGET_GOVERNANCE_ANSWER,
+        {"ok": True, "query": PAIN_IDENTITY_QUESTION, "intent": "TOPICAL_INQUIRY",
+         "response": OFF_TARGET_GOVERNANCE_ANSWER,
+         "response_provenance": {"class": "deterministic_fallback"},
          "route_source": "general_guide_composition"},
     )
     assert result["status"] == "fail"
