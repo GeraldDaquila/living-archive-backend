@@ -231,7 +231,7 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
     elif kind in {"epistemic_distress", "epistemic_distress_guidance"}:
         sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", low) if part.strip()]
         opening = " ".join(sentences[:2])
-        distress_present = bool(re.search(r"\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering|anguish|frightening|painful)\b", low))
+        distress_present = bool(re.search(r"\b(?:distress|distressed|fear|afraid|scared|frightened|grief|grieving|panic|overwhelmed|vulnerable|suffering|anguish|frightening|painful)\b", low))
         opening_meets_distress = bool(re.search(
             r"\b(?:frightened|afraid|grieving|grief|distressed|overwhelmed|uncertain|scared|painful)\b",
             opening,
