@@ -81,6 +81,7 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         "general-guide-governance-balance-consequence-aware-2026-11-24",
         "general-guide-metaphysical-certainty-distress-response-exemplar-2026-11-27",
         "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28",
+        "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28",
     }
 
 
