@@ -171,8 +171,8 @@ def test_provider_parser_rejects_transparency_trust_answer_without_privacy_bound
 def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marker():
     response = (
         "Transparency supports justified trust because decisions and reasons can be inspected, "
-        "questioned, and corrected. When people trust the process, they are more likely to share "
-        "information, raise concerns, and take part candidly; institutions must respond honestly. "
+        "questioned, and corrected.\n\nWhen people trust the process, they are more likely to share "
+        "information, raise concerns, and take part candidly; institutions must respond honestly.\n\n"
         "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
         "trustworthy, and trust cannot replace accountability. For example, publishing a decision's "
         "reasons lets affected people compare stated grounds with actual conduct, identify inconsistencies, "
@@ -190,8 +190,8 @@ def test_provider_parser_accepts_pair_specific_reciprocity_without_generic_marke
 def test_transparency_trust_accepts_equivalent_reciprocal_mechanism_wording():
     response = (
         "Transparency supports justified trust because decisions and reasons can be inspected, "
-        "questioned, and corrected. When people trust the process, they are more likely to share "
-        "information, raise concerns, and take part candidly; institutions must respond honestly. "
+        "questioned, and corrected.\n\nWhen people trust the process, they are more likely to share "
+        "information, raise concerns, and take part candidly; institutions must respond honestly.\n\n"
         "Neither transparency nor trust guarantees the other: disclosure cannot make harmful conduct "
         "trustworthy, and trust cannot replace accountability."
     )

@@ -3479,37 +3479,55 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
         r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables|by letting|by allowing|through|creates? opportunities|more willing to|more likely to)\b",
         text, re.I,
     ))
-    if len(text.split()) < 65 or not mechanism:
+    if len(text.split()) < 45 or not mechanism:
         return False
     concepts = _conceptual_relationship_terms(question) if question else []
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
 
 
 def _has_transparency_trust_reciprocity(response: str) -> bool:
-    """Require both directions and the non-guarantee boundary for this concept pair."""
+    """Require sentence-level evidence for both causal directions and limits.
+
+    Sentence scoping prevents a one-way claim from borrowing a later mention
+    of disclosure to impersonate the reverse mechanism.
+    """
     text = _normalize_space(response).casefold()
-    transparency_supports_trust = bool(
-        re.search(r"\btransparency\b.{0,220}\b(?:trust|confidence)\b", text)
-        and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct)\w*\b", text)
+    sentences = [
+        part.strip()
+        for part in re.split(r"(?<=[.!?])\s+|;\s+", text)
+        if part.strip()
+    ]
+    transparency_supports_trust = any(
+        re.search(r"\btransparency\b.{0,180}\b(?:trust|confidence)\b", sentence)
+        and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct|verify|review)\w*\b", sentence)
+        for sentence in sentences
     )
-    trust_supports_openness = bool(
-        re.search(
-            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
-            text,
+    trust_supports_openness = any(
+        re.search(r"\btrust\b", sentence)
+        and re.search(
+            r"\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|"
+            r"more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|"
+            r"promot\w*|make\w* transparency more possible|make\w* it (?:safer|easier))\b",
+            sentence,
         )
-        or re.search(
-            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b.{0,120}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b.{0,100}\btrust\b",
-            text,
+        and re.search(
+            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|"
+            r"speak up|ask candid questions)\b",
+            sentence,
         )
-        or (
-            re.search(r"\btrust\b.{0,160}\b(?:also\s+)?make\s+transparency\s+more\s+possible\b", text)
-            and re.search(r"\b(?:share information|ask candid questions|engage openly|raise concerns|speak up)\b", text)
-        )
+        for sentence in sentences
     )
-    non_guarantee = bool(
-        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
-    )
+    non_guarantee = bool(re.search(
+        r"\b(?:neither(?: transparency nor trust| side)? guarantees? the other|"
+        r"not automatically|does not guarantee|doesn't guarantee|cannot guarantee|"
+        r"can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|"
+        r"not sufficient|cannot by itself create|can't by itself create|"
+        r"disclosure cannot make .{0,80} trustworthy|disclosure does not make .{0,80} trustworthy|"
+        r"trust cannot replace|trust does not remove|trust doesn't remove)\b",
+        text,
+    ))
     return transparency_supports_trust and trust_supports_openness and non_guarantee
+
 
 
 def _has_transparency_trust_disclosure_boundary(response: str) -> bool:
@@ -3745,7 +3763,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     ):
         return (
             "Transparency and trust are related, but they are not the same thing. Transparency means making relevant decisions, reasons, evidence, and processes visible enough to be examined; trust is the confidence that a person or institution will act with sufficient honesty, competence, consistency, and regard for those affected. "
-            "Transparency can support justified trust because people are better able to understand what is being done, assess whether explanations match conduct, and identify mistakes or conflicts of interest. Visibility creates the possibility of scrutiny; trustworthy conduct is what gives that scrutiny a reason to build confidence.\n\n"
+            "Transparency can support justified trust because people are better able to understand what is being done, assess whether explanations match conduct, and identify mistakes or conflicts of interest. Visibility creates the possibility of scrutiny, and when transparency makes that scrutiny possible, people can assess whether conduct warrants trust; trustworthy conduct is what gives that scrutiny a reason to build confidence.\n\n"
             "The relationship can also work in the other direction. Where people have reasonable trust, they may be more willing to share information, raise concerns, and engage openly; where institutions respond to that openness with candour and correction, trust can deepen. But neither side guarantees the other. Disclosure without context can confuse or mislead, and an institution can be transparent about a poor decision without making the decision trustworthy. Trust built on secrecy, meanwhile, may be fragile because people cannot independently assess what they are being asked to rely on.\n\n"
             "The practical test is whether transparency makes conduct meaningfully answerable: are the reasons clear, can affected people question them safely, are errors acknowledged, and does behaviour change when evidence warrants it? Transparency should not mean exposing private or sensitive information indiscriminately; legitimate confidentiality must be protected while decisions and uses of power remain accountable. In short, transparency gives people grounds to evaluate trust, while trustworthy conduct gives transparency credibility. This is a general conceptual explanation, not a claim that the Living Archive states a formal definition of either term."
         )
