@@ -24,10 +24,18 @@ _LIVED_FRAME = re.compile(
     r"reconcile|integrate|heal|recover|remain|stay)\b",
     re.I,
 )
+# Keep this a three-signal boundary: metaphysical subject, certainty-seeking,
+# and a credible vulnerability or loss cue. Ordinary bereavement language
+# should qualify without requiring academic or clinical vocabulary.
 _EPISTEMIC_DISTRESS = re.compile(
-    r"(?=.*\b(?:metaphysical|spiritual|ultimate|existential)\b)"
-    r"(?=.*\b(?:certainty|certain|truth|proof|know for sure)\b)"
-    r"(?=.*\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering|frighten\w*|anxious|anxiety|desperate)\b).*",
+    r"(?=.*\b(?:metaphysical|spiritual|ultimate|existential|afterlife|life after death|"
+    r"soul|heaven|hell|divine|god|consciousness|death|die|died|what happens after death)\b)"
+    r"(?=.*\b(?:certainty|certain|truth|proof|know for sure|can anyone know|need to know|"
+    r"is there|somewhere|does .{1,45} exist|is .{1,45} real|is .{1,45} somewhere|"
+    r"gone forever|never see .{1,45} again)\b)"
+    r"(?=.*\b(?:distress|distressed|fear|grief|loss|bereave\w*|mourning|"
+    r"panic|overwhelmed|vulnerable|suffering|frighten\w*|anxious|anxiety|"
+    r"desperate|died|death of|gone|scared|terrified)\b).*",
     re.I,
 )
 _GUIDE_RESPONSE_REQUEST = re.compile(
