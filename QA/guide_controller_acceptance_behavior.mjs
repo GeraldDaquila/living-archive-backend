@@ -3,7 +3,7 @@ import vm from "node:vm";
 import { readFileSync } from "node:fs";
 
 const controller = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js","utf8");
-const start = controller.indexOf("function createGuideApplicationContractError");
+const start = controller.indexOf("function hasInternalGuideLanguage");
 const end = controller.indexOf("/* ================================================================\n   SAFETY BOUNDARY", start);
 const safetyStart = controller.indexOf("function hasAuthoritativeSafetyPayload");
 const safetyEnd = controller.indexOf("function naturalizeSafetyMessage", safetyStart);
