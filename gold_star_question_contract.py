@@ -186,6 +186,30 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         }
         contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
         contract["meta_governance"] = meta_governance_contract
+    elif inquiry_family.get("family") == "personal_lived_reflective":
+        contract["domain"] = {
+            "primary": "human_experience",
+            "subdomain": "lived_reflection_and_identity",
+        }
+        contract["requested_outcome"] = "understand_lived_experience_without_identity_reduction"
+        contract["reasoning_mode"] = "lived_reflective_discernment"
+        contract["evidence"] = {
+            "standard": "humane_general_knowledge_with_personal_context_boundary",
+            "provenance_required": False,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "the_persons_specific_history_and_needs_are_not_assumed"
+        ]
+        contract["response"] = {
+            "shape": "reflective_explanation",
+            "completion_criteria": [
+                "address_the_named_lived_experience",
+                "preserve_the_person_experience_distinction",
+                "avoid_unrequested_governance_or_task_framework",
+                "avoid_diagnosis_and_assumed_personal_history",
+            ],
+        }
+        contract["resolution"]["clarification"] = "only_if_the_persons_actual_need_is_unclear"
     elif institutional_learning_failure:
         contract["domain"] = {
             "primary": "organizational_systems",
