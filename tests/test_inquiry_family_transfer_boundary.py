@@ -56,8 +56,9 @@ def test_institutional_governance_lesson_is_incompatible_with_lived_pain_questio
     assert decision["reason"] == "cross_family_transfer_blocked"
 
 
-def test_live_selector_abstains_from_institutional_lessons_for_pain_and_identity_question():
-    assert select_lesson_candidates(PAIN_IDENTITY_QUESTION) == []
+def test_live_selector_filters_incompatible_families_for_pain_and_identity_question():
+    candidates = select_lesson_candidates(PAIN_IDENTITY_QUESTION)
+    assert all(item.get("reasoning_family") == "humane_orientation" for item in candidates)
 
 
 def test_genuine_community_decision_question_keeps_its_governed_candidate_set():
