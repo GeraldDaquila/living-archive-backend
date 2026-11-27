@@ -39,7 +39,7 @@
     "active_quality_contributor": false,
     "deterministic_fallback_eligible": false,
     "standalone_response_quality_exemplar": true,
-    "abstention_boundary": "NOT_EVALUATED: standalone response-quality exemplar only; no runtime or adaptive transfer, no exact-answer authority, and no deterministic fallback. Do not infer beliefs, diagnosis, or an unverified doorway destination."
+    "abstention_boundary": "NOT_EVALUATED: Immutable response-quality exemplar only. Do not copy the exact answer to other questions, assert unverifiable metaphysical claims as fact, diagnose the person, infer their beliefs or history, or grant deterministic fallback or runtime/adaptive transfer. Apply only to metaphysical certainty-seeking in the context of fear, grief, or distress, not ordinary philosophical, theological, or academic questions. The related-reading title was visible but its canonical URL was not captured; do not infer a destination."
   },
   "user_approved_at": "2026-11-27",
   "elevation_approval_evidence": "The user explicitly instructed: 'elevate to gold star' after reviewing the exact live visitor-facing screenshot and receiving the assistant's 9.0/10 assessment. This authorizes immutable response-quality exemplar status only.",
