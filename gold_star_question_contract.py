@@ -98,7 +98,9 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             )
         )
     )
-    if inquiry_family.get("family") == "personal_lived_reflective":
+    if inquiry_family.get("family") in {"epistemic_distress", "epistemic_distress_guidance"}:
+        task_candidate = {"type": inquiry_family["family"]}
+    elif inquiry_family.get("family") == "personal_lived_reflective":
         task_candidate = {"type": "lived_reflective_inquiry"}
     institutional_learning_failure = task_candidate.get("type") == "institutional_learning_failure" and not multi_intent
     personal_reference = is_personal_reference_question(normalized)
@@ -186,6 +188,34 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         }
         contract["resolution"]["handoff"] = "not_applicable_for_policy_question"
         contract["meta_governance"] = meta_governance_contract
+    elif inquiry_family.get("family") in {"epistemic_distress", "epistemic_distress_guidance"}:
+        contract["domain"] = {
+            "primary": "epistemology_and_human_support",
+            "subdomain": "metaphysical_uncertainty_during_distress",
+        }
+        contract["requested_outcome"] = "respond_compassionately_without_manufacturing_metaphysical_certainty"
+        contract["reasoning_mode"] = "epistemic_humility_and_agency_support"
+        contract["evidence"] = {
+            "standard": "distinguish_experience_belief_interpretation_and_verifiable_evidence",
+            "provenance_required": False,
+        }
+        contract["uncertainty"]["material_unknowns"] = [
+            "the_visitors_specific_beliefs_and_distress_context_are_not_assumed",
+            "metaphysical_claims_may_not_be_empirically_resolvable",
+        ]
+        contract["response"] = {
+            "shape": "compassionate_epistemic_guidance",
+            "completion_criteria": [
+                "recognize_the_human_need_behind_certainty_seeking",
+                "distinguish_experience_belief_interpretation_and_evidence",
+                "do_not_assert_unverifiable_metaphysical_certainty",
+                "preserve_visitor_agency_and_independent_judgment",
+                "offer_human_support_if_immediate_safety_is_at_risk",
+                "avoid_unrequested_governance_or_decision_framework",
+            ],
+        }
+        contract["resolution"]["clarification"] = "only_if_the_visitors_actual_need_or_immediate_safety_is_unclear"
+        contract["resolution"]["handoff"] = "human_support_if_immediate_safety_is_at_risk"
     elif inquiry_family.get("family") == "personal_lived_reflective":
         contract["domain"] = {
             "primary": "human_experience",

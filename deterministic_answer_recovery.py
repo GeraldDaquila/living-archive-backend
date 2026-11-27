@@ -1147,6 +1147,7 @@ def has_registered_recovery(question):
         or is_epistemic_category_distinction_question(question)
         or is_human_development_comparison_question(question)
         or classify_inquiry_family(question).get("family") == "personal_lived_reflective"
+        or _is_epistemic_distress_guidance_question(question)
         or bool(compose_task_specific_recovery(question))
     )
 
@@ -2052,6 +2053,20 @@ def _self_optimization_model_limits_recovery():
     )
 
 
+def _is_epistemic_distress_guidance_question(question):
+    family = classify_inquiry_family(question).get("family")
+    return family in {"epistemic_distress", "epistemic_distress_guidance"}
+
+
+def _epistemic_distress_guidance_recovery():
+    """Offer humane epistemic guidance without claiming metaphysical authority."""
+    return (
+        "When someone seeks metaphysical certainty during distress, the Guide should first recognize the human need beneath the question. Uncertainty can feel especially difficult when a person is frightened, grieving, overwhelmed, or searching for something stable to hold onto. The response should meet that vulnerability with patience and compassion, not use it as an opening to claim authority over what cannot be known.\n\n"
+        "The Guide should distinguish what the person has experienced, what that experience means to them, what a spiritual or philosophical tradition believes, and what evidence can actually establish. It should neither ridicule nor dismiss a belief, but it must not present an unverifiable claim about the afterlife, a soul, divine purpose, or ultimate reality as settled fact. Meaning can be explored honestly while uncertainty remains visible.\n\n"
+        "The aim is to support the person's capacity to think, reflect, and choose without making them dependent on the Guide for certainty. Ask what would help them feel grounded now, respect their own beliefs and judgment, and encourage trusted human support when distress is difficult to carry. If there are signs of immediate danger or inability to stay safe, prioritize timely help from a trusted person or appropriate emergency support. The Guide can accompany reflection; it must not impersonate an oracle, clinician, or final authority."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -2059,6 +2074,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    if _is_epistemic_distress_guidance_question(q):
+        return _epistemic_distress_guidance_recovery()
 
     if is_self_optimization_model_limits_question(q):
         return _self_optimization_model_limits_recovery()

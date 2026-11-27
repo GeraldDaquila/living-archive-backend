@@ -24,6 +24,18 @@ _LIVED_FRAME = re.compile(
     r"reconcile|integrate|heal|recover|remain|stay)\b",
     re.I,
 )
+_EPISTEMIC_DISTRESS = re.compile(
+    r"(?=.*\b(?:metaphysical|spiritual|ultimate|existential)\b)"
+    r"(?=.*\b(?:certainty|certain|truth|proof|know for sure)\b)"
+    r"(?=.*\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering|frighten\w*|anxious|anxiety|desperate)\b).*",
+    re.I,
+)
+_GUIDE_RESPONSE_REQUEST = re.compile(
+    r"\b(?:guide|assistant)\b.{0,100}\b(?:respond|answer|handle|support)\b"
+    r"|\bhow should\b.{0,80}\b(?:guide|assistant)\b",
+    re.I,
+)
+
 _GOVERNANCE_QUERY = re.compile(r"\b(?:community|communities|organization|organisation|institution|team|board|policy|rule|governance|stakeholder)\b", re.I)
 _GOVERNANCE_ACTION = re.compile(r"\b(?:decision|decide|authority|accountability|responsibility|outcome|rule|policy|tradeoff|limits?|restrict|allocate)\b", re.I)
 
@@ -40,6 +52,15 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
     text = re.sub(r"\s+", " ", str(query or "")).strip()
     if not text:
         return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": [], "identity_focus": False}
+    if _EPISTEMIC_DISTRESS.search(text):
+        family = "epistemic_distress_guidance" if _GUIDE_RESPONSE_REQUEST.search(text) else "epistemic_distress"
+        return {
+            "version": _VERSION,
+            "family": family,
+            "confidence": "high",
+            "signals": ["metaphysical_or_spiritual_claim", "certainty_seeking", "distress_or_vulnerability"],
+            "identity_focus": False,
+        }
     if _GOVERNANCE_QUERY.search(text) and _GOVERNANCE_ACTION.search(text):
         return {"version": _VERSION, "family": "institutional_governance", "confidence": "high", "signals": ["governance_subject", "governance_action"], "identity_focus": bool(_IDENTITY_FOCUS.search(text))}
     subject = _LIVED_SUBJECT.search(text)
@@ -60,6 +81,16 @@ def lesson_transfer_compatibility(query: str, lesson: Any) -> Dict[str, Any]:
     inquiry = classify_inquiry_family(query)
     family = inquiry["family"]
     reasoning_family = str((lesson or {}).get("reasoning_family") or "").strip()
+    if family in {"epistemic_distress", "epistemic_distress_guidance"}:
+        allowed = {"humane_orientation", "epistemic_humility_under_distress"}
+        if reasoning_family in allowed:
+            return {"compatible": True, "reason": "approved_epistemic_distress_family", "inquiry_family": family}
+        return {
+            "compatible": False,
+            "reason": "cross_family_transfer_blocked",
+            "inquiry_family": family,
+            "lesson_family": reasoning_family or "unknown",
+        }
     if family != "personal_lived_reflective":
         return {"compatible": True, "reason": "no_lived_family_boundary", "inquiry_family": family}
     q = str(query or "").casefold()

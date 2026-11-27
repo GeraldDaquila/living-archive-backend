@@ -312,14 +312,14 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         r"measure|benchmark|held[- ]?out|transfer|adaptive learning|autonomy|"
         r"adaptivity|resilience|improvement)\b"
     )
-    lived_reflective = (
-        classify_inquiry_family(question).get("family") == "personal_lived_reflective"
-    )
+    inquiry_family = classify_inquiry_family(question).get("family")
+    lived_reflective = inquiry_family == "personal_lived_reflective"
+    epistemic_distress = inquiry_family in {"epistemic_distress", "epistemic_distress_guidance"}
     practical = has(
         r"\b(?:how should|how do i|how can i|how to|what should|steps?|"
         r"procedure|decision|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|practical|recommend)\b"
-    ) and not lived_reflective
+    ) and not lived_reflective and not epistemic_distress
     consequential = has(
         r"\b(?:decision|decide|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|trade[- ]?off|proportionate|liberty)\b"
@@ -372,6 +372,10 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality "
             "while keeping decisions and uses of power accountable. "
             "Do not describe the relationship as one-way or imply that either concept guarantees the other."
+        )
+    if epistemic_distress:
+        rendered += (
+            "\n\nMETAPHYSICAL UNCERTAINTY DURING DISTRESS: Recognize the human need behind certainty-seeking without diagnosing or assuming the visitor's history. Distinguish personal experience, belief, interpretation, tradition-specific teaching, and verifiable evidence. Never present unverifiable metaphysical claims as established fact or exploit distress by positioning the Guide as an oracle or final authority. Respect the visitor's beliefs without endorsing unsupported certainty; support independent judgment, grounded choices, and appropriate human support if safety is at risk. Do not substitute governance, stakeholder, outcome, or decision-accountability frameworks for this epistemic and human question."
         )
     if classify_inquiry_family(question).get("family") == "personal_lived_reflective":
         rendered += (
@@ -5707,6 +5711,99 @@ def compose(
                     "lived_reflective_task_fit_repair",
                     stage="repair_provider_error",
                     error_type=type(_lived_repair_error).__name__,
+                )
+
+    # Epistemic-distress inquiries receive the same single, deadline-bounded
+    # task-fit repair as lived-reflective inquiries. This is disabled for
+    # evaluation arms to preserve matched-pair comparability.
+    if (
+        result
+        and evaluation is None
+        and classify_inquiry_family(question).get("family") in {
+            "epistemic_distress", "epistemic_distress_guidance"
+        }
+    ):
+        _first_payload = result.get("parsed") if isinstance(result, dict) else None
+        if not isinstance(_first_payload, dict):
+            _first_payload = result if isinstance(result, dict) else {}
+        _first_response = str(_first_payload.get("response") or "")
+        from gold_star_semantic_contract import evaluate_semantic_contract as _evaluate_epistemic_semantic_contract
+        _first_semantic = _evaluate_epistemic_semantic_contract(
+            question, {"ok": True, "response": _first_response}
+        )
+        if _first_semantic.get("status") == "fail":
+            _emit_guide_outcome(
+                "epistemic_distress_task_fit_repair",
+                stage="off_target_candidate_rejected",
+                failed_checks=",".join(_first_semantic.get("hard_failures") or []),
+            )
+            _repair_system_message = _build_general_guide_system_message(
+                question,
+                has_gold_star_guidance=False,
+                incomplete_knowledge_plan=incomplete_knowledge_plan,
+                integrity_recovery_instruction=integrity_recovery_instruction,
+                public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
+            ) + (
+                "\n\nEPISTEMIC-DISTRESS TASK-FIT REPAIR: The previous candidate did not answer "
+                "the question about metaphysical certainty during distress. Do not substitute "
+                "a governance, stakeholder, planning, or decision-accountability framework. "
+                "Acknowledge the human need behind certainty-seeking; distinguish experience, "
+                "belief, interpretation, tradition, and verifiable evidence; do not assert "
+                "unverifiable metaphysical claims as fact; preserve the visitor's agency and "
+                "independent judgment; and identify appropriate human support if immediate "
+                "safety is at risk. Do not diagnose or assume the visitor's personal history."
+            )
+            try:
+                _repaired_result = route_with_model_bank(
+                    use_core=use_core,
+                    operation=OPERATION,
+                    messages=[
+                        {"role": "system", "content": _repair_system_message},
+                        {"role": "user", "content": user_content[:7000]},
+                    ],
+                    max_tokens=750,
+                    parse=_parse_factory(
+                        documents,
+                        effective_question,
+                        None,
+                    ),
+                    schema=_build_provider_composition_schema(None),
+                    deadline_monotonic=provider_deadline_monotonic,
+                )
+                _repaired_payload = (
+                    _repaired_result.get("parsed")
+                    if isinstance(_repaired_result, dict)
+                    else None
+                )
+                if not isinstance(_repaired_payload, dict):
+                    _repaired_payload = (
+                        _repaired_result if isinstance(_repaired_result, dict) else {}
+                    )
+                _repaired_response = str(_repaired_payload.get("response") or "")
+                _repaired_semantic = _evaluate_epistemic_semantic_contract(
+                    question, {"ok": True, "response": _repaired_response}
+                )
+                if (
+                    _repaired_result
+                    and _repaired_response
+                    and _repaired_semantic.get("status") != "fail"
+                ):
+                    result = _repaired_result
+                    _emit_guide_outcome(
+                        "epistemic_distress_task_fit_repair",
+                        stage="on_target_repair_accepted",
+                    )
+                else:
+                    _emit_guide_outcome(
+                        "epistemic_distress_task_fit_repair",
+                        stage="repair_unavailable_or_still_off_target",
+                    )
+            except Exception as _epistemic_repair_error:
+                _emit_guide_outcome(
+                    "epistemic_distress_task_fit_repair",
+                    stage="repair_provider_error",
+                    error_type=type(_epistemic_repair_error).__name__,
                 )
 
     # A provider may technically return a parsed response while still producing
