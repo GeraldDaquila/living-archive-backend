@@ -255,7 +255,10 @@ def evaluate_gold(record, transport):
     ]
     assertions=[str(x) for x in record.get("assertions",[])]
     text=" ".join(assertions)
-    exact=(record.get("status")=="USER_APPROVED_GOLD_STANDARD" or "Do not change expected_response" in str(record.get("freeze_policy","")) or any("exact approved reference answer" in a.casefold() or "exactly matches the frozen" in a.casefold() for a in assertions))
+    capabilities=record.get("gold_star_capabilities")
+    capabilities=capabilities if isinstance(capabilities,dict) else {}
+    exact_answer_authority=(not capabilities) or capabilities.get("exact_answer_authority") is True
+    exact=((record.get("status")=="USER_APPROVED_GOLD_STANDARD" and exact_answer_authority) or "Do not change expected_response" in str(record.get("freeze_policy","")) or any("exact approved reference answer" in a.casefold() or "exactly matches the frozen" in a.casefold() for a in assertions))
     if exact: out.append(check("exact_answer",answer==str(record.get("expected_response","")),"Exact answer required by approval/freeze policy."))
     if re.search(r"exactly three (?:substantive )?paragraphs|answer has exactly three paragraphs",text,re.I):
         out.append(check("three_paragraph_shape",len(paragraphs(answer))==3,f"Observed {len(paragraphs(answer))} paragraphs."))
