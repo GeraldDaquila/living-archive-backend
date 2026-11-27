@@ -52,7 +52,7 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
             "signals": [subject.group(0).casefold(), frame.group(0).casefold()],
             "identity_focus": bool(_IDENTITY_FOCUS.search(text)),
         }
-    return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": []}
+    return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": [], "identity_focus": False}
 
 
 def lesson_transfer_compatibility(query: str, lesson: Any) -> Dict[str, Any]:
