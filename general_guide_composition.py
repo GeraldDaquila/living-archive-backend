@@ -3518,7 +3518,7 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         for sentence in sentences
     )
     non_guarantee = bool(re.search(
-        r"\b(?:neither(?: transparency nor trust)? guarantees? the other|"
+        r"\b(?:neither(?: transparency nor trust| side)? guarantees? the other|"
         r"not automatically|does not guarantee|doesn't guarantee|cannot guarantee|"
         r"can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|"
         r"not sufficient|cannot by itself create|can't by itself create|"
