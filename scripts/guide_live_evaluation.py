@@ -446,7 +446,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 attributable,
                 f"Humility/spiritual-maturity near-miss must be answered by an attributable model response, not deterministic fallback; observed {provenance!r}.",
             ))
-        humility_contract = evaluate_humility_spiritual_maturity_response(query, answer)
+        humility_contract = evaluate_humility_spiritual_maturity_response(str(case.get("query") or ""), answer)
         humility_checks = humility_contract.get("checks") or {}
         expected_title = str((expected_doorway or {}).get("title") or "").strip()
         expected_url = str((expected_doorway or {}).get("url") or "").strip()
