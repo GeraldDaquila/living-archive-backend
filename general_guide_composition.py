@@ -704,14 +704,13 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
         "required": ["candidate_id", "decision", "reason_code"],
         "additionalProperties": False,
     }
-    evidence_span = {
+    evidence_quote = {
         "type": "object",
         "properties": {
             "candidate_id": {"type": "string", "enum": candidate_ids},
-            "start": {"type": "integer", "minimum": 0},
-            "end": {"type": "integer", "minimum": 0},
+            "quote": {"type": "string"},
         },
-        "required": ["candidate_id", "start", "end"],
+        "required": ["candidate_id", "quote"],
         "additionalProperties": False,
     }
     adjudication = {
@@ -723,14 +722,14 @@ def _build_provider_composition_schema(gold_star_candidates: Any) -> Optional[Di
                 "minItems": candidate_count,
                 "maxItems": candidate_count,
             },
-            "application_evidence_spans": {
+            "application_evidence_quotes": {
                 "type": "array",
-                "items": evidence_span,
+                "items": evidence_quote,
                 "minItems": candidate_count,
                 "maxItems": candidate_count,
             },
         },
-        "required": ["candidate_assessments", "application_evidence_spans"],
+        "required": ["candidate_assessments", "application_evidence_quotes"],
         "additionalProperties": False,
     }
     return {

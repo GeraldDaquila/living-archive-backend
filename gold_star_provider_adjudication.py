@@ -42,7 +42,7 @@ def _candidate_index(candidates: Any) -> dict[str, Mapping[str, Any]]:
 def normalize_provider_adjudication(
     value: Any, *, response: str, candidates: Any
 ) -> dict[str, Any]:
-    """Validate provider-reported decisions and answer offsets, not semantic proof."""
+    """Validate provider-reported decisions and exact answer evidence, not semantic proof."""
     base = {
         "status": "not_observed",
         "selected_candidate_ids": [],
@@ -56,8 +56,9 @@ def normalize_provider_adjudication(
     index = _candidate_index(candidates)
     if not index or not isinstance(value, Mapping):
         return base
-    allowed = {"candidate_assessments", "application_evidence_spans"}
-    if set(value) != allowed:
+    allowed = {"candidate_assessments", "application_evidence_quotes"}
+    legacy_allowed = {"candidate_assessments", "application_evidence_spans"}
+    if set(value) not in (allowed, legacy_allowed):
         return base
     assessments = value.get("candidate_assessments")
     if not isinstance(assessments, list) or len(assessments) != len(index):
@@ -94,81 +95,136 @@ def normalize_provider_adjudication(
     if seen != set(index):
         return base
 
-    # Providers point into their final answer instead of copying a second
-    # representation of the text. The runtime extracts the exact substring.
-    # Rejected candidates use the 0,0 sentinel; telemetry stores no answer text.
-    offsets = value.get("application_evidence_spans")
+    # Prefer exact quoted substrings over model-counted offsets. Models are
+    # unreliable at counting Unicode code points in a completed answer; a
+    # verbatim quote lets the runtime locate and validate the evidence itself.
     evidence_ids: list[str] = []
-    evidence_reason = "offset_entry_count_mismatch"
-    offsets_valid = isinstance(offsets, list) and len(offsets) == len(index)
-    offsets_by_id: dict[str, tuple[int, int]] = {}
-    if offsets_valid:
-        for item in offsets:
-            if not isinstance(item, Mapping) or set(item) != {"candidate_id", "start", "end"}:
-                offsets_valid = False
-                evidence_reason = "invalid_offset_entry"
-                break
-            candidate_id, offset_start, offset_end = (
-                item.get("candidate_id"), item.get("start"), item.get("end")
+    evidence_reason = "evidence_entry_count_mismatch"
+    quotes = value.get("application_evidence_quotes")
+    if isinstance(quotes, list):
+        quotes_by_id: dict[str, str] = {}
+        quotes_valid = len(quotes) == len(index)
+        if quotes_valid:
+            for item in quotes:
+                if not isinstance(item, Mapping) or set(item) != {"candidate_id", "quote"}:
+                    quotes_valid = False
+                    evidence_reason = "invalid_quote_entry"
+                    break
+                candidate_id, quote = item.get("candidate_id"), item.get("quote")
+                if (
+                    not isinstance(candidate_id, str)
+                    or candidate_id not in index
+                    or candidate_id in quotes_by_id
+                    or not isinstance(quote, str)
+                ):
+                    quotes_valid = False
+                    evidence_reason = "invalid_quote_candidate_or_value"
+                    break
+                quotes_by_id[candidate_id] = quote
+            if quotes_valid and set(quotes_by_id) != set(index):
+                quotes_valid = False
+                evidence_reason = "quote_candidate_coverage_incomplete"
+        selected_quote_failures: list[str] = []
+        if quotes_valid:
+            answer = str(response or "")
+            for candidate_id in selected:
+                quote = quotes_by_id[candidate_id]
+                if not MIN_EVIDENCE_SPAN <= len(quote) <= MAX_EVIDENCE_SPAN:
+                    selected_quote_failures.append("selected_quote_length_out_of_bounds")
+                    continue
+                if not quote.strip() or answer.count(quote) != 1:
+                    selected_quote_failures.append("selected_quote_not_unique_exact_substring")
+                    continue
+                evidence_ids.append(candidate_id)
+            if any(quotes_by_id[candidate_id] != "" for candidate_id in set(index) - set(selected)):
+                quotes_valid = False
+                evidence_reason = "rejected_candidate_quote_not_empty"
+        if not quotes_valid:
+            evidence_ids = []
+        elif selected and evidence_ids:
+            evidence_reason = (
+                "exact_selected_quotes_validated"
+                if len(evidence_ids) == len(selected)
+                else "partial_selected_quotes_validated"
             )
-            if (
-                not isinstance(candidate_id, str)
-                or candidate_id not in index
-                or candidate_id in offsets_by_id
-            ):
-                offsets_valid = False
-                evidence_reason = "invalid_offset_candidate_id"
-                break
-            if (
-                not isinstance(offset_start, int) or isinstance(offset_start, bool)
-                or not isinstance(offset_end, int) or isinstance(offset_end, bool)
-                or offset_start < 0 or offset_end < offset_start
-            ):
-                offsets_valid = False
-                evidence_reason = "invalid_offset_bounds"
-                break
-            offsets_by_id[candidate_id] = (offset_start, offset_end)
-        if offsets_valid and set(offsets_by_id) != set(index):
-            offsets_valid = False
-            evidence_reason = "offset_candidate_coverage_incomplete"
-    selected_offset_failures: list[str] = []
-    if offsets_valid:
-        answer = str(response or "")
-        for candidate_id in selected:
-            offset_start, offset_end = offsets_by_id[candidate_id]
-            span_length = offset_end - offset_start
-            if not MIN_EVIDENCE_SPAN <= span_length <= MAX_EVIDENCE_SPAN:
-                selected_offset_failures.append("selected_offset_span_missing_or_out_of_bounds")
-                continue
-            if offset_end > len(answer):
-                selected_offset_failures.append("selected_offset_outside_final_response")
-                continue
-            if not answer[offset_start:offset_end].strip():
-                selected_offset_failures.append("selected_offset_span_empty")
-                continue
-            evidence_ids.append(candidate_id)
-        if any(
-            offsets_by_id.get(candidate_id) != (0, 0)
-            for candidate_id in set(index) - set(selected)
-        ):
-            offsets_valid = False
-            evidence_reason = "rejected_offset_not_empty"
-    if not offsets_valid:
-        evidence_ids = []
-    elif selected and evidence_ids:
-        evidence_reason = (
-            "exact_selected_offsets_validated"
-            if len(evidence_ids) == len(selected)
-            else "partial_selected_offsets_validated"
-        )
-    elif selected:
-        evidence_reason = (
-            selected_offset_failures[0]
-            if selected_offset_failures
-            else "selected_offset_span_missing_or_out_of_bounds"
-        )
+        elif selected:
+            evidence_reason = selected_quote_failures[0] if selected_quote_failures else "selected_quote_not_validated"
+        else:
+            evidence_reason = "no_selected_candidates"
     else:
-        evidence_reason = "no_selected_candidates"
+        # Backward-compatible validation for responses produced under the
+        # earlier offset contract. Never infer or repair an invalid span.
+        offsets = value.get("application_evidence_spans")
+        evidence_reason = "offset_entry_count_mismatch"
+        offsets_valid = isinstance(offsets, list) and len(offsets) == len(index)
+        offsets_by_id: dict[str, tuple[int, int]] = {}
+        if offsets_valid:
+            for item in offsets:
+                if not isinstance(item, Mapping) or set(item) != {"candidate_id", "start", "end"}:
+                    offsets_valid = False
+                    evidence_reason = "invalid_offset_entry"
+                    break
+                candidate_id, offset_start, offset_end = (
+                    item.get("candidate_id"), item.get("start"), item.get("end")
+                )
+                if (
+                    not isinstance(candidate_id, str)
+                    or candidate_id not in index
+                    or candidate_id in offsets_by_id
+                ):
+                    offsets_valid = False
+                    evidence_reason = "invalid_offset_candidate_id"
+                    break
+                if (
+                    not isinstance(offset_start, int) or isinstance(offset_start, bool)
+                    or not isinstance(offset_end, int) or isinstance(offset_end, bool)
+                    or offset_start < 0 or offset_end < offset_start
+                ):
+                    offsets_valid = False
+                    evidence_reason = "invalid_offset_bounds"
+                    break
+                offsets_by_id[candidate_id] = (offset_start, offset_end)
+            if offsets_valid and set(offsets_by_id) != set(index):
+                offsets_valid = False
+                evidence_reason = "offset_candidate_coverage_incomplete"
+        selected_offset_failures: list[str] = []
+        if offsets_valid:
+            answer = str(response or "")
+            for candidate_id in selected:
+                offset_start, offset_end = offsets_by_id[candidate_id]
+                span_length = offset_end - offset_start
+                if not MIN_EVIDENCE_SPAN <= span_length <= MAX_EVIDENCE_SPAN:
+                    selected_offset_failures.append("selected_offset_span_missing_or_out_of_bounds")
+                    continue
+                if offset_end > len(answer):
+                    selected_offset_failures.append("selected_offset_outside_final_response")
+                    continue
+                if not answer[offset_start:offset_end].strip():
+                    selected_offset_failures.append("selected_offset_span_empty")
+                    continue
+                evidence_ids.append(candidate_id)
+            if any(
+                offsets_by_id.get(candidate_id) != (0, 0)
+                for candidate_id in set(index) - set(selected)
+            ):
+                offsets_valid = False
+                evidence_reason = "rejected_offset_not_empty"
+        if not offsets_valid:
+            evidence_ids = []
+        elif selected and evidence_ids:
+            evidence_reason = (
+                "exact_selected_offsets_validated"
+                if len(evidence_ids) == len(selected)
+                else "partial_selected_offsets_validated"
+            )
+        elif selected:
+            evidence_reason = (
+                selected_offset_failures[0]
+                if selected_offset_failures
+                else "selected_offset_span_missing_or_out_of_bounds"
+            )
+        else:
+            evidence_reason = "no_selected_candidates"
     evidence_present = bool(evidence_ids)
     return {
         "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
@@ -182,7 +238,7 @@ def normalize_provider_adjudication(
     }
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the bounded report; evidence spans are zero-based Unicode code-point offsets, end-exclusive, into the exact final response."""
+    """Describe the bounded report; selected evidence is an exact verbatim answer substring."""
     index = _candidate_index(candidates)
     if not index:
         return ""
@@ -192,17 +248,17 @@ def build_adjudication_output_contract(candidates: Any) -> str:
     # competes with visitor evidence for finite context/token budgets.
     return (
         "Add JSON property adaptive_adjudication with exactly two keys: "
-        "candidate_assessments and application_evidence_spans. For every candidate "
+        "candidate_assessments and application_evidence_quotes. For every candidate "
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one offset object per candidate: selected IDs use exact zero-based Unicode 12–120-character spans showing the distinctive operation; rejected IDs use 0,0; reject-all uses 0,0. Prefer few candidates; never estimate. "
+        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one quote object per candidate: selected IDs use an exact verbatim 12–120-character substring from the final response that shows the distinctive operation; rejected IDs use an empty quote; reject-all uses empty quotes. The runtime locates the quote itself, so do not count character offsets or paraphrase. Prefer few candidates. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
-        "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "
-        "the exact answer substring. Improvement still requires paired evaluation. "
+        "the runtime validates IDs, complete disposition, reason codes, and quoted evidence, then verifies "
+        "the exact quote occurs once in the final answer. Improvement still requires paired evaluation. "
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'
-        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
+        '{"candidate_assessments":[...],"application_evidence_quotes":[...]}}.'
     )

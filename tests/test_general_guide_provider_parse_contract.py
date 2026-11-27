@@ -216,19 +216,17 @@ def test_provider_composition_schema_requires_adjudication_when_candidates_exist
     adjudication = root["properties"]["adaptive_adjudication"]
     assert set(adjudication["required"]) == {
         "candidate_assessments",
-        "application_evidence_spans",
+        "application_evidence_quotes",
     }
     assessments = adjudication["properties"]["candidate_assessments"]
     assert assessments["minItems"] == assessments["maxItems"] == 1
     assert assessments["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
     assert assessments["items"]["properties"]["decision"]["enum"] == ["select", "reject"]
     assert assessments["items"]["properties"]["reason_code"]["enum"][0] == ""
-    spans = adjudication["properties"]["application_evidence_spans"]
-    assert spans["minItems"] == spans["maxItems"] == 1
-    assert spans["items"]["properties"]["start"]["type"] == "integer"
-    assert spans["items"]["properties"]["end"]["type"] == "integer"
-    assert spans["items"]["properties"]["start"]["minimum"] == 0
-    assert spans["items"]["properties"]["end"]["minimum"] == 0
+    quotes = adjudication["properties"]["application_evidence_quotes"]
+    assert quotes["minItems"] == quotes["maxItems"] == 1
+    assert quotes["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
+    assert quotes["items"]["properties"]["quote"]["type"] == "string"
 
 
 def test_provider_composition_schema_is_not_added_without_candidates():
