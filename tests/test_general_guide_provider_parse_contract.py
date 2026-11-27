@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -337,3 +338,49 @@ def test_visitor_idea_chunking_contract_matches_explicit_prompt_threshold():
     assert not composition._requires_visitor_idea_chunking(short_single_movement)
     assert composition._requires_visitor_idea_chunking(long_single_block)
     assert not composition._requires_visitor_idea_chunking(long_two_paragraphs)
+
+
+
+def test_long_single_block_is_reflowed_at_sentence_boundary_without_content_changes():
+    sentences = [
+        "A community's first obligation is to identify the shared purpose and concrete harm that the proposed rule is intended to address, rather than assuming consensus.",
+        "The next question is whether the restriction is necessary and proportionate, and whether a less restrictive workable option could achieve the same legitimate end.",
+        "Decision-makers should identify who benefits, who bears the costs, and whose freedom is limited, including people whose circumstances differ from the majority.",
+        "The relationship can also work in the other direction: affected people should have meaningful influence over design, with reasonable accommodation and safeguards against arbitrary enforcement.",
+        "Finally, anyone affected needs a practical route to challenge application, while review criteria should show whether the rule continues to serve its stated purpose.",
+    ]
+    single_block = " ".join(sentences)
+    assert composition._requires_visitor_idea_chunking(single_block)
+
+    reflowed = composition._reflow_visitor_idea_chunking(single_block)
+
+    assert "\n\n" in reflowed
+    assert not composition._requires_visitor_idea_chunking(reflowed)
+    assert re.sub(r"\s+", " ", reflowed) == re.sub(r"\s+", " ", single_block)
+    assert reflowed.index("The relationship can also work") > reflowed.index("\n\n")
+
+
+def test_short_and_already_chunked_responses_are_not_reflowed():
+    short = "A short answer can remain in one paragraph."
+    chunked = "First idea has enough detail to stand alone.\n\nSecond idea adds a separate implication."
+    assert composition._reflow_visitor_idea_chunking(short) == short
+    assert composition._reflow_visitor_idea_chunking(chunked) == chunked
+
+
+def test_strict_parser_applies_content_preserving_long_answer_reflow():
+    sentences = [
+        "A community's first obligation is to identify the shared purpose and concrete harm that the proposed rule is intended to address, rather than assuming consensus.",
+        "The next question is whether the restriction is necessary and proportionate, and whether a less restrictive workable option could achieve the same legitimate end.",
+        "Decision-makers should identify who benefits, who bears the costs, and whose freedom is limited, including people whose circumstances differ from the majority.",
+        "The relationship can also work in the other direction: affected people should have meaningful influence over design, with reasonable accommodation and safeguards against arbitrary enforcement.",
+        "Finally, anyone affected needs a practical route to challenge application, while review criteria should show whether the rule continues to serve its stated purpose.",
+    ]
+    parse = composition._parse_factory(
+        [],
+        query="",
+        gold_star_candidates=None,
+        emit_telemetry=False,
+    )
+    parsed = parse(json.dumps({"response": " ".join(sentences)}))
+    assert "\n\n" in parsed["response"]
+    assert re.sub(r"\s+", " ", parsed["response"]) == re.sub(r"\s+", " ", " ".join(sentences))

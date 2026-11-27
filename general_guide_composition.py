@@ -1050,6 +1050,52 @@ def _sanitize_candidate(text: Any) -> str:
     return "\n\n".join(paragraphs).strip()
 
 
+def _reflow_visitor_idea_chunking(response: str) -> str:
+    """Add content-preserving paragraph breaks to long, multi-sentence single blocks.
+
+    Provider instructions ask for idea-based paragraphs, but models may still return
+    a valid multi-idea answer as one block. Reflow only at sentence boundaries and
+    prefer explicit discourse transitions near the middle. No words or punctuation
+    are added, removed, or rewritten.
+    """
+    text = str(response or "").strip()
+    if not _requires_visitor_idea_chunking(text):
+        return text
+    if re.search(r"\n\s*\n+", text):
+        return text
+
+    matches = list(re.finditer(r"[^.!?]+[.!?](?=\s|$)", text))
+    if len(matches) < 5:
+        return text
+    sentences = [match.group(0).strip() for match in matches]
+    trailing = text[matches[-1].end():].strip()
+    if trailing:
+        sentences[-1] = (sentences[-1] + " " + trailing).strip()
+
+    transition = re.compile(
+        r"^(?:however|but|yet|at the same time|on the other hand|"
+        r"the relationship|the practical test|a practical test|"
+        r"finally|in practice|another|a second|the other direction|"
+        r"in contrast|to apply|start by|begin by|make the obligations|"
+        r"the next question|the next step|the key test|a useful test)\b",
+        re.I,
+    )
+    midpoint = len(sentences) / 2
+    candidates = []
+    for boundary in range(2, len(sentences) - 1):
+        next_sentence = sentences[boundary]
+        explicit_transition = bool(transition.search(next_sentence))
+        # Prefer an explicit conceptual transition; otherwise choose the
+        # sentence boundary closest to the middle, never a one-sentence paragraph.
+        candidates.append((
+            1 if explicit_transition else 0,
+            -abs(boundary - midpoint),
+            boundary,
+        ))
+    boundary = max(candidates)[2]
+    return " ".join(sentences[:boundary]) + "\n\n" + " ".join(sentences[boundary:])
+
+
 def _requires_visitor_idea_chunking(response: str) -> bool:
     """Identify substantive multi-idea prose that must not be delivered as one block.
 
@@ -3031,6 +3077,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
 
         parsed = _normalize_composition_envelope(parsed)
         response = _sanitize_candidate(parsed.get("response"))
+        _reflowed_response = _reflow_visitor_idea_chunking(response)
+        if _reflowed_response != response:
+            sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\s|$)", response))
+            print(
+                "USE composition presentation reflow: "
+                f"reason=long_multi_idea_single_block, sentence_count={sentence_count}, "
+                "content_modified=false"
+            )
+            response = _reflowed_response
         if not response:
             diagnostic = _composition_response_shape_diagnostic(parsed, raw)
             print("USE composition response shape: " + diagnostic)
