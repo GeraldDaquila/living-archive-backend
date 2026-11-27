@@ -1370,3 +1370,39 @@ def test_openai_compatible_adapter_preserves_paragraph_separators_between_text_b
         "Second paragraph advances the next idea. It adds a consequence."
     )
     assert "must remain hidden" not in str(output)
+
+
+
+def test_guide_nvidia_lane_prefers_proven_low_latency_model_over_newer_slow_sibling(monkeypatch):
+    candidates = [
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
+            "health_state": "half_open",
+            "last_success": 2000.0,
+            "transport_failures": 10,
+            "consecutive_failures": 1,
+            "quality_failures": 0,
+            "capabilities": ["composition", "reasoning"],
+        },
+        {
+            **_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+            "health_state": "half_open",
+            "last_success": 1000.0,
+            "transport_failures": 100,
+            "consecutive_failures": 1,
+            "quality_failures": 0,
+            "capabilities": ["composition", "reasoning", "low_latency"],
+        },
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: [])
+    monkeypatch.setattr(provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 5.0)
+    monkeypatch.setattr(
+        provider_bank,
+        "_STATE",
+        {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}},
+    )
+
+    selected = provider_bank.select(object(), operation="general_guide_composition")
+
+    assert selected[0]["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
