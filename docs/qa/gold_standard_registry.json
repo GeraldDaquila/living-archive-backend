@@ -9059,6 +9059,61 @@
       "transferable_lesson": "Distinguish improving methods against an existing objective from reconsidering the objective itself. Test whether measures still represent the underlying purpose; identify incentive and feedback loops that can reinforce a flawed proxy or conceal unmeasured costs; consider external constraints, affected people, systemic and long-term consequences; improve execution when the goal remains sound; and surface evidence-based goal reconsideration when it is misaligned, harmful in wider effects, or rests on materially invalid assumptions. Respect legitimate decision authority.",
       "transfer_boundary": "Apply only when a question meaningfully concerns optimization, performance improvement, development, metrics, targets, or goal-setting and the objective itself may need evaluation. Do not force goal reconsideration onto ordinary factual questions or every improvement request. Difficulty, disagreement, or disappointing metrics alone do not invalidate a goal; a rising metric does not prove the goal remains worthwhile. Do not recommend changing shared or institutional objectives without considering evidence, affected parties, external constraints, consequences, and legitimate authority. Never transfer the exact answer wording, school or community-garden examples, claims, citations, or doorways. Do not grant exact-answer authority or deterministic fallback. Doorway state remains NOT_EVALUATED; no doorway is authorized or inferred.",
       "user_approved_at": "2026-11-26"
+    },
+    {
+      "benchmark_id": "general-guide-pain-without-total-identity-2026-11-27",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should a person hold pain without turning it into a total identity?",
+      "expected_response": "Pain can be held as something a person experiences without becoming the whole of who they are. The distinction is between carrying pain and being defined by it. Pain is real and may shape a person's responses, memories, and choices, but it does not have to occupy every role in a life. A person can acknowledge that pain is present while also noticing the parts of themselves that exist beside it—curiosities, relationships, skills, humor, care for others, and moments of relief or joy.\n\nOne way to hold this distinction is to shift language from 'I am my pain' to 'I am living with pain' or 'pain is part of my story, not the whole story.' This does not mean minimizing the pain or pretending it doesn't matter. It means refusing to let it edit out everything else.\n\nPractically, this can look like naming the pain when it arises, then deliberately attending to something else that is also true in the same moment—a conversation, a task, a sensation, a value. Over time, that back-and-forth builds evidence that a self can contain pain without being reduced to it. Relationships help too: being seen by others for more than one's suffering reminds a person that their identity extends beyond what hurts.\n\nThere is no fixed timeline or correct way to do this. Some days the pain may feel total, and that does not mean the person has failed or that the distinction has collapsed. Holding pain without identity reduction is an ongoing practice, not a permanent achievement.\n\nIf pain is overwhelming, persistent, or interfering with daily life, speaking with a trusted clinician or counselor can offer support that this general reflection cannot replace.",
+      "expected_doorway": {
+        "title": "From Fragmented Souls to Sovereign Stewards: Reclaiming Identity After 500 Years of Institutional Trauma",
+        "url": null
+      },
+      "assertions": [
+        "Distinguish experiencing pain from allowing pain to define the whole identity.",
+        "Acknowledge that pain can shape responses, memories, and choices without occupying every role in a life.",
+        "Offer the language shift from 'I am my pain' to 'I am living with pain' without minimizing or denying suffering.",
+        "Provide practical, proportionate ways to notice other parts of the self and remain connected to relationships and values.",
+        "Acknowledge that progress has no fixed timeline and that difficult days do not constitute failure.",
+        "Recommend appropriate human support when pain is overwhelming, persistent, or interfering with daily life.",
+        "Keep the Archive doorway separate from the completed answer; do not infer its canonical URL from the screenshot."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly elevated by the user in this conversation.",
+        "source_path": "conversation attachment image(20261127-014433).png",
+        "source_date": "2026-11-27",
+        "live_surface": "The Guide visitor-facing Search response.",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, five-paragraph answer, and visible continuation title. It does not expose the canonical destination URL, provider provenance, runtime selection/application trace, or held-out transfer results.",
+        "approval_record": "The user explicitly instructed 'elevate to gold star' after reviewing the exact visitor-facing screenshot. This authorizes immutable response-level Gold Star elevation; it does not establish adaptive application or measured visitor outcome improvement.",
+        "review_assessment": "Assistant assessment: 9.0/10. This is an evaluator assessment, not a user-assigned numerical rating."
+      },
+      "rating": null,
+      "assistant_assessment_out_of_10": 9,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR RESPONSE REVIEWED",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "runtime_transfer": false,
+      "reasoning_family": "pain_identity_distinction_and_self_continuity",
+      "transferable_lesson": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self, offer gentle language and attention practices, preserve connection to relationships and values, avoid promising a timeline, and identify when additional support may be warranted.",
+      "transfer_boundary": "This record is an immutable response-quality exemplar, not proof of adaptive learning. Do not transfer its exact answer, presume a universal therapeutic approach, diagnose the visitor, minimize severe or persistent pain, or replace appropriate professional support. The continuation title is visible but its canonical URL is not verified; do not infer or attach a destination.",
+      "known_theme": "pain, identity, self-continuity, humane conceptual orientation, practical grounding",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "pain_identity_distinction_and_self_continuity",
+        "transferable_discipline": "Validate pain as real while distinguishing the experience from the whole identity. Offer non-coercive language, attention, relationship, and values-based ways to preserve a wider sense of self; avoid fixed timelines and recognize when additional support may be needed.",
+        "abstention_boundary": "Do not diagnose, prescribe treatment, imply that pain is a choice, minimize trauma or persistent suffering, or suggest that identity practices replace clinical or crisis support. The doorway URL is unverified and must not be inferred. Do not copy this exact answer as a deterministic response."
+      },
+      "user_approved_at": "2026-11-27",
+      "elevation_approval_evidence": "The user explicitly instructed: 'elevate to gold star' after reviewing the live visitor-facing screenshot.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing serial allocation was requested."
     }
   ],
   "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created. Added a separately authored objective-integrity successor candidate linked to the immutable self-optimization near-miss. Both remain excluded from approved and active Gold Star counts pending user review and validation; canonical counts reconciled to the 179 existing records plus this new candidate.",
