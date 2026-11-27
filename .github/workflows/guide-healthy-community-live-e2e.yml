@@ -10,6 +10,7 @@ on:
       - "humility_spiritual_maturity_contract.py"
       - "community_rule_decision_contract.py"
       - "QA/guide_healthy_community_live_e2e.mjs"
+      - "QA/guide_extraordinary_claims_live_e2e.mjs"
       - "tests/test_human_development_conceptual_recovery.py"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
@@ -92,6 +93,9 @@ jobs:
           exit 1
       - name: Prepare mobile acceptance evidence directory
         run: mkdir -p artifacts
+      - name: Verify extraordinary-claims doorway through the real WordPress visitor UI
+        timeout-minutes: 3
+        run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_extraordinary_claims_live_e2e.mjs
       - name: Verify real WordPress visitor rendering, exact humility near-miss, and mobile presentation
         timeout-minutes: 5
         run: timeout --signal=TERM --kill-after=5s 280s node QA/guide_healthy_community_live_e2e.mjs
@@ -99,7 +103,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: guide-humility-live-mobile-${{ github.run_id }}
-          path: artifacts/guide-humility-live-mobile.png
+          name: guide-live-mobile-acceptance-${{ github.run_id }}
+          path: |
+            artifacts/guide-humility-live-mobile.png
+            artifacts/guide-extraordinary-claims-mobile.png
           if-no-files-found: warn
           retention-days: 30
