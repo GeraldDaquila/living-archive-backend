@@ -307,11 +307,14 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         r"measure|benchmark|held[- ]?out|transfer|adaptive learning|autonomy|"
         r"adaptivity|resilience|improvement)\b"
     )
+    lived_reflective = (
+        classify_inquiry_family(question).get("family") == "personal_lived_reflective"
+    )
     practical = has(
         r"\b(?:how should|how do i|how can i|how to|what should|steps?|"
         r"procedure|decision|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|practical|recommend)\b"
-    )
+    ) and not lived_reflective
     consequential = has(
         r"\b(?:decision|decide|rule|policy|risk|obligation|limit|rights?|"
         r"consent|governance|trade[- ]?off|proportionate|liberty)\b"
