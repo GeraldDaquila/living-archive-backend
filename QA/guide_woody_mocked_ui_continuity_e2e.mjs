@@ -1,10 +1,11 @@
 import { chromium } from "playwright";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync } from "node:fs";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
-const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.332.js";
-const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js", "utf8");
+const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.333.js";
+const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
+const CANDIDATE_ANSWER_CSS = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css", "utf8");
 let candidateControllerServed = false;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
@@ -25,7 +26,7 @@ const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ serviceWorkers: "block" });
+const context = await browser.newContext({ serviceWorkers: "block", viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const page = await context.newPage();
 page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
@@ -222,6 +223,7 @@ await page.route("**/*", async route => {
 try {
   mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
+  await page.addStyleTag({ content: CANDIDATE_ANSWER_CSS });
   if (!candidateControllerServed) throw new Error("Candidate controller v489.332 was not requested/injected; browser test would otherwise exercise production code.");
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
@@ -384,6 +386,36 @@ try {
       return current.length > 35 && current !== before.trim();
     }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
+    if (i === 4) {
+      const mobileMetrics = await page.evaluate(() => {
+        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+        const text = root && root.querySelector("#archive-response-text");
+        const rect = text && text.getBoundingClientRect();
+        const style = text && getComputedStyle(text);
+        return {
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          devicePixelRatio: window.devicePixelRatio,
+          answerFontSize: style && style.fontSize,
+          answerLineHeight: style && style.lineHeight,
+          answerClientWidth: text && text.clientWidth,
+          answerScrollWidth: text && text.scrollWidth,
+          answerRightEdge: rect && rect.right,
+          rootClientWidth: root && root.clientWidth,
+          rootScrollWidth: root && root.scrollWidth,
+          documentScrollWidth: document.documentElement.scrollWidth
+        };
+      });
+      if (mobileMetrics.viewportWidth !== 390 || mobileMetrics.answerFontSize !== "18px" ||
+          mobileMetrics.answerScrollWidth > mobileMetrics.answerClientWidth + 1 ||
+          mobileMetrics.rootScrollWidth > mobileMetrics.rootClientWidth + 1 ||
+          mobileMetrics.answerRightEdge > mobileMetrics.viewportWidth + 1) {
+        throw new Error("Mobile answer rendering failed responsive layout checks: " + JSON.stringify(mobileMetrics));
+      }
+      mkdirSync("artifacts", { recursive: true });
+      await page.screenshot({ path: "artifacts/guide-mobile-render.png", fullPage: true });
+      mark("mobile_render_evidence", mobileMetrics);
+    }
     if (i === 2) {
       const doorway = root.locator("#archive-recommendation .la-answer-doorway");
       const link = doorway.locator("a.la-answer-doorway__link");
