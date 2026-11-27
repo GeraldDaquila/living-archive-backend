@@ -133,7 +133,7 @@
    final lines of a long visitor answer. This is scoped to the Guide page;
    the translation control remains available after the page content. */
 @media (max-width: 700px) {
-  body.page-id-78833 .gtranslate_wrapper.gt_container--6wfbxr {
+  body.page-id-78833 .gtranslate_wrapper {
     height: auto !important;
   }
   body.page-id-78833 #gt_float_wrapper {
