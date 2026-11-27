@@ -57,7 +57,7 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
             "not self-abandonment", "not self-abasing",
         ))
         or bool(re.search(
-            r"\\b(?:not|is not|isn't|does not mean|doesn't mean|does not require|"
+            r"\b(?:not|is not|isn't|does not mean|doesn't mean|does not require|"
             r"doesn't require|rather than|instead of|different from|distinct from)\\b"
             r"[^.!?;]{0,160}\\b(?:self-negation|self negation|self-abasement|self abasement|"
             r"self-abandonment|self abandonment|loss of self-respect|lack of self-respect|"
