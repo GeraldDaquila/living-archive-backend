@@ -177,6 +177,62 @@ def test_off_target_lived_response_gets_one_bounded_repair_without_touching_eval
     assert "on_target_repair_accepted" in source
     assert "repair_unavailable_or_still_off_target" in source
 
+def test_epistemic_distress_question_is_classified_and_contracts_the_response():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    family = classify_inquiry_family(query)
+    assert family["family"] == "epistemic_distress_guidance"
+    assert lesson_transfer_compatibility(query, {"reasoning_family": "institutional_governance"})["compatible"] is False
+    contract = build_question_contract(query)
+    assert contract["task"]["primary"] == "epistemic_distress_guidance_candidate"
+    assert contract["response"]["shape"] == "compassionate_epistemic_guidance"
+    assert contract["requested_outcome"] == "respond_compassionately_without_manufacturing_metaphysical_certainty"
+
+
+def test_epistemic_distress_semantic_gate_rejects_generic_governance_substitution():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    generic = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Compare realistic options and examine what "
+        "each may damage, who bears the costs, and what evidence would justify changing direction. "
+        "Choose deliberately and remain accountable for what follows."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": generic})
+    assert result["question_type"] == "epistemic_distress_guidance"
+    assert result["status"] == "fail"
+    assert {"recognizes_distress", "preserves_epistemic_boundary", "supports_agency"}.issubset(set(result["hard_failures"]))
+
+
+def test_epistemic_distress_provider_exhaustion_recovery_is_on_topic_and_enforced():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    answer = compose_recovery(query)
+    assert has_registered_recovery(query) is True
+    assert "metaphysical certainty" in answer.casefold()
+    assert "unverifiable" in answer.casefold()
+    assert "oracle" in answer.casefold()
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    assert result["question_type"] == "epistemic_distress_guidance"
+    assert result["hard_failures"] == []
+    floor = evaluate_response_floor(
+        query,
+        {"ok": True, "query": query, "intent": "TOPICAL_INQUIRY", "response": answer,
+         "answer_basis": {"kind": "general_knowledge", "label": "General knowledge",
+                          "explanation": "Bounded general guidance."},
+         "response_provenance": {"class": "deterministic_fallback"}},
+    )
+    assert floor["semantic_enforcement"]["enforced"] is True
+    assert floor["semantic_enforcement"]["status"] == "pass"
+
+
+def test_epistemic_distress_prompt_disables_generic_practical_template():
+    from general_guide_composition import _build_general_guide_system_prompt
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    prompt = _build_general_guide_system_prompt(query)
+    assert "METAPHYSICAL UNCERTAINTY DURING DISTRESS" in prompt
+    assert "Do not substitute governance" in prompt
+    governance_prompt = _build_general_guide_system_prompt("How should a community decide a fair rule?")
+    assert "METAPHYSICAL UNCERTAINTY DURING DISTRESS" not in governance_prompt
+
+
 def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_how_template():
     answer = compose_recovery(PAIN_IDENTITY_QUESTION)
     assert has_registered_recovery(PAIN_IDENTITY_QUESTION) is True
