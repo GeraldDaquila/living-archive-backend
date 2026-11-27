@@ -1060,7 +1060,16 @@ def _sanitize_candidate(text: Any) -> str:
             # every line into a single sentence erased the presentation contract.
             paragraphs.append("\n".join(lines))
 
-    return "\n\n".join(paragraphs).strip()
+    result = "\n\n".join(paragraphs).strip()
+    # A stray single quote after terminal punctuation is a common residue from
+    # quoted-source extraction. Remove only an unmatched trailing delimiter;
+    # do not touch contractions ("it's"), possessives ("users'"), or paired
+    # single-quoted spans embedded in otherwise valid visitor prose.
+    if re.search(r"[.!?]['’]\\s*$", result) and not re.search(
+        r"(?<!\\w)['‘](?=\\S)", result
+    ):
+        result = re.sub(r"(?<=[.!?])['’]\\s*$", "", result)
+    return result
 
 
 def _reflow_visitor_idea_chunking(response: str) -> str:
