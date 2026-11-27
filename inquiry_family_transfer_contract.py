@@ -30,8 +30,8 @@ _LIVED_FRAME = re.compile(
 # somewhere?") without requiring clinical or philosophical vocabulary.
 _EPISTEMIC_DISTRESS = re.compile(
     r"(?=.*\\b(?:metaphysical|spiritual|ultimate|existential|afterlife|life after death|"
-    r"soul|heaven|hell|divine|god|consciousness|what happens after death)\\b)"
-    r"(?=.*\\b(?:certainty|certain|truth|proof|know for sure|can anyone know|"
+    r"soul|heaven|hell|divine|god|consciousness|death|die|died|what happens after death)\\b)"
+    r"(?=.*\\b(?:certainty|certain|truth|proof|know for sure|can anyone know|need to know|"
     r"is there|does .{1,45} exist|is .{1,45} real|is .{1,45} somewhere|"
     r"gone forever|never see .{1,45} again)\\b)"
     r"(?=.*\\b(?:distress|distressed|fear|grief|loss|bereave\\w*|mourning|"
