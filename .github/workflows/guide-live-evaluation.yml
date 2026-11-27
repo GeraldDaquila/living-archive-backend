@@ -60,7 +60,7 @@ jobs:
           else
             BASE_URL="https://living-archive-backend.onrender.com"
           fi
-          expected_version="$(sed -n '1s/^# USE PRODUCTION VERSION: \\([^ ]*\\).*/\\1/p' main.py)"
+          expected_version="$(sed -n '1s/^# USE PRODUCTION VERSION: \([^ ]*\).*/\1/p' main.py)"
           expected_sha="$GITHUB_SHA"
           if [ -z "$expected_version" ] || [ -z "$expected_sha" ]; then
             echo "Could not read expected USE version or commit SHA."
