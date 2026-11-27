@@ -70,6 +70,27 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
             low,
         ))
     )
+    sentences = [
+        sentence.strip()
+        for sentence in re.split(r"(?<=[.!?])\\s+", low)
+        if sentence.strip()
+    ]
+    mechanism_cue = re.compile(
+        r"\\b(?:allows?|enables?|supports?|shapes?|cultivates?|develops?|"
+        r"strengthens?|depends on|requires?|makes it possible|reinforces?|influences?)\\b",
+        re.I,
+    )
+    relationship_mechanism = any(
+        "humility" in sentence
+        and bool(re.search(r"\\bspiritual maturit(?:y|ies)\\b", sentence))
+        and bool(mechanism_cue.search(sentence))
+        for sentence in sentences
+    )
+    relationship_direction_or_boundary = bool(re.search(
+        r"\\b(?:both|reciprocal|mutual|in turn|one another|each other|"
+        r"not automatic|not necessarily|conditional|while|although|yet)\\b",
+        low,
+    ))
     no_guarantee = any(term in low for term in (
         "does not guarantee", "doesn't guarantee", "not guarantee",
         "not automatically", "not by itself", "not sufficient by itself",
@@ -77,6 +98,8 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
     ))
     checks = {
         "names_both_concepts": humility_present and maturity_present,
+        "relationship_mechanism": relationship_mechanism,
+        "relationship_direction_or_boundary": relationship_direction_or_boundary,
         "humility_supports_learning_and_correction": learning_mechanism,
         "maturity_as_lived_conduct": lived_maturity,
         "not_self_erasure_or_self_contempt": rejects_self_erasure,
