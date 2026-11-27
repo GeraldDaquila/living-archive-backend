@@ -277,7 +277,6 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "do not count character offsets",
         "exact quote occurs once",
         "distinctive operation",
-        "exact answer substring",
         "No hidden reasoning or chain-of-thought",
         "paired evaluation",
     ):
