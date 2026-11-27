@@ -5694,7 +5694,7 @@ def compose(
                 if (
                     _repaired_result
                     and _repaired_response
-                    and _repaired_semantic.get("status") != "fail"
+                    and _repaired_semantic.get("status") == "pass"
                 ):
                     result = _repaired_result
                     _emit_guide_outcome(
@@ -5712,6 +5712,31 @@ def compose(
                     stage="repair_provider_error",
                     error_type=type(_lived_repair_error).__name__,
                 )
+
+    # Evaluation arms do not receive a repair attempt, but they still obey the
+    # same hard admission boundary. Never let an invalid candidate become a
+    # successful evaluation merely because repair is disabled for comparability.
+    if (
+        result
+        and evaluation is not None
+        and classify_inquiry_family(question).get("family") in {
+            "epistemic_distress", "epistemic_distress_guidance"
+        }
+    ):
+        _evaluation_payload = result.get("parsed") if isinstance(result, dict) else None
+        if not isinstance(_evaluation_payload, dict):
+            _evaluation_payload = result if isinstance(result, dict) else {}
+        from gold_star_semantic_contract import evaluate_semantic_contract as _evaluate_epistemic_evaluation_contract
+        _evaluation_semantic = _evaluate_epistemic_evaluation_contract(
+            question, {"ok": True, "response": str(_evaluation_payload.get("response") or "")}
+        )
+        if _evaluation_semantic.get("status") != "pass":
+            _emit_guide_outcome(
+                "epistemic_distress_task_fit_repair",
+                stage="evaluation_candidate_rejected_without_repair",
+                failed_checks=",".join(_evaluation_semantic.get("failed_checks") or []),
+            )
+            result = None
 
     # Epistemic-distress inquiries receive the same single, deadline-bounded
     # task-fit repair as lived-reflective inquiries. This is disabled for
@@ -5731,11 +5756,15 @@ def compose(
         _first_semantic = _evaluate_epistemic_semantic_contract(
             question, {"ok": True, "response": _first_response}
         )
-        if _first_semantic.get("status") == "fail":
+        if _first_semantic.get("status") != "pass":
+            # Fail closed before attempting repair. If the provider is exhausted,
+            # times out, or returns another incomplete answer, the rejected
+            # candidate must not remain eligible for downstream delivery.
+            result = None
             _emit_guide_outcome(
                 "epistemic_distress_task_fit_repair",
-                stage="off_target_candidate_rejected",
-                failed_checks=",".join(_first_semantic.get("hard_failures") or []),
+                stage="candidate_invalidated_before_repair",
+                failed_checks=",".join(_first_semantic.get("failed_checks") or []),
             )
             _repair_system_message = _build_general_guide_system_message(
                 question,
@@ -5863,6 +5892,37 @@ def compose(
             path="fallback_recovery",
             openness="continuity_after_provider_exhaustion",
         )
+        # This inquiry family has a registered, provider-independent recovery.
+        # Give it priority over archive-passage contrast and generic recovery so
+        # provider exhaustion cannot replace a vulnerable visitor's question
+        # with an adjacent topic.
+        if classify_inquiry_family(question).get("family") in {
+            "epistemic_distress", "epistemic_distress_guidance"
+        }:
+            from deterministic_answer_recovery import compose_recovery as _compose_epistemic_distress_recovery
+            from gold_star_semantic_contract import evaluate_semantic_contract as _evaluate_epistemic_recovery
+            _epistemic_recovery_answer = _compose_epistemic_distress_recovery(question)
+            _epistemic_recovery_semantic = _evaluate_epistemic_recovery(
+                question, {"ok": True, "response": _epistemic_recovery_answer}
+            )
+            if _epistemic_recovery_semantic.get("status") != "pass":
+                raise RuntimeError(
+                    "Epistemic-distress provider-exhaustion recovery failed its semantic admission contract."
+                )
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="epistemic_distress_guidance",
+                semantic_status="pass",
+            )
+            return {
+                "response": _epistemic_recovery_answer,
+                "doorway_title": "",
+                "doorway_url": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_epistemic_distress_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+
         archive_contrast_recovery = _archive_passage_contrast_recovery(question, documents)
         if archive_contrast_recovery is not None:
             _emit_guide_outcome(
