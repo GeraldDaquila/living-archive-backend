@@ -5638,7 +5638,7 @@ def compose(
                     parse=_parse_factory(
                         documents,
                         effective_question,
-                        gold_star_quality.get("candidates") if gold_star_quality else None,
+                        None,
                     ),
                     schema=_build_provider_composition_schema(None),
                     deadline_monotonic=provider_deadline_monotonic,
