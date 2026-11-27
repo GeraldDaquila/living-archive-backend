@@ -402,8 +402,12 @@ def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
         5.64, 4.99, "healthy", 5.64
     ) == 5.64
 
-    # Half-open candidates retain their explicitly supported probe minimum.
+    # The 250ms grace is part of the next half-open candidate's reservation.
+    # Ten seconds cannot fit both the five-second repair floor and 5.25s fallback.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
         10.0, 6.5, "half_open", 10.0
+    ) == 0.0
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        10.0, 6.5, "half_open", 10.25
     ) == 5.0
 

@@ -417,6 +417,13 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "SECRET" not in snapshot
 
 
+def test_guide_provider_timeout_grace_is_250ms_without_changing_route_deadlines():
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_TIMEOUT_GRACE_SECONDS == pytest.approx(0.25)
+    assert provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS == pytest.approx(5.25)
+    assert provider_bank.GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS == pytest.approx(6.75)
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(18.0)
+
+
 def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_timeout():
     item = {
         **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
@@ -434,7 +441,7 @@ def test_healthy_nvidia_lightning_gets_six_point_five_second_margin_after_live_t
     monkeypatch.setitem(provider_bank._PROVIDER_LATENCY_EWMA, ("nvidia", model), 2.74)
     healthy = {**_item("nvidia", model), "health_state": "healthy"}
     timeout = provider_bank._provider_call_timeout("general_guide_composition", healthy)
-    assert timeout == pytest.approx(6.5)
+    assert timeout == pytest.approx(6.75)
     assert timeout > 6.032
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
@@ -508,7 +515,7 @@ def test_general_guide_half_open_candidate_can_finish_after_old_probe_timeout(mo
 
     def valid_composition_after_three_seconds(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append(timeout_override)
-        assert timeout_override == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+        assert timeout_override == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         clock.value += 3.25
         return json.dumps({"response": "A complete, grounded answer in three purposeful paragraphs."})
 
@@ -523,7 +530,7 @@ def test_general_guide_half_open_candidate_can_finish_after_old_probe_timeout(mo
 
     assert result is not None
     assert result["provider"] == "nvidia"
-    assert calls == [provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS]
+    assert calls == [provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS]
     assert clock.value == pytest.approx(3.25)
 
 
@@ -562,15 +569,15 @@ def test_general_guide_reserves_the_next_half_open_composition_timeout(monkeypat
     )
 
     assert result is None
-    # A slow full composition receives the supported 5s minimum. The 18s
+    # A slow full composition receives the supported 5.25s timeout. The 18s
     # arbitration window therefore admits three timed-out recovery candidates,
     # rather than seven calls that cannot finish a substantive answer.
     assert len(calls) == 3
     assert all(
-        timeout == provider_bank.GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+        timeout == provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         for _, timeout in calls
     )
-    assert clock.value == pytest.approx(15.0)
+    assert clock.value == pytest.approx(15.75)
 
 
 def _recovery_candidate(
