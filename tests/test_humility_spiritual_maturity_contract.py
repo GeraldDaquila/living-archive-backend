@@ -135,7 +135,8 @@ def test_humility_boundary_accepts_clear_self_erasure_paraphrases(boundary_sente
     answer = COMPLETE_ANSWER.replace(
         "Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
         "or automatic compliance; it does not mean surrendering appropriate boundaries.",
-        boundary_sentence + " It does not mean surrendering appropriate boundaries.",
+        boundary_sentence + " Humility is not passivity, blind obedience, or automatic compliance. "
+        "It does not mean surrendering appropriate boundaries.",
     )
     report = evaluate_humility_spiritual_maturity_response(QUERY, answer)
     assert report["checks"]["not_self_erasure_or_self_contempt"] is True
