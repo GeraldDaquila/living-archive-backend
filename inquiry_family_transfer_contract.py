@@ -17,6 +17,7 @@ _LIVED_SUBJECT = re.compile(
     r"belonging|who i am|sense of self)\b",
     re.I,
 )
+_IDENTITY_FOCUS = re.compile(r"\b(?:identity|selfhood|personhood|belonging|who i am|sense of self|defined by|total identity)\b", re.I)
 _LIVED_FRAME = re.compile(
     r"\b(?:hold|carry|bear|live with|cope with|make sense of|process|"
     r"turn(?:ing)? into|become|define|identify with|feel|experience|"
@@ -38,9 +39,9 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
     """Identify a narrow lived/reflective family before generic task verbs."""
     text = re.sub(r"\s+", " ", str(query or "")).strip()
     if not text:
-        return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": []}
+        return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": [], "identity_focus": False}
     if _GOVERNANCE_QUERY.search(text) and _GOVERNANCE_ACTION.search(text):
-        return {"version": _VERSION, "family": "institutional_governance", "confidence": "high", "signals": ["governance_subject", "governance_action"]}
+        return {"version": _VERSION, "family": "institutional_governance", "confidence": "high", "signals": ["governance_subject", "governance_action"], "identity_focus": bool(_IDENTITY_FOCUS.search(text))}
     subject = _LIVED_SUBJECT.search(text)
     frame = _LIVED_FRAME.search(text)
     if subject and frame:
@@ -49,6 +50,7 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
             "family": "personal_lived_reflective",
             "confidence": "high",
             "signals": [subject.group(0).casefold(), frame.group(0).casefold()],
+            "identity_focus": bool(_IDENTITY_FOCUS.search(text)),
         }
     return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": []}
 
