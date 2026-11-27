@@ -56,7 +56,7 @@ def test_candidate_local_runner_uses_existing_provider_pins_and_complete_asgi_bo
         Path(__file__).resolve().parents[1]
         / "scripts/capture_gold_star_matched_pairs.py"
     ).read_text(encoding="utf-8")
-    assert "evaluation_context(arm=arm, provider=provider, model=model)" in source
+    assert "evaluation_context(arm=arm, provider=provider, model=model, candidate_id=(candidate_id if arm == \"treatment\" else None))" in source
     assert 'client.post("/api/query"' in source
     assert "httpx.ASGITransport(app=main.app)" in source
     assert "semantic_application_certified" in source
