@@ -43,3 +43,30 @@ def test_guide_answer_renderer_preserves_backend_semantic_boundaries_instead_of_
     assert "marked.parse(responseForPresentation)" in source
     assert "responseForPresentation.split" not in source
     assert "responseText.replaceChildren" in source
+
+
+def test_substantive_single_block_is_rejected_but_chunked_answer_is_admitted():
+    from general_guide_composition import _requires_visitor_idea_chunking
+
+    sentences = [
+        "Pain can be present without defining the whole person, because an experience is not the same thing as an identity.",
+        "Naming the feeling creates a little distance, allowing someone to notice it without denying that it matters.",
+        "The distinction also protects against the opposite mistake of suppressing pain or pretending it has disappeared.",
+        "Other relationships, commitments, interests, and values remain part of a person's life while pain is present.",
+        "A practical response can therefore acknowledge the feeling while keeping it in proportion to the wider self.",
+        "This does not make the pain trivial; it makes room for the person to remain larger than the pain.",
+    ]
+    single_block = " ".join(sentences)
+    chunked = "\n\n".join([" ".join(sentences[:2]), " ".join(sentences[2:4]), " ".join(sentences[4:])])
+
+    assert len(single_block) >= 650
+    assert _requires_visitor_idea_chunking(single_block)
+    assert not _requires_visitor_idea_chunking(chunked)
+
+
+def test_short_direct_answer_is_not_forced_into_multiple_paragraphs():
+    from general_guide_composition import _requires_visitor_idea_chunking
+
+    assert not _requires_visitor_idea_chunking(
+        "Pain is an experience a person can acknowledge without treating it as their entire identity."
+    )

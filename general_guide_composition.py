@@ -232,7 +232,7 @@ _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of 
 Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. Choose the response form that best performs the visitor's actual task. the response form remains task-dependent; the Gold Star is a quality floor, not a fixed template. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
 
 VISITOR IDEA-CHUNKING AND READABILITY:
-Multi-idea answers: use coherent short paragraphs; preserve nuance; avoid forced sections.
+For substantive multi-idea answers, use short paragraphs (one idea each); never return a long multi-idea answer as one block. Do not force headings or split simple answers.
 
 COMPETING-VALUES AND GOVERNANCE-BALANCE REASONING:
 For a genuine request to balance or reconcile competing values, explain the mechanisms that make the balance work, not just the values or a call to deliberate. Identify each value's legitimate concern; specify the structures, decision rights, procedures, or safeguards that realize it; and explain how these mechanisms constrain one another, including who has authority, participates, and is accountable. Include challenge or appeal routes and observable review or escalation triggers. For community liberty limits, require legitimate purpose and evidence of harm/coordination need; majority preference is not proof. Explain the failure modes each value can create alone (stability becoming rigidity, participation becoming ceremonial, responsiveness becoming arbitrary). Adapt mechanisms to the institution, jurisdiction, stakes, and affected parties; avoid universal legal prescriptions. Do not impose this contract on simple definitions or comparisons that do not ask for a workable balance.
@@ -997,6 +997,20 @@ def _sanitize_candidate(text: Any) -> str:
 
     return "\n\n".join(paragraphs).strip()
 
+
+def _requires_visitor_idea_chunking(response: str) -> bool:
+    """Identify substantive multi-idea prose that must not be delivered as one block.
+
+    Short answers and genuinely single-movement explanations remain free-form.
+    Long answers with five or more sentences require at least one semantic
+    paragraph boundary.
+    """
+    text = str(response or "").strip()
+    if len(text) < 650:
+        return False
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", text) if part.strip()]
+    sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\s|$)", text))
+    return sentence_count >= 5 and len(paragraphs) < 2
 
 def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List[Dict[str, str]]:
     documents: List[Dict[str, str]] = []
@@ -2973,6 +2987,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
         if len(response) < 40:
             raise ValueError("general composition response is too short")
+        if _requires_visitor_idea_chunking(response):
+            raise ValueError(
+                "substantive multi-idea answer must preserve semantic paragraph boundaries"
+            )
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
 
@@ -3270,6 +3288,8 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 if isinstance(parsed_for_comparison, dict) else {}
             )
             candidate_for_comparison = _sanitize_candidate(parsed_for_comparison.get("response"))
+            if _requires_visitor_idea_chunking(candidate_for_comparison):
+                raise strict_exc
             if _comparative_traditions_contract.response_requires_quality_repair(
                 query, candidate_for_comparison
             ):
