@@ -4185,8 +4185,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     recovery_timeout = min(float(recovery_timeout), remaining_window)
                     next_candidate = (
-                        attempt_pool[attempt_index]
-                        if attempt_index < len(attempt_pool) else None
+                        attempt_pool[attempt_index + 1]
+                        if attempt_index + 1 < len(attempt_pool) else None
                     )
                     if next_candidate is not None:
                         next_candidate_timeout = _provider_call_timeout(
