@@ -47,6 +47,6 @@ jobs:
       - name: Verify exact humility and spiritual-maturity doorway selection
         run: PYTHONPATH=. python -m pytest -q tests/test_guide_humility_spiritual_maturity_doorway.py
       - name: Verify punctuation and source-boundary normalization
-        run: PYTHONPATH=. python -m pytest -q tests/test_answer_source_boundary_sanitization.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_general_guide_provider_parse_contract.py
       - name: Verify answer and doorway mobile presentation contract
         run: PYTHONPATH=. python -m pytest -q tests/test_answer_doorway_mobile_presentation.py
