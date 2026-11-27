@@ -4184,6 +4184,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         - (time.monotonic() - route_started),
                     )
                     recovery_timeout = min(float(recovery_timeout), remaining_window)
+                    # The attempt loop is one-based (enumerate(..., start=1));
+                    # this index therefore points to the next candidate.
                     next_candidate = (
                         attempt_pool[attempt_index]
                         if attempt_index < len(attempt_pool) else None
