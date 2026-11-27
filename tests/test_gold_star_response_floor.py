@@ -360,3 +360,65 @@ def test_comparison_question_rejects_the_production_generic_refusal():
 
     assert result["status"] == "fail"
     assert result["reason"] == "generic_nonanswer"
+
+
+
+def test_social_mechanism_near_miss_is_rejected_at_final_response_boundary():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    answer = (
+        "A useful starting point is to ask how myths, symbols, and stories organize "
+        "collective life works through particular conditions rather than assuming a "
+        "single direct cause. Repeated signals, incentives, relationships, constraints, "
+        "and consequences can make some choices feel normal, rewarded, risky, or difficult "
+        "even when formal rules say something different.\n\n"
+        "The next question is what mechanisms are actually operating: what people observe "
+        "others doing, what behavior is rewarded or tolerated, whose judgment carries "
+        "authority, and what happens when concerns are raised. Patterns become more "
+        "consequential when these conditions reinforce one another over time and make "
+        "correction harder or easier.\n\n"
+        "This is a starting explanation rather than a claim about a specific case. A "
+        "stronger account identifies the relationships and evidence that matter, "
+        "distinguishes influence from proof of causation, and remains open to other "
+        "conditions that may change the outcome."
+    )
+    payload, status = apply_response_floor_boundary(
+        query, {"ok": True, "query": query, "response": answer}, 200
+    )
+    assert status == 503
+    assert payload["ok"] is False
+    assert payload["gold_star_v2_quality_floor"]["reason"] == "social_mechanism_example_not_demonstrated"
+
+
+def test_social_mechanism_grounded_example_passes_final_response_boundary():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    answer = (
+        "Shared stories and symbols organize collective life by making expectations "
+        "and belonging visible and memorable.\n\n"
+        "For example, a village retells its founding story at an annual gathering. "
+        "Residents display a carved marker and renew a volunteer rota, so the story "
+        "makes mutual aid part of local identity and turns remembrance into coordinated work.\n\n"
+        "The effect is not automatic: residents may dispute the story, reject the rota, "
+        "or disagree about who is included."
+    )
+    payload, status = apply_response_floor_boundary(
+        query, {"ok": True, "query": query, "response": answer}, 200
+    )
+    assert status == 200
+    assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
+
+
+def test_outermost_floor_runs_after_final_response_mutations_and_before_serialization():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = source.index("async def _send_with_final_visitor_boundary")
+    end = source.index("\n\n", source.index("encoded = json.dumps(", start))
+    body = source[start:end]
+    reconcile = body.index("_guide_reconcile_verified_doorway_recovery")
+    terminal_floor = body.rindex("apply_response_floor_boundary")
+    serialization = body.index("encoded = json.dumps(")
+    assert reconcile < terminal_floor < serialization
