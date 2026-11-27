@@ -16428,9 +16428,9 @@ async def _use_send_json(send, payload, status_code=200):
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
                 pass
-        # Shared final doorway restoration is applied to every ordinary response
-        # path, including exact standards with incomplete legacy doorway metadata.
-        # Explicit no-handoff standards and Archive-claim provenance remain terminal.
+        # Exact reviewed query-family destinations outrank broad archive claims.
+        # Generic registry fallback still respects archive-claim terminal provenance;
+        # this narrower reviewed match is not an unrelated fallback.
         _boundary_standard_has_doorway = bool(
             _boundary_standard
             and _gold_star_expected_doorway_fields(_boundary_standard)["title"]
@@ -16444,8 +16444,8 @@ async def _use_send_json(send, payload, status_code=200):
             _gold_star_doorway_omission_is_justified(_boundary_standard)
         )
         if (
-            not _archive_claim_final
-            and _boundary_query
+            _boundary_query
+            and not _boundary_safety
             and not _boundary_standard_forbids_doorway
             and not _boundary_standard_has_doorway
         ):

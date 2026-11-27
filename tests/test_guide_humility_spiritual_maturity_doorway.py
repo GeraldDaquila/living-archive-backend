@@ -1,3 +1,6 @@
+import asyncio
+import json
+
 import main
 import general_guide_composition as composition
 
@@ -59,6 +62,55 @@ def test_terminal_humility_family_doorway_overrides_generic_preselected_candidat
     assert result["recommendation"]["url"] == expected["url"]
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["doorway_selection_source"] == "reviewed_humility_spiritual_maturity_family"
+
+def test_shared_json_sender_restores_reviewed_humility_doorway_over_archive_claim():
+    question = "What is the relationship between humility and spiritual maturity?"
+    generic = {
+        "title": "Why Psychological Integration Matters More Than Spiritual Performance",
+        "url": "https://geralddaquila.com/2026/06/05/why-psychological-integration-matters-more-than-spiritual-performance/",
+        "rationale": "A broadly related earlier selection.",
+    }
+    provider_answer = (
+        "Humility supports spiritual maturity because it keeps a person willing to learn, "
+        "make an honest self-appraisal, accept correction, and remain open to others. "
+        "Spiritual maturity is visible in lived conduct: responsibility, accountability, "
+        "and care in relationships, rather than a status someone claims. "
+        "Humility is not self-erasure, diminished self-worth, or self-contempt, and it does "
+        "not require surrendering appropriate boundaries. It is also distinct from passivity, "
+        "blind obedience, and automatic compliance. The relationship is conditional, not "
+        "automatic. Humility alone does not guarantee maturity; it must be expressed in "
+        "how a person acts."
+    )
+    payload = {
+        "query": question,
+        "response": provider_answer,
+        "response_provenance": "llm",
+        "provider_invocation_id": "provider-invocation-123",
+        "recommendation": generic,
+        "canonical_doorway": generic,
+        "processing": "final_visitor_boundary_archive_claim_provenance",
+        "doorway_selection_status": "VERIFIED_RELEVANT_DESTINATION",
+        "doorway_selection_evaluated": True,
+        "doorway_selection_source": "final_authoritative_recommendation_contract",
+    }
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    asyncio.run(main._use_send_json(capture, payload))
+    response_message = next(message for message in sent if message.get("type") == "http.response.body")
+    body = json.loads(response_message["body"].decode("utf-8"))
+    expected = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["humility_spiritual_maturity"]
+
+    assert body["response"] == provider_answer
+    assert body["response_provenance"] == "llm"
+    assert body["provider_invocation_id"] == "provider-invocation-123"
+    assert body["recommendation"]["title"] == expected["title"]
+    assert body["recommendation"]["url"] == expected["url"]
+    assert body["canonical_doorway"] == body["recommendation"]
+    assert body["doorway_selection_source"] == "reviewed_humility_spiritual_maturity_family"
+
 
 def test_relational_answer_contract_distinguishes_humility_from_self_erasure():
     question = "What is the relationship between humility and spiritual maturity?"
