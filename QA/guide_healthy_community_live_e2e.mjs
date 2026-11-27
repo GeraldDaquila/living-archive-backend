@@ -607,6 +607,9 @@ try {
     })),
     apiFailures,
     apiFinished,
+    blockedMirrorRequests,
+    mirrorAvailable,
+    mirrorAvailableAfterUtc,
     answerLength: responseText.length,
     pageErrors,
     consoleErrors
