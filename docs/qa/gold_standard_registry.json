@@ -9171,11 +9171,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How do myths, symbols, and stories organize collective life?",
       "expected_response": "Myths, symbols, and stories help organize collective life by giving people shared ways to interpret events, recognize obligations, and understand who belongs. A story can explain why a community observes a custom; a symbol can make that story recognizable in public; and a repeated ceremony can turn an idea into a coordinated practice. These forms do not control everyone in the same way: people can interpret them differently, challenge their meaning, or refuse the obligations attached to them.\n\nFor example, in a coastal village facing seasonal floods, residents retell a story of a past rescue, gather around a painted boat symbol at an annual meeting, and renew a shared watch rota, which means the story and symbol make mutual obligations visible and coordinate who checks on which households. The mechanism is practical: a shared account makes the reason for cooperation memorable, the public symbol signals that the commitment is held in common, and the meeting assigns responsibilities that residents can see and review. The story does not itself build flood defences or guarantee cooperation; people, resources, trust, and fair procedures still determine what happens.\n\nThe same process can bind people together or exclude them. A founding story may encourage mutual aid, but it may also define some residents as outsiders; a ceremony may renew commitment, but it may silence disagreement if only one interpretation is permitted. To understand a particular community, look at who tells the story, who is represented by the symbol, what people actually do together, who carries the costs, and whether those affected can question or revise the shared account. This is a general conceptual explanation, not a claim that the Living Archive defines these forms in exactly these words.",
-      "expected_doorway": {
-        "title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
-        "url": null,
-        "rationale": "The visible Continue Exploring card offers a separate reading pathway for the question's theme. The screenshot does not establish the canonical URL or prove that the resource is the source of every statement in the answer."
-      },
+      "expected_doorway": null,
       "assertions": [
         "Preserve the exact three-paragraph visitor-facing answer as an immutable response-quality exemplar.",
         "Explain how stories provide shared interpretation and memory, symbols make meaning publicly recognizable, and repeated ceremonies coordinate practice and obligations.",
@@ -9191,12 +9187,14 @@
         "source": "User-supplied screenshot of the live Guide visitor-facing response, explicitly elevated by the user.",
         "source_path": "conversation attachment image(20261127-222626).png",
         "source_date": "2026-11-27",
-        "evidence_boundary": "The screenshot establishes the displayed question, exact three-paragraph answer, and visible Continue Exploring title and explanatory text. It does not establish the canonical destination URL, provider provenance, adaptive application, or measured transfer.",
-        "review_assessment": "Assistant assessment: 8.9/10. This is an assistant assessment, not a user-assigned numerical rating."
+        "evidence_boundary": "The screenshot establishes the displayed question, exact three-paragraph answer, and visible Continue Exploring title and explanatory text. The canonical destination URL was not captured; the title is recorded as observed but not as a verified doorway. The screenshot does not establish provider provenance, adaptive application, or measured transfer.",
+        "review_assessment": "Assistant assessment: 8.9/10. This is an assistant assessment, not a user-assigned numerical rating.",
+        "visible_continuation_title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+        "visible_continuation_copy": "This related Living Archive resource offers a further point of exploration for the subject raised in your question. It is a separate reading pathway, not a claim that this page is the source of every statement in the answer."
       },
       "rating": null,
       "freeze_policy": "immutable_user_approved_gold_standard",
-      "doorway_status": "NOT_EVALUATED",
+      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
       "assistant_assessment_out_of_10": 8.9,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
