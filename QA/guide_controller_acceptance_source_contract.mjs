@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const path = "wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js";
+const path = "wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js";
 const source = readFileSync(path, "utf8");
 
-assert.match(source, /USE_FRONTEND_BUILD\s*=\s*'v489\.332-typed-visitor-acceptance'/);
+assert.match(source, /USE_FRONTEND_BUILD\s*=\s*'v489\.333-semantic-answer-presentation'/);
 assert.match(source, /response\.clone\(\)\.json\(\)/, "must inspect a clone and preserve the caller's response body");
 assert.match(source, /error\.failureKind\s*=\s*'application_contract'/);
 assert.match(source, /error\.retryable\s*=\s*false/);
@@ -32,4 +32,4 @@ assert.ok(retryStatus > applicationReject,
 assert.match(fetchUse, /throw createGuideApplicationContractError\(/,
   "typed application rejection must terminate the request rather than fall through to failover");
 
-console.log("PASS: v489.332 visitor acceptance source contract");
+console.log("PASS: v489.333 visitor acceptance source contract");

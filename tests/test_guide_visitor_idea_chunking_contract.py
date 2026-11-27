@@ -26,10 +26,12 @@ def test_guide_answer_css_gives_semantic_chunks_readable_spacing_and_mobile_rhyt
         ROOT / "wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css"
     ).read_text(encoding="utf-8")
     assert "#archive-response-text > p" in source
-    assert "margin: 0 0 1.05em" in source
-    assert "line-height: 1.72" in source
+    assert "margin: 0 0 1.1em" in source
+    assert "font-size: 18px !important" in source
+    assert "line-height: 1.75 !important" in source
     assert "@media (max-width: 700px)" in source
-    assert "margin-bottom: 1.15em" in source
+    assert "margin-bottom: 1.2em !important" in source
+    assert "line-height: 1.78 !important" in source
     assert "#archive-response-text li" in source
     plugin = (ROOT / "wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php").read_text(encoding="utf-8")
     assert "Version: 1.0.5" in plugin
@@ -38,11 +40,13 @@ def test_guide_answer_css_gives_semantic_chunks_readable_spacing_and_mobile_rhyt
 
 def test_guide_answer_renderer_preserves_backend_semantic_boundaries_instead_of_splitting_sentences():
     source = (
-        ROOT / "wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.329.js"
+        ROOT / "wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js"
     ).read_text(encoding="utf-8")
-    assert "marked.parse(responseForPresentation)" in source
-    assert "responseForPresentation.split" not in source
-    assert "responseText.replaceChildren" in source
+    assert "function renderGuideAnswerContent(" in source
+    assert "marked.parse(text)" in source
+    assert "target.replaceChildren" in source
+    assert "text.split(/\\n{2,}/)" in source
+    assert "text.split(/[^\\n.!?]+[.!?]/)" not in source
 
 
 def test_substantive_single_block_is_rejected_but_chunked_answer_is_admitted():

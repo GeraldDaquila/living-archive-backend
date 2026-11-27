@@ -6,6 +6,10 @@ on:
     paths:
       - 'wordpress/living-archive-guide-v489.247-response-integrity.js'
       - 'QA/test_guide_response_render_contract.mjs'
+      - 'QA/guide_semantic_presentation_contract.mjs'
+      - 'general_guide_composition.py'
+      - 'wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css'
+      - 'wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js'
   push:
     branches: [main]
     paths:
@@ -25,3 +29,7 @@ jobs:
           node-version: "22"
       - name: Validate Guide response rendering contract
         run: node QA/test_guide_response_render_contract.mjs
+      - name: Validate semantic chunking and mobile presentation contract
+        run: |
+          node --check wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js
+          node QA/guide_semantic_presentation_contract.mjs

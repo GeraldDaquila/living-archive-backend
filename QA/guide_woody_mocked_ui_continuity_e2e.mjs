@@ -1,10 +1,11 @@
 import { chromium } from "playwright";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync } from "node:fs";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
-const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.332.js";
-const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js", "utf8");
+const EXPECTED_CONTROLLER_ARTIFACT = "guide-controller-v489.333.js";
+const CANDIDATE_CONTROLLER_SOURCE = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
+const CANDIDATE_ANSWER_CSS = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css", "utf8");
 let candidateControllerServed = false;
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 const QUESTIONS = [
@@ -19,13 +20,13 @@ const ASSISTANT_ANSWERS = [
   "People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.",
   "A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.",
   "A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?",
-  "Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it. Several mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory. Learning requires consequences to revise what the organization understands and that understanding to change what it does. A practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed. These are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"
+  "Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it.\n\nSeveral mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory.\n\nLearning requires consequences to revise what the organization understands and that understanding to change what it does.\n\nA practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed.\n\nThese are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"
 ];
 const FOLLOWUP = "Can you explain your previous answer in simpler terms?";
 const mark = (stage, details = {}) => console.log(JSON.stringify({ stage, ...details }));
 
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ serviceWorkers: "block" });
+const context = await browser.newContext({ serviceWorkers: "block", viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const page = await context.newPage();
 page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
@@ -207,7 +208,7 @@ await page.route("**/*", async route => {
 
 // Replace only the page's controller asset with the PR candidate. The live
 // WordPress HTML/CSS and page structure remain real; API traffic stays mocked.
-// This executes v489.332 in-browser without activating it on production.
+// This executes v489.333 in-browser without activating it on production.
 await page.route("**/*", async route => {
   const url = route.request().url();
   if (/guide-controller-v489\.\d+\.js(?:\?|$)/.test(url)) {
@@ -222,7 +223,8 @@ await page.route("**/*", async route => {
 try {
   mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
-  if (!candidateControllerServed) throw new Error("Candidate controller v489.332 was not requested/injected; browser test would otherwise exercise production code.");
+  await page.addStyleTag({ content: CANDIDATE_ANSWER_CSS });
+  if (!candidateControllerServed) throw new Error("Candidate controller v489.333 was not requested/injected; browser test would otherwise exercise production code.");
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
@@ -282,7 +284,7 @@ try {
     // WordPress controller/UI contract from browser network plumbing.
     window.__guideApiRequests = [];
     const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?","Why do organizations repeat failures they publicly acknowledge?"];
-    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?","Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it. Several mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory. Learning requires consequences to revise what the organization understands and that understanding to change what it does. A practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed. These are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"];
+    const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?","Because acknowledging a failure and changing the conditions that produced it are two different things. Public acknowledgment shows that a problem has been named; it does not, by itself, show that the organization has learned or become able to correct it.\n\nSeveral mechanisms can keep the same failure recurring: unchanged procedures and routines; incentives that still reward the old behavior; responsibility without sufficient authority or resources; information that cannot challenge the organization's assumptions; and lessons that never become institutional memory.\n\nLearning requires consequences to revise what the organization understands and that understanding to change what it does.\n\nA practical test is to ask who owns the correction, what authority and resources they have, which incentive or procedure changed, and what outcome will be measured and reviewed.\n\nThese are common mechanisms, not a diagnosis of every organization; identifying the dominant cause in a particular case requires evidence. If you have a particular organization in mind, which part of this sequence seems most likely to be breaking down?"];
     const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/", rationale: "This article explores how community health depends on shared participation, meaningful voice, and the conditions that let people work through differences." };
     const institutionalDoorway = { title: "When Experience Can Change Us: The Two Capacities of a Living System", url: "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/", rationale: "This Living Archive essay examines how consequential experience can change an institution's understanding, and how that understanding can or cannot change the way it operates. It is a deeper continuation, not the evidence source for this general explanation." };
     const qaFollowup = "Can you explain your previous answer in simpler terms?";
@@ -384,6 +386,132 @@ try {
       return current.length > 35 && current !== before.trim();
     }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
+    if (i === 4) {
+      const mobileMetrics = await page.evaluate(() => {
+        const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+        const text = root && root.querySelector("#archive-response-text");
+        const rect = text && text.getBoundingClientRect();
+        const style = text && getComputedStyle(text);
+        return {
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          devicePixelRatio: window.devicePixelRatio,
+          answerFontSize: style && style.fontSize,
+          answerLineHeight: style && style.lineHeight,
+          answerClientWidth: text && text.clientWidth,
+          answerScrollWidth: text && text.scrollWidth,
+          answerParagraphCount: text && text.querySelectorAll(":scope > p").length,
+          answerRightEdge: rect && rect.right,
+          rootClientWidth: root && root.clientWidth,
+          rootScrollWidth: root && root.scrollWidth,
+          documentScrollWidth: document.documentElement.scrollWidth
+        };
+      });
+      if (mobileMetrics.viewportWidth !== 390 || mobileMetrics.answerFontSize !== "18px" ||
+          mobileMetrics.answerScrollWidth > mobileMetrics.answerClientWidth + 1 ||
+          mobileMetrics.answerParagraphCount < 5 ||
+          mobileMetrics.rootScrollWidth > mobileMetrics.rootClientWidth + 1 ||
+          mobileMetrics.answerRightEdge > mobileMetrics.viewportWidth + 1) {
+        throw new Error("Mobile answer rendering failed responsive layout checks: " + JSON.stringify(mobileMetrics));
+      }
+      const languageSwitcherMetrics = await page.evaluate((rootSelector) => {
+        const node = document.querySelector(".gt_float_switcher");
+        if (!node) return { found: false };
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        const wrapper = node.closest("#gt_float_wrapper");
+        const wrapperRect = wrapper && wrapper.getBoundingClientRect();
+        const wrapperStyle = wrapper && getComputedStyle(wrapper);
+        const wrapperParent = wrapper && wrapper.parentElement;
+        const wrapperParentStyle = wrapperParent && getComputedStyle(wrapperParent);
+        const ancestors = [];
+        let ancestor = node;
+        while (ancestor && ancestors.length < 5) {
+          const ancestorStyle = getComputedStyle(ancestor);
+          const ancestorRect = ancestor.getBoundingClientRect();
+          ancestors.push({
+            tag: ancestor.tagName,
+            id: ancestor.id,
+            className: typeof ancestor.className === "string" ? ancestor.className : "",
+            display: ancestorStyle.display,
+            position: ancestorStyle.position,
+            float: ancestorStyle.float,
+            width: ancestorRect.width,
+            height: ancestorRect.height
+          });
+          ancestor = ancestor.parentElement;
+        }
+        const answer = document.querySelector(rootSelector + " #archive-response-text");
+        const answerRect = answer && answer.getBoundingClientRect();
+        const overlapsAnswer = !!answerRect &&
+          rect.left < answerRect.right && rect.right > answerRect.left &&
+          rect.top < answerRect.bottom && rect.bottom > answerRect.top;
+        const textRects = [];
+        if (answer) {
+          const walker = document.createTreeWalker(answer, NodeFilter.SHOW_TEXT);
+          let textNode;
+          while ((textNode = walker.nextNode())) {
+            if (!textNode.nodeValue || !textNode.nodeValue.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(textNode);
+            Array.from(range.getClientRects()).forEach(textRect => {
+              if (textRect.width && textRect.height) textRects.push({
+                left: textRect.left, top: textRect.top, right: textRect.right, bottom: textRect.bottom
+              });
+            });
+          }
+        }
+        const overlappingTextRects = textRects.filter(textRect =>
+          rect.left < textRect.right && rect.right > textRect.left &&
+          rect.top < textRect.bottom && rect.bottom > textRect.top
+        );
+        return {
+          found: true,
+          className: node.className,
+          position: style.position,
+          zIndex: style.zIndex,
+          right: style.right,
+          bottom: style.bottom,
+          float: style.float,
+          display: style.display,
+          margin: style.margin,
+          outerHTML: node.outerHTML.slice(0, 1200),
+          ancestors,
+          answerRect: answerRect && { left: answerRect.left, top: answerRect.top, right: answerRect.right, bottom: answerRect.bottom },
+          visibleTextRectCount: textRects.length,
+          overlappingTextRectCount: overlappingTextRects.length,
+          overlappingTextRects,
+          overlapWidth: answerRect ? Math.max(0, Math.min(rect.right, answerRect.right) - Math.max(rect.left, answerRect.left)) : 0,
+          overlapHeight: answerRect ? Math.max(0, Math.min(rect.bottom, answerRect.bottom) - Math.max(rect.top, answerRect.top)) : 0,
+          width: rect.width,
+          height: rect.height,
+          left: rect.left,
+          top: rect.top,
+          overlapsAnswer,
+          wrapperPosition: wrapperStyle && wrapperStyle.position,
+          wrapperTop: wrapperRect && wrapperRect.top,
+          wrapperBottom: wrapperRect && wrapperRect.bottom,
+          wrapperWidth: wrapperRect && wrapperRect.width,
+          wrapperHeight: wrapperRect && wrapperRect.height,
+          wrapperOverlapsAnswer: !!answerRect && !!wrapperRect &&
+            wrapperRect.left < answerRect.right && wrapperRect.right > answerRect.left &&
+            wrapperRect.top < answerRect.bottom && wrapperRect.bottom > answerRect.top,
+          wrapperParentHeight: wrapperParent && wrapperParent.getBoundingClientRect().height,
+          wrapperParentPosition: wrapperParentStyle && wrapperParentStyle.position,
+          parentTag: node.parentElement && node.parentElement.tagName,
+          parentClass: node.parentElement && node.parentElement.className
+        };
+      }, ROOT);
+      if (languageSwitcherMetrics.found &&
+          (languageSwitcherMetrics.wrapperPosition !== "static" ||
+           languageSwitcherMetrics.wrapperOverlapsAnswer ||
+           languageSwitcherMetrics.wrapperParentHeight < 1)) {
+        throw new Error("Mobile language selector still overlays Guide answer content: " + JSON.stringify(languageSwitcherMetrics));
+      }
+      mkdirSync("artifacts", { recursive: true });
+      await page.screenshot({ path: "artifacts/guide-mobile-render.png", fullPage: true });
+      mark("mobile_render_evidence", { ...mobileMetrics, languageSwitcherMetrics });
+    }
     if (i === 2) {
       const doorway = root.locator("#archive-recommendation .la-answer-doorway");
       const link = doorway.locator("a.la-answer-doorway__link");
@@ -444,15 +572,29 @@ try {
     return current.length > 35 && current !== before.trim();
   }, { selector: ROOT + " #archive-response-text", before: answerBeforeReply });
 
-  const replyRequest = apiRequests[apiRequests.length - 1];
-  const serialized = JSON.stringify(replyRequest?.body || {});
+  // The in-page fetch mock intercepts before Playwright's network route.
+  // Read the exact request ledger populated by that mock; the outer network
+  // ledger is not authoritative for intercepted fetch calls.
+  const pageApiRequests = await page.evaluate(() => window.__guideApiRequests || []);
+  const replyRequest = pageApiRequests[pageApiRequests.length - 1];
+  const historyEntries = Array.isArray(replyRequest?.body?.history) ? replyRequest.body.history : [];
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
   // not unrelated questions submitted as separate main-form searches.
+  // Compare structured content directly: JSON.stringify escapes paragraph newlines.
   const expectedHistoryItems = [QUESTIONS[4], ASSISTANT_ANSWERS[4]];
-  const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
-  const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
-  const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
+  const foundHistoryItems = expectedHistoryItems.filter(item =>
+    historyEntries.some(entry => entry && entry.content === item)
+  );
+  const historyFieldPresent = Array.isArray(replyRequest?.body?.history);
+  const historyRoles = historyEntries.map(entry => entry && entry.role);
+  const continuityPassed = historyFieldPresent &&
+    foundHistoryItems.length === expectedHistoryItems.length &&
+    historyRoles.length === 3 &&
+    historyRoles[0] === "visitor" &&
+    historyRoles[1] === "assistant" &&
+    historyRoles[2] === "visitor" &&
+    historyEntries[2]?.content === FOLLOWUP;
 
   mark("ordinary_reply_contract", {
     panelAppearedNaturallyFromMockResponse: true,
@@ -460,6 +602,7 @@ try {
     replyRequestStatus: replyResponse.status(),
     replyRequestBodyKeys: Object.keys(replyRequest?.body || {}),
     historyFieldPresent,
+    historyRoles,
     expectedHistoryItemCount: expectedHistoryItems.length,
     foundHistoryItemCount: foundHistoryItems.length,
     foundHistoryItems,
@@ -468,7 +611,7 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 6) throw new Error("Expected exactly 6 intercepted API requests, got " + apiRequests.length);
+  if (pageApiRequests.length !== 6) throw new Error("Expected exactly 6 intercepted API requests, got " + pageApiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
   if (pageErrors.length) throw new Error("Uncaught browser errors: " + JSON.stringify(pageErrors));
