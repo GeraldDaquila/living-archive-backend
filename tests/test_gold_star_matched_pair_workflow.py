@@ -56,7 +56,7 @@ def test_candidate_local_runner_uses_existing_provider_pins_and_complete_asgi_bo
         Path(__file__).resolve().parents[1]
         / "scripts/capture_gold_star_matched_pairs.py"
     ).read_text(encoding="utf-8")
-    assert "evaluation_context(arm=arm, provider=provider, model=model)" in source
+    assert "evaluation_context(arm=arm, provider=provider, model=model, candidate_id=(candidate_id if arm == \"treatment\" else None))" in source
     assert 'client.post("/api/query"' in source
     assert "httpx.ASGITransport(app=main.app)" in source
     assert "semantic_application_certified" in source
@@ -90,3 +90,12 @@ def test_candidate_local_capture_publishes_run_reference_for_blind_review():
     assert "Publish capture run reference to PR #2018" in workflow
     assert "gh pr comment 2018" in workflow
     assert "actions/runs/" in workflow
+
+
+def test_manual_capture_can_select_the_pre_registered_distress_shadow_cohort():
+    workflow = _workflow_text()
+    assert "case_set:" in workflow
+    assert "type: choice" in workflow
+    assert "docs/qa/gold_star_metaphysical_distress_shadow_cases.json" in workflow
+    assert '--case-set "${{ inputs.case_set ||' in workflow
+    assert "default: false" in workflow

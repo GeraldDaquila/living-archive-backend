@@ -8,6 +8,14 @@ on:
     branches: [qa/gold-star-matched-pair-candidate-2017-20261125]
   workflow_dispatch:
     inputs:
+      case_set:
+        description: "Select a pre-registered synthetic matched-pair cohort"
+        required: true
+        type: choice
+        default: docs/qa/gold_star_matched_pair_cases.json
+        options:
+          - docs/qa/gold_star_matched_pair_cases.json
+          - docs/qa/gold_star_metaphysical_distress_shadow_cases.json
       run_provider_capture:
         description: "Explicitly authorize the six-call Groq matched-pair capture"
         required: true
@@ -42,7 +50,7 @@ jobs:
       - name: Verify pinned held-out case set
         run: test -f docs/qa/gold_star_matched_pair_cases.json
       - name: Run matched-pair harness contract tests
-        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py tests/test_gold_star_shadow_candidate_evaluation.py tests/test_gold_star_shadow_wiring.py
 
   matched-pair-local:
     needs: matched-pair-contract
@@ -73,11 +81,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt httpx
-      - name: Verify pinned held-out case set
-        run: test -f docs/qa/gold_star_matched_pair_cases.json
+      - name: Verify selected pre-registered held-out case set
+        run: test -f "${{ inputs.case_set || 'docs/qa/gold_star_matched_pair_cases.json' }}"
       - name: Run same-provider, same-model control/treatment captures
         run: >-
           python scripts/capture_gold_star_matched_pairs.py
+          --case-set "${{ inputs.case_set || 'docs/qa/gold_star_matched_pair_cases.json' }}"
           --provider groq
           --model openai/gpt-oss-120b
           --provider-timeout-seconds 10
