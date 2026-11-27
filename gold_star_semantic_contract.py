@@ -227,9 +227,17 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         )
     elif kind == "lived_reflective_inquiry":
         experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*|hardship|experience)\b", low))
-        identity_boundary_present = bool(re.search(r"\b(?:identity|self|whole person|who you are|more than|not define|not reduce|part of your story|all you are|does not make you|doesn't make you)\b", low))
+        experience_identity_relation = bool(re.search(
+            r"\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*)\b"
+            r".{0,180}\b(?:part of|not|without|rather than|does not|doesn't|more than|whole)\b"
+            r".{0,100}\b(?:identity|self|whole|person|story|who you are|who they are)\b"
+            r"|\b(?:identity|self|who you are|who they are)\b"
+            r".{0,160}\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*)\b"
+            r".{0,100}\b(?:not|without|rather than|part of|more than|whole)\b",
+            low,
+        ))
         add("addresses_named_lived_experience", experience_present, "The answer must engage the experience named by the visitor, not replace it with an adjacent planning framework.", hard=True)
-        add("preserves_experience_identity_distinction", identity_boundary_present, "The answer must address how an experience relates to, but does not exhaust, a person's identity.", hard=True)
+        add("preserves_experience_identity_distinction", experience_identity_relation, "The answer must explicitly relate the experience to identity without allowing the experience to define the whole person.", hard=True)
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
     elif kind == "conceptual_explanation":
