@@ -3445,7 +3445,7 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
     """Check for a substantive mechanism and, when known, the concepts asked about."""
     text = _normalize_space(response).casefold()
     mechanism = bool(re.search(
-        r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables)\b",
+        r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables|by letting|by allowing|through|creates? opportunities|more willing to|more likely to)\b",
         text, re.I,
     ))
     if len(text.split()) < 65 or not mechanism:
@@ -3469,6 +3469,10 @@ def _has_transparency_trust_reciprocity(response: str) -> bool:
         or re.search(
             r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b.{0,120}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b.{0,100}\btrust\b",
             text,
+        )
+        or (
+            re.search(r"\btrust\b.{0,160}\b(?:also\s+)?make\s+transparency\s+more\s+possible\b", text)
+            and re.search(r"\b(?:share information|ask candid questions|engage openly|raise concerns|speak up)\b", text)
         )
     )
     non_guarantee = bool(
