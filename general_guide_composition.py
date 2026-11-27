@@ -3469,43 +3469,39 @@ def _conceptual_relationship_terms(query: str) -> List[str]:
     return concepts if len(concepts) == 2 else []
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
-    """Check for a substantive mechanism and, when known, the concepts asked about."""
+    """Require an actual mechanism, without rejecting concise complete explanations."""
     text = _normalize_space(response).casefold()
     mechanism = bool(re.search(
         r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables|by letting|by allowing|through|creates? opportunities|more willing to|more likely to)\b",
         text, re.I,
     ))
-    if len(text.split()) < 65 or not mechanism:
+    if len(text.split()) < 40 or not mechanism:
         return False
     concepts = _conceptual_relationship_terms(question) if question else []
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
 
 
 def _has_transparency_trust_reciprocity(response: str) -> bool:
-    """Require both directions and the non-guarantee boundary for this concept pair."""
+    """Require two distinct causal directions, not mere co-occurrence across sentences."""
     text = _normalize_space(response).casefold()
-    transparency_supports_trust = bool(
-        re.search(r"\btransparency\b.{0,220}\b(?:trust|confidence)\b", text)
-        and re.search(r"\b(?:scrutiny|inspect|examin|accountab|correction|correct)\w*\b", text)
+    sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+    transparency_to_trust = any(
+        re.search(r"\btransparency\b", sentence)
+        and re.search(r"\b(?:trust|confidence)\b", sentence)
+        and re.search(r"\b(?:inspect|examin|scrutin|correct|correction|accountab|verify|review)\w*\b", sentence)
+        for sentence in sentences
     )
-    trust_supports_openness = bool(
-        re.search(
-            r"\btrust\b.{0,160}\b(?:encourag\w*|enabl\w*|support\w*|foster\w*|invit\w*|more willing to|more likely to|permit\w*|allow\w*|facilitat\w*|promot\w*|create\w* conditions?|make\w* it (?:safer|easier)|make\w* (?:openness|disclos\w*|sharing|engag\w*))\b.{0,120}\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b",
-            text,
-        )
-        or re.search(
-            r"\b(?:openness|disclos\w*|share\w*|engag\w*|raise concerns|speak up)\b.{0,120}\b(?:build\w*|deepen\w*|strengthen\w*|support\w*)\b.{0,100}\btrust\b",
-            text,
-        )
-        or (
-            re.search(r"\btrust\b.{0,160}\b(?:also\s+)?make\s+transparency\s+more\s+possible\b", text)
-            and re.search(r"\b(?:share information|ask candid questions|engage openly|raise concerns|speak up)\b", text)
-        )
+    trust_to_openness = any(
+        re.search(r"\btrust\b", sentence)
+        and re.search(r"\b(?:encourag|enabl|support|foster|invit|permit|allow|facilitat|promot|share|engag|speak|raise)\w*\b", sentence)
+        and re.search(r"\b(?:openness|transparency|disclos|share|engag|speak|concerns|questions)\w*\b", sentence)
+        for sentence in sentences
     )
-    non_guarantee = bool(
-        re.search(r"\b(?:neither|neither side|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b", text)
-    )
-    return transparency_supports_trust and trust_supports_openness and non_guarantee
+    non_guarantee = bool(re.search(
+        r"\b(?:neither.{0,60}guarantees?|not automatically|does not guarantee|doesn't guarantee|cannot guarantee|can't guarantee|not a guarantee|not automatic|does not ensure|doesn't ensure|not sufficient|cannot by itself create|can't by itself create)\b",
+        text,
+    ))
+    return transparency_to_trust and trust_to_openness and non_guarantee
 
 
 def _has_transparency_trust_disclosure_boundary(response: str) -> bool:
