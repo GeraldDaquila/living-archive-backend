@@ -154,8 +154,16 @@ def validate_response_quality_exemplars(approved_records, active_records):
             and capabilities.get("exact_answer_authority") is False
             and capabilities.get("active_quality_contributor") is False
             and capabilities.get("deterministic_fallback_eligible") is False
-            and isinstance(paired, dict)
-            and normalize_exact_question(paired.get("query")) == normalize_exact_question(record.get("query"))
+            and (
+                (
+                    isinstance(paired, dict)
+                    and normalize_exact_question(paired.get("query")) == normalize_exact_question(record.get("query"))
+                )
+                or (
+                    not paired_id
+                    and capabilities.get("standalone_response_quality_exemplar") is True
+                )
+            )
             and record.get("user_reviewed_response") is True
             and record.get("explicit_user_elevation_approval") is True
             and bool(str(record.get("elevation_approval_evidence") or "").strip())

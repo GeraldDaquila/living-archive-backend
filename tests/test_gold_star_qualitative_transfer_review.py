@@ -259,7 +259,10 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
             assert capabilities.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
-            assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
+            if capabilities.get("standalone_response_quality_exemplar") is True:
+                assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
+            else:
+                assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False:
             # An approved exact-query successor may own the answer without
             # becoming a second adaptive-learning contributor or fallback.

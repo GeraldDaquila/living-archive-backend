@@ -62,6 +62,10 @@ def test_precomputed_selector_preserves_real_registry_rankings():
     """All real approved queries and their variants retain identical outcomes."""
     queries = set()
     for item in lessons._LESSONS:
+        # Frozen response-quality exemplars are not runtime selector candidates;
+        # adding one must not expand the selector's legacy ranking population.
+        if not (item.get("runtime_transfer") or item.get("exact_answer_authority")):
+            continue
         queries.add(item["query"])
         queries.update(item["variants"])
 
