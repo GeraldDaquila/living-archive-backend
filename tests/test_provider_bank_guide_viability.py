@@ -231,3 +231,26 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
         for message in provider_messages[1]
         if message.get("role") == "user"
     )
+    assert any(
+        "willingness to learn" in message.get("content", "")
+        and "automatic compliance" in message.get("content", "")
+        for message in provider_messages[1]
+        if message.get("role") == "user"
+    )
+
+
+def test_humility_contract_repair_instruction_expands_only_missing_dimensions():
+    instruction = provider_bank._guide_contract_repair_instruction(
+        "humility/spiritual-maturity answer is incomplete: "
+        "humility_supports_learning_and_correction,not_passivity_or_automatic_compliance"
+    )
+    assert instruction is not None
+    assert "willingness to learn" in instruction
+    assert "honest self-appraisal" in instruction
+    assert "accepting correction" in instruction
+    assert "blind obedience" in instruction
+    assert "automatic compliance" in instruction
+    assert "appropriate boundaries" not in instruction
+    assert provider_bank._guide_contract_repair_instruction(
+        "unrelated provider failure"
+    ) is None
