@@ -5851,11 +5851,15 @@ def compose(
                 "\n\nEPISTEMIC-DISTRESS TASK-FIT REPAIR: The previous candidate did not answer "
                 "the question about metaphysical certainty during distress. Do not substitute "
                 "a governance, stakeholder, planning, or decision-accountability framework. "
-                "Acknowledge the human need behind certainty-seeking; distinguish experience, "
-                "belief, interpretation, tradition, and verifiable evidence; do not assert "
-                "unverifiable metaphysical claims as fact; preserve the visitor's agency and "
-                "independent judgment; and identify appropriate human support if immediate "
-                "safety is at risk. Do not diagnose or assume the visitor's personal history."
+                "Open by acknowledging the visitor's fear, grief, or uncertainty in plain, "
+                "human language. Keep the response centered on their lived concern; do not "
+                "substitute governance, stakeholder, planning, outcomes, or decision-accountability "
+                "analysis. Distinguish experience, belief, interpretation, tradition, and verifiable "
+                "evidence; permit personal meaning without presenting it as proof of an external "
+                "metaphysical claim. State what cannot be known honestly, offer one proportionate "
+                "present-moment grounding action, preserve independent judgment, and make trusted "
+                "human support available without assuming crisis. If immediate safety is at risk, "
+                "prioritize timely in-person or emergency help. Do not diagnose or assume personal history."
             )
             try:
                 _repaired_result = route_with_model_bank(
