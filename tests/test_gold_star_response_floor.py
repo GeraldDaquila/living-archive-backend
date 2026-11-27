@@ -455,3 +455,50 @@ def test_terminal_floor_rejects_answer_damaged_by_final_payload_mutation():
     assert terminal["gold_star_v2_quality_floor"]["reason"] == (
         "social_mechanism_example_not_demonstrated"
     )
+
+
+
+def test_terminal_floor_receives_post_reconciliation_safe_payload():
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    request_boundary = next(
+        node for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_use_request_boundary"
+    )
+    sender = next(
+        node for node in ast.walk(request_boundary)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_send_with_final_visitor_boundary"
+    )
+    reconcile_calls = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_guide_reconcile_verified_doorway_recovery"
+    ]
+    terminal_calls = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "apply_response_floor_boundary"
+    ]
+    serializations = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "json"
+        and node.func.attr == "dumps"
+    ]
+    assert reconcile_calls and terminal_calls and serializations
+    reconcile_line = max(node.lineno for node in reconcile_calls)
+    serialization_line = min(node.lineno for node in serializations)
+    terminal = max(
+        (node for node in terminal_calls if reconcile_line < node.lineno < serialization_line),
+        key=lambda node: node.lineno,
+    )
+    assert isinstance(terminal.args[1], ast.Name)
+    assert terminal.args[1].id == "safe_payload"
