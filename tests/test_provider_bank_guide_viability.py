@@ -411,3 +411,62 @@ def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
         10.0, 6.5, "half_open", 10.25
     ) == 5.0
 
+
+
+def test_openai_compatible_adapter_preserves_finish_reason_and_detects_truncation(monkeypatch):
+    monkeypatch.setattr(
+        provider_bank,
+        "_http_json",
+        lambda *args, **kwargs: {
+            "choices": [{
+                "message": {"content": '{"response": "unfinished'},
+                "finish_reason": "length",
+            }],
+            "usage": {"completion_tokens": 200},
+        },
+    )
+
+    output = provider_bank._openai_compatible(
+        "https://api.nvidia.com/v1",
+        "test-key",
+        "nvidia",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        [{"role": "user", "content": "test"}],
+        200,
+        schema={"mode": "text"},
+        timeout=5,
+    )
+
+    assert output.finish_reason == "length"
+    assert provider_bank._provider_output_was_truncated(output)
+
+
+def test_gemini_adapter_preserves_max_tokens_finish_reason(monkeypatch):
+    monkeypatch.setattr(
+        provider_bank,
+        "_http_json",
+        lambda *args, **kwargs: {
+            "candidates": [{
+                "content": {"parts": [{"text": '{"response": "unfinished'}]},
+                "finishReason": "MAX_TOKENS",
+            }]
+        },
+    )
+
+    output = provider_bank._gemini(
+        "test-key",
+        "gemini-test-model",
+        [{"role": "user", "content": "test"}],
+        200,
+        schema={"mode": "text"},
+        timeout=5,
+    )
+
+    assert output.finish_reason == "MAX_TOKENS"
+    assert provider_bank._provider_output_was_truncated(output)
+
+
+def test_provider_output_does_not_misclassify_normal_stop():
+    output = provider_bank.ProviderOutput("A complete answer.", finish_reason="stop")
+    assert output.finish_reason == "stop"
+    assert not provider_bank._provider_output_was_truncated(output)
