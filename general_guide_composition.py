@@ -754,6 +754,7 @@ TASK-DEPENDENT PRESENTATION STANDARD (applies to ordinary general-purpose questi
 - Keep the voice humane, concrete, calm, and natural. Do not expose internal process, use machine-facing jargon, or narrate the rubric to the visitor.
 - ANSWER-BASIS DISCIPLINE: When answering from general conceptual knowledge rather than supplied or verified source material, do not introduce precise institutional examples, named standards, statistics, dates, or factual case claims merely to make the answer sound authoritative. do not fabricate an exhaustive doctrine or canonical list. Prefer a simple illustrative example that does not require external verification. If a specific external example is essential, present it only when it is part of verified material available to the answer. The answer must be complete before the separate Archive doorway appears.
 - Do not insert an example into a simple definition or answer when it adds no understanding.
+- For a how-question about how symbols, stories, myths, rituals, or shared narratives organize collective or social life, explain the mechanism and include one brief illustrative example that shows how a specific symbol or story shapes belonging, expectations, legitimacy, or coordinated behavior. Do not present the illustration as a documented case unless it is verified.
 - Make the example do explanatory work: show the mechanism or distinction the visitor needs to understand, rather than serving as decorative detail.
 - MOBILE ORIENTATION: On small screens, favor concise, scannable answers. Use compact prose, lists, tables, or steps according to the task; do not impose three paragraphs as a mobile default.
 - IDEA-CHUNKING AND READER BREATHING ROOM: For a substantive answer that develops more than one distinct idea, make the progression visible in separate, coherent paragraphs or short titled sections. Each paragraph should carry one main conceptual move; do not pack a chain of distinct claims, examples, qualifications, and implications into one uninterrupted block. Use a short opening answer, then give each necessary supporting idea its own paragraph or section, with a blank line between units. Prefer roughly 1–3 sentences per paragraph when that preserves the thought; allow a longer paragraph when splitting would damage coherence. Use restrained, informative subheadings only when they help the visitor navigate several substantial movements. Use bullets or numbered steps only when the content is genuinely a set, sequence, comparison, or choices—not as decoration. Preserve nuance, reasoning, and necessary qualifications; do not achieve scanability by deleting substance, fragmenting every sentence, or forcing a fixed number of chunks. For a simple factual answer, remain concise and do not manufacture sections. The visitor should be able to pause after each idea, understand what it contributed, and see why the next idea follows.
@@ -2991,6 +2992,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
         if len(response) < 40:
             raise ValueError("general composition response is too short")
+        if _requires_grounded_mechanism_example(query) and not _has_grounded_illustrative_example(response):
+            raise ValueError(
+                "social-mechanism explanation must include one concrete illustrative example that demonstrates the mechanism"
+            )
         if _requires_visitor_idea_chunking(response):
             raise ValueError(
                 "substantive multi-idea answer must preserve semantic paragraph boundaries"
@@ -3347,6 +3352,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError("provider response too short for basic visitor bounds")
                 if len(response) > 7000:
                     raise ValueError("provider response too long for basic visitor bounds")
+                # Social-mechanism example grounding is a task-specific meaning
+                # requirement, not a stylistic preference. Preserve it across
+                # both parser lanes so compatibility fallback cannot re-admit
+                # the abstract-only answer rejected by strict composition.
+                if _requires_grounded_mechanism_example(query) and not _has_grounded_illustrative_example(response):
+                    raise ValueError(
+                        "provider response failed the hard social-mechanism grounding boundary: "
+                        "must include one concrete illustrative example that demonstrates the mechanism"
+                    )
                 # Answer-first is constitutional at the visitor boundary. The
                 # soft-contract lane may relax paragraph count or examples, but
                 # it may never admit an announced answer or an echoed question.
@@ -3471,6 +3485,36 @@ def _conceptual_relationship_terms(query: str) -> List[str]:
         if words:
             concepts.append(" ".join(words))
     return concepts if len(concepts) == 2 else []
+
+def _requires_grounded_mechanism_example(question: str) -> bool:
+    """Identify social-mechanism questions where an example makes the process visible."""
+    q = _normalize_space(question).casefold()
+    asks_how = bool(re.search(r"^how\s+(?:do|does|can|might|could)\b", q))
+    mechanism_verb = bool(re.search(
+        r"\b(?:organize|shape|structure|coordinate|reinforce|reproduce|sustain|influence)\b", q
+    ))
+    collective_context = bool(re.search(
+        r"\b(?:collective life|social life|communities|a community|shared norms|social order|group identity)\b", q
+    ))
+    return asks_how and mechanism_verb and collective_context
+
+
+def _has_grounded_illustrative_example(response: str) -> bool:
+    """Require a developed, explicitly illustrative example rather than a decorative cue."""
+    text = _normalize_space(response)
+    match = re.search(
+        r"\b(?:for example|for instance|imagine|consider)\b\s*[:,]?\s*(.{70,})",
+        text,
+        re.I,
+    )
+    if not match:
+        return False
+    example = match.group(1)
+    return bool(
+        re.search(r"\b(?:flag|story|myth|ritual|symbol|anthem|ceremony|custom|tradition|rule|festival|pledge|monument)\b", example, re.I)
+        and re.search(r"\b(?:signals?|marks?|defines?|teaches?|reminds?|identifies?|legitimizes?|makes?|encourages?|coordinates?|reinforces?)\b", example, re.I)
+    )
+
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
