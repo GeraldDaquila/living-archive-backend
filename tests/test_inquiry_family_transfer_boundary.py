@@ -302,7 +302,7 @@ def test_epistemic_distress_recovery_must_pass_every_semantic_check():
     assert floor["status"] == "pass"
 
 
-def test_epistemic_distress_candidate_is_invalidated_before_repair_and_repair_must_fully_pass():
+def test_epistemic_distress_candidate_is_invalidated_before_repair_and_repair_must_clear_hard_checks():
     from pathlib import Path
 
     source = (
