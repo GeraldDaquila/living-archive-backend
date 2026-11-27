@@ -22,9 +22,10 @@ def test_user_approved_pain_identity_gold_star_is_frozen_exactly():
     assert record["assistant_assessment_out_of_10"] == 9.0
     assert record["explicit_user_elevation_approval"] is True
     assert record["numbering_status"] == "UNASSIGNED"
-    assert record["runtime_transfer"] is False
+    assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["gold_star_capabilities"]["generation_class"] == "user_approved_structural_learning"
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
     assert record["provenance"]["visible_continuation_title"] == fixture["visible_continuation_title"]
