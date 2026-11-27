@@ -2592,3 +2592,29 @@ def test_user_approved_extraordinary_claims_response_is_frozen_response_quality_
     assert record["gold_star_capabilities"]["active_quality_contributor"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+
+def test_user_approved_reverence_credulity_gold_star_is_registered_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-reverence-credulity-critical-judgment-2026-11-28"
+    )
+    fixture = json.loads(
+        (ROOT / "tests" / "fixtures" / "general_guide_reverence_credulity_gold_star.json")
+        .read_text(encoding="utf-8")
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert fixture["status"] == record["status"]
+    assert record["query"] == fixture["query"] == "What is the difference between reverence and credulity?"
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == fixture["doorway_status"] == "NOT_EVALUATED"
+    assert record["runtime_transfer"] is False
+    assert record["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == fixture["rating_out_of_10"] == 9.1
