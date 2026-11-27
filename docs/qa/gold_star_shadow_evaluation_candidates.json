@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Separate, non-production candidate lane for testing transferable reasoning principles from immutable response-quality exemplars. This manifest does not grant runtime transfer, deterministic fallback, exact-answer authority, or production selector visibility.",
+  "candidates": [
+    {
+      "candidate_id": "shadow-metaphysical-distress-principles-2026-11-27",
+      "source_benchmark_id": "general-guide-metaphysical-certainty-distress-response-exemplar-2026-11-27",
+      "source_fixture_path": "tests/fixtures/general_guide_metaphysical_certainty_distress_response_gold_star.json",
+      "reasoning_family": "compassionate_epistemic_grounding_during_metaphysical_distress",
+      "known_theme": "Metaphysical certainty-seeking in the presence of fear, grief, or distress",
+      "qualifying_context": "A question combines a metaphysical or spiritual claim, a request for certainty or proof, and a credible distress, grief, fear, or vulnerability cue.",
+      "allowed_inquiry_families": [
+        "epistemic_distress",
+        "epistemic_distress_guidance"
+      ],
+      "runtime_transfer": false,
+      "deterministic_fallback_eligible": false,
+      "exact_answer_authority": false,
+      "production_selector_visible": false,
+      "evaluation_only": true
+    }
+  ]
+}
