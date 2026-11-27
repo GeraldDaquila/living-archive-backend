@@ -312,6 +312,6 @@ def test_community_rule_instruction_explicitly_covers_each_distinct_evidence_dim
         "include affected people in shaping the rule",
         "specify appeal and review criteria",
         "Treat each as distinct evidence",
-        "Use coherent prose",
+        "Use prose",
     ):
         assert required in instruction
