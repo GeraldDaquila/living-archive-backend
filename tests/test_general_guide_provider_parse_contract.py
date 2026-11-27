@@ -77,7 +77,7 @@ def test_community_liberty_limit_prompt_requires_burden_distribution_and_partici
         "include affected people in shaping the rule",
         "less restrictive workable means",
         "fair burden allocation",
-        "appeal and review",
+        "appeal and review criteria",
     ):
         assert required in prompt
     unrelated = composition._build_general_guide_system_message("What is stewardship?")
@@ -299,3 +299,19 @@ def test_compose_passes_candidate_aware_schema_to_provider_bank(monkeypatch):
         context_data={},
     )
     assert captured["schema"]["schema"]["properties"]["adaptive_adjudication"]
+
+
+
+def test_community_rule_instruction_explicitly_covers_each_distinct_evidence_dimension():
+    instruction = composition._build_general_guide_system_message(
+        "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    )
+    for required in (
+        "reasonable accommodation",
+        "fair burden allocation",
+        "include affected people in shaping the rule",
+        "specify appeal and review criteria",
+        "Treat each as distinct evidence",
+        "Use coherent prose",
+    ):
+        assert required in instruction
