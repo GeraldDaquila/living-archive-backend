@@ -12,7 +12,13 @@ const EXPECTED_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-com
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
 
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ serviceWorkers: "block" });
+const context = await browser.newContext({
+  serviceWorkers: "block",
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 2,
+  isMobile: true,
+  hasTouch: true
+});
 const page = await context.newPage();
 page.setDefaultTimeout(60_000);
 page.setDefaultNavigationTimeout(30_000);
@@ -461,6 +467,103 @@ try {
     answerBasis: calibrationResponse.payload.answer_basis,
     recommendation: calibrationResponse.payload.recommendation || null
   }));
+  // The humility/spiritual-maturity near-miss must pass through the real
+  // mobile WordPress controller and the exact deployed backend, not a mocked API.
+  const humilityQuery = "What is the relationship between humility and spiritual maturity?";
+  await input.fill(humilityQuery);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  const humilityDeadline = Date.now() + 60_000;
+  while (
+    !apiResponses.some(item => item.payload && item.payload.query === humilityQuery) &&
+    Date.now() < humilityDeadline
+  ) {
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  await Promise.all(apiBodyReads);
+  const humilityResponses = apiResponses.filter(item =>
+    item.payload && item.payload.query === humilityQuery
+  );
+  if (!apiRequests.some(request => request.body.query === humilityQuery)) {
+    throw new Error("No real WordPress /api/query request carried the exact humility/spiritual-maturity near-miss question.");
+  }
+  const humilityResponse = humilityResponses.find(item => {
+    const body = item.payload || {};
+    const answerText = String(body.response || "");
+    const low = answerText.toLowerCase();
+    const provenance = body.response_provenance || {};
+    const doorway = body.recommendation || {};
+    return item.status === 200 &&
+      typeof body.response === "string" &&
+      low.includes("humility") &&
+      low.includes("spiritual maturity") &&
+      low.includes("learning") &&
+      (low.includes("honest self-appraisal") || low.includes("honest self-examination") || low.includes("self-awareness")) &&
+      low.includes("correction") &&
+      low.includes("lived conduct") &&
+      low.includes("self-erasure") &&
+      low.includes("appropriate boundaries") &&
+      (low.includes("does not guarantee") || low.includes("doesn't guarantee") || low.includes("alone does not")) &&
+      provenance.class === "llm" &&
+      provenance.llm_invoked === true &&
+      Boolean(provenance.provider && provenance.model && provenance.provider_invocation_id) &&
+      doorway.title === "Spirituality Without Escapism: Staying Human During Awakening Narratives" &&
+      doorway.url === "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/" &&
+      Boolean(String(doorway.rationale || "").trim()) &&
+      !/meta description|seo description|table of contents|chapter 1|post id|wordpress/i.test(String(doorway.rationale || "")) &&
+      !/https?:\/\/|www\./i.test(answerText) &&
+      !/(?<=[.!?])['’]\s*$/.test(answerText);
+  });
+  if (!humilityResponse) {
+    throw new Error("The exact humility/spiritual-maturity question did not return the provider-backed relational answer and reviewed Archive doorway. Responses: " +
+      JSON.stringify(humilityResponses.map(item => ({
+        status: item.status,
+        response: item.payload?.response,
+        response_provenance: item.payload?.response_provenance,
+        recommendation: item.payload?.recommendation
+      }))));
+  }
+  await page.waitForFunction(() => {
+    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+    const answer = root?.querySelector("#archive-response-text");
+    const text = (answer?.innerText || "").toLowerCase();
+    const link = root?.querySelector("a.la-answer-doorway__link");
+    return text.includes("humility") && text.includes("spiritual maturity") &&
+      Boolean(link && link.getClientRects().length);
+  }, null, { timeout: 60_000 });
+  const humilityUI = (await answer.innerText()).replace(/\s+/g, " ").trim();
+  const humilityAPI = String(humilityResponse.payload.response || "").replace(/\s+/g, " ").trim();
+  const humilityLink = await root.locator("a.la-answer-doorway__link").evaluate(node => ({
+    title: (node.innerText || node.textContent || "").trim(),
+    href: node.href,
+    visible: Boolean(node.getClientRects().length)
+  }));
+  if (humilityLink.title !== "Spirituality Without Escapism: Staying Human During Awakening Narratives" ||
+      humilityLink.href !== "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/" ||
+      !humilityLink.visible) {
+    throw new Error("The mobile visitor UI did not render the exact reviewed humility doorway separately: " + JSON.stringify(humilityLink));
+  }
+  if (await answer.locator("a").count() !== 0 || /https?:\/\/|www\./i.test(humilityUI)) {
+    throw new Error("The substantive humility answer embedded a resource URL instead of keeping the doorway separate.");
+  }
+  const humilitySentences = humilityAPI.split(/[.!?]+/).map(part => part.trim()).filter(part => part.length > 20);
+  if (!humilitySentences.some(part => humilityUI.toLowerCase().includes(part.slice(0, Math.min(part.length, 48)).toLowerCase()))) {
+    throw new Error("The visible mobile answer did not reflect the provider-backed humility API response.");
+  }
+  if (await root.locator("a.la-answer-doorway__link").count() !== 1) {
+    throw new Error("The humility answer must render exactly one separate Archive doorway.");
+  }
+  await page.screenshot({ path: "artifacts/guide-humility-live-mobile.png", fullPage: true });
+  console.log(JSON.stringify({
+    stage: "humility_spiritual_maturity_mobile_acceptance_passed",
+    query: humilityQuery,
+    provider: humilityResponse.payload.response_provenance.provider,
+    model: humilityResponse.payload.response_provenance.model,
+    providerInvocationId: humilityResponse.payload.response_provenance.provider_invocation_id,
+    doorway: humilityLink,
+    response: humilityAPI,
+    mobileViewport: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true }
+  }));
+
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
     apiOrigin: USE_API_ORIGIN,

@@ -11,6 +11,9 @@ on:
       - "tests/test_conceptual_guide_grounding_boundary.py"
       - "general_guide_gold_standards.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
+      - "scripts/guide_live_evaluation.py"
+      - "docs/qa/guide_live_critical_evaluation_cases.json"
+      - "tests/test_guide_live_evaluation_runner.py"
   push:
     branches: [main]
     paths:
@@ -20,6 +23,9 @@ on:
       - "tests/test_conceptual_guide_grounding_boundary.py"
       - "general_guide_gold_standards.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
+      - "scripts/guide_live_evaluation.py"
+      - "docs/qa/guide_live_critical_evaluation_cases.json"
+      - "tests/test_guide_live_evaluation_runner.py"
   workflow_dispatch:
 
 permissions:
@@ -32,7 +38,7 @@ concurrency:
 jobs:
   live-browser-acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     # The dedicated PR QA backend is not rebuilt for arbitrary pull requests.
     # Run real WordPress visitor acceptance after the commit reaches main; PRs
     # remain covered by mocked UI continuity and composition-contract tests.
@@ -75,6 +81,16 @@ jobs:
           done
           echo "Target API did not report exact expected version $expected_version and commit $expected_sha before timeout."
           exit 1
-      - name: Verify real WordPress visitor rendering and humane fallback
-        timeout-minutes: 3
-        run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_healthy_community_live_e2e.mjs
+      - name: Prepare mobile acceptance evidence directory
+        run: mkdir -p artifacts
+      - name: Verify real WordPress visitor rendering, exact humility near-miss, and mobile presentation
+        timeout-minutes: 5
+        run: timeout --signal=TERM --kill-after=5s 280s node QA/guide_healthy_community_live_e2e.mjs
+      - name: Upload real mobile visitor rendering evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-humility-live-mobile-${{ github.run_id }}
+          path: artifacts/guide-humility-live-mobile.png
+          if-no-files-found: warn
+          retention-days: 30

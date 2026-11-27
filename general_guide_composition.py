@@ -463,6 +463,27 @@ def _build_general_guide_system_message(
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
         parts.append(_COMMUNITY_LIBERTY_LIMIT_DECISION_CONTRACT)
+    # Keep this conceptual clarification narrowly bound to the relational
+    # humility/spiritual-maturity inquiry; do not turn it into a global
+    # spirituality template or capture adjacent psychological-integration
+    # questions.
+    humility_spiritual_maturity_relationship = (
+        re.search(r"\bhumility\b", question, re.I)
+        and re.search(r"\bspiritual\s+maturit(?:y|ies)\b", question, re.I)
+        and re.search(r"\b(?:relationship|relation|connection|interplay|between|how does|what role)\b", question, re.I)
+    )
+    if humility_spiritual_maturity_relationship:
+        parts.append(
+            "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT: "
+            "Explain the relationship through its actual mechanisms, not as a slogan or a hierarchy. "
+            "Show how humility can support spiritual maturity by making learning, honest self-appraisal, "
+            "correction, accountability, and openness to other people possible; explain how maturity is "
+            "expressed in lived conduct rather than claimed status. Make clear that humility is not "
+            "self-erasure, diminished self-worth, passivity, automatic compliance, or surrender of "
+            "appropriate boundaries. Distinguish humility from self-contempt without turning the answer "
+            "into generic therapeutic advice. Preserve reciprocity where warranted, avoid claiming that "
+            "humility alone guarantees maturity, and answer the visitor directly before offering any doorway."
+        )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())
     if gold_star_quality_instruction:
@@ -1060,7 +1081,44 @@ def _sanitize_candidate(text: Any) -> str:
             # every line into a single sentence erased the presentation contract.
             paragraphs.append("\n".join(lines))
 
-    return "\n\n".join(paragraphs).strip()
+    result = "\n\n".join(paragraphs).strip()
+    # A stray single quote after terminal punctuation is a common residue from
+    # quoted-source extraction. Determine whether the terminal delimiter closes
+    # an actually open single-quoted span; an unrelated earlier quote must not
+    # mask a later orphan. Apostrophes inside words and terminal possessives are
+    # not quote delimiters.
+    terminal_quote = re.search(r"(?<=[.!?])(['’])\s*$", result)
+    if terminal_quote:
+        open_single_quote = False
+        for index, char in enumerate(result[:terminal_quote.start(1)]):
+            previous = result[index - 1] if index else ""
+            following = result[index + 1] if index + 1 < len(result) else ""
+            if char == "‘":
+                open_single_quote = True
+            elif char == "’":
+                if previous.isalnum() and following.isalnum():
+                    continue  # curly apostrophe inside a word
+                if open_single_quote:
+                    open_single_quote = False
+            elif char == "'":
+                if previous.isalnum() and following.isalnum():
+                    continue  # contraction or intra-word apostrophe
+                if previous.isalnum() and (
+                    not following or following.isspace() or following in ".,!?;:)]}"
+                ):
+                    if open_single_quote:
+                        open_single_quote = False
+                    continue  # otherwise a possessive, not a closing delimiter
+                if not following or following.isspace():
+                    if open_single_quote:
+                        open_single_quote = False
+                elif not previous or previous.isspace() or previous in "([{—–-":
+                    open_single_quote = True
+                elif open_single_quote:
+                    open_single_quote = False
+        if not open_single_quote:
+            result = result[:terminal_quote.start(1)].rstrip()
+    return result
 
 
 def _reflow_visitor_idea_chunking(response: str) -> str:

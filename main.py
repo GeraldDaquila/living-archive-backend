@@ -6486,6 +6486,36 @@ def _guide_restore_verified_doorway(payload, query):
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _final_exact_gold_standard_authority(query)
 
+    # A reviewed query-family destination outranks a generic doorway selected
+    # earlier from broad retrieval context. Otherwise an upstream candidate can
+    # be marked "verified" and short-circuit this terminal boundary even when
+    # the query has a narrower, reviewed canonical continuation. Frozen exact
+    # Gold Star answer-and-doorway pairs remain authoritative above this rule.
+    if (
+        exact_standard is None
+        and not _guide_query_explicitly_forbids_handoff(query)
+        and not _gold_star_doorway_omission_is_justified(exact_standard)
+    ):
+        _family = _select_verified_doorway_conceptual_family(query)
+        if _family == "humility_spiritual_maturity":
+            _family_candidate = _normalize_authoritative_recommendation(
+                _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
+            )
+            if _family_candidate is not None:
+                safe["recommendation"] = _family_candidate
+                safe["canonical_doorway"] = _family_candidate
+                safe["authoritative_doorway"] = _family_candidate
+                safe["doorway_title"] = _family_candidate["title"]
+                safe["doorway_url"] = _family_candidate["url"]
+                safe["doorway_rationale"] = _family_candidate["rationale"]
+                safe["doorway_decision"] = "selected"
+                safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                safe["doorway_selection_evaluated"] = True
+                safe["doorway_selection_source"] = "reviewed_humility_spiritual_maturity_family"
+                safe["doorway_omission_reason"] = None
+                safe["doorway_omission_exception_reason"] = None
+                return safe
+
     # A prior canonical selector may already have completed the bounded
     # evidence/relevance checks and marked its result as verified. Preserve
     # that server-selected destination across terminal restoration instead of

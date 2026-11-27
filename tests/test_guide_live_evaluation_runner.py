@@ -448,11 +448,112 @@ def test_provider_probe_runs_after_heldout_workload_to_preserve_critical_provide
     assert source.index('report["provider_probe"]') < source.index('gold=[x for x in report["results"]')
 
 
+def test_humility_evaluator_recognizes_negation_scope_across_a_list():
+    case = {
+        "case_id": "heldout-humility-spiritual-maturity-nearmiss-001",
+        "query": "What is the relationship between humility and spiritual maturity?",
+    }
+    answer = (
+        "Humility is not self-erasure, diminished self-worth, self-contempt, passivity, "
+        "blind obedience, or automatic compliance; it does not mean surrendering "
+        "appropriate boundaries."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": answer},
+    }
+    checks = evaluate_held(case, transport, require_attributable_llm=False)
+    compliance = next(
+        item for item in checks if item["name"] == "not_passivity_or_automatic_compliance"
+    )
+    assert compliance["passed"], checks
+
+
+def test_humility_spiritual_maturity_live_case_requires_attributable_relational_answer_and_reviewed_doorway():
+    case = {
+        "case_id": "heldout-humility-spiritual-maturity-nearmiss-001",
+        "query": "What is the relationship between humility and spiritual maturity?",
+    }
+    answer = (
+        "Humility supports spiritual maturity because it keeps a person willing to learn, "
+        "make an honest self-appraisal, accept correction, and remain open to others. "
+        "Spiritual maturity is visible in lived conduct: responsibility, accountability, "
+        "and care in relationships, rather than a status someone claims. Humility is not "
+        "self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
+        "or automatic compliance; it does not mean surrendering appropriate boundaries. "
+        "Humility alone does not guarantee maturity; it must be expressed in how a person acts."
+    )
+    expected_doorway = {
+        "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+        "url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": {
+                **expected_doorway,
+                "rationale": (
+                    "This Archive essay examines spiritual growth alongside humility, discernment, "
+                    "responsibility, and ordinary human life."
+                ),
+            },
+            "response_provenance": {
+                "class": "llm",
+                "provider": "groq",
+                "model": "openai/gpt-oss-120b",
+                "llm_invoked": True,
+                "provider_invocation_id": "provider-call-123",
+            },
+        },
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
+    assert all(item["passed"] for item in checks), checks
+
+
+def test_humility_spiritual_maturity_live_case_rejects_slogan_and_generic_doorway():
+    case = {
+        "case_id": "heldout-humility-spiritual-maturity-nearmiss-001",
+        "query": "What is the relationship between humility and spiritual maturity?",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": "Humility is important and spiritual maturity means being a good person.",
+            "recommendation": {
+                "title": "A broadly related article",
+                "url": "https://geralddaquila.com/unrelated/",
+                "rationale": "A general resource.",
+            },
+            "response_provenance": {
+                "class": "llm",
+                "provider": "groq",
+                "model": "openai/gpt-oss-120b",
+                "llm_invoked": True,
+            },
+        },
+    }
+    expected_doorway = {
+        "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+        "url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+    }
+    checks = evaluate_held(case, transport, expected_doorway=expected_doorway)
+    assert not all(item["passed"] for item in checks)
+    assert not next(item for item in checks if item["name"] == "maturity_as_lived_conduct")["passed"]
+    assert not next(item for item in checks if item["name"] == "relevant_reviewed_archive_doorway")["passed"]
+
+
 def test_critical_heldout_cases_require_final_provider_invocation_id():
     import inspect
 
     source = inspect.getsource(live_evaluation.main)
     assert 'if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:' in source
+    assert "heldout-humility-spiritual-maturity-nearmiss-001" in live_evaluation.PROVIDER_PRIORITY_HELDOUT_IDS
     assert '"provider_invocation_id"' in source
     assert "bool(provider_invocation_id(body))" in source
 
@@ -667,9 +768,18 @@ def test_critical_live_acceptance_case_is_separate_from_fixed_calibration_suite(
     critical_ids = {item["case_id"] for item in critical["cases"]}
 
     assert len(calibration["cases"]) == 8
-    assert critical_ids == {"heldout-transparency-trust-relational-synthesis-001"}
+    assert critical_ids == {
+        "heldout-transparency-trust-relational-synthesis-001",
+        "heldout-humility-spiritual-maturity-nearmiss-001",
+    }
     assert calibration_ids.isdisjoint(critical_ids)
-    assert critical["cases"][0]["query"] == "What is the relationship between transparency and trust?"
+    by_id = {item["case_id"]: item for item in critical["cases"]}
+    assert by_id["heldout-transparency-trust-relational-synthesis-001"]["query"] == "What is the relationship between transparency and trust?"
+    humility = by_id["heldout-humility-spiritual-maturity-nearmiss-001"]
+    assert humility["query"] == "What is the relationship between humility and spiritual maturity?"
+    assert humility["expected_doorway"]["title"] == "Spirituality Without Escapism: Staying Human During Awakening Narratives"
+    assert humility["expected_doorway"]["url"] == "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/"
+    assert "attributable_llm" in humility["critical_dimensions"]
 
 
 def test_critical_live_suite_is_included_in_runner_workload():
@@ -939,12 +1049,14 @@ def test_provider_sensitive_heldout_cases_run_before_sampled_gold_standards():
         {"case_id": "heldout-water-boiling-point-001"},
         {"case_id": "heldout-community-rule-design-transfer-001"},
         {"case_id": "heldout-transparency-trust-relational-synthesis-001"},
+        {"case_id": "heldout-humility-spiritual-maturity-nearmiss-001"},
         {"case_id": "heldout-practical-trust-001"},
     ]
     priority, remaining = prioritize_heldout_cases(cases)
     assert [item["case_id"] for item in priority] == [
         "heldout-community-rule-design-transfer-001",
         "heldout-transparency-trust-relational-synthesis-001",
+        "heldout-humility-spiritual-maturity-nearmiss-001",
     ]
     assert [item["case_id"] for item in remaining] == [
         "heldout-water-boiling-point-001",
@@ -1042,3 +1154,28 @@ def test_explicit_exact_answer_authority_enforces_frozen_answer():
     checks = evaluate_gold(record, transport)
     exact = next(item for item in checks if item["name"] == "exact_answer")
     assert exact["passed"] is False
+
+def test_live_browser_acceptance_covers_exact_humility_question_on_mobile_and_uploads_evidence():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    browser_script = (root / "QA" / "guide_healthy_community_live_e2e.mjs").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "guide-healthy-community-live-e2e.yml").read_text(encoding="utf-8")
+
+    assert 'viewport: { width: 390, height: 844 }' in browser_script
+    assert "deviceScaleFactor: 2" in browser_script
+    assert "isMobile: true" in browser_script
+    assert 'const humilityQuery = "What is the relationship between humility and spiritual maturity?";' in browser_script
+    assert "provenance.provider_invocation_id" in browser_script
+    assert "Spirituality Without Escapism: Staying Human During Awakening Narratives" in browser_script
+    assert "guide-humility-live-mobile.png" in browser_script
+    assert "guide-humility-live-mobile.png" in workflow
+    assert "if: github.event_name != 'pull_request'" in workflow
+    assert "Upload real mobile visitor rendering evidence" in workflow
+
+
+def test_humility_live_case_is_in_the_provider_priority_invocation_id_gate():
+    assert "heldout-humility-spiritual-maturity-nearmiss-001" in live_evaluation.PROVIDER_PRIORITY_HELDOUT_IDS
+    source = Path(live_evaluation.__file__).read_text(encoding="utf-8")
+    assert 'if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:' in source
+    assert 'check("provider_invocation_id"' in source
