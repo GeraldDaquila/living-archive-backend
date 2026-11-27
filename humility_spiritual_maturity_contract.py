@@ -72,23 +72,23 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
     )
     sentences = [
         sentence.strip()
-        for sentence in re.split(r"(?<=[.!?])\\s+", low)
+        for sentence in re.split(r"(?<=[.!?])\s+", low)
         if sentence.strip()
     ]
     mechanism_cue = re.compile(
-        r"\\b(?:allows?|enables?|supports?|shapes?|cultivates?|develops?|"
-        r"strengthens?|depends on|requires?|makes it possible|reinforces?|influences?)\\b",
+        r"\b(?:allows?|enables?|supports?|shapes?|cultivates?|develops?|"
+        r"strengthens?|depends on|requires?|makes it possible|reinforces?|influences?)\b",
         re.I,
     )
     relationship_mechanism = any(
         "humility" in sentence
-        and bool(re.search(r"\\bspiritual maturit(?:y|ies)\\b", sentence))
+        and bool(re.search(r"\bspiritual maturit(?:y|ies)\b", sentence))
         and bool(mechanism_cue.search(sentence))
         for sentence in sentences
     )
     relationship_direction_or_boundary = bool(re.search(
-        r"\\b(?:both|reciprocal|mutual|in turn|one another|each other|"
-        r"not automatic|not necessarily|conditional|while|although|yet)\\b",
+        r"\b(?:both|reciprocal|mutual|in turn|one another|each other|"
+        r"not automatic|not necessarily|conditional|while|although|yet)\b",
         low,
     ))
     no_guarantee = any(term in low for term in (
