@@ -723,12 +723,18 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
             assert capability.get("exact_answer_authority") is False
             assert capability.get("active_quality_contributor") is False
             assert capability.get("deterministic_fallback_eligible") is False
-            assert record.get("paired_active_benchmark_id")
+            if capability.get("standalone_response_quality_exemplar") is True:
+                assert not record.get("paired_active_benchmark_id")
+            else:
+                assert record.get("paired_active_benchmark_id")
         elif record.get("runtime_transfer") is False and capability.get("generation_class") == "user_approved_response_quality_exemplar":
             assert capability.get("exact_answer_authority") is False
             assert capability.get("active_quality_contributor") is False
             assert capability.get("deterministic_fallback_eligible") is False
-            assert record.get("paired_active_benchmark_id")
+            if capability.get("standalone_response_quality_exemplar") is True:
+                assert not record.get("paired_active_benchmark_id")
+            else:
+                assert record.get("paired_active_benchmark_id")
         elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True
             assert capability.get("active_quality_contributor") is False
@@ -930,12 +936,24 @@ def test_gold_star_has_one_strict_canonical_definition():
             assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
-            assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
+            if capability.get("standalone_response_quality_exemplar") is True:
+                assert not record.get("paired_active_benchmark_id")
+            else:
+                if capability.get("standalone_response_quality_exemplar") is True:
+                    assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
+                else:
+                    assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False and capability.get("generation_class") == "user_approved_response_quality_exemplar":
             assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
-            assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
+            if capability.get("standalone_response_quality_exemplar") is True:
+                assert not record.get("paired_active_benchmark_id")
+            else:
+                if capability.get("standalone_response_quality_exemplar") is True:
+                    assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
+                else:
+                    assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
