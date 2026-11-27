@@ -239,26 +239,23 @@ def normalize_provider_adjudication(
     }
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the bounded report; selected evidence is an exact verbatim answer substring."""
+    """Describe the bounded report; selected evidence is an exact answer substring."""
     index = _candidate_index(candidates)
     if not index:
         return ""
     ids = ", ".join(sorted(index))
     reasons = ", ".join(sorted(REASON_CODES))
-    # Keep this contract compact: it is repeated in every provider prompt and
-    # competes with visitor evidence for finite context/token budgets.
+    # This contract is repeated in every provider prompt; keep it token-bounded.
     return (
-        "Return exactly two JSON keys: candidate_assessments and application_evidence_quotes. "
-        "For each candidate ID (" + ids + "), emit one assessment with candidate_id, "
-        "decision (select/reject), and reason_code (empty for select; one of " + reasons +
-        " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions and select only distinct, relevant candidates. After drafting the final response, "
-        "emit one quote per candidate: selected IDs use a verbatim 12–240-character final-answer "
-        "substring showing the distinctive operation and occurring exactly once. If needed, choose a "
-        "longer unique contiguous span; never duplicate or pad visitor prose. Rejected IDs and reject-all "
-        "use empty quotes. Runtime locates the quote; do not count offsets or paraphrase. "
-        "No hidden reasoning. This internal report is not proof of semantic quality; "
-        "improvement requires paired evaluation. "
+        "Return exactly two JSON keys in adaptive_adjudication: candidate_assessments and application_evidence_quotes. "
+        "For each candidate ID (" + ids + "), emit one assessment with candidate_id, decision (select/reject), "
+        "and reason_code (empty for select; one of " + reasons + " for reject). "
+        "Assess activation scope and abstention boundary; accept semantically equivalent questions; "
+        "select only distinct, relevant candidates. After drafting the final response, emit one quote per candidate: "
+        "selected IDs use a verbatim 12–240-character final-answer substring showing the distinctive operation "
+        "and occurring exactly once; choose a longer unique contiguous span if needed. Never duplicate or pad visitor prose. "
+        "Rejected IDs and reject-all use empty quotes. Runtime locates the quote; do not count offsets or paraphrase. "
+        "No hidden reasoning. This internal report is not proof of semantic quality; improvement requires paired evaluation. "
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'
