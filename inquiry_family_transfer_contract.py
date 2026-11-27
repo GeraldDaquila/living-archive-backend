@@ -25,14 +25,14 @@ _LIVED_FRAME = re.compile(
     re.I,
 )
 _EPISTEMIC_DISTRESS = re.compile(
-    r"(?=.*\\b(?:metaphysical|spiritual|ultimate|existential)\\b)"
-    r"(?=.*\\b(?:certainty|certain|truth|proof|know for sure)\\b)"
-    r"(?=.*\\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering)\\b).*",
+    r"(?=.*\b(?:metaphysical|spiritual|ultimate|existential)\b)"
+    r"(?=.*\b(?:certainty|certain|truth|proof|know for sure)\b)"
+    r"(?=.*\b(?:distress|distressed|fear|grief|panic|overwhelmed|vulnerable|suffering)\b).*",
     re.I,
 )
 _GUIDE_RESPONSE_REQUEST = re.compile(
-    r"\\b(?:guide|assistant)\\b.{0,100}\\b(?:respond|answer|handle|support)\\b"
-    r"|\\bhow should\\b.{0,80}\\b(?:guide|assistant)\\b",
+    r"\b(?:guide|assistant)\b.{0,100}\b(?:respond|answer|handle|support)\b"
+    r"|\bhow should\b.{0,80}\b(?:guide|assistant)\b",
     re.I,
 )
 
