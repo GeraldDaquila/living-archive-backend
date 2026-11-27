@@ -137,7 +137,7 @@ try {
     throw new Error("The rendered visitor doorway does not match the canonical API selection. " + JSON.stringify({ rendered, diagnostics }));
   }
   const answerText = await answer.innerText();
-  if (!answerText.trim() || /https?:\\/\\/|www\\./i.test(answerText)) {
+  if (!answerText.trim() || /https?:\/\/|www\./i.test(answerText)) {
     throw new Error("The answer must remain substantive and must not embed the destination URL. " + JSON.stringify({ answerText, diagnostics }));
   }
   if (await answer.locator("a").count() !== 0) {
