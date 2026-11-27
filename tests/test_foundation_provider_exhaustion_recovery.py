@@ -7,6 +7,42 @@ import main
 
 
 class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
+    @patch("main._basic_inquiry_round1_deterministic_response")
+    def test_symbolic_collective_life_keeps_a_grounded_answer_when_all_providers_fail(
+        self, deterministic_response
+    ):
+        deterministic_response.return_value = {
+            "response": "A useful starting point is to identify the mechanisms at work.",
+            "doorway_title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": "",
+        }
+
+        result = main._basic_inquiry_provider_exhaustion_response(
+            "How do myths, symbols, and stories organize collective life?",
+            {},
+            {},
+            recommendation_available=True,
+        )
+
+        from gold_star_response_floor import evaluate_response_floor
+
+        self.assertEqual(
+            result["provider"],
+            "bounded_social_mechanism_provider_exhaustion_recovery",
+        )
+        self.assertIn("coastal village", result["response"])
+        self.assertIn("shared watch rota", result["response"])
+        self.assertEqual(
+            result["doorway_title"],
+            "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+        )
+        floor = evaluate_response_floor(
+            "How do myths, symbols, and stories organize collective life?",
+            {"ok": True, "response": result["response"]},
+        )
+        self.assertTrue(floor["ok"], floor)
+
     @patch("main._compose_provider_exhaustion_recovery")
     @patch("main._basic_inquiry_round1_deterministic_response")
     def test_living_archive_definition_survives_provider_exhaustion(
