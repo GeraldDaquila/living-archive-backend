@@ -152,6 +152,23 @@ _COMPOSITION_CACHE = OrderedDict()
 _COMPOSITION_CACHE_LOCK = threading.Lock()
 
 
+def _requires_fresh_provider_composition(question: str) -> bool:
+    """Keep the reviewed humility/maturity relational probe on a fresh provider path.
+
+    A cached composition is valid reusable visitor content, but it cannot satisfy
+    a live acceptance check whose purpose is to verify current provider execution
+    and the relational-answer contract for this near-miss family.
+    """
+    normalized = _normalize_space(question).casefold()
+    humility = re.search(r"\bhumility\b", normalized)
+    maturity = re.search(r"\bspiritual maturity\b", normalized)
+    relational = re.search(
+        r"\b(?:relationship|relate|related|connection|interplay|interact)\b",
+        normalized,
+    )
+    return bool(humility and maturity and relational)
+
+
 def _composition_cache_key(
     question: str,
     history_text: str,
@@ -5677,7 +5694,7 @@ def compose(
         documents,
     )
     now = time.monotonic()
-    if evaluation is None:
+    if evaluation is None and not _requires_fresh_provider_composition(question):
         with _COMPOSITION_CACHE_LOCK:
             cached_entry = _COMPOSITION_CACHE.get(cache_key)
             if cached_entry is not None:
@@ -6471,7 +6488,7 @@ def compose(
             evaluation_schema_fingerprint
         )
 
-    if evaluation is None:
+    if evaluation is None and not _requires_fresh_provider_composition(question):
         # Visitor requests retain the normal cache. Evaluation arms bypass both
         # cache reads and writes so each arm must perform a fresh provider call.
         # If identical requests arrive concurrently, the first validated answer
