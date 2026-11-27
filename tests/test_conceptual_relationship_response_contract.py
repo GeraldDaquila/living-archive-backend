@@ -52,3 +52,14 @@ def test_outer_response_floor_withholds_relationship_nonanswer():
     assert status == 503
     assert payload["ok"] is False
     assert payload["gold_star_v2_quality_floor"]["reason"] == "supported_semantic_contract_failed"
+
+
+def test_unrelated_mechanism_word_cannot_substitute_for_a_conceptual_link():
+    answer = (
+        "Humility is an awareness of one's limits. Spiritual maturity is a developing "
+        "capacity for discernment and compassion. A healthy community supports learning "
+        "and encourages accountability."
+    )
+    result = evaluate_semantic_contract(QUERY, {"ok": True, "response": answer})
+    assert result["status"] == "fail"
+    assert "connecting_mechanism_explained" in result["hard_failures"]
