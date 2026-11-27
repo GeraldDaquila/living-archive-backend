@@ -1293,6 +1293,15 @@
       "latest_application_evidence_id": "guide-live-application-self-optimization-2026-11-26-01",
       "application_evidence_status": "QUALITATIVE_SINGLE_OBSERVATION_ONLY",
       "application_evidence_boundary": "One user-provided post-deployment screenshot shows a substantive answer in the approved reasoning family. It does not establish that the Gold Star lesson was selected or applied by the adaptive engine, nor that the answer improved relative to a no-learning baseline. No request-level trace, treatment/control comparison, blind scoring, or repeated held-out cohort is attached."
+    },
+    {
+      "benchmark_id": "general-guide-pain-without-total-identity-2026-11-27",
+      "question": "How should a person hold pain without turning it into a total identity?",
+      "reasoning_family": "pain_identity_distinction_and_self_continuity",
+      "transferable_discipline": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self; offer gentle, non-coercive language and attention practices; preserve connection to relationships and values; avoid promising a timeline; and identify when additional support may be warranted.",
+      "qualifying_context": "Reflective questions about pain, suffering, identity, self-continuity, and how a person can acknowledge painful experience without allowing it to define the whole self.",
+      "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

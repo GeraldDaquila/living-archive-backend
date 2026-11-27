@@ -1508,6 +1508,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only when a question meaningfully concerns optimization, performance improvement, development, metrics, targets, or goal-setting and the objective itself may need evaluation. Do not force goal reconsideration onto ordinary factual questions or every improvement request. Difficulty, disagreement, or disappointing metrics alone do not invalidate a goal; a rising metric does not prove the goal remains worthwhile. Do not recommend changing shared or institutional objectives without considering evidence, affected parties, external constraints, consequences, and legitimate authority. Never transfer the exact answer wording, school or community-garden examples, claims, citations, or doorways. Do not grant exact-answer authority or deterministic fallback. Doorway remains NOT_EVALUATED; do not infer or attach a canonical doorway."
+    },
+    {
+      "benchmark_id": "general-guide-pain-without-total-identity-2026-11-27",
+      "question": "How should a person hold pain without turning it into a total identity?",
+      "family": "pain_identity_distinction_and_self_continuity",
+      "structural_lesson": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self; offer gentle, non-coercive language and attention practices; preserve connection to relationships and values; avoid promising a timeline; and identify when additional support may be warranted.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved."
     }
   ],
   "coverage": {

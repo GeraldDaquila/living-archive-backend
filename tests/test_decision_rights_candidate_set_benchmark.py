@@ -141,6 +141,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
         "general-guide-public-commons-civic-renewal-2026-11-24",
         "general-guide-developmental-capacities-distinction-before-synthesis-2026-11-24",
         "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
+        "general-guide-pain-without-total-identity-2026-11-27",
     }
     active_at_snapshot = sorted(
         (
