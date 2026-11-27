@@ -492,14 +492,24 @@ try {
   // ledger is not authoritative for intercepted fetch calls.
   const pageApiRequests = await page.evaluate(() => window.__guideApiRequests || []);
   const replyRequest = pageApiRequests[pageApiRequests.length - 1];
-  const serialized = JSON.stringify(replyRequest?.body || {});
+  const historyEntries = Array.isArray(replyRequest?.body?.history) ? replyRequest.body.history : [];
   // Main-form Search is intentionally a fresh inquiry and resets older turns.
   // The dedicated Reply should carry the immediately preceding question and answer,
   // not unrelated questions submitted as separate main-form searches.
+  // Compare structured content directly: JSON.stringify escapes paragraph newlines.
   const expectedHistoryItems = [QUESTIONS[4], ASSISTANT_ANSWERS[4]];
-  const foundHistoryItems = expectedHistoryItems.filter(item => serialized.includes(item));
-  const historyFieldPresent = Object.keys(replyRequest?.body || {}).some(key => /history|conversation|messages|turns/i.test(key));
-  const continuityPassed = historyFieldPresent && foundHistoryItems.length === expectedHistoryItems.length;
+  const foundHistoryItems = expectedHistoryItems.filter(item =>
+    historyEntries.some(entry => entry && entry.content === item)
+  );
+  const historyFieldPresent = Array.isArray(replyRequest?.body?.history);
+  const historyRoles = historyEntries.map(entry => entry && entry.role);
+  const continuityPassed = historyFieldPresent &&
+    foundHistoryItems.length === expectedHistoryItems.length &&
+    historyRoles.length === 3 &&
+    historyRoles[0] === "visitor" &&
+    historyRoles[1] === "assistant" &&
+    historyRoles[2] === "visitor" &&
+    historyEntries[2]?.content === FOLLOWUP;
 
   mark("ordinary_reply_contract", {
     panelAppearedNaturallyFromMockResponse: true,
@@ -507,6 +517,7 @@ try {
     replyRequestStatus: replyResponse.status(),
     replyRequestBodyKeys: Object.keys(replyRequest?.body || {}),
     historyFieldPresent,
+    historyRoles,
     expectedHistoryItemCount: expectedHistoryItems.length,
     foundHistoryItemCount: foundHistoryItems.length,
     foundHistoryItems,
