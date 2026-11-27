@@ -34,6 +34,7 @@ ON_TARGET_REFLECTIVE_ANSWER = (
 def test_pain_and_identity_question_is_classified_before_generic_how_should_task():
     result = classify_inquiry_family(PAIN_IDENTITY_QUESTION)
     assert result["family"] == "personal_lived_reflective"
+    assert result["identity_focus"] is True
     contract = build_question_contract(PAIN_IDENTITY_QUESTION)
     assert contract["inquiry_family"]["family"] == "personal_lived_reflective"
     assert contract["task"]["primary"] == "lived_reflective_inquiry_candidate"
