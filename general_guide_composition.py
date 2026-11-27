@@ -1008,8 +1008,8 @@ def _requires_visitor_idea_chunking(response: str) -> bool:
     text = str(response or "").strip()
     if len(text) < 650:
         return False
-    paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", text) if part.strip()]
-    sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\\s|$)", text))
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", text) if part.strip()]
+    sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\s|$)", text))
     return sentence_count >= 5 and len(paragraphs) < 2
 
 def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List[Dict[str, str]]:
