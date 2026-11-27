@@ -37,7 +37,8 @@
     "generation_class": "user_approved_response_quality_exemplar",
     "exact_answer_authority": false,
     "active_quality_contributor": false,
-    "deterministic_fallback_eligible": false
+    "deterministic_fallback_eligible": false,
+    "standalone_response_quality_exemplar": true
   },
   "user_approved_at": "2026-11-27",
   "elevation_approval_evidence": "The user explicitly instructed: 'elevate to gold star' after reviewing the exact live visitor-facing screenshot and receiving the assistant's 9.0/10 assessment. This authorizes immutable response-quality exemplar status only.",
