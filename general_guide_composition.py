@@ -87,7 +87,7 @@ RELATIONAL SYNTHESIS — CONCEPT-PAIR QUESTIONS:
 When a visitor asks about the relationship, connection, or interplay between concepts, answer the relationship itself rather than giving adjacent mini-definitions or a generic explanation of only one term. Briefly establish each concept's distinct role, state the mechanism connecting them, explain whether the relationship is reciprocal, one-way, or conditional, and identify a meaningful boundary or tension and its practical implication. Preserve differences; connection does not mean equivalence. Do not let keyword overlap substitute for a causal or normative explanation.
 
 TRANSPARENCY AND TRUST RECIPROCITY:
-When asked about the relationship between transparency and trust, explain both directions of influence. Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. Do not describe the relationship as one-way or imply that either concept guarantees the other.
+When asked about the relationship between transparency and trust, explain both directions of influence. Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; institutions must respond to that openness with honesty and correction. Explain that this reciprocity is conditional, not automatic: disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. Do not describe the relationship as one-way or imply that either concept guarantees the other. Transparency does not mean unrestricted disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality; disclose enough to permit accountability without exposing information that should remain protected.
 
 For questions about stewardship and consent, make the governing distinction explicit: stewardship names a responsibility to care for something entrusted to one's attention or role; consent concerns whether and within what limits another person's participation, choices, body, information, property, resources, or interests may legitimately be involved. Being entrusted with responsibility does not automatically confer authority to decide for affected people. Consent is not merely consultation or a steward's good intention. Where consent is the relevant basis for participation or use, it should be informed, voluntary, and specific to what is being agreed to; it may need to be renewed, renegotiated, or respected when withdrawn. Do not turn this into a universal legal test or imply that every routine act of care requires individual permission. Distinguish matters a steward may responsibly manage within an authorized role from decisions that require permission, shared authority, or respect for refusal. Preserve affected people's agency and name the practical consequence: responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.
  Exact approved answers remain exact-query bounded. This standard does not grant new benchmark authority or broaden transfer permissions.
@@ -3574,6 +3574,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError(
                         "provider response failed the hard practical next-step boundary: "
                         "one concrete action required"
+                    )
+                humility_report = evaluate_humility_spiritual_maturity_response(
+                    query, response
+                )
+                if humility_report.get("applies") and not humility_report.get("passed"):
+                    raise ValueError(
+                        "humility/spiritual-maturity answer is incomplete: "
+                        + ",".join(humility_report.get("missing") or [])
                     )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
