@@ -86,6 +86,13 @@ def test_semantic_contract_rejects_governance_substitution_and_accepts_lived_ans
         "preserves_experience_identity_distinction",
     }
 
+    superficial = evaluate_semantic_contract(
+        PAIN_IDENTITY_QUESTION,
+        {"ok": True, "response": "Pain is part of your identity. Define the outcome, compare options, and remain accountable."},
+    )
+    assert superficial["status"] == "fail"
+    assert "preserves_experience_identity_distinction" in superficial["hard_failures"]
+
     good = evaluate_semantic_contract(
         PAIN_IDENTITY_QUESTION, {"ok": True, "response": ON_TARGET_REFLECTIVE_ANSWER}
     )
