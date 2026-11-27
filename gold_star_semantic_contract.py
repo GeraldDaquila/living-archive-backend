@@ -7,6 +7,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from inquiry_family_transfer_contract import classify_inquiry_family
+
 from institutional_learning_failure_contract import (
     institutional_learning_failure_response_checks,
     is_institutional_learning_failure_question,
@@ -41,6 +43,8 @@ def classify_question(query: str) -> dict[str, Any]:
         return {"version": VERSION, "type": "unknown", "confidence": "none"}
     if is_institutional_learning_failure_question(q):
         return {"version": VERSION, "type": "institutional_learning_failure", "confidence": "high"}
+    if classify_inquiry_family(q).get("family") == "personal_lived_reflective":
+        return {"version": VERSION, "type": "lived_reflective_inquiry", "confidence": "high"}
     # Explicit user constraints take precedence over generic task verbs.
     for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
@@ -221,6 +225,11 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             )),
             "Where relevant, explain how the compared concepts relate without collapsing them.",
         )
+    elif kind == "lived_reflective_inquiry":
+        experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|trauma|shame|fear|wound\w*|hardship|experience)\b", low))
+        identity_boundary_present = bool(re.search(r"\b(?:identity|self|whole person|who you are|more than|not define|not reduce|part of your story|all you are|does not make you|doesn't make you)\b", low))
+        add("addresses_named_lived_experience", experience_present, "The answer must engage the experience named by the visitor, not replace it with an adjacent planning framework.", hard=True)
+        add("preserves_experience_identity_distinction", identity_boundary_present, "The answer must address how an experience relates to, but does not exhaust, a person's identity.", hard=True)
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
     elif kind == "conceptual_explanation":
