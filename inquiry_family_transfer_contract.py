@@ -28,15 +28,19 @@ _LIVED_FRAME = re.compile(
 # implication of certainty, and a credible vulnerability/loss cue. The second
 # branch captures ordinary visitor language (e.g. bereavement + "is she
 # somewhere?") without requiring clinical or philosophical vocabulary.
+# Keep this a three-signal boundary: a metaphysical subject, a request or
+# implication of certainty, and a credible vulnerability/loss cue. The second
+# branch captures ordinary visitor language (e.g. bereavement + "is she
+# somewhere?") without requiring clinical or philosophical vocabulary.
 _EPISTEMIC_DISTRESS = re.compile(
-    r"(?=.*\\b(?:metaphysical|spiritual|ultimate|existential|afterlife|life after death|"
-    r"soul|heaven|hell|divine|god|consciousness|death|die|died|what happens after death)\\b)"
-    r"(?=.*\\b(?:certainty|certain|truth|proof|know for sure|can anyone know|need to know|"
+    r"(?=.*\b(?:metaphysical|spiritual|ultimate|existential|afterlife|life after death|"
+    r"soul|heaven|hell|divine|god|consciousness|death|die|died|what happens after death)\b)"
+    r"(?=.*\b(?:certainty|certain|truth|proof|know for sure|can anyone know|need to know|"
     r"is there|somewhere|does .{1,45} exist|is .{1,45} real|is .{1,45} somewhere|"
-    r"gone forever|never see .{1,45} again)\\b)"
-    r"(?=.*\\b(?:distress|distressed|fear|grief|loss|bereave\\w*|mourning|"
-    r"panic|overwhelmed|vulnerable|suffering|frighten\\w*|anxious|anxiety|"
-    r"desperate|died|death of|gone|scared|terrified)\\b).*",
+    r"gone forever|never see .{1,45} again)\b)"
+    r"(?=.*\b(?:distress|distressed|fear|grief|loss|bereave\w*|mourning|"
+    r"panic|overwhelmed|vulnerable|suffering|frighten\w*|anxious|anxiety|"
+    r"desperate|died|death of|gone|scared|terrified)\b).*",
     re.I,
 )
 
