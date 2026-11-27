@@ -117,9 +117,11 @@ def build_community_rule_decision_instruction() -> str:
         "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: Name the legitimate shared purpose and the specific, "
         "evidenced harm or coordination need. Test whether a limit is necessary and proportionate, and identify "
         "the least restrictive workable means. Explicitly state who benefits, who bears costs, and how burdens "
-        "are fairly distributed. Address reasonable accommodation for people whose needs differ. People most "
+        "are fairly distributed; state the fair burden allocation explicitly. Address reasonable accommodation " 
+        "for people whose needs differ. Include affected people in shaping the rule: people most "
         "affected should have a meaningful opportunity to shape the rule before adoption; later appeal alone "
-        "does not substitute for participation. Specify a real appeal or challenge path and observable review "
+        "does not substitute for participation. Specify appeal and review criteria, including a real challenge " 
+        "path and observable review "
         "criteria. Treat each as distinct evidence, not implied by fairness. Use connected prose, not a checklist; "
         "majority preference or convenience is not proof of necessity."
     )
