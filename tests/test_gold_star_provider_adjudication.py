@@ -415,7 +415,7 @@ def test_longer_verbatim_quote_can_cover_a_complete_application_sentence():
         "hear affected people, test less restrictive alternatives, distribute burdens fairly, "
         "and review whether the rule remains proportionate."
     )
-    assert 120 < len(phrase) <= adjudication.MAX_EVIDENCE_SPAN
+    assert 120 < len(phrase) <= adjudication.MAX_EVIDENCE_QUOTE
     response = "A fair process makes the decision reviewable: " + phrase
     result = adjudication.normalize_provider_adjudication(
         {
