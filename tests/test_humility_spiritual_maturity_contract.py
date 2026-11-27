@@ -60,6 +60,12 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
     system_message = composition._build_general_guide_system_message(QUERY)
     assert "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences." in system_message
     assert "honest self-appraisal" in system_message
+    assert "willing to learn" in system_message
+    assert "accepting correction and accountability" in system_message
+    assert "lived conduct in actions and relationships" in system_message
+    assert "humility alone does not guarantee it" in system_message
+    assert "conditional, not automatic" in system_message
+    assert "appropriate boundaries" in system_message
     assert "blind obedience" in system_message
 
 
