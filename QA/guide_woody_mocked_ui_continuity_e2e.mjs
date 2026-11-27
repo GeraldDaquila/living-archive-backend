@@ -208,7 +208,7 @@ await page.route("**/*", async route => {
 
 // Replace only the page's controller asset with the PR candidate. The live
 // WordPress HTML/CSS and page structure remain real; API traffic stays mocked.
-// This executes v489.332 in-browser without activating it on production.
+// This executes v489.333 in-browser without activating it on production.
 await page.route("**/*", async route => {
   const url = route.request().url();
   if (/guide-controller-v489\.\d+\.js(?:\?|$)/.test(url)) {
@@ -224,7 +224,7 @@ try {
   mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   await page.addStyleTag({ content: CANDIDATE_ANSWER_CSS });
-  if (!candidateControllerServed) throw new Error("Candidate controller v489.332 was not requested/injected; browser test would otherwise exercise production code.");
+  if (!candidateControllerServed) throw new Error("Candidate controller v489.333 was not requested/injected; browser test would otherwise exercise production code.");
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
@@ -497,6 +497,7 @@ try {
     expectedHistoryItemCount: expectedHistoryItems.length,
     foundHistoryItemCount: foundHistoryItems.length,
     foundHistoryItems,
+    historySnapshot: Array.isArray(replyRequest?.body?.history) ? replyRequest.body.history.map(item => ({ role: item.role, content: item.content })) : null,
     continuityPassed,
     pageErrors,
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
