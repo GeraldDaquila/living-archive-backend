@@ -38,13 +38,12 @@
     "exact_answer_authority": false,
     "active_quality_contributor": false,
     "deterministic_fallback_eligible": false,
-    "standalone_response_quality_exemplar": true
+    "standalone_response_quality_exemplar": true,
+    "abstention_boundary": "NOT_EVALUATED: undefined"
   },
   "user_approved_at": "2026-11-27",
   "elevation_approval_evidence": "The user explicitly instructed: 'elevate to gold star' after reviewing the exact live visitor-facing screenshot and receiving the assistant's 9.0/10 assessment. This authorizes immutable response-quality exemplar status only.",
   "numbering_status": "UNASSIGNED",
   "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-  "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
-  "paired_active_benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
-  "pairing_note": "Paired only as a related epistemic-quality review reference. This does not grant runtime transfer, exact-answer authority, deterministic fallback, shared doorway, or selector candidacy."
+  "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity."
 }
