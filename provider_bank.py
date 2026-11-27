@@ -1091,6 +1091,36 @@ def _log_openai_empty_response_shape(data, provider, model):
     )
 
 
+def _openai_compatible_text(content):
+    """Extract visitor-facing text from supported OpenAI-compatible content shapes.
+
+    Some hosted endpoints return content as typed text blocks rather than one
+    string. Deliberately ignore reasoning-only fields: internal reasoning is
+    never a substitute for the visitor-facing completion.
+    """
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, dict):
+        value = content.get("text")
+        return value.strip() if isinstance(value, str) else ""
+    if isinstance(content, list):
+        chunks = []
+        for item in content:
+            if isinstance(item, str):
+                if item.strip():
+                    chunks.append(item.strip())
+                continue
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("type") or "").casefold() not in {"text", "output_text"}:
+                continue
+            value = item.get("text")
+            if isinstance(value, str) and value.strip():
+                chunks.append(value.strip())
+        return "".join(chunks).strip()
+    return ""
+
+
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
@@ -1147,7 +1177,7 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
                 provider + " returned no text", provider, model,
                 category="invalid_provider_response"
             ) from exc
-        content = str(content or "").strip()
+        content = _openai_compatible_text(content)
         if not content:
             if provider == "nvidia":
                 _log_openai_empty_response_shape(data, provider, model)
@@ -1679,10 +1709,15 @@ def select(use_core, operation="generic", schema=None):
                     0 if item.get("health_state") == "healthy" else 1,
                     groq_120b_priority,
                     0 if last_success > 0 else 1,
-                    nvidia_direct_answer_priority,
-                    int(item.get("transport_failures", 0) or 0),
                     int(item.get("consecutive_failures", 0) or 0),
+                    # Prefer demonstrated recent viability before stale lifetime
+                    # transport totals or static model preferences. A model that
+                    # just completed a real inference must not sit behind a
+                    # never-successful sibling merely because its historical
+                    # failure counter is larger.
                     -last_success,
+                    int(item.get("transport_failures", 0) or 0),
+                    nvidia_direct_answer_priority,
                     int(item.get("quality_failures", 0) or 0),
                     prediction_penalty,
                     0 if "low_latency" in (item.get("capabilities") or []) else 1,
