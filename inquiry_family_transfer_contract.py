@@ -36,7 +36,7 @@ _EPISTEMIC_DISTRESS = re.compile(
     r"gone forever|never see .{1,45} again)\\b)"
     r"(?=.*\\b(?:distress|distressed|fear|grief|loss|bereave\\w*|mourning|"
     r"panic|overwhelmed|vulnerable|suffering|frighten\\w*|anxious|anxiety|"
-    r"desperate|died|death of|scared|terrified)\\b).*",
+    r"desperate|died|death of|gone|scared|terrified)\\b).*",
     re.I,
 )
 
