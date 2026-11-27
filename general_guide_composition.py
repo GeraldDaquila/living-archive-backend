@@ -953,7 +953,7 @@ def _sanitize_candidate(text: Any) -> str:
     )
     # Match paired double-quote delimiters only; apostrophes in ordinary prose
     # must not be treated as quote boundaries.
-    quoted_source_spans = re.compile(r'(?:“[^”\\n]{20,1800}”|"[^"\\n]{20,1800}")')
+    quoted_source_spans = re.compile(r'(?:“[^”\n]{20,1800}”|"[^"\n]{20,1800}")')
     source_title_attribution = re.compile(
         r"\s*\(\s*(?:[\U0001F300-\U0001FAFF]\s*)?(?=[A-Z])[^()\n]{3,180}\s*\)\s*[.!?]?\s*$"
     )
