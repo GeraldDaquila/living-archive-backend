@@ -12675,7 +12675,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             else _compose_task_specific_recovery(query)
         )
     )
-    if (isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip()\n            and not _task_recovery_requires_attributable_composition(_task_recovery)):
+    if (
+        isinstance(_task_recovery, dict)
+        and str(_task_recovery.get("response") or "").strip()
+        and not _task_recovery_requires_attributable_composition(_task_recovery)
+    ):
         _task_answer = str(_task_recovery["response"]).strip()
         _no_handoff = _guide_query_explicitly_forbids_handoff(query)
         _task_doorway = (
@@ -17353,7 +17357,10 @@ async def _use_request_boundary(scope, receive, send):
         None if _final_exact_gold_standard_authority(query) is not None
         else _compose_task_specific_recovery(query)
     )
-    if (isinstance(_early_task_recovery, dict)\n            and not _task_recovery_requires_attributable_composition(_early_task_recovery)):
+    if (
+            isinstance(_early_task_recovery, dict)
+            and not _task_recovery_requires_attributable_composition(_early_task_recovery)
+        ):
         _early_task_result = _basic_inquiry_response(
             query, history, raw_body, task_recovery=_early_task_recovery
         )
