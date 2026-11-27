@@ -136,3 +136,24 @@ def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_
     assert "identity" in answer.casefold()
     assert "responsibilities that cannot be lost" not in answer.casefold()
     assert "people who will live with its consequences" not in answer.casefold()
+    semantic = evaluate_semantic_contract(
+        PAIN_IDENTITY_QUESTION, {"ok": True, "response": answer}
+    )
+    assert semantic["hard_failures"] == []
+    floor = evaluate_response_floor(
+        PAIN_IDENTITY_QUESTION,
+        {
+            "ok": True,
+            "query": PAIN_IDENTITY_QUESTION,
+            "intent": "TOPICAL_INQUIRY",
+            "response": answer,
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A bounded, provider-independent reflective explanation.",
+            },
+            "response_provenance": {"class": "deterministic_fallback"},
+        },
+    )
+    assert floor["status"] == "pass"
+    assert floor["semantic_enforcement"]["status"] == "pass"
