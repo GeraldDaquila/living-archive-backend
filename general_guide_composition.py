@@ -3479,7 +3479,7 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
         r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables|by letting|by allowing|through|creates? opportunities|more willing to|more likely to)\b",
         text, re.I,
     ))
-    if len(text.split()) < 65 or not mechanism:
+    if len(text.split()) < 45 or not mechanism:
         return False
     concepts = _conceptual_relationship_terms(question) if question else []
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
