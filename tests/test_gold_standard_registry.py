@@ -2570,3 +2570,25 @@ def test_assistant_assessment_is_not_duplicated_as_user_rating():
             continue
         assert record.get("rating_out_of_10") != assistant_assessment, record["benchmark_id"]
 
+def test_user_approved_extraordinary_claims_response_is_frozen_response_quality_exemplar():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How should the Guide respond to extraordinary claims?"
+    assert record["doorway_status"] == "VERIFIED"
+    assert record["expected_doorway"]["title"] == "Levels of Claim"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
+    assert "proportionate scrutiny" in record["expected_response"]
+    assert "checked independently" in record["expected_response"]
+    assert "official Guide doctrine" in record["expected_response"]
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is False
+    assert record["gold_star_capabilities"]["generation_class"] == "user_approved_response_quality_exemplar"
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
