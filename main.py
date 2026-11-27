@@ -375,6 +375,16 @@ def _select_verified_doorway_conceptual_family(query):
     )
     if stewardship_significance:
         return "stewardship_significance"
+    # Humility/spiritual-maturity questions have a direct, verified Archive
+    # continuation. Require the relational task plus both concepts; generic
+    # mentions of humility or spirituality alone must not capture navigation.
+    humility_spiritual_maturity = (
+        re.search(r"\bhumility\b", text, re.I)
+        and re.search(r"\bspiritual\s+maturit(?:y|ies)\b", text, re.I)
+        and re.search(r"\b(?:relationship|relation|connection|interplay|between|how does|what role)\b", text, re.I)
+    )
+    if humility_spiritual_maturity:
+        return "humility_spiritual_maturity"
     worldview_frame = bool(
         re.search(
             r"\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\b",
@@ -579,6 +589,16 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
             "framework and its application to responsibility, exchange, and shared "
             "conditions. It is a deeper continuation for a visitor asking not only "
             "what stewardship means, but why it matters."
+        ),
+    },
+    "humility_spiritual_maturity": {
+        "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+        "url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+        "rationale": (
+            "This Archive essay examines spiritual growth alongside humility, discernment, "
+            "responsibility, and ordinary human life. It offers a relevant next step for "
+            "considering how humility keeps spiritual development grounded in lived conduct "
+            "without treating spiritual claims as established fact."
         ),
     },
     "human_worldview_cosmology": {
