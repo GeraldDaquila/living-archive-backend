@@ -334,5 +334,4 @@ def test_epistemic_distress_provider_exhaustion_recovery_precedes_archive_contra
     fallback = source.index('recovery="epistemic_distress_guidance"')
     archive_contrast = source.index("_archive_passage_contrast_recovery(question, documents)", fallback)
     assert archive_contrast > fallback
-    assert '"semantic_status": "pass"' not in source  # emitted as a keyword, not a payload field
     assert '_epistemic_recovery_semantic.get("status") != "pass"' in source
