@@ -815,11 +815,12 @@ def _contract_rejection_reason_code(contract_reason):
 
 
 def _guide_contract_repair_timeout_preserving_fallback(
-    recovery_timeout, next_candidate_timeout, next_candidate_health_state
+    recovery_timeout, next_candidate_timeout, next_candidate_health_state, remaining_window
 ):
-    """Keep a viable independent Guide candidate from being stranded by repair."""
+    """Bound same-model repair by the actual route window after reserving fallback time."""
     recovery_timeout = max(0.0, float(recovery_timeout or 0.0))
     next_candidate_timeout = max(0.0, float(next_candidate_timeout or 0.0))
+    remaining_window = max(0.0, float(remaining_window or 0.0))
     if recovery_timeout <= 0.0 or next_candidate_timeout <= 0.0:
         return recovery_timeout
     next_minimum_timeout = (
@@ -828,11 +829,11 @@ def _guide_contract_repair_timeout_preserving_fallback(
         else GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
     )
     # Do not reserve time for a candidate that cannot receive its supported
-    # minimum timeout. When it can, the same-model correction may use only the
-    # budget left after preserving that minimum for the independent candidate.
+    # minimum timeout. Otherwise reserve that minimum from the *route window*,
+    # not from the current provider's per-call timeout ceiling.
     if next_candidate_timeout < next_minimum_timeout:
         return recovery_timeout
-    repair_budget = recovery_timeout - next_minimum_timeout
+    repair_budget = remaining_window - next_minimum_timeout
     if repair_budget < GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS:
         return 0.0
     return min(recovery_timeout, repair_budget)
@@ -4207,6 +4208,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                             recovery_timeout,
                             next_candidate_timeout,
                             next_candidate.get("health_state"),
+                            remaining_window,
                         )
                         if bounded_recovery_timeout <= 0.0:
                             state["probe_in_flight"] = False
