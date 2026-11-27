@@ -468,7 +468,7 @@ def test_primary_live_smoke_runs_after_live_evaluation_and_shares_its_concurrenc
     live = (root / ".github" / "workflows" / "guide-live-evaluation.yml").read_text(encoding="utf-8")
     smoke = (root / ".github" / "workflows" / "live-gold-star-visitor-smoke.yml").read_text(encoding="utf-8")
 
-    assert "group: guide-primary-provider-budgeted-live-validation-${{ inputs.target_service || 'primary' }}" in live
+    assert "group: guide-primary-provider-budgeted-live-validation-${{ github.event.inputs.target_service || 'primary' }}" in live
     assert "group: guide-primary-provider-budgeted-live-validation-primary" in smoke
     assert 'workflows: ["Guide Live Evaluation"]' in smoke
     assert "types: [completed]" in smoke
