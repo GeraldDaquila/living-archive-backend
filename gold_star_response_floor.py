@@ -128,7 +128,7 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     while terminal_candidate and terminal_candidate[-1] in "\"'”’)]}":
         terminal_candidate = terminal_candidate[:-1].rstrip()
     terminal_sentence = bool(terminal_candidate and terminal_candidate[-1] in ".!?…")
-    terminal_structure = bool(re.match(r"^(?:[-*+]\\s+|\\d+[.)]\\s+|#{1,6}\\s+)", final_line))
+    terminal_structure = bool(re.match(r"^(?:[-*+]\s+|\d+[.)]\s+|#{1,6}\s+)", final_line))
     if not terminal_sentence and not terminal_structure:
         return {"version": VERSION, "status": "fail", "reason": "incomplete_answer_ending"}
     if len(answer) > 30000:
