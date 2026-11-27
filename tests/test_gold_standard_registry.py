@@ -2611,6 +2611,7 @@ def test_user_approved_reverence_credulity_gold_star_is_registered_exactly():
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == fixture["doorway_status"] == "NOT_EVALUATED"
+    assert "NOT_EVALUATED" in record["gold_star_capabilities"]["abstention_boundary"]
     assert record["runtime_transfer"] is False
     assert record["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["active_quality_contributor"] is False
