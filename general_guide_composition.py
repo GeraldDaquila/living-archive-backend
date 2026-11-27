@@ -463,6 +463,27 @@ def _build_general_guide_system_message(
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
         parts.append(_COMMUNITY_LIBERTY_LIMIT_DECISION_CONTRACT)
+    # Keep this conceptual clarification narrowly bound to the relational
+    # humility/spiritual-maturity inquiry; do not turn it into a global
+    # spirituality template or capture adjacent psychological-integration
+    # questions.
+    humility_spiritual_maturity_relationship = (
+        re.search(r"\\bhumility\\b", question, re.I)
+        and re.search(r"\\bspiritual\\s+maturit(?:y|ies)\\b", question, re.I)
+        and re.search(r"\\b(?:relationship|relation|connection|interplay|between|how does|what role)\\b", question, re.I)
+    )
+    if humility_spiritual_maturity_relationship:
+        parts.append(
+            "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT: "
+            "Explain the relationship through its actual mechanisms, not as a slogan or a hierarchy. "
+            "Show how humility can support spiritual maturity by making learning, honest self-appraisal, "
+            "correction, accountability, and openness to other people possible; explain how maturity is "
+            "expressed in lived conduct rather than claimed status. Make clear that humility is not "
+            "self-erasure, diminished self-worth, passivity, automatic compliance, or surrender of "
+            "appropriate boundaries. Distinguish humility from self-contempt without turning the answer "
+            "into generic therapeutic advice. Preserve reciprocity where warranted, avoid claiming that "
+            "humility alone guarantees maturity, and answer the visitor directly before offering any doorway."
+        )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())
     if gold_star_quality_instruction:
