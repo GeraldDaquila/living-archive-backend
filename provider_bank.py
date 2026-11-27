@@ -3128,7 +3128,7 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
                 and model == "nvidia/nemotron-3.5-super-vl-120b-a12b"
             ):
                 return GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS
-            return min(timeout, GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS)
+            return GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
         return timeout
     if operation == "fsd_report_composition":
         return FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS
