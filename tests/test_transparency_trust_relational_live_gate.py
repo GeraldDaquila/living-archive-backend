@@ -2,7 +2,12 @@
 
 from gold_star_lessons import active_quality_contribution
 from scripts.guide_live_evaluation import evaluate_held
-from general_guide_composition import has_conceptual_relationship_explanation, _has_transparency_trust_reciprocity
+from general_guide_composition import (
+    _build_general_guide_system_message,
+    _has_transparency_trust_disclosure_boundary,
+    _has_transparency_trust_reciprocity,
+    has_conceptual_relationship_explanation,
+)
 
 CASE = {
     "case_id": "heldout-transparency-trust-relational-synthesis-001",
@@ -81,6 +86,13 @@ def test_transparency_trust_live_answer_requires_relationship_and_limits():
     checks = evaluate_held(CASE, transport)
     assert all(item["passed"] for item in checks), checks
 
+def test_provider_prompt_preserves_privacy_and_confidentiality_boundary():
+    prompt = _build_general_guide_system_message(CASE["query"])
+    assert "protect privacy" in prompt
+    assert "legitimate confidentiality" in prompt
+    assert "unrestricted disclosure" in prompt
+
+
 def test_runtime_relationship_contract_accepts_explicit_reciprocal_transparency_wording():
     answer = (
         "Transparency can support justified trust by letting people verify whether an institution is acting as claimed, "
@@ -91,6 +103,7 @@ def test_runtime_relationship_contract_accepts_explicit_reciprocal_transparency_
     )
     assert has_conceptual_relationship_explanation(answer, CASE["query"]) is True
     assert _has_transparency_trust_reciprocity(answer) is True
+    assert _has_transparency_trust_disclosure_boundary(answer) is True
 
 
 def test_runtime_relationship_contract_still_rejects_one_way_transparency_claims():
