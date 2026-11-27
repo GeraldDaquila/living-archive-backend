@@ -156,6 +156,12 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
     parser_calls = []
 
     monkeypatch.setattr(provider_bank, "_active_active_primary_assignment", lambda *args: False)
+    monkeypatch.setattr(provider_bank, "_current_gold_star_evaluation_context", lambda: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_bounded_request_provider_timeout",
+        lambda timeout, _deadline, **kwargs: timeout,
+    )
     monkeypatch.setattr(provider_bank, "_active_active_role", lambda: "secondary")
     monkeypatch.setattr(provider_bank, "refresh_server_capacity_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
@@ -204,7 +210,8 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
         if raw == "first-output":
             raise ValueError(
                 "humility/spiritual-maturity answer is incomplete: "
-                "humility_supports_learning_and_correction"
+                "humility_supports_learning_and_correction,"
+                "not_passivity_or_automatic_compliance"
             )
         return {"response": "A corrected, complete visitor answer."}
 
@@ -222,12 +229,7 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
     assert parser_calls == ["first-output", "repaired-output"]
     assert len(provider_messages) == 2
     assert any(
-        "Your preceding Guide composition failed a response contract" in message.get("content", "")
-        for message in provider_messages[1]
-        if message.get("role") == "user"
-    )
-    assert any(
-        "humility/spiritual-maturity answer is incomplete" in message.get("content", "")
+        "Your preceding Guide answer omitted required humility/spiritual-maturity distinctions" in message.get("content", "")
         for message in provider_messages[1]
         if message.get("role") == "user"
     )
