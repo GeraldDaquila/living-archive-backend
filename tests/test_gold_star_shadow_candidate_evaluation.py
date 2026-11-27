@@ -31,7 +31,9 @@ def test_distress_heldout_cases_receive_candidate_only_in_shadow_evaluation():
             case["query"], DEFAULT_CANDIDATE_ID
         )
         assert contribution is not None, case["case_id"]
-        assert contribution["authority_mode"] == "evaluation_only_structural_guidance"
+        assert contribution["authority_mode"] == "structural_guidance_only"
+        assert contribution["evaluation_only"] is True
+        assert contribution["runtime_transfer"] is False
         assert contribution["candidates"][0]["benchmark_id"] == suite["source_benchmark_id"]
 
 
@@ -74,7 +76,7 @@ def test_only_explicit_treatment_context_can_expose_the_shadow_candidate():
     ):
         contribution = gold_star_lessons.active_quality_contribution(query)
     assert contribution is not None
-    assert contribution["authority_mode"] == "evaluation_only_structural_guidance"
+    assert contribution["authority_mode"] == "structural_guidance_only"
 
 
 def test_evaluation_only_candidate_cannot_be_attached_to_control_arm():
@@ -123,3 +125,26 @@ def test_evaluation_prompt_boundary_is_not_the_source_nonruntime_governance_veto
     assert "runtime/adaptive transfer" not in candidate["abstention_boundary"]
     assert "runtime/adaptive transfer" in candidate["source_governance_boundary"]
     assert candidate["source_query"] == "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+
+
+def test_shadow_candidate_satisfies_the_real_composition_contract_without_runtime_promotion():
+    from general_guide_composition import (
+        _build_gold_star_quality_instruction,
+        _build_provider_composition_schema,
+    )
+    query = "Since my partner died I keep searching for signs that there is a divine purpose behind it. I am scared and need to know for certain what is really true."
+    with evaluation_context(
+        arm="treatment", provider="groq", model="openai/gpt-oss-120b",
+        candidate_id=DEFAULT_CANDIDATE_ID,
+    ):
+        contribution = gold_star_lessons.active_quality_contribution(query)
+    assert contribution is not None
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["evaluation_only"] is True
+    assert contribution["runtime_transfer"] is False
+    assert contribution["deterministic_fallback_eligible"] is False
+    assert contribution["exact_answer_authority"] is False
+    assert _build_gold_star_quality_instruction(contribution).startswith(
+        "GOLD STAR MULTI-CANDIDATE ADJUDICATION"
+    )
+    assert _build_provider_composition_schema(contribution["candidates"]) is not None
