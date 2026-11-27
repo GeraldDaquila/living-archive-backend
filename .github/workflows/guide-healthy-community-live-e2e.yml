@@ -6,6 +6,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_*.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "community_rule_decision_contract.py"
       - "QA/guide_healthy_community_live_e2e.mjs"
       - "tests/test_human_development_conceptual_recovery.py"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
@@ -20,6 +22,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_*.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "community_rule_decision_contract.py"
       - "QA/guide_healthy_community_live_e2e.mjs"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
