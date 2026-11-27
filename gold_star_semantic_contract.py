@@ -226,7 +226,7 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             "Where relevant, explain how the compared concepts relate without collapsing them.",
         )
     elif kind == "lived_reflective_inquiry":
-        experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|hardship|experience|identity|selfhood|personhood|belonging|who i am|sense of self)\b", low))
+        experience_present = bool(re.search(r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|hardship|identity|selfhood|personhood|belonging|who i am|sense of self)\b", low))
         experience_identity_relation = bool(re.search(
             r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|shame|fear|loneliness|heartbreak|wound\w*|identity|selfhood|personhood|belonging|who i am|sense of self)\b"
             r".{0,180}\b(?:not|without|rather than|does not|doesn't|more than|no longer|all|whole)\b"
