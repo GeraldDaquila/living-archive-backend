@@ -9138,7 +9138,7 @@
       },
       "rating": null,
       "freeze_policy": "immutable_user_approved_gold_standard",
-      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_status": "NOT_EVALUATED",
       "assistant_assessment_out_of_10": 9,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
@@ -9163,7 +9163,9 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
-      "exact_answer_authority": false
+      "exact_answer_authority": false,
+      "paired_active_benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
+      "pairing_note": "Paired only as a related epistemic-quality review reference. This does not grant runtime transfer, exact-answer authority, deterministic fallback, shared doorway, or selector candidacy."
     }
   ],
   "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. The metaphysical-certainty-during-distress screenshot remains a near-miss negative regression only, not an approved Gold Star. Inventory counts remain at 141 approved records and 181 total records.",
