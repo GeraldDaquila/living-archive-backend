@@ -758,6 +758,29 @@ def _contract_rejection_class(contract_reason):
     )
 
 
+def _contract_rejection_reason_code(contract_reason):
+    """Return a bounded validator reason code without logging generated content."""
+    text = str(contract_reason or "").casefold()
+    patterns = (
+        (r"community liberty-limit answer is incomplete", "community_rule_incomplete"),
+        (r"transparency-trust answer must explain both directions", "transparency_trust_reciprocity"),
+        (r"transparency-trust answer must explicitly preserve privacy", "transparency_trust_disclosure_boundary"),
+        (r"semantic paragraph boundaries", "semantic_paragraph_boundaries"),
+        (r"embedded navigation urls", "embedded_navigation_url"),
+        (r"returned invalid json", "invalid_json"),
+        (r"response was not an object", "non_object_response"),
+        (r"response is too short", "response_too_short"),
+        (r"response is too long", "response_too_long"),
+        (r"direct answer", "answer_first_boundary"),
+        (r"meta-answer|generic metadiscourse", "non_substantive_answer"),
+        (r"visitor-surface|internal implementation", "visitor_surface_boundary"),
+    )
+    for pattern, code in patterns:
+        if re.search(pattern, text):
+            return code
+    return "other_contract" if text else "unspecified_contract"
+
+
 def _record_quality_rejection(provider, model, operation, reason, rejection_class=None):
     """Penalize substantive provider quality failures, not repairable envelopes."""
     if _is_movement_brief_input_failure(operation, reason):
@@ -4128,6 +4151,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", provider=" + provider
                 + ", model=" + model
                 + ", rejection_class=" + rejection_class
+                + ", reason_code=" + _contract_rejection_reason_code(contract_reason)
                 + ", error=contract_rejection"
             )
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
