@@ -79,7 +79,7 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
         ))
         or bool(re.search(
             r"\bwithout\s+(?:becoming|requiring|implying|entailing)\b"
-            r"[^.!?;]{0,100}\b(?:passivity|being passive|blind obedience|automatic compliance)\b",
+            r"[^.!?;]{0,100}\b(?:passivity|passive|being passive|blind obedience|automatic compliance)\b",
             low,
         ))
     )
