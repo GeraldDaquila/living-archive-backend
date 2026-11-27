@@ -415,8 +415,8 @@ def test_outermost_floor_runs_after_final_response_mutations_and_before_serializ
     from pathlib import Path
 
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
-    start = source.index("async def _send_with_final_visitor_boundary")
-    end = source.index("\n\n", source.index("encoded = json.dumps(", start))
+    start = source.index("async def _guide_outer_visitor_response_boundary")
+    end = source.index("\n\napp = streaming_entry", start)
     body = source[start:end]
     reconcile = body.index("_guide_reconcile_verified_doorway_recovery")
     terminal_floor = body.rindex("apply_response_floor_boundary")
@@ -466,12 +466,12 @@ def test_terminal_floor_receives_post_reconciliation_safe_payload():
     tree = ast.parse(source)
     request_boundary = next(
         node for node in tree.body
-        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_use_request_boundary"
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_guide_outer_visitor_response_boundary"
     )
     sender = next(
         node for node in ast.walk(request_boundary)
         if isinstance(node, ast.AsyncFunctionDef)
-        and node.name == "_send_with_final_visitor_boundary"
+        and node.name == "_capture_json_response"
     )
     reconcile_calls = [
         node for node in ast.walk(sender)
