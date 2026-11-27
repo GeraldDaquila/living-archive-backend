@@ -7,7 +7,7 @@ from gold_star_lessons import select_lesson_candidates
 from gold_star_question_contract import build_question_contract
 from gold_star_semantic_contract import evaluate_semantic_contract
 from gold_star_response_floor import evaluate_response_floor
-from deterministic_answer_recovery import compose_recovery, has_registered_recovery
+from deterministic_answer_recovery import compose_recovery, compose_task_specific_recovery, has_registered_recovery
 from general_guide_composition import _build_general_guide_system_prompt
 
 
@@ -121,6 +121,7 @@ def test_off_target_lived_response_gets_one_bounded_repair_without_touching_eval
 def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_how_template():
     answer = compose_recovery(PAIN_IDENTITY_QUESTION)
     assert has_registered_recovery(PAIN_IDENTITY_QUESTION) is True
+    assert compose_task_specific_recovery(PAIN_IDENTITY_QUESTION) is None
     assert "pain" in answer.casefold()
     assert "identity" in answer.casefold()
     assert "responsibilities that cannot be lost" not in answer.casefold()
