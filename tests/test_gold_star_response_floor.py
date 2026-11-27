@@ -422,3 +422,36 @@ def test_outermost_floor_runs_after_final_response_mutations_and_before_serializ
     terminal_floor = body.rindex("apply_response_floor_boundary")
     serialization = body.index("encoded = json.dumps(")
     assert reconcile < terminal_floor < serialization
+
+
+
+def test_terminal_floor_rejects_answer_damaged_by_final_payload_mutation():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    valid = (
+        "Shared stories and symbols organize collective life by making expectations visible. "
+        "For example, a village retells its founding story at an annual gathering. "
+        "Residents display a carved marker and renew a volunteer rota, so the story "
+        "makes mutual aid part of local identity and turns remembrance into coordinated work."
+    )
+    candidate = {"ok": True, "query": query, "response": valid}
+    accepted, accepted_status = apply_response_floor_boundary(query, candidate, 200)
+    assert accepted_status == 200
+    assert accepted["gold_star_v2_quality_floor"]["status"] == "pass"
+
+    # Simulate the final metadata/doorway reconciliation mutating the visitor
+    # answer after an earlier candidate passed. The terminal gate must inspect
+    # this mutated payload, not reuse the earlier pass decision.
+    mutated = dict(accepted)
+    mutated["response"] = (
+        "Myths, symbols, and stories organize collective life by shaping shared "
+        "expectations and belonging. Repeated narratives influence how communities "
+        "coordinate behavior."
+    )
+    terminal, terminal_status = apply_response_floor_boundary(query, mutated, 200)
+    assert terminal_status == 503
+    assert terminal["ok"] is False
+    assert terminal["gold_star_v2_quality_floor"]["reason"] == (
+        "social_mechanism_example_not_demonstrated"
+    )
