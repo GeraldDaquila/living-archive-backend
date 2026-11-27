@@ -571,7 +571,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. "
         "apply selected reasoning in the answer. Return exact 12–120-character response offsets; "
         "rejected IDs use 0,0. Reject if no range. "
-        "Community rules: state legitimate shared purpose and evidence of need; majority preference is not proof. Map burdens; require accommodation, affected-party input, appeal, and review. "
+        "Community rules: state legitimate shared purpose and evidence of need; majority preference is not proof. "
 
         "Reject all when none improves the answer or relevance is merely lexical. "
         "Never transfer exemplar content or doorways. "
