@@ -5731,12 +5731,12 @@ def compose(
             question, {"ok": True, "response": str(_evaluation_payload.get("response") or "")}
         )
         if (_evaluation_semantic.get("question_type") != "epistemic_distress_guidance" or bool(_evaluation_semantic.get("hard_failures"))):
+            result = None
             _emit_guide_outcome(
                 "epistemic_distress_task_fit_repair",
                 stage="evaluation_candidate_rejected_without_repair",
                 failed_checks=",".join(_evaluation_semantic.get("failed_checks") or []),
             )
-            result = None
 
     # Epistemic-distress inquiries receive the same single, deadline-bounded
     # task-fit repair as lived-reflective inquiries. This is disabled for
@@ -5816,7 +5816,8 @@ def compose(
                 if (
                     _repaired_result
                     and _repaired_response
-                    and _repaired_semantic.get("status") != "fail"
+                    and _repaired_semantic.get("question_type") == "epistemic_distress_guidance"
+                    and not _repaired_semantic.get("hard_failures")
                 ):
                     result = _repaired_result
                     _emit_guide_outcome(
