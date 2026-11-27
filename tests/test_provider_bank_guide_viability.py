@@ -310,6 +310,9 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
         return 5.64
 
     monkeypatch.setattr(provider_bank, "_provider_call_timeout", record_provider_call_timeout)
+    # Only 9.64 seconds remain: a 5.64-second correction plus the fallback's
+    # 5-second minimum would not fit, so the correction must be skipped.
+    monkeypatch.setattr(provider_bank, "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS", 9.64)
     monkeypatch.setattr(provider_bank, "_capabilities", lambda *args, **kwargs: {"json_schema_strict"})
     monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, **kwargs: parsed)
     monkeypatch.setattr(provider_bank, "_record_predictive_shadow", lambda *args, **kwargs: None)
@@ -372,17 +375,23 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
 
 
 def test_guide_contract_repair_preserves_viable_independent_fallback_timeout():
-    # A 5.64-second request remainder cannot support both a 5-second repair
+    # A 5.64-second route remainder cannot support both a 5-second repair
     # and a 5-second independent candidate. Skip repair rather than stranding
     # the fallback after a successful but incomplete provider response.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
-        5.64, 5.64, "healthy"
+        5.64, 5.64, "healthy", 5.64
     ) == 0.0
 
-    # When both calls fit, bound the repair to the time remaining after the
-    # fallback's supported minimum timeout.
+    # Use the remaining route window, not the current provider's per-call
+    # ceiling: 12 seconds total leaves 7 after reserving the fallback minimum.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
-        12.0, 6.5, "healthy"
+        12.0, 6.5, "healthy", 12.0
+    ) == 7.0
+
+    # Live community-rule trace: 15 seconds remained after the first response;
+    # a 7-second repair and at least 5 seconds for the next provider both fit.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        7.0, 7.0, "healthy", 15.05
     ) == 7.0
 
 
@@ -390,11 +399,11 @@ def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
     # A candidate already below its supported minimum is not a viable fallback;
     # do not waste the current provider's repair opportunity reserving for it.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
-        5.64, 4.99, "healthy"
+        5.64, 4.99, "healthy", 5.64
     ) == 5.64
 
     # Half-open candidates retain their explicitly supported probe minimum.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
-        10.0, 6.5, "half_open"
+        10.0, 6.5, "half_open", 10.0
     ) == 5.0
 
