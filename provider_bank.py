@@ -56,15 +56,28 @@ def recovery_contract(operation):
 
 
 class ProviderOutput(str):
-    """String-compatible provider text with optional exact completion usage."""
+    """String-compatible provider text with bounded generation metadata."""
 
-    def __new__(cls, value, completion_tokens=None):
+    def __new__(cls, value, completion_tokens=None, finish_reason=None):
         instance = super().__new__(cls, str(value or ""))
         try:
             instance.completion_tokens = int(completion_tokens) if completion_tokens is not None else None
         except (TypeError, ValueError):
             instance.completion_tokens = None
+        instance.finish_reason = str(finish_reason or "").strip() or None
         return instance
+
+
+def _provider_output_was_truncated(output):
+    """Recognize explicit provider completion-limit signals before parsing text."""
+    reason = str(getattr(output, "finish_reason", "") or "").strip().casefold().replace("-", "_")
+    return reason in {
+        "length",
+        "max_tokens",
+        "max_output_tokens",
+        "max_tokens_reached",
+        "max_output_tokens_reached",
+    }
 
 
 # HRN has a 28-second whole-turn cap and one whole-turn mirror replay.
@@ -1129,9 +1142,11 @@ def _groq(use_core, model, messages, max_tokens, schema=None, timeout=None):
     response = request_client.chat.completions.create(**kwargs)
     usage = getattr(response, "usage", None)
     completion_tokens = getattr(usage, "completion_tokens", None)
+    choice = response.choices[0]
     return ProviderOutput(
-        str(response.choices[0].message.content or "").strip(),
+        str(choice.message.content or "").strip(),
         completion_tokens=completion_tokens,
+        finish_reason=getattr(choice, "finish_reason", None),
     )
 
 def _gemini_compatible_response_schema(value):
@@ -1195,7 +1210,10 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
     if system: payload["systemInstruction"] = {"parts": [{"text": system}]}
     url = "https://generativelanguage.googleapis.com/v1beta/models/" + urllib.parse.quote(model, safe="") + ":generateContent?key=" + urllib.parse.quote(key, safe="")
     data = _http_json(url, {}, payload, "gemini", model, timeout=timeout)
-    try: return str(data["candidates"][0]["content"]["parts"][0]["text"]).strip()
+    try:
+        candidate = data["candidates"][0]
+        text = str(candidate["content"]["parts"][0]["text"]).strip()
+        return ProviderOutput(text, finish_reason=candidate.get("finishReason"))
     except (KeyError, IndexError, TypeError) as exc:
         raise ProviderCallError("Gemini returned no text", "gemini", model, category="invalid_provider_response") from exc
 
@@ -1327,7 +1345,11 @@ def _openai_compatible(base_url, key, provider, model, messages, max_tokens, sch
                 category="invalid_provider_response"
             )
         usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
-        return ProviderOutput(content, completion_tokens=usage.get("completion_tokens"))
+        return ProviderOutput(
+            content,
+            completion_tokens=usage.get("completion_tokens"),
+            finish_reason=choice.get("finish_reason"),
+        )
 
     try:
         return request(payload)
@@ -3919,6 +3941,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             finally:
                 _PROVIDER_OPERATION_CONTEXT.reset(_operation_token)
             try:
+                # Inspect the upstream stop signal before parsing: a truncated
+                # completion can still contain parseable but incomplete JSON/text.
+                if _provider_output_was_truncated(raw_output):
+                    raise ProviderCallError(
+                        provider + "/" + model + " reached its completion token limit",
+                        provider,
+                        model,
+                        category="invalid_provider_response",
+                    )
                 try:
                     parsed = parse(raw_output)
                 except (json.JSONDecodeError, UnicodeDecodeError) as exc:

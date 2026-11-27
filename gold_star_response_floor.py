@@ -118,6 +118,27 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
                    if str(payload.get(key) or "").strip()), "")
     if not answer:
         return {"version": VERSION, "status": "fail", "reason": "missing_answer"}
+    # Non-empty provider text is not proof of a completed answer. Reject a
+    # visibly unfinished final clause at the shared floor, which is re-applied
+    # after final visitor-payload transformations and before serialization.
+    terminal_candidate = answer.rstrip()
+    while terminal_candidate and terminal_candidate[-1] in "\"'”’)]}":
+        terminal_candidate = terminal_candidate[:-1].rstrip()
+    if not exact_standard and terminal_candidate and terminal_candidate[-1] not in ".!?…":
+        trailing_fragment = terminal_candidate.rsplit("\n", 1)[-1].strip()
+        incomplete_clause = re.search(
+            r"^(?:when|if|because|although|while|unless|until|once|since|whereas|after|before)\s+"
+            r"(?:a|an|the|this|that|these|those|someone|somebody|people|users?|we|you|they|it|he|she)\b",
+            trailing_fragment,
+            re.IGNORECASE,
+        )
+        dangling_ending = re.search(
+            r"\b(?:and|or|but|because|although|while|when|if|to|of|for|with|from|by|the|a|an|that|which|who|whose|is|are|was|were|has|have|had|can|could|should|would|will|may|might|must)$",
+            terminal_candidate,
+            re.IGNORECASE,
+        )
+        if incomplete_clause or dangling_ending:
+            return {"version": VERSION, "status": "fail", "reason": "incomplete_answer_ending"}
     if len(answer) > 30000:
         return {"version": VERSION, "status": "fail", "reason": "answer_exceeds_contract_limit"}
     if re.search(r"<\s*(?:script|style|html|body|iframe)\b", answer, re.I):

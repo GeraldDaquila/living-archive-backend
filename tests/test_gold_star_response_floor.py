@@ -505,3 +505,43 @@ def test_terminal_floor_receives_post_reconciliation_safe_payload():
     )
     assert isinstance(terminal.args[1], ast.Name)
     assert terminal.args[1].id == "safe_payload"
+
+
+def test_final_response_floor_rejects_truncated_trailing_clause():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How should the Guide respond to extraordinary claims?"
+    answer = (
+        "The Guide should treat extraordinary claims as hypotheses requiring "
+        "proportionate evidence, not as established facts. This means applying "
+        "a standard of epistemic humility: the more a claim departs from "
+        "established knowledge or common experience, the stronger and more "
+        "specific the evidence must be to warrant acceptance. The response "
+        "should avoid both uncritical acceptance and reflexive dismissal, "
+        "instead focusing on the quality, source, and reproducibility of the "
+        "supporting data.\n\nWhen a user"
+    )
+    payload, status = apply_response_floor_boundary(
+        query, {"ok": True, "query": query, "response": answer}, 200
+    )
+
+    assert status == 503
+    assert payload["ok"] is False
+    assert payload["gold_star_v2_quality_floor"]["status"] == "fail"
+    assert payload["gold_star_v2_quality_floor"]["reason"] == "incomplete_answer_ending"
+
+
+def test_final_response_floor_accepts_complete_prose_and_short_complete_answer():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How should the Guide respond to extraordinary claims?"
+    for complete in (
+        "Assess the source, method, reproducibility, and independent corroboration. "
+        "State what remains uncertain and what evidence would change the assessment.",
+        "Yes",
+    ):
+        payload, status = apply_response_floor_boundary(
+            query, {"ok": True, "query": query, "response": complete}, 200
+        )
+        assert status == 200
+        assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
