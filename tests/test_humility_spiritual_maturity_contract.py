@@ -105,3 +105,19 @@ def test_humility_boundary_accepts_clear_semantic_paraphrases(boundary_sentence)
     report = evaluate_humility_spiritual_maturity_response(QUERY, answer)
     assert report["checks"]["not_passivity_or_automatic_compliance"] is True
     assert report["passed"] is True
+
+
+def test_task_specific_humility_contract_is_authoritative_for_relational_synthesis():
+    answer = (
+        "Humility cultivates spiritual maturity, keeping a person teachable and open to correction. "
+        "Learning requires honest self-appraisal and accepting correction or accountability. "
+        "Spiritual maturity is lived conduct in actions and relationships, not claimed status. "
+        "Humility is not self-erasure, diminished self-worth, or self-contempt. "
+        "Humility is different from passivity, blind obedience, and automatic compliance. "
+        "It does not mean surrendering appropriate boundaries. "
+        "The relationship is conditional, not automatic. "
+        "Humility alone does not guarantee maturity."
+    )
+    assert evaluate_humility_spiritual_maturity_response(QUERY, answer)["passed"] is True
+    assert composition.has_conceptual_relationship_explanation(answer, QUERY) is True
+

@@ -268,7 +268,7 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "select/reject",
         "abstention boundary",
         "quote object per candidate",
-        "exact verbatim 12–120-character substring",
+        "exact verbatim 12–240-character substring",
         "rejected IDs use an empty quote",
         "reject-all uses empty quotes",
         "activation scope",
@@ -406,4 +406,31 @@ def test_quote_evidence_fails_closed_when_quote_is_not_an_exact_substring():
     assert result["application"] == "not_observed"
     assert result["application_evidence_reason"] == "selected_quote_not_unique_exact_substring"
 
+
+
+
+def test_longer_verbatim_quote_can_cover_a_complete_application_sentence():
+    phrase = (
+        "The community should identify the specific freedom at stake, explain the shared need, "
+        "hear affected people, test less restrictive alternatives, distribute burdens fairly, "
+        "and review whether the rule remains proportionate."
+    )
+    assert 120 < len(phrase) <= adjudication.MAX_EVIDENCE_QUOTE
+    response = "A fair process makes the decision reviewable: " + phrase
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": ""},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "subject_mismatch"},
+            ],
+            "application_evidence_quotes": [
+                _quote("lesson-a", phrase),
+                _quote("lesson-b", ""),
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["application_evidence_present"] is True
+    assert result["application_evidence_reason"] == "exact_selected_quotes_validated"
 
