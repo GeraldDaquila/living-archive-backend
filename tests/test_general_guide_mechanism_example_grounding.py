@@ -35,7 +35,7 @@ def test_developed_illustration_demonstrates_the_mechanism():
         "visible, memorable, and emotionally meaningful. They can establish who is included, what "
         "conduct is admired, and which obligations feel legitimate. For example, a national flag "
         "can remind people that they belong to a political community larger than their household; "
-        "at a public ceremony, that symbol coordinates attention and expresses a shared commitment. "
+        "people gather at a public ceremony and coordinate attention around the symbol, so that the gathering expresses a shared commitment. "
         "The effect is not automatic: people may interpret the same symbol differently or reject "
         "the story attached to it."
     )
@@ -96,7 +96,7 @@ def test_mechanism_claim_after_example_boundary_cannot_spoof_the_example():
 def test_example_can_explain_mechanism_in_a_single_grounded_sentence():
     response = (
         "A shared story may be repeated at a public gathering. "
-        "For example, a community pledge reminds members of their mutual obligations."
+        "For example, community members recite a pledge together so that the ritual reminds them of mutual obligations."
     )
     assert guide._has_grounded_illustrative_example(response)
 
