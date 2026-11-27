@@ -5,6 +5,7 @@ import pytest
 from community_rule_decision_contract import (
     evaluate_community_rule_response,
     is_community_rule_decision_question,
+    build_community_rule_decision_instruction,
 )
 from general_guide_composition import _parse_factory
 
@@ -83,3 +84,21 @@ def test_provider_parser_accepts_complete_community_rule_candidate():
     })
     parsed = parse(raw)
     assert parsed["response"] == COMPLETE
+
+
+
+def test_community_rule_instruction_makes_all_six_dimensions_explicit_without_checklist_style():
+    instruction = build_community_rule_decision_instruction()
+    for phrase in (
+        "legitimate shared purpose",
+        "less restrictive workable means",
+        "who benefits",
+        "who bears costs",
+        "reasonable accommodation",
+        "fair burden allocation",
+        "include affected people in shaping the rule",
+        "appeal and review criteria",
+        "Treat each as distinct evidence",
+        "Use prose",
+    ):
+        assert phrase in instruction

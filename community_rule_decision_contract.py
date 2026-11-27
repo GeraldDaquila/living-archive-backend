@@ -114,9 +114,9 @@ def evaluate_community_rule_response(query: str, response: str) -> dict[str, Any
 
 def build_community_rule_decision_instruction() -> str:
     return (
-        "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: Name legitimate shared purpose and harm; "
-        "test necessity, proportionality, less restrictive workable means; show who benefits, "
-        "who bears costs, and whose liberty is restricted; include affected people in shaping "
-        "the rule; require reasonable accommodation, fair burden allocation, and appeal and review. "
-        "Majority preference is not proof."
+        "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: Name the legitimate shared purpose and harm; "
+        "test necessity, proportionality, and less restrictive workable means; state who benefits and "
+        "who bears costs; address reasonable accommodation and fair burden allocation; include affected "
+        "people in shaping the rule; specify appeal and review criteria. Treat each as distinct evidence, "
+        "not implied by fairness. Use prose, not checklists; majority is not proof."
     )
