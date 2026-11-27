@@ -160,10 +160,10 @@ def _requires_fresh_provider_composition(question: str) -> bool:
     and the relational-answer contract for this near-miss family.
     """
     normalized = _normalize_space(question).casefold()
-    humility = re.search(r"\\bhumility\\b", normalized)
-    maturity = re.search(r"\\bspiritual maturity\\b", normalized)
+    humility = re.search(r"\bhumility\b", normalized)
+    maturity = re.search(r"\bspiritual maturity\b", normalized)
     relational = re.search(
-        r"\\b(?:relationship|relate|related|connection|interplay|interact)\\b",
+        r"\b(?:relationship|relate|related|connection|interplay|interact)\b",
         normalized,
     )
     return bool(humility and maturity and relational)
