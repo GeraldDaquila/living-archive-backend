@@ -417,6 +417,13 @@ def test_provider_route_candidate_snapshot_is_bounded_and_excludes_sensitive_fie
     assert "SECRET" not in snapshot
 
 
+def test_guide_provider_timeout_grace_is_250ms_without_changing_route_deadlines():
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_TIMEOUT_GRACE_SECONDS == pytest.approx(0.25)
+    assert provider_bank.GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS == pytest.approx(5.25)
+    assert provider_bank.GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS == pytest.approx(6.75)
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == pytest.approx(18.0)
+
+
 def test_nvidia_nemotron_super_vl_half_open_probe_gets_full_bounded_composition_timeout():
     item = {
         **_item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
@@ -434,7 +441,7 @@ def test_healthy_nvidia_lightning_gets_six_point_five_second_margin_after_live_t
     monkeypatch.setitem(provider_bank._PROVIDER_LATENCY_EWMA, ("nvidia", model), 2.74)
     healthy = {**_item("nvidia", model), "health_state": "healthy"}
     timeout = provider_bank._provider_call_timeout("general_guide_composition", healthy)
-    assert timeout == pytest.approx(6.5)
+    assert timeout == pytest.approx(6.75)
     assert timeout > 6.032
     assert timeout <= provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
 
