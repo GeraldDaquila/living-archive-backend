@@ -210,7 +210,8 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
         if raw == "first-output":
             raise ValueError(
                 "humility/spiritual-maturity answer is incomplete: "
-                "humility_supports_learning_and_correction"
+                "humility_supports_learning_and_correction,"
+                "not_passivity_or_automatic_compliance"
             )
         return {"response": "A corrected, complete visitor answer."}
 
