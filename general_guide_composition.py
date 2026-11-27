@@ -16,6 +16,10 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from social_mechanism_grounding_contract import (
+    requires_grounded_mechanism_example as _shared_requires_grounded_mechanism_example,
+    has_grounded_mechanism_example as _shared_has_grounded_mechanism_example,
+)
 from inquiry_family_transfer_contract import classify_inquiry_family
 from community_rule_decision_contract import (
     build_community_rule_decision_instruction,
@@ -3487,42 +3491,14 @@ def _conceptual_relationship_terms(query: str) -> List[str]:
     return concepts if len(concepts) == 2 else []
 
 def _requires_grounded_mechanism_example(question: str) -> bool:
-    """Identify social-mechanism questions where an example makes the process visible."""
-    q = _normalize_space(question).casefold()
-    asks_how = bool(re.search(r"^how\s+(?:do|does|can|might|could)\b", q))
-    mechanism_verb = bool(re.search(
-        r"\b(?:organize|shape|structure|coordinate|reinforce|reproduce|sustain|influence)\b", q
-    ))
-    collective_context = bool(re.search(
-        r"\b(?:collective life|social life|communities|a community|shared norms|social order|group identity)\b", q
-    ))
-    return asks_how and mechanism_verb and collective_context
+    """Use the shared question-family contract at every composition path."""
+    return _shared_requires_grounded_mechanism_example(question)
 
 
 def _has_grounded_illustrative_example(response: str) -> bool:
-    """Require the example itself to connect a concrete symbol/story to its social effect."""
-    text = _normalize_space(response)
-    match = re.search(
-        r"\b(?:for example|for instance|imagine|consider)\b\s*[:,]?\s*(.+)",
-        text,
-        re.I,
-    )
-    if not match:
-        return False
-    # Inspect only the bounded illustration, not later unrelated prose.
-    sentences = re.split(r"(?<=[.!?])\s+", match.group(1))
-    symbol = re.compile(
-        r"\b(?:flag|story|myth|ritual|symbol|anthem|ceremony|custom|tradition|rule|festival|pledge|monument)\b",
-        re.I,
-    )
-    mechanism = re.compile(
-        r"\b(?:signals?|marks?|defines?|teaches?|reminds?|identifies?|legitimizes?|makes?|encourages?|coordinates?|reinforces?)\b",
-        re.I,
-    )
-    return any(
-        symbol.search(sentence) and mechanism.search(sentence)
-        for sentence in sentences[:3]
-    )
+    """Require a concrete social setting, enacted symbol/story, and visible effect."""
+    return _shared_has_grounded_mechanism_example(response)
+
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
