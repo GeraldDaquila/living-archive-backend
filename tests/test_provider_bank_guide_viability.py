@@ -136,3 +136,98 @@ def test_humility_contract_rejection_reason_code_is_bounded_and_content_free():
     )
     assert "humility" in code
     assert "provider response text" not in code
+
+
+
+def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch):
+    candidate = {
+        "provider": "test_provider",
+        "model": "test-model",
+        "health_state": "healthy",
+        "quality_failures": 0,
+        "transport_failures": 0,
+        "consecutive_failures": 0,
+        "last_success": 0,
+        "capabilities": ["composition", "json_schema_strict"],
+    }
+    state = {"state": "healthy", "probe_in_flight": False}
+    raw_outputs = iter(("first-output", "repaired-output"))
+    provider_messages = []
+    parser_calls = []
+
+    monkeypatch.setattr(provider_bank, "_active_active_primary_assignment", lambda *args: False)
+    monkeypatch.setattr(provider_bank, "_active_active_role", lambda: "secondary")
+    monkeypatch.setattr(provider_bank, "refresh_server_capacity_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: [candidate])
+    monkeypatch.setattr(provider_bank, "provider_input_exceeds_tpm_budget", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_capacity_begin_request", lambda: None)
+    monkeypatch.setattr(provider_bank, "_capacity_end_request", lambda **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_state", lambda *args: state)
+    monkeypatch.setattr(provider_bank, "_blocked_for_operation", lambda *args, **kwargs: False)
+    monkeypatch.setattr(provider_bank, "acquire_probe", lambda _state: True)
+    monkeypatch.setattr(provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 8.0)
+    monkeypatch.setattr(provider_bank, "_capabilities", lambda *args, **kwargs: {"json_schema_strict"})
+    monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, **kwargs: parsed)
+    monkeypatch.setattr(provider_bank, "_record_predictive_shadow", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_predictive_shadow_metrics",
+        lambda *args, **kwargs: {
+            "ewma_latency_seconds": 1.0,
+            "timeout_risk": 0.0,
+            "deadline_fit": True,
+        },
+    )
+    monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+    monkeypatch.setattr(
+        provider_bank,
+        "_quota_guarded_call",
+        lambda _core, _item, messages, *_args, **_kwargs: (
+            provider_messages.append(messages) or next(raw_outputs)
+        ),
+    )
+    monkeypatch.setattr(
+        provider_bank._gold_star_trace,
+        "set_provider_route_candidate_count",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        provider_bank._gold_star_trace,
+        "record_provider_candidate_outcome",
+        lambda *args, **kwargs: None,
+    )
+
+    def parse(raw):
+        parser_calls.append(raw)
+        if raw == "first-output":
+            raise ValueError(
+                "humility/spiritual-maturity answer is incomplete: "
+                "humility_supports_learning_and_correction"
+            )
+        return {"response": "A corrected, complete visitor answer."}
+
+    result = provider_bank.route(
+        use_core=object(),
+        messages=[{"role": "user", "content": "What is the relationship between humility and spiritual maturity?"}],
+        max_tokens=750,
+        parse=parse,
+        operation="general_guide_composition",
+    )
+
+    assert result["parsed"]["response"] == "A corrected, complete visitor answer."
+    assert result["provider"] == "test_provider"
+    assert result["model"] == "test-model"
+    assert parser_calls == ["first-output", "repaired-output"]
+    assert len(provider_messages) == 2
+    assert any(
+        "Your preceding Guide composition failed a response contract" in message.get("content", "")
+        for message in provider_messages[1]
+        if message.get("role") == "user"
+    )
+    assert any(
+        "humility/spiritual-maturity answer is incomplete" in message.get("content", "")
+        for message in provider_messages[1]
+        if message.get("role") == "user"
+    )
