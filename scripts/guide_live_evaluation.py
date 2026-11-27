@@ -386,7 +386,8 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 attributable,
                 f"Community-rule transfer must be produced by an attributable LLM response, not deterministic fallback; observed {provenance!r}.",
             ))
-        community_report = evaluate_community_rule_response(case.get("query", ""), answer)
+        community_query = case.get("query") or "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+        community_report = evaluate_community_rule_response(community_query, answer)
         community_checks = community_report.get("checks") or {}
         purpose = community_checks.get("legitimate_shared_purpose", False)
         proportionality = community_checks.get("necessity_and_least_restrictive_means", False)
