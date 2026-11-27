@@ -255,25 +255,27 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'
-        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
+        '{"candidate_assessments":[...],"application_evidence_quotes":[...]}}.'
     )
     for required in (
         "adaptive_adjudication",
         "doorway_title",
         "response_shape",
         "candidate_assessments",
-        "application_evidence_spans",
+        "application_evidence_quotes",
         "lesson-a",
         "lesson-b",
         "select/reject",
         "abstention boundary",
-        "offset object per candidate",
-        "exact zero-based Unicode 12–120-character spans",
-        "rejected IDs use 0,0",
-        "reject-all uses 0,0",
+        "quote object per candidate",
+        "exact verbatim 12–120-character substring",
+        "rejected IDs use an empty quote",
+        "reject-all uses empty quotes",
         "activation scope",
         "semantically equivalent question",
         "After drafting the final response",
+        "do not count character offsets",
+        "exact quote occurs once",
         "distinctive operation",
         "exact answer substring",
         "No hidden reasoning or chain-of-thought",
@@ -335,3 +337,74 @@ def test_malformed_offset_coverage_and_rejected_candidate_offsets_still_fail_clo
     )
     assert contaminated["application_evidence_present"] is False
     assert contaminated["application_evidence_reason"] == "rejected_offset_not_empty"
+
+
+def _quote(candidate_id, phrase):
+    return {"candidate_id": candidate_id, "quote": phrase}
+
+
+def test_exact_quote_evidence_is_located_without_model_counted_offsets():
+    response = "A fair rule must protect meaningful agency while addressing avoidable harm."
+    phrase = "protect meaningful agency while addressing avoidable harm"
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": ""},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "subject_mismatch"},
+            ],
+            "application_evidence_quotes": [
+                _quote("lesson-a", phrase),
+                _quote("lesson-b", ""),
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["application_evidence_present"] is True
+    assert result["application_evidence_candidate_ids"] == ["lesson-a"]
+    assert result["application_evidence_reason"] == "exact_selected_quotes_validated"
+
+
+def test_quote_evidence_validates_unicode_substrings():
+    response = "Café communities need fair review; residents need clear reasons."
+    phrase = "Café communities need fair review"
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": ""},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "subject_mismatch"},
+            ],
+            "application_evidence_quotes": [
+                _quote("lesson-a", phrase),
+                _quote("lesson-b", ""),
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["application_evidence_present"] is True
+    assert result["application_evidence_reason"] == "exact_selected_quotes_validated"
+
+
+def test_quote_evidence_fails_closed_when_quote_is_not_an_exact_substring():
+    response = "A substantive answer with no copied evidence phrase."
+    result = adjudication.normalize_provider_adjudication(
+        {
+            "candidate_assessments": [
+                {"candidate_id": "lesson-a", "decision": "select", "reason_code": ""},
+                {"candidate_id": "lesson-b", "decision": "reject", "reason_code": "subject_mismatch"},
+            ],
+            "application_evidence_quotes": [
+                _quote("lesson-a", "a paraphrase that is not in the final answer"),
+                _quote("lesson-b", ""),
+            ],
+        },
+        response=response,
+        candidates=CANDIDATES,
+    )
+    assert result["status"] == "provider_reported_selected"
+    assert result["application_evidence_present"] is False
+    assert result["application"] == "not_observed"
+    assert result["application_evidence_reason"] == "selected_quote_not_unique_exact_substring"
+
+
