@@ -9211,7 +9211,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "stories-symbols-ceremonies-shared-meaning-and-collective-coordination",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved.",
-        "abstention_boundary": "Do not copy the exact answer, coastal-village example, claims, or doorway to other questions; do not attribute general conceptual claims to formal Living Archive doctrine without authoritative evidence; do not infer a canonical destination URL from the screenshot.",
+        "abstention_boundary": "NOT_EVALUATED: The visible continuation title has no captured canonical URL. Do not infer a destination, copy the exact answer, coastal-village example, claims, or doorway to other questions, or attribute general conceptual claims to formal Living Archive doctrine without authoritative evidence.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",
