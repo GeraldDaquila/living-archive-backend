@@ -67,8 +67,9 @@ def test_parser_accepts_mechanism_explanation_with_bounded_illustration():
         "Myths, symbols, and stories organize collective life by making shared expectations, "
         "belonging, and authority visible and memorable. They help people interpret who belongs "
         "and which obligations are treated as legitimate. For example, a national flag can remind "
-        "people that they belong to a political community larger than their household; at a public "
-        "ceremony, the symbol coordinates attention and expresses a shared commitment. The effect "
+        "people that they belong to a political community larger than their household; people "
+        "gather at a public ceremony and coordinate attention around the symbol, so that the gathering "
+        "expresses a shared commitment. The effect "
         "is not automatic, because people can interpret the same symbol differently or reject the "
         "story attached to it."
     )
