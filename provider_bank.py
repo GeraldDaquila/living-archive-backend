@@ -755,7 +755,8 @@ def _contract_rejection_class(contract_reason):
         else "task_specific_completeness" if re.search(
             r"community liberty-limit answer is incomplete|"
             r"transparency-trust answer must explain both directions|"
-            r"transparency-trust answer must explicitly preserve privacy",
+            r"transparency-trust answer must explicitly preserve privacy|"
+            r"humility/spiritual-maturity answer is incomplete",
             str(contract_reason or ""), re.I
         )
         # A URL embedded in provider prose is a repairable response-format defect;
@@ -782,6 +783,18 @@ def _contract_rejection_reason_code(contract_reason):
         if fields:
             return "community_rule_incomplete_" + "_".join(fields[:7])
         return "community_rule_incomplete"
+    humility_missing = re.search(
+        r"humility/spiritual-maturity answer is incomplete:\s*([a-z_, ]+)", text
+    )
+    if humility_missing:
+        fields = [
+            field.strip()
+            for field in humility_missing.group(1).split(",")
+            if re.fullmatch(r"[a-z_]+", field.strip())
+        ]
+        if fields:
+            return "humility_spiritual_maturity_incomplete_" + "_".join(fields[:7])
+        return "humility_spiritual_maturity_incomplete"
     patterns = (
         (r"transparency-trust answer must explain both directions", "transparency_trust_reciprocity"),
         (r"transparency-trust answer must explicitly preserve privacy", "transparency_trust_disclosure_boundary"),

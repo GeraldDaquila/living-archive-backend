@@ -110,3 +110,29 @@ def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monke
         )
 
     assert error.value.category == "invalid_provider_response"
+
+
+def test_humility_contract_rejection_is_task_specific_not_global_provider_quality_failure():
+    reason = (
+        "humility/spiritual-maturity answer is incomplete: "
+        "relationship_mechanism,preserves_appropriate_boundaries"
+    )
+    assert provider_bank._contract_rejection_class(reason) == "task_specific_completeness"
+    assert provider_bank._contract_rejection_reason_code(reason) == (
+        "humility_spiritual_maturity_incomplete_relationship_mechanism_"
+        "preserves_appropriate_boundaries"
+    )
+
+
+def test_humility_contract_rejection_reason_code_is_bounded_and_content_free():
+    reason = (
+        "humility/spiritual-maturity answer is incomplete: "
+        "relationship_mechanism,not_passivity_or_automatic_compliance"
+    )
+    code = provider_bank._contract_rejection_reason_code(reason)
+    assert code == (
+        "humility_spiritual_maturity_incomplete_relationship_mechanism_"
+        "not_passivity_or_automatic_compliance"
+    )
+    assert "humility" in code
+    assert "provider response text" not in code

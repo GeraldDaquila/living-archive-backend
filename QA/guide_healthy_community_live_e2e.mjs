@@ -20,6 +20,22 @@ const context = await browser.newContext({
   hasTouch: true
 });
 const page = await context.newPage();
+const blockedMirrorRequests = [];
+const mirrorAvailableAfterUtc = "2026-12-01";
+const mirrorAvailable = new Date().toISOString().slice(0, 10) >= mirrorAvailableAfterUtc;
+if (!mirrorAvailable) {
+  // The secondary Render workspace is out of allocation until its scheduled
+  // December 1 reset. Block fallback at the browser boundary so QA cannot
+  // accidentally send even one provider request to that service.
+  await page.route(`${MIRROR_API_ORIGIN}/api/query**`, async route => {
+    blockedMirrorRequests.push({
+      url: route.request().url(),
+      method: route.request().method(),
+      at: new Date().toISOString()
+    });
+    await route.abort("blockedbyclient");
+  });
+}
 page.setDefaultTimeout(60_000);
 page.setDefaultNavigationTimeout(30_000);
 
@@ -591,6 +607,9 @@ try {
     })),
     apiFailures,
     apiFinished,
+    blockedMirrorRequests,
+    mirrorAvailable,
+    mirrorAvailableAfterUtc,
     answerLength: responseText.length,
     pageErrors,
     consoleErrors
@@ -610,6 +629,9 @@ try {
     })),
     apiFailures,
     apiFinished,
+    blockedMirrorRequests,
+    mirrorAvailable,
+    mirrorAvailableAfterUtc,
     pageErrors,
     controllerSyntaxDiagnostics,
     inlineScriptSyntaxDiagnostics,
