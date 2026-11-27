@@ -7,6 +7,7 @@ from gold_star_lessons import select_lesson_candidates
 from gold_star_question_contract import build_question_contract
 from gold_star_semantic_contract import evaluate_semantic_contract
 from gold_star_response_floor import evaluate_response_floor
+from general_guide_composition import _build_general_guide_system_prompt
 
 
 PAIN_IDENTITY_QUESTION = (
@@ -36,6 +37,12 @@ def test_pain_and_identity_question_is_classified_before_generic_how_should_task
     assert contract["inquiry_family"]["family"] == "personal_lived_reflective"
     assert contract["task"]["primary"] == "lived_reflective_inquiry_candidate"
     assert contract["response"]["shape"] == "reflective_explanation"
+    assert contract["domain"]["primary"] == "human_experience"
+    assert contract["requested_outcome"] == "understand_lived_experience_without_identity_reduction"
+    prompt = _build_general_guide_system_prompt(PAIN_IDENTITY_QUESTION)
+    assert "LIVED EXPERIENCE AND IDENTITY BOUNDARY" in prompt
+    governance_prompt = _build_general_guide_system_prompt("How should a community decide a fair rule?")
+    assert "LIVED EXPERIENCE AND IDENTITY BOUNDARY" not in governance_prompt
 
 
 def test_institutional_governance_lesson_is_incompatible_with_lived_pain_question():
