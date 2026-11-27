@@ -210,7 +210,7 @@ await page.route("**/*", async route => {
 // This executes v489.332 in-browser without activating it on production.
 await page.route("**/*", async route => {
   const url = route.request().url();
-  if (/guide-controller-v489\\.\\d+\\.js(?:\\?|$)/.test(url)) {
+  if (/guide-controller-v489\.\d+\.js(?:\?|$)/.test(url)) {
     candidateControllerServed = true;
     mark("candidate_controller_injected", { requestedUrl: url, candidate: EXPECTED_CONTROLLER_ARTIFACT, bytes: CANDIDATE_CONTROLLER_SOURCE.length });
     await route.fulfill({ status: 200, contentType: "application/javascript; charset=utf-8", body: CANDIDATE_CONTROLLER_SOURCE });
