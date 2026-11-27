@@ -16,6 +16,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from inquiry_family_transfer_contract import classify_inquiry_family
 from guide_request_budget import composition_provider_deadline
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from guide_answerability import (
@@ -363,6 +364,17 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Explicitly state that transparency is not indiscriminate disclosure: protect privacy, personal and sensitive information, and legitimate confidentiality "
             "while keeping decisions and uses of power accountable. "
             "Do not describe the relationship as one-way or imply that either concept guarantees the other."
+        )
+    if classify_inquiry_family(question).get("family") == "personal_lived_reflective":
+        rendered += (
+            "\n\nLIVED EXPERIENCE AND IDENTITY BOUNDARY: "
+            "Answer the person's lived question itself. Distinguish having or carrying pain "
+            "from being defined entirely by it. Acknowledge the experience without denying, "
+            "romanticizing, diagnosing, or assuming the visitor's history. Make room for the "
+            "person's continuing identity, relationships, values, interests, and agency. "
+            "Do not substitute institutional governance, stakeholder, outcome, or decision "
+            "accountability frameworks unless the visitor explicitly asks about those subjects. "
+            "Offer humane explanation, not a task checklist or an imposed therapeutic exercise."
         )
     return rendered
 
