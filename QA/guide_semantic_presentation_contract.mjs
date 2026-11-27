@@ -6,7 +6,7 @@ const css = readFileSync("wordpress/living-archive-answer-doorway-standard/asset
 const controller = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
 
 assert.match(prompt, /VISITOR IDEA-CHUNKING AND READABILITY:/);
-assert.match(prompt, /one main idea per short paragraph/);
+assert.match(prompt, /one main idea each/);
 assert.match(prompt, /Preserve reasoning and qualifications/);
 assert.match(css, /#archive-response-text[\s\S]*?font-size: 18px !important/);
 assert.match(css, /max-width: 66ch/);
