@@ -90,3 +90,12 @@ def test_candidate_local_capture_publishes_run_reference_for_blind_review():
     assert "Publish capture run reference to PR #2018" in workflow
     assert "gh pr comment 2018" in workflow
     assert "actions/runs/" in workflow
+
+
+def test_manual_capture_can_select_the_pre_registered_distress_shadow_cohort():
+    workflow = _workflow_text()
+    assert "case_set:" in workflow
+    assert "type: choice" in workflow
+    assert "docs/qa/gold_star_metaphysical_distress_shadow_cases.json" in workflow
+    assert '--case-set "${{ inputs.case_set ||' in workflow
+    assert "default: false" in workflow
