@@ -41,6 +41,7 @@ def test_pain_and_identity_question_is_classified_before_generic_how_should_task
     assert contract["requested_outcome"] == "understand_lived_experience_without_identity_reduction"
     prompt = _build_general_guide_system_prompt(PAIN_IDENTITY_QUESTION)
     assert "LIVED EXPERIENCE AND IDENTITY BOUNDARY" in prompt
+    assert "For practical questions" not in prompt
     governance_prompt = _build_general_guide_system_prompt("How should a community decide a fair rule?")
     assert "LIVED EXPERIENCE AND IDENTITY BOUNDARY" not in governance_prompt
 
