@@ -418,7 +418,7 @@ def test_integrated_explanation_with_a_cited_quote_is_not_discarded():
 
 def test_final_visitor_boundary_fails_closed_when_only_source_excerpts_remain():
     excerpt = (
-        '"Through the lenses of the Akashic Records, this piece reveals humanity\\'s '
+        '"Through the lenses of the Akashic Records, this piece reveals humanity '
         'collective spiritual test and the thinning veil between illusion and illumination." '
         '(🔥 Spiritual Bypass Recovery)'
     )
