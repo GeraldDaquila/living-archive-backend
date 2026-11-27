@@ -396,7 +396,7 @@ def test_epistemic_distress_recovery_meets_compassion_grounding_and_epistemic_co
     )
     assert result["question_type"] == "epistemic_distress_guidance"
     assert result["hard_failures"] == []
-    assert "does not automatically prove" in answer.casefold()
+    assert "personal meaning is not proof" in answer.casefold()
     assert "does not have to settle" in answer.casefold()
     assert "someone they trust" in answer.casefold()
 
