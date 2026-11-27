@@ -56,11 +56,14 @@ def lesson_transfer_compatibility(query: str, lesson: Any) -> Dict[str, Any]:
     if family != "personal_lived_reflective":
         return {"compatible": True, "reason": "no_lived_family_boundary", "inquiry_family": family}
     q = str(query or "").casefold()
-    allowed = {
-        "humane_orientation",
-        "relational_human_development_with_epistemic_boundary",
-        "continuity_without_preserving_harmful_inheritance",
-    }
+    # The broad humane-orientation lesson is the only default candidate for
+    # a lived inquiry. More specialized lessons require their own explicit
+    # subject cues; identity or pain vocabulary alone cannot activate them.
+    allowed = {"humane_orientation"}
+    if re.search(r"\b(?:relationship|relational|development|social conditions|community support)\b", q):
+        allowed.add("relational_human_development_with_epistemic_boundary")
+    if re.search(r"\b(?:inherit\w*|legacy|family history|harmful pattern|past generations)\b", q):
+        allowed.add("continuity_without_preserving_harmful_inheritance")
     if re.search(r"\b(?:therapy|therapist|clinical|professional care|self.inquiry|reflection)\b", q):
         allowed.add("reflection_orientation_vs_therapy_professional_boundary")
     if re.search(r"\b(?:felt true|feels true|belief|claim|resonat|emotionally compelling)\b", q):
