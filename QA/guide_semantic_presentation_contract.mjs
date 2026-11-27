@@ -5,11 +5,10 @@ const prompt = readFileSync("general_guide_composition.py", "utf8");
 const css = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css", "utf8");
 const controller = readFileSync("wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js", "utf8");
 
-assert.match(prompt, /VISITOR IDEA-CHUNKING AND READABILITY — SEMANTIC PRESENTATION CONTRACT/);
-assert.match(prompt, /2–4 sentences/);
-assert.match(prompt, /70 words/);
-assert.match(prompt, /Preserve reasoning, examples, qualifications, and uncertainty/);
-assert.match(css, /#archive-response-text[\s\S]*?font-size: 16px !important/);
+assert.match(prompt, /VISITOR IDEA-CHUNKING AND READABILITY:/);
+assert.match(prompt, /one main idea per short paragraph/);
+assert.match(prompt, /Preserve reasoning and qualifications/);
+assert.match(css, /#archive-response-text[\s\S]*?font-size: 18px !important/);
 assert.match(css, /max-width: 66ch/);
 assert.match(css, /line-height: 1\.78 !important/);
 assert.match(controller, /USE_FRONTEND_BUILD = 'v489\.333-semantic-answer-presentation'/);
