@@ -9164,6 +9164,64 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
       "exact_answer_authority": false
+    },
+    {
+      "benchmark_id": "general-guide-humility-spiritual-maturity-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between humility and spiritual maturity?",
+      "expected_response": "Humility supports spiritual maturity because it keeps a person willing to learn, make an honest self-appraisal, accept correction, and remain open to others. Spiritual maturity is not a claimed status or a set of spiritual experiences; it is shown through lived conduct—taking responsibility, being accountable, and caring for others in relationships. Humility creates the conditions for that growth by countering defensiveness, self-importance, and the need to appear advanced. A person who can acknowledge what they do not know, receive feedback without collapsing into shame, and stay teachable is better positioned to develop the steadiness, compassion, and integrity that spiritual maturity describes. Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, or automatic compliance, and it does not require surrendering appropriate boundaries.\n\nThe relationship is conditional rather than automatic: humility alone does not guarantee spiritual maturity, and maturity can exist in forms that do not announce themselves as humble. What matters is whether a person's conduct becomes more responsible, accountable, and caring over time.",
+      "doorway_status": "VERIFIED",
+      "expected_doorway": {
+        "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+        "url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+        "rationale": "This essay develops humility as grounded openness to learning and discernment, and connects spiritual growth to responsibility, relationships, and ordinary human life. It extends the answer without replacing it."
+      },
+      "assertions": [
+        "Answer directly explains how humility supports spiritual maturity through learning, self-appraisal, correction, and openness.",
+        "Distinguish claimed spiritual status or experiences from maturity demonstrated through lived conduct.",
+        "Explain the relationship as conditional rather than automatic.",
+        "Explicitly distinguish humility from self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, and automatic compliance.",
+        "Preserve appropriate personal boundaries.",
+        "Keep the completed answer separate from the verified Continue Exploring doorway.",
+        "Do not claim provider attribution, adaptive application, or measured improvement from the screenshot alone."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly elevated by the user.",
+        "source_path": "conversation attachment image(20261127-222253).png",
+        "source_date": "2026-11-28",
+        "live_surface": "The Guide visitor-facing Search response.",
+        "linked_near_miss_issue": "https://github.com/GeraldDaquila/living-archive-backend/issues/2128",
+        "linked_prior_near_miss_benchmark_id": "general-guide-humility-spiritual-maturity-provider-evidence-near-miss-2026-11-27",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, two-paragraph visitor answer, and visible continuation title. The canonical doorway URL was independently verified against the published Living Archive essay. The screenshot does not establish provider invocation provenance, application evidence, semantic retention trace, or held-out transfer.",
+        "approval_record": "The user explicitly instructed 'elevate to gold star' after reviewing the exact visitor-facing screenshot and stated satisfaction with the answer. This authorizes immutable response-level Gold Star elevation and the bounded structural lesson below; it does not establish adaptive application or measured visitor outcome improvement.",
+        "review_assessment": "Assistant assessment: 9.0/10. This is an assistant assessment, not a user-assigned numeric rating."
+      },
+      "rating": null,
+      "assistant_assessment_out_of_10": 9,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR RESPONSE REVIEWED; BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "humility_as_condition_for_lived_spiritual_maturity",
+      "transferable_lesson": "Explain humility as a disposition that makes learning, honest self-appraisal, correction, and openness possible, while treating spiritual maturity as something demonstrated through lived conduct—responsibility, accountability, care, steadiness, compassion, and integrity. Make the relationship conditional rather than automatic. Explicitly distinguish humility from self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, and surrendering appropriate boundaries.",
+      "transfer_boundary": "Apply only to questions asking about humility's relationship to spiritual maturity, spiritual development, teachability, or grounded conduct. Do not equate humility with self-negation, compliance, passivity, or submission; do not infer spiritual status from self-description or spiritual experiences; do not claim humility guarantees maturity. Do not transfer this exact answer, wording, or doorway into unrelated questions. The approved answer is an immutable response exemplar; its approval does not prove provider contribution retention, request-level adaptive application, held-out transfer, or measured visitor improvement. Exact-answer authority and deterministic fallback remain disabled.",
+      "known_theme": "humility, spiritual maturity, teachability, self-appraisal, accountability, lived conduct, boundaries",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_structural_learning",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "humility_as_condition_for_lived_spiritual_maturity",
+        "transferable_discipline": "Explain humility as a disposition that makes learning, honest self-appraisal, correction, and openness possible, while treating spiritual maturity as something demonstrated through lived conduct—responsibility, accountability, care, steadiness, compassion, and integrity. Make the relationship conditional rather than automatic. Explicitly distinguish humility from self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, and surrendering appropriate boundaries.",
+        "abstention_boundary": "Apply only to questions asking about humility's relationship to spiritual maturity, spiritual development, teachability, or grounded conduct. Do not equate humility with self-negation, compliance, passivity, or submission; do not infer spiritual status from self-description or spiritual experiences; do not claim humility guarantees maturity. Do not transfer this exact answer, wording, or doorway into unrelated questions. The approved answer is an immutable response exemplar; its approval does not prove provider contribution retention, request-level adaptive application, held-out transfer, or measured visitor improvement. Exact-answer authority and deterministic fallback remain disabled."
+      },
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user explicitly instructed 'elevate to gold star' after reviewing the live visitor-facing screenshot and stated 'I'm happy with this answer.' This authorizes the exact response as an immutable exemplar and the bounded structural lesson; it does not establish provider contribution retention, request-level adaptive application, held-out transfer, or measured outcome improvement.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested."
     }
   ],
   "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. The metaphysical-certainty-during-distress screenshot remains a near-miss negative regression only, not an approved Gold Star. Inventory counts remain at 141 approved records and 181 total records.",

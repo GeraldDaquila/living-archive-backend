@@ -1302,6 +1302,15 @@
       "qualifying_context": "Reflective questions about pain, suffering, identity, self-continuity, and how a person can acknowledge painful experience without allowing it to define the whole self.",
       "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-humility-spiritual-maturity-2026-11-28",
+      "question": "What is the relationship between humility and spiritual maturity?",
+      "reasoning_family": "humility_as_condition_for_lived_spiritual_maturity",
+      "transferable_discipline": "Explain humility as a disposition that makes learning, honest self-appraisal, correction, and openness possible, while treating spiritual maturity as something demonstrated through lived conduct—responsibility, accountability, care, steadiness, compassion, and integrity. Make the relationship conditional rather than automatic. Explicitly distinguish humility from self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, and surrendering appropriate boundaries.",
+      "qualifying_context": "Questions asking how humility relates to spiritual maturity, spiritual development, teachability, self-appraisal, or grounded conduct.",
+      "abstention_boundary": "Apply only to questions asking about humility's relationship to spiritual maturity, spiritual development, teachability, or grounded conduct. Do not equate humility with self-negation, compliance, passivity, or submission; do not infer spiritual status from self-description or spiritual experiences; do not claim humility guarantees maturity. Do not transfer this exact answer, wording, or doorway into unrelated questions. The approved answer is an immutable response exemplar; its approval does not prove provider contribution retention, request-level adaptive application, held-out transfer, or measured visitor improvement. Exact-answer authority and deterministic fallback remain disabled.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
