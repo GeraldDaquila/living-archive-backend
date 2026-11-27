@@ -9,6 +9,9 @@ on:
       - ".github/workflows/guide-live-evaluation-runner.yml"
       - "scripts/guide_live_evaluation.py"
       - "gold_star_semantic_contract.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "community_rule_decision_contract.py"
+      - "tests/test_humility_spiritual_maturity_contract.py"
       - "institutional_learning_failure_contract.py"
       - "tests/test_guide_live_evaluation_runner.py"
 

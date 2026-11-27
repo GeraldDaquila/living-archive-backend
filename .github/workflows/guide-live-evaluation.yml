@@ -15,6 +15,8 @@ on:
       - "tests/test_claim_adjudication.py"
       - "main.py"
       - "general_guide_*.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "community_rule_decision_contract.py"
       - "gold_star_*.py"
       - "provider_bank.py"
       - "community_tradeoff_candidate_policy.py"

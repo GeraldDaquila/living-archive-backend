@@ -51,6 +51,7 @@ from gold_star_provider_adjudication import (
     normalize_provider_adjudication as _normalize_gold_star_provider_adjudication,
 )
 
+from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -493,13 +494,14 @@ def _build_general_guide_system_message(
         parts.append(
             "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT: "
             "Explain the relationship through its actual mechanisms, not as a slogan or a hierarchy. "
-            "Show how humility can support spiritual maturity by making learning, honest self-appraisal, "
-            "correction, accountability, and openness to other people possible; explain how maturity is "
-            "expressed in lived conduct rather than claimed status. Make clear that humility is not "
-            "self-erasure, diminished self-worth, passivity, automatic compliance, or surrender of "
-            "appropriate boundaries. Distinguish humility from self-contempt without turning the answer "
-            "into generic therapeutic advice. Preserve reciprocity where warranted, avoid claiming that "
-            "humility alone guarantees maturity, and answer the visitor directly before offering any doorway."
+            "State directly that humility supports spiritual maturity, and explain how it supports learning: "
+            "use the ideas of being willing to learn or remaining teachable, honest self-appraisal or self-awareness, "
+            "and accepting correction or accountability. Describe spiritual maturity as lived conduct in actions "
+            "and relationships, not claimed status. Explicitly distinguish humility from self-erasure, diminished "
+            "self-worth, or self-contempt; state that it does not require surrendering appropriate boundaries; "
+            "and distinguish it from passivity, blind obedience, or automatic compliance. State that humility alone "
+            "does not guarantee maturity. State that the relationship is conditional, not automatic. Do not present spiritual status as objectively certified or turn the answer "
+            "into generic therapeutic advice. Answer the visitor directly before offering any doorway."
         )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())
@@ -3192,6 +3194,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        humility_report = evaluate_humility_spiritual_maturity_response(query, response)
+        if humility_report.get("applies") and not humility_report.get("passed"):
+            raise ValueError(
+                "humility/spiritual-maturity answer is incomplete: "
+                + ",".join(humility_report.get("missing") or [])
+            )
 
         community_rule_report = evaluate_community_rule_response(query, response)
         if community_rule_report.get("applies") and not community_rule_report.get("passed"):
