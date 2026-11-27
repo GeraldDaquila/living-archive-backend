@@ -419,6 +419,23 @@ try {
         if (!node) return { found: false };
         const rect = node.getBoundingClientRect();
         const style = getComputedStyle(node);
+        const ancestors = [];
+        let ancestor = node;
+        while (ancestor && ancestors.length < 5) {
+          const ancestorStyle = getComputedStyle(ancestor);
+          const ancestorRect = ancestor.getBoundingClientRect();
+          ancestors.push({
+            tag: ancestor.tagName,
+            id: ancestor.id,
+            className: typeof ancestor.className === "string" ? ancestor.className : "",
+            display: ancestorStyle.display,
+            position: ancestorStyle.position,
+            float: ancestorStyle.float,
+            width: ancestorRect.width,
+            height: ancestorRect.height
+          });
+          ancestor = ancestor.parentElement;
+        }
         const answer = document.querySelector(rootSelector + " #archive-response-text");
         const answerRect = answer && answer.getBoundingClientRect();
         const overlapsAnswer = !!answerRect &&
@@ -431,6 +448,11 @@ try {
           zIndex: style.zIndex,
           right: style.right,
           bottom: style.bottom,
+          float: style.float,
+          display: style.display,
+          margin: style.margin,
+          outerHTML: node.outerHTML.slice(0, 1200),
+          ancestors,
           width: rect.width,
           height: rect.height,
           left: rect.left,
