@@ -3941,6 +3941,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             finally:
                 _PROVIDER_OPERATION_CONTEXT.reset(_operation_token)
             try:
+                # Inspect the upstream stop signal before parsing: a truncated
+                # completion can still contain parseable but incomplete JSON/text.
                 if _provider_output_was_truncated(raw_output):
                     raise ProviderCallError(
                         provider + "/" + model + " reached its completion token limit",
