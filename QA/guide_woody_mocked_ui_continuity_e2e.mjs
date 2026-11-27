@@ -48,6 +48,7 @@ page.on("console", message => {
   const messageText = message.text();
   if (message.type() === "error") consoleErrors.push(messageText);
   if (messageText.startsWith("[Guide QA]")) mark("browser_event_trace", { message: messageText });
+  if (messageText.startsWith("[Guide QA HISTORY")) mark("conversation_history_trace", { message: messageText });
   if (messageText.startsWith("[Guide QA API]")) {
     try { apiRequests.push(JSON.parse(messageText.slice("[Guide QA API] ".length))); } catch {}
   }
