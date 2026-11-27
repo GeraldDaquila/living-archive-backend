@@ -814,6 +814,30 @@ def _contract_rejection_reason_code(contract_reason):
     return "other_contract" if text else "unspecified_contract"
 
 
+def _guide_contract_repair_timeout_preserving_fallback(
+    recovery_timeout, next_candidate_timeout, next_candidate_health_state
+):
+    """Keep a viable independent Guide candidate from being stranded by repair."""
+    recovery_timeout = max(0.0, float(recovery_timeout or 0.0))
+    next_candidate_timeout = max(0.0, float(next_candidate_timeout or 0.0))
+    if recovery_timeout <= 0.0 or next_candidate_timeout <= 0.0:
+        return recovery_timeout
+    next_minimum_timeout = (
+        GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS
+        if str(next_candidate_health_state or "") == "half_open"
+        else GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+    )
+    # Do not reserve time for a candidate that cannot receive its supported
+    # minimum timeout. When it can, the same-model correction may use only the
+    # budget left after preserving that minimum for the independent candidate.
+    if next_candidate_timeout < next_minimum_timeout:
+        return recovery_timeout
+    repair_budget = recovery_timeout - next_minimum_timeout
+    if repair_budget < GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS:
+        return 0.0
+    return min(recovery_timeout, repair_budget)
+
+
 def _guide_contract_repair_instruction(contract_reason):
     """Translate known Guide contract codes into concise, task-specific correction guidance."""
     text = str(contract_reason or "").casefold()
@@ -4153,6 +4177,55 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     _provider_call_timeout(operation, item), deadline_monotonic,
                     now=time.monotonic() if deadline_monotonic is not None else None,
                 )
+                if operation == "general_guide_composition" and recovery_timeout is not None:
+                    remaining_window = max(
+                        0.0,
+                        GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+                        - (time.monotonic() - route_started),
+                    )
+                    recovery_timeout = min(float(recovery_timeout), remaining_window)
+                    next_candidate = (
+                        attempt_pool[attempt_index]
+                        if attempt_index < len(attempt_pool) else None
+                    )
+                    if next_candidate is not None:
+                        next_candidate_timeout = _provider_call_timeout(
+                            operation, next_candidate, attempt_index=attempt_index + 1
+                        )
+                        if deadline_monotonic is not None:
+                            next_candidate_timeout = _bounded_request_provider_timeout(
+                                next_candidate_timeout,
+                                deadline_monotonic,
+                                now=time.monotonic(),
+                            ) or 0.0
+                        next_candidate_timeout = min(
+                            float(next_candidate_timeout or 0.0), remaining_window
+                        )
+                        bounded_recovery_timeout = _guide_contract_repair_timeout_preserving_fallback(
+                            recovery_timeout,
+                            next_candidate_timeout,
+                            next_candidate.get("health_state"),
+                        )
+                        if bounded_recovery_timeout <= 0.0:
+                            state["probe_in_flight"] = False
+                            last_error = contract_reason
+                            rejection_class = _contract_rejection_class(contract_reason)
+                            _gold_star_trace.record_provider_candidate_outcome(operation, "failure")
+                            _record_quality_rejection(
+                                provider, model, operation, contract_reason, rejection_class
+                            )
+                            print(
+                                "USE provider bank fast-failure fallback: "
+                                "operation=general_guide_composition, "
+                                "action=skip_same_model_repair_preserve_next_candidate, "
+                                f"provider={provider}, model={model}, "
+                                f"next_provider={next_candidate.get('provider')}, "
+                                f"next_model={next_candidate.get('model')}, "
+                                f"next_candidate_timeout_seconds={next_candidate_timeout:.2f}, "
+                                f"elapsed_seconds={time.monotonic() - route_started:.2f}"
+                            )
+                            continue
+                        recovery_timeout = bounded_recovery_timeout
                 if deadline_monotonic is not None and (
                     recovery_timeout is None or recovery_timeout <= 0.0
                 ):
