@@ -99,6 +99,6 @@ def test_community_rule_instruction_makes_all_six_dimensions_explicit_without_ch
         "include affected people in shaping the rule",
         "appeal and review criteria",
         "Treat each as distinct evidence",
-        "Use coherent prose",
+        "Use prose",
     ):
         assert phrase in instruction
