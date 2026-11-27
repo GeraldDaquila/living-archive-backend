@@ -468,9 +468,9 @@ def _build_general_guide_system_message(
     # spirituality template or capture adjacent psychological-integration
     # questions.
     humility_spiritual_maturity_relationship = (
-        re.search(r"\\bhumility\\b", question, re.I)
-        and re.search(r"\\bspiritual\\s+maturit(?:y|ies)\\b", question, re.I)
-        and re.search(r"\\b(?:relationship|relation|connection|interplay|between|how does|what role)\\b", question, re.I)
+        re.search(r"\bhumility\\b", question, re.I)
+        and re.search(r"\bspiritual\\s+maturit(?:y|ies)\\b", question, re.I)
+        and re.search(r"\b(?:relationship|relation|connection|interplay|between|how does|what role)\\b", question, re.I)
     )
     if humility_spiritual_maturity_relationship:
         parts.append(
