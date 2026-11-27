@@ -227,6 +227,7 @@ def test_provider_composition_schema_requires_adjudication_when_candidates_exist
     assert quotes["minItems"] == quotes["maxItems"] == 1
     assert quotes["items"]["properties"]["candidate_id"]["enum"] == ["lesson-a"]
     assert quotes["items"]["properties"]["quote"]["type"] == "string"
+    assert quotes["items"]["properties"]["quote"]["maxLength"] == 240
 
 
 def test_provider_composition_schema_is_not_added_without_candidates():
