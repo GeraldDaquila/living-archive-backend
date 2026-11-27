@@ -3500,21 +3500,29 @@ def _requires_grounded_mechanism_example(question: str) -> bool:
 
 
 def _has_grounded_illustrative_example(response: str) -> bool:
-    """Require a developed, explicitly illustrative example rather than a decorative cue."""
+    """Require the example itself to connect a concrete symbol/story to its social effect."""
     text = _normalize_space(response)
     match = re.search(
-        r"\b(?:for example|for instance|imagine|consider)\b\s*[:,]?\s*(.{70,})",
+        r"\b(?:for example|for instance|imagine|consider)\b\s*[:,]?\s*(.+)",
         text,
         re.I,
     )
     if not match:
         return False
-    example = match.group(1)
-    return bool(
-        re.search(r"\b(?:flag|story|myth|ritual|symbol|anthem|ceremony|custom|tradition|rule|festival|pledge|monument)\b", example, re.I)
-        and re.search(r"\b(?:signals?|marks?|defines?|teaches?|reminds?|identifies?|legitimizes?|makes?|encourages?|coordinates?|reinforces?)\b", example, re.I)
+    # Inspect only the bounded illustration, not later unrelated prose.
+    sentences = re.split(r"(?<=[.!?])\s+", match.group(1))
+    symbol = re.compile(
+        r"\b(?:flag|story|myth|ritual|symbol|anthem|ceremony|custom|tradition|rule|festival|pledge|monument)\b",
+        re.I,
     )
-
+    mechanism = re.compile(
+        r"\b(?:signals?|marks?|defines?|teaches?|reminds?|identifies?|legitimizes?|makes?|encourages?|coordinates?|reinforces?)\b",
+        re.I,
+    )
+    return any(
+        symbol.search(sentence) and mechanism.search(sentence)
+        for sentence in sentences[:3]
+    )
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
