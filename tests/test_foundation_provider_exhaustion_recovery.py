@@ -41,7 +41,7 @@ class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
             "How do myths, symbols, and stories organize collective life?",
             {"ok": True, "response": result["response"]},
         )
-        self.assertTrue(floor["ok"], floor)
+        self.assertEqual(floor["status"], "pass", floor)
 
     @patch("main._compose_provider_exhaustion_recovery")
     @patch("main._basic_inquiry_round1_deterministic_response")
