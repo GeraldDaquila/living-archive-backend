@@ -8,6 +8,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/guide-live-evaluation.yml"
+      - ".github/workflows/live-gold-star-visitor-smoke.yml"
+      - "tests/test_guide_live_evaluation_runner.py"
       - "scripts/guide_live_evaluation.py"
       - "claim_adjudication.py"
       - "tests/test_claim_adjudication.py"
