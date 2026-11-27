@@ -26,5 +26,6 @@ def test_user_approved_pain_identity_gold_star_is_frozen_exactly():
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["doorway_status"] == "NOT_EVALUATED"
-    assert record["expected_doorway"]["url"] is None
+    assert record["expected_doorway"] is None
+    assert record["provenance"]["visible_continuation_title"] == fixture["visible_continuation_title"]
     assert record["expected_response"] == fixture["expected_response"]
