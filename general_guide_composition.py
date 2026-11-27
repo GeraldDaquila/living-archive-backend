@@ -1065,10 +1065,10 @@ def _sanitize_candidate(text: Any) -> str:
     # quoted-source extraction. Remove only an unmatched trailing delimiter;
     # do not touch contractions ("it's"), possessives ("users'"), or paired
     # single-quoted spans embedded in otherwise valid visitor prose.
-    if re.search(r"[.!?]['’]\\s*$", result) and not re.search(
-        r"(?<!\\w)['‘](?=\\S)", result
+    if re.search(r"[.!?]['’]\s*$", result) and not re.search(
+        r"(?<!\w)['‘](?=\S)", result
     ):
-        result = re.sub(r"(?<=[.!?])['’]\\s*$", "", result)
+        result = re.sub(r"(?<=[.!?])['’]\s*$", "", result)
     return result
 
 
