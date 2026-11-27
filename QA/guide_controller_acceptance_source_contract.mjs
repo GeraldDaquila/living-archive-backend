@@ -6,9 +6,9 @@ const source = readFileSync(path, "utf8");
 
 assert.match(source, /USE_FRONTEND_BUILD\s*=\s*'v489\.332-typed-visitor-acceptance'/);
 assert.match(source, /response\.clone\(\)\.json\(\)/, "must inspect a clone and preserve the caller's response body");
-assert.match(source, /failure_kind:\s*'application_contract'/);
-assert.match(source, /retryable:\s*false/);
-assert.match(source, /visitor_acceptance_contract:\s*'v1'/);
+assert.match(source, /error\.failureKind\s*=\s*'application_contract'/);
+assert.match(source, /error\.retryable\s*=\s*false/);
+assert.match(source, /data\.visitor_acceptance_contract/);
 assert.match(source, /function validateGuideApplicationPayload\(/);
 assert.match(source, /function hasAuthoritativeSafetyPayload\(/);
 assert.match(source, /RELATIONAL_HANDOFF/);
