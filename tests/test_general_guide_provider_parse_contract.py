@@ -435,3 +435,23 @@ def test_quoted_explanation_with_ordinary_parenthetical_is_preserved():
         '(for example, in a difficult conversation)'
     )
     assert composition._sanitize_candidate(response) == response
+
+
+
+def test_sanitizer_removes_only_orphaned_terminal_single_quote():
+    response = "The two ideas reinforce one another in practice.'"
+    assert composition._sanitize_candidate(response) == (
+        "The two ideas reinforce one another in practice."
+    )
+
+
+def test_sanitizer_preserves_contractions_and_terminal_possessives():
+    response = "It's a visitor's choice, and the users' concerns still matter."
+    assert composition._sanitize_candidate(response) == response
+    possessive_at_end = "The decision remains the users'"
+    assert composition._sanitize_candidate(possessive_at_end) == possessive_at_end
+
+
+def test_sanitizer_preserves_a_paired_single_quoted_span():
+    response = "The phrase 'stay grounded.' captures the point."
+    assert composition._sanitize_candidate(response) == response
