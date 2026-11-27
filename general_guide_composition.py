@@ -3079,7 +3079,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
         response = _sanitize_candidate(parsed.get("response"))
         _reflowed_response = _reflow_visitor_idea_chunking(response)
         if _reflowed_response != response:
-            sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\\s|$)", response))
+            sentence_count = len(re.findall(r"[^.!?]+[.!?](?=\s|$)", response))
             print(
                 "USE composition presentation reflow: "
                 f"reason=long_multi_idea_single_block, sentence_count={sentence_count}, "
