@@ -9194,7 +9194,7 @@
       },
       "rating": null,
       "freeze_policy": "immutable_user_approved_gold_standard",
-      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_status": "NOT_EVALUATED",
       "assistant_assessment_out_of_10": 8.9,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
