@@ -399,7 +399,8 @@ try {
           answerFontSize: style && style.fontSize,
           answerLineHeight: style && style.lineHeight,
           answerClientWidth: text && text.clientWidth,
-          answerScrollWidth: text && text.scrollWidth,\n          answerParagraphCount: text && text.querySelectorAll(":scope > p").length,
+          answerScrollWidth: text && text.scrollWidth,
+          answerParagraphCount: text && text.querySelectorAll(":scope > p").length,
           answerRightEdge: rect && rect.right,
           rootClientWidth: root && root.clientWidth,
           rootScrollWidth: root && root.scrollWidth,
@@ -407,7 +408,8 @@ try {
         };
       });
       if (mobileMetrics.viewportWidth !== 390 || mobileMetrics.answerFontSize !== "18px" ||
-          mobileMetrics.answerScrollWidth > mobileMetrics.answerClientWidth + 1 ||\n          mobileMetrics.answerParagraphCount < 5 ||
+          mobileMetrics.answerScrollWidth > mobileMetrics.answerClientWidth + 1 ||
+          mobileMetrics.answerParagraphCount < 5 ||
           mobileMetrics.rootScrollWidth > mobileMetrics.rootClientWidth + 1 ||
           mobileMetrics.answerRightEdge > mobileMetrics.viewportWidth + 1) {
         throw new Error("Mobile answer rendering failed responsive layout checks: " + JSON.stringify(mobileMetrics));
