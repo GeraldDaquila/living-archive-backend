@@ -251,6 +251,7 @@ def test_humility_contract_repair_instruction_expands_only_missing_dimensions():
     assert "honest self-appraisal" in instruction
     assert "accepting correction" in instruction
     assert "blind obedience" in instruction
+    assert "State explicitly that humility is not self-erasure" in instruction
     assert "automatic compliance" in instruction
     assert "State explicitly that humility is not passivity" in instruction
     assert "appropriate boundaries" not in instruction
