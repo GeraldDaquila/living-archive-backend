@@ -492,14 +492,14 @@ def _build_general_guide_system_message(
     )
     if humility_spiritual_maturity_relationship:
         parts.append(
-            "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences. "
-            "(1) Humility supports spiritual maturity through learning: it keeps a person teachable and willing to learn, "
-            "encourages honest self-appraisal, and supports accepting correction and accountability. "
-            "(2) Spiritual maturity is lived conduct in actions and relationships, not claimed status; "
-            "humility alone does not guarantee it, and the relationship is conditional, not automatic. "
-            "(3) Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
-            "or automatic compliance, and does not require surrendering appropriate boundaries. "
-            "Do not certify spiritual status or offer generic therapeutic advice; answer the visitor directly."
+            "HUMILITY AND SPIRITUAL MATURITY: Begin with this exact sentence: "
+            "'Humility supports spiritual maturity because it keeps a person willing to learn, make an honest self-appraisal, "
+            "accept correction, and remain open to others.' Then explain spiritual maturity through lived conduct, "
+            "responsibility, accountability, and care in relationships, not claimed status. Distinguish humility from "
+            "self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, and automatic compliance; "
+            "state that it does not mean surrendering appropriate boundaries. Close by stating that the relationship is "
+            "conditional, not automatic, and humility alone does not guarantee maturity. Do not certify spiritual status "
+            "or offer generic therapeutic advice; answer the visitor directly."
         )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())

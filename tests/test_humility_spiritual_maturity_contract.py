@@ -58,13 +58,18 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
     assert "evaluate_humility_spiritual_maturity_response" in parser_source
     assert "humility/spiritual-maturity answer is incomplete" in parser_source
     system_message = composition._build_general_guide_system_message(QUERY)
-    assert "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences." in system_message
+    assert "HUMILITY AND SPIRITUAL MATURITY: Begin with this exact sentence:" in system_message
+    assert (
+        "Humility supports spiritual maturity because it keeps a person willing to learn, "
+        "make an honest self-appraisal, accept correction, and remain open to others."
+    ) in system_message
     assert "honest self-appraisal" in system_message
-    assert "learning" in system_message
     assert "willing to learn" in system_message
-    assert "accepting correction and accountability" in system_message
-    assert "lived conduct in actions and relationships" in system_message
-    assert "humility alone does not guarantee it" in system_message
+    assert "accept correction" in system_message
+    assert "accountability" in system_message
+    assert "lived conduct" in system_message
+    assert "care in relationships" in system_message
+    assert "humility alone does not guarantee maturity" in system_message
     assert "conditional, not automatic" in system_message
     assert "appropriate boundaries" in system_message
     assert "blind obedience" in system_message
