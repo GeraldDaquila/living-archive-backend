@@ -1322,7 +1322,7 @@ def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monke
 @pytest.mark.parametrize(
     ("reason", "expected"),
     [
-        ("community liberty-limit answer is incomplete: affected_party_participation", "community_rule_incomplete"),
+        ("community liberty-limit answer is incomplete: affected_party_participation", "community_rule_incomplete_affected_party_participation"),
         ("transparency-trust answer must explain both directions of influence", "transparency_trust_reciprocity"),
         ("transparency-trust answer must explicitly preserve privacy", "transparency_trust_disclosure_boundary"),
         ("substantive multi-idea answer must preserve semantic paragraph boundaries", "semantic_paragraph_boundaries"),
@@ -1406,3 +1406,28 @@ def test_guide_nvidia_lane_prefers_proven_low_latency_model_over_newer_slow_sibl
     selected = provider_bank.select(object(), operation="general_guide_composition")
 
     assert selected[0]["model"] == "nvidia/nemotron-3.5-lightning-30b-a3b"
+
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "community liberty-limit answer is incomplete: affected_party_participation",
+        "transparency-trust answer must explain both directions of influence",
+        "transparency-trust answer must explicitly preserve privacy",
+    ],
+)
+def test_task_specific_completeness_rejections_do_not_poison_other_guide_tasks(monkeypatch, reason):
+    assert provider_bank._contract_rejection_class(reason) == "task_specific_completeness"
+    monkeypatch.setattr(
+        provider_bank,
+        "_quality_state",
+        lambda *args, **kwargs: pytest.fail("task-specific miss must not create a global Guide cooldown"),
+    )
+    provider_bank._record_quality_rejection(
+        "nvidia",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "general_guide_composition",
+        reason,
+        "task_specific_completeness",
+    )
