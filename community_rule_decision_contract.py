@@ -63,6 +63,7 @@ def is_community_rule_decision_question(query: str) -> bool:
     ))
     has_limit = any(term in low for term in (
         "limit", "restrict", "restriction", "rule",
+        "shared responsibility", "collective responsibility",
     ))
     has_community = any(term in low for term in (
         "community", "shared obligation", "collective obligation", "shared risk",

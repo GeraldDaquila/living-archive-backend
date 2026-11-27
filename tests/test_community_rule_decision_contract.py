@@ -103,3 +103,50 @@ def test_community_rule_instruction_makes_all_six_dimensions_explicit_without_ch
         "Use prose",
     ):
         assert phrase in instruction
+
+
+def test_valid_provider_answer_survives_shared_final_contract_for_ethical_tradeoff():
+    from general_guide_composition import enforce_response_contracts
+
+    question = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both fair and workable?"
+    )
+    report = evaluate_community_rule_response(question, COMPLETE)
+    assert report["applies"] is True
+    assert report["passed"] is True
+
+    # A candidate already accepted by the strict community-rule contract must
+    # pass through unchanged; the deterministic recovery is not a replacement
+    # for a provider answer that met every required dimension.
+    assert enforce_response_contracts(question, COMPLETE) == COMPLETE
+
+
+def test_incomplete_provider_answer_still_uses_registered_ethical_tradeoff_recovery():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import enforce_response_contracts
+
+    question = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both fair and workable?"
+    )
+    assert evaluate_community_rule_response(question, INCOMPLETE)["passed"] is False
+
+    recovered = enforce_response_contracts(question, INCOMPLETE)
+    assert recovered == compose_recovery(question)
+    assert evaluate_community_rule_response(question, recovered)["passed"] is True
+
+
+def test_majority_only_provider_answer_cannot_bypass_community_rule_recovery():
+    from general_guide_composition import enforce_response_contracts
+
+    question = (
+        "When a community faces a difficult trade-off between individual freedom "
+        "and shared responsibility, how should it make a decision that is both fair and workable?"
+    )
+    majority_only = COMPLETE + " A majority alone is entitled to restrict individual freedom."
+    assert evaluate_community_rule_response(question, majority_only)["passed"] is False
+
+    recovered = enforce_response_contracts(question, majority_only)
+    assert recovered != majority_only
+    assert evaluate_community_rule_response(question, recovered)["passed"] is True

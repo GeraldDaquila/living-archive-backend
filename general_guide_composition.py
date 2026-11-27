@@ -4811,9 +4811,11 @@ def enforce_response_contracts(question: str, response: str) -> str:
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
 
     # This exact ethical conflict is not a personal-responsibility prompt.
-    # The generic responsibility boundary above can otherwise replace a valid
-    # freedom/shared-responsibility analysis while leaving upstream provenance
-    # untouched. Reassert the registered trade-off answer at the final contract.
+    # Preserve a provider answer when it already passes the dedicated six-part
+    # community-rule contract. The registered recovery is a fallback for a
+    # rejected/incomplete answer, not a universal last-mile rewrite: replacing a
+    # passing candidate here would discard validated provider contribution and
+    # force truthful provenance to downgrade it to provider_assisted_recovery.
     from deterministic_answer_recovery import _is_ethical_tradeoff, compose_recovery
     _tradeoff_query = _normalize_space(question).casefold()
     if (
@@ -4821,17 +4823,22 @@ def enforce_response_contracts(question: str, response: str) -> str:
         and re.search(r"\bindividual\s+freedom\b", _tradeoff_query)
         and re.search(r"\bshared\s+responsibility\b", _tradeoff_query)
     ):
-        candidate = compose_recovery(question)
-        _tradeoff_requirements = (
-            "individual freedom",
-            "shared responsibility",
-            "people who will be affected",
-            "less restrictive alternatives",
-            "proportionate",
-            "question or appeal",
-        )
-        if not all(term in candidate.casefold() for term in _tradeoff_requirements):
-            raise RuntimeError("Ethical trade-off response contract failed after final recovery.")
+        _community_rule_report = evaluate_community_rule_response(question, candidate)
+        if not (
+            _community_rule_report.get("applies")
+            and _community_rule_report.get("passed")
+        ):
+            candidate = compose_recovery(question)
+            _tradeoff_requirements = (
+                "individual freedom",
+                "shared responsibility",
+                "people who will be affected",
+                "less restrictive alternatives",
+                "proportionate",
+                "question or appeal",
+            )
+            if not all(term in candidate.casefold() for term in _tradeoff_requirements):
+                raise RuntimeError("Ethical trade-off response contract failed after final recovery.")
 
     candidate = _remove_visitor_meta_commentary(candidate)
     # Source excerpts are grounding evidence, never a substitute for synthesis.
