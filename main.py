@@ -8878,6 +8878,24 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         query, interpretation, context_data,
         recommendation_available=recommendation_available,
     )
+    # A provider outage must not collapse this recognized symbolic/social
+    # mechanism question into the generic three-paragraph recovery. Resolve it
+    # through the same bounded conceptual contract used by ordinary composition,
+    # while preserving any already-selected doorway metadata on the fallback.
+    if _guide_composition._requires_grounded_mechanism_example(query):
+        _social_mechanism_recovery = _guide_composition._conceptual_relationship_recovery(query)
+        if (
+            _social_mechanism_recovery
+            and _guide_composition._has_grounded_illustrative_example(_social_mechanism_recovery)
+        ):
+            _social_result = dict(result) if isinstance(result, dict) else {}
+            _social_result.update({
+                "response": _social_mechanism_recovery,
+                "provider": "bounded_social_mechanism_provider_exhaustion_recovery",
+                "model": "",
+            })
+            return _social_result
+
     if isinstance(result, dict) and result.get("provider") == "deterministic_question_preserving_recovery":
         result = dict(result)
         # The Guide already has a bounded, visitor-facing foundation definition
