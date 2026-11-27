@@ -107,7 +107,10 @@ def test_extraordinary_claim_doorway_requires_an_evaluation_task_and_not_just_cl
 def test_explicit_no_doorway_instruction_still_overrides_extraordinary_claim_family():
     query = EXTRAORDINARY_CLAIMS_QUERY + " Please do not include links or resources."
     assert main._select_verified_doorway_conceptual_family(query) is None
-    result = main._guide_restore_verified_doorway(
-        {"response": "A complete answer."}, query
+    result = main._guide_enforce_terminal_doorway_policy(
+        {"response": "A complete answer.", "recommendation": main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["extraordinary_claim_discernment"]},
+        query,
     )
     assert result.get("recommendation") is None
+    assert result["doorway_decision"] == "omit"
+    assert result["doorway_selection_status"] == "AUTHORIZED_OMISSION"
