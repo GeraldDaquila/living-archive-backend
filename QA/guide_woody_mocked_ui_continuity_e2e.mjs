@@ -446,6 +446,25 @@ try {
         const overlapsAnswer = !!answerRect &&
           rect.left < answerRect.right && rect.right > answerRect.left &&
           rect.top < answerRect.bottom && rect.bottom > answerRect.top;
+        const textRects = [];
+        if (answer) {
+          const walker = document.createTreeWalker(answer, NodeFilter.SHOW_TEXT);
+          let textNode;
+          while ((textNode = walker.nextNode())) {
+            if (!textNode.nodeValue || !textNode.nodeValue.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(textNode);
+            Array.from(range.getClientRects()).forEach(textRect => {
+              if (textRect.width && textRect.height) textRects.push({
+                left: textRect.left, top: textRect.top, right: textRect.right, bottom: textRect.bottom
+              });
+            });
+          }
+        }
+        const overlappingTextRects = textRects.filter(textRect =>
+          rect.left < textRect.right && rect.right > textRect.left &&
+          rect.top < textRect.bottom && rect.bottom > textRect.top
+        );
         return {
           found: true,
           className: node.className,
@@ -459,6 +478,9 @@ try {
           outerHTML: node.outerHTML.slice(0, 1200),
           ancestors,
           answerRect: answerRect && { left: answerRect.left, top: answerRect.top, right: answerRect.right, bottom: answerRect.bottom },
+          visibleTextRectCount: textRects.length,
+          overlappingTextRectCount: overlappingTextRects.length,
+          overlappingTextRects,
           overlapWidth: answerRect ? Math.max(0, Math.min(rect.right, answerRect.right) - Math.max(rect.left, answerRect.left)) : 0,
           overlapHeight: answerRect ? Math.max(0, Math.min(rect.bottom, answerRect.bottom) - Math.max(rect.top, answerRect.top)) : 0,
           width: rect.width,
