@@ -472,6 +472,50 @@ def _build_general_guide_system_message(
     return "\n\n".join(part for part in parts if part)
 
 
+
+# Keep the actual provider request within the Groq 8k TPM ceiling while retaining
+# the full reviewed system contracts and all governed Gold Star candidates.
+GENERAL_GUIDE_PROVIDER_USER_CONTENT_MAX_CHARS = 6400
+
+
+def _bounded_general_guide_provider_user_content(user_content: str) -> str:
+    """Apply the single user-payload ceiling to every initial and repair provider call."""
+    return str(user_content or "")[:GENERAL_GUIDE_PROVIDER_USER_CONTENT_MAX_CHARS]
+
+
+def _build_general_guide_provider_messages(
+    question: str,
+    user_content: str,
+    *,
+    has_gold_star_guidance: bool = False,
+    incomplete_knowledge_plan: Optional[Dict[str, Any]] = None,
+    integrity_recovery_instruction: str = "",
+    gold_star_quality_instruction: str = "",
+    public_live_source_instruction: str = "",
+    objective_integrity_instruction: str = "",
+):
+    """Build the exact bounded messages used for provider routing and fingerprinting."""
+    return [
+        {
+            "role": "system",
+            "content": _build_general_guide_system_message(
+                question,
+                has_gold_star_guidance=has_gold_star_guidance,
+                incomplete_knowledge_plan=incomplete_knowledge_plan,
+                integrity_recovery_instruction=integrity_recovery_instruction,
+                gold_star_quality_instruction=gold_star_quality_instruction,
+                public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
+            ),
+        },
+        {
+            "role": "user",
+            "content": _bounded_general_guide_provider_user_content(user_content),
+        },
+    ]
+
+
+
 def _compact_gold_star_prompt_field(value: Any, max_chars: int) -> str:
     """Bound candidate metadata in the provider prompt without mutating the registry."""
     normalized = " ".join(str(value or "").split())
@@ -5467,8 +5511,9 @@ def compose(
     if evaluation is not None:
         # Both arms retain the same generic Gold Star integration contract.
         # Only the treatment receives the candidate-specific lesson instruction.
-        shared_base_system_message = _build_general_guide_system_message(
+        shared_base_messages = _build_general_guide_provider_messages(
             question,
+            user_content,
             has_gold_star_guidance=True,
             incomplete_knowledge_plan=incomplete_knowledge_plan,
             integrity_recovery_instruction=integrity_recovery_instruction,
@@ -5481,10 +5526,7 @@ def compose(
             "operation": OPERATION,
             "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
             "max_tokens": 750,
-            "messages": [
-                {"role": "system", "content": shared_base_system_message},
-                {"role": "user", "content": user_content[:7000]},
-            ],
+            "messages": shared_base_messages,
         }
         evaluation_base_prompt_fingerprint = hashlib.sha256(
             json.dumps(
@@ -5569,24 +5611,22 @@ def compose(
         result = route_with_model_bank(
             use_core=use_core,
             operation=OPERATION,
-            messages=[
-                {"role": "system", "content": _build_general_guide_system_message(
-                    question,
-                    has_gold_star_guidance=bool(
-                        evaluation is not None
-                        or (
-                            isinstance(gold_star_quality, dict)
-                            and gold_star_quality.get("candidates")
-                        )
-                    ),
-                    incomplete_knowledge_plan=incomplete_knowledge_plan,
-                    integrity_recovery_instruction=integrity_recovery_instruction,
-                    gold_star_quality_instruction=gold_star_quality_instruction,
-                    public_live_source_instruction=public_live_source_instruction,
-                    objective_integrity_instruction=objective_integrity_instruction,
-                )},
-                {"role": "user", "content": user_content[:7000]},
-            ],
+            messages=_build_general_guide_provider_messages(
+                question,
+                user_content,
+                has_gold_star_guidance=bool(
+                    evaluation is not None
+                    or (
+                        isinstance(gold_star_quality, dict)
+                        and gold_star_quality.get("candidates")
+                    )
+                ),
+                incomplete_knowledge_plan=incomplete_knowledge_plan,
+                integrity_recovery_instruction=integrity_recovery_instruction,
+                gold_star_quality_instruction=gold_star_quality_instruction,
+                public_live_source_instruction=public_live_source_instruction,
+                objective_integrity_instruction=objective_integrity_instruction,
+            ),
             max_tokens=750,
             parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
             schema=provider_schema,
@@ -5644,7 +5684,7 @@ def compose(
                     operation=OPERATION,
                     messages=[
                         {"role": "system", "content": _repair_system_message},
-                        {"role": "user", "content": user_content[:7000]},
+                        {"role": "user", "content": _bounded_general_guide_provider_user_content(user_content)},
                     ],
                     max_tokens=750,
                     parse=_parse_factory(
@@ -5734,7 +5774,7 @@ def compose(
                     operation=OPERATION,
                     messages=[
                         {"role": "system", "content": _repair_system_message},
-                        {"role": "user", "content": user_content[:7000]},
+                        {"role": "user", "content": _bounded_general_guide_provider_user_content(user_content)},
                     ],
                     max_tokens=750,
                     parse=_parse_factory(
@@ -5864,7 +5904,7 @@ def compose(
                     operation=OPERATION,
                     messages=[
                         {"role": "system", "content": _repair_system_message},
-                        {"role": "user", "content": user_content[:7000]},
+                        {"role": "user", "content": _bounded_general_guide_provider_user_content(user_content)},
                     ],
                     max_tokens=750,
                     parse=_parse_factory(
