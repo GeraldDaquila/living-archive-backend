@@ -2325,7 +2325,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
                 "the costs, and how burdens will be fairly distributed. Provide reasonable accommodation for "
                 "people whose circumstances or needs differ, rather than treating one arrangement as workable "
                 "for everyone.\n\n"
-                "People who will be affected should have a meaningful opportunity to shape the rule before adoption. "
+                "People who will be affected should have meaningful agency and a meaningful opportunity to shape the rule before adoption. "
                 "They must also have a meaningful way to question or appeal its application, with observable criteria "
                 "for review and a clear point at which the community will reconsider whether the restriction "
                 "remains necessary and fair. A majority can express a preference, but preference alone does not "
