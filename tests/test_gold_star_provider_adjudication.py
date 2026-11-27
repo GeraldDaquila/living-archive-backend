@@ -268,7 +268,7 @@ def test_output_contract_is_compact_and_preserves_all_evidence_requirements():
         "select/reject",
         "abstention boundary",
         "quote object per candidate",
-        "exact verbatim 12–120-character substring",
+        "exact verbatim 12–240-character substring",
         "rejected IDs use an empty quote",
         "reject-all uses empty quotes",
         "activation scope",
