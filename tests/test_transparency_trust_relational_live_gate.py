@@ -87,7 +87,9 @@ def test_runtime_relationship_contract_accepts_explicit_reciprocal_transparency_
         "and by creating opportunities to catch and correct poor conduct. Reasonable trust can also make transparency "
         "more possible: people are more likely to share information, ask candid questions, and engage openly. "
         "Neither guarantees the other. Privacy and legitimate confidentiality must still be protected while decisions "
-        "remain accountable."
+        "remain accountable. That is why transparency should provide enough context for scrutiny without exposing "
+        "sensitive personal information. Trust must be earned through consistent conduct rather than demanded as a "
+        "substitute for evidence."
     )
     assert has_conceptual_relationship_explanation(answer, CASE["query"]) is True
     assert _has_transparency_trust_reciprocity(answer) is True
