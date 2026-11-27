@@ -289,3 +289,54 @@ def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_
     )
     assert floor["status"] == "pass"
     assert floor["semantic_enforcement"]["status"] == "pass"
+
+
+def test_epistemic_distress_recovery_must_pass_hard_semantic_checks_and_response_floor():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    answer = compose_recovery(query)
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    assert result["question_type"] == "epistemic_distress_guidance"
+    assert result["hard_failures"] == []
+    assert result["semantic_certification"] is False  # review flags are not hard admission failures
+    floor = evaluate_response_floor(query, {"ok": True, "query": query, "intent": "TOPICAL_INQUIRY", "response": answer, "answer_basis": {"kind": "general_knowledge", "label": "General knowledge", "explanation": "Bounded general guidance."}, "response_provenance": {"class": "deterministic_fallback"}})
+    assert floor["status"] == "pass"
+
+
+def test_epistemic_distress_candidate_is_invalidated_before_repair_and_repair_must_clear_hard_checks():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    invalidation = source.index('stage="candidate_invalidated_before_repair"')
+    repair_message = source.index("_repair_system_message", invalidation)
+    assert source.rfind("result = None", invalidation - 500, invalidation) >= 0
+    assert repair_message > invalidation
+    repair_acceptance = source.index('_repaired_semantic.get("question_type") == "epistemic_distress_guidance"', repair_message)
+    assert repair_acceptance > repair_message
+    assert 'not _repaired_semantic.get("hard_failures")' in source[repair_acceptance:repair_acceptance + 300]
+    assert '_repaired_semantic.get("status")' not in source[repair_message:repair_acceptance + 300]
+
+
+def test_epistemic_distress_evaluation_candidate_is_rejected_without_repair():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    rejection = source.index('stage="evaluation_candidate_rejected_without_repair"')
+    evaluation_guard = source.rfind("and evaluation is not None", 0, rejection)
+    assert evaluation_guard >= 0
+    assert source.rfind("result = None", rejection - 500, rejection) >= 0
+
+
+def test_epistemic_distress_provider_exhaustion_recovery_precedes_archive_contrast():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    fallback = source.index('recovery="epistemic_distress_guidance"')
+    archive_contrast = source.index("_archive_passage_contrast_recovery(question, documents)", fallback)
+    assert archive_contrast > fallback
+    assert '_epistemic_recovery_semantic.get("hard_failures")' in source
