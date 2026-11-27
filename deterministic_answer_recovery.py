@@ -2275,14 +2275,19 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # the generic "how" recovery. A question about holding pain is not an
     # invitation to run an institutional decision-accountability checklist.
     elif classify_inquiry_family(q).get("family") == "personal_lived_reflective":
+        _lived_signals = classify_inquiry_family(q).get("signals") or []
+        _lived_subject = str(_lived_signals[0] if _lived_signals else "experience").strip()
+        if _lived_subject in {"identity", "selfhood", "personhood", "belonging", "who i am", "sense of self"}:
+            _lived_subject = "experience"
+        _lived_subject = _lived_subject[:40]
         answer = (
-            "Pain can be part of a person's life without becoming the whole of who they are. "
-            "Holding it means acknowledging what hurt and allowing it to matter, without "
-            "mistaking that experience for a complete account of the self. A person remains "
-            "more than the pain: relationships, values, interests, capacities, memories, and "
-            "hopes also belong to their identity.\n\n"
-            "This does not mean denying the pain, romanticizing it, or forcing it to become a "
-            "lesson. It means giving it an honest place without letting it occupy every place. "
+            f"{_lived_subject[:1].upper() + _lived_subject[1:]} can be part of a person's life "
+            "without becoming the whole of who they are. Holding it means acknowledging what "
+            "hurt and allowing it to matter, without mistaking that experience for a complete "
+            "account of the self. A person remains more than the experience: relationships, "
+            "values, interests, capacities, memories, and hopes also belong to their identity.\n\n"
+            "This does not mean denying the experience, romanticizing it, or forcing it to become "
+            "a lesson. It means giving it an honest place without letting it occupy every place. "
             "The experience can shape a life deeply without becoming the only story that life "
             "is allowed to tell."
         )
