@@ -448,6 +448,28 @@ def test_provider_probe_runs_after_heldout_workload_to_preserve_critical_provide
     assert source.index('report["provider_probe"]') < source.index('gold=[x for x in report["results"]')
 
 
+def test_humility_evaluator_recognizes_negation_scope_across_a_list():
+    case = {
+        "case_id": "heldout-humility-spiritual-maturity-nearmiss-001",
+        "query": "What is the relationship between humility and spiritual maturity?",
+    }
+    answer = (
+        "Humility is not self-erasure, diminished self-worth, self-contempt, passivity, "
+        "blind obedience, or automatic compliance; it does not mean surrendering "
+        "appropriate boundaries."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": answer},
+    }
+    checks = evaluate_held(case, transport, require_attributable_llm=False)
+    compliance = next(
+        item for item in checks if item["name"] == "not_passivity_or_automatic_compliance"
+    )
+    assert compliance["passed"], checks
+
+
 def test_humility_spiritual_maturity_live_case_requires_attributable_relational_answer_and_reviewed_doorway():
     case = {
         "case_id": "heldout-humility-spiritual-maturity-nearmiss-001",
