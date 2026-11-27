@@ -38,8 +38,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: guide-healthy-community-live-e2e-${{ github.ref }}
-  cancel-in-progress: true
+  # Share the primary provider-budget lock with Guide Live Evaluation.
+  # These two suites must not spend the same production provider quota concurrently.
+  group: guide-primary-provider-budgeted-live-validation-primary
+  cancel-in-progress: false
 
 jobs:
   live-browser-acceptance:
