@@ -3755,18 +3755,18 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     # visitor's named symbolic forms and collective-life mechanism; do not let a
     # generic conceptual orientation pass the final social-mechanism floor.
     asks_symbolic_collective_mechanism = bool(
-        all(re.search(r"\\b(?:" + term + r")\\b", normalized) for term in (r"myths?", r"symbols?", r"stories|story"))
-        and re.search(r"\\b(?:how|organize|organise|shape|structure|coordinate)\\b", normalized)
-        and re.search(r"\\bcollective life\\b", normalized)
+        all(re.search(r"\b(?:" + term + r")\b", normalized) for term in (r"myths?", r"symbols?", r"stories|story"))
+        and re.search(r"\b(?:how|organize|organise|shape|structure|coordinate)\b", normalized)
+        and re.search(r"\bcollective life\b", normalized)
     )
     if asks_symbolic_collective_mechanism:
         return (
             "Myths, symbols, and stories help organize collective life by giving people shared ways to interpret events, recognize obligations, and understand who belongs. "
             "A story can explain why a community observes a custom; a symbol can make that story recognizable in public; and a repeated ceremony can turn an idea into a coordinated practice. "
-            "These forms do not control everyone in the same way: people can interpret them differently, challenge their meaning, or refuse the obligations attached to them.\\n\\n"
+            "These forms do not control everyone in the same way: people can interpret them differently, challenge their meaning, or refuse the obligations attached to them.\n\n"
             "For example, in a coastal village facing seasonal floods, residents retell a story of a past rescue, gather around a painted boat symbol at an annual meeting, and renew a shared watch rota, so the story and symbol make mutual obligations visible and coordinate who checks on which households. "
             "The mechanism is practical: a shared account makes the reason for cooperation memorable, the public symbol signals that the commitment is held in common, and the meeting assigns responsibilities that residents can see and review. "
-            "The story does not itself build flood defences or guarantee cooperation; people, resources, trust, and fair procedures still determine what happens.\\n\\n"
+            "The story does not itself build flood defences or guarantee cooperation; people, resources, trust, and fair procedures still determine what happens.\n\n"
             "The same process can bind people together or exclude them. A founding story may encourage mutual aid, but it may also define some residents as outsiders; a ceremony may renew commitment, but it may silence disagreement if only one interpretation is permitted. "
             "To understand a particular community, look at who tells the story, who is represented by the symbol, what people actually do together, who carries the costs, and whether those affected can question or revise the shared account. "
             "This is a general conceptual explanation, not a claim that every community works this way or that the Living Archive states a formal doctrine about these forms."
