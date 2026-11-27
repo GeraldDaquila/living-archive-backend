@@ -326,7 +326,7 @@ def _generation_config_for_lane(provider: str, model: str, arm_state: dict, inte
     raise ValueError(f"Matched-pair generation fingerprint is not defined for provider: {provider}")
 
 
-async def _request_arm(client, evaluation_context, provider, model, query, arm):
+async def _request_arm(client, evaluation_context, provider, model, query, arm, candidate_id=None):
     import httpx
 
     state: dict[str, Any] = {
@@ -352,7 +352,7 @@ async def _request_arm(client, evaluation_context, provider, model, query, arm):
     token = CAPTURE_CONTEXT.set(state)
     try:
         try:
-            with evaluation_context(arm=arm, provider=provider, model=model):
+            with evaluation_context(arm=arm, provider=provider, model=model, candidate_id=(candidate_id if arm == "treatment" else None)):
                 response = await client.post("/api/query", json={"query": query})
             status_code = response.status_code
             try:
@@ -464,7 +464,15 @@ async def capture(args) -> dict:
         for item in negative_control_candidates
         if isinstance(item, dict)
     ]
-    negative_control_passed = target_lesson_id not in negative_control_ids
+    from gold_star_shadow_candidate_evaluation import evaluation_only_candidate_contribution
+    evaluation_candidate_id = str(suite.get("evaluation_candidate_id") or "").strip() or None
+    shadow_negative_control_passed = (
+        evaluation_only_candidate_contribution(negative_control_query, evaluation_candidate_id) is None
+        if evaluation_candidate_id else True
+    )
+    negative_control_passed = (
+        target_lesson_id not in negative_control_ids and shadow_negative_control_passed
+    )
 
     eligible = provider_bank.candidates(
         main.use_core, operation="general_guide_composition"
@@ -580,7 +588,8 @@ async def capture(args) -> dict:
                         await asyncio.sleep(args.inter_call_delay_seconds)
                     attempted_arm_order.append(arm)
                     arms[arm] = await _request_arm(
-                        client, evaluation_context, provider, model, case["query"], arm
+                        client, evaluation_context, provider, model, case["query"], arm,
+                        candidate_id=evaluation_candidate_id,
                     )
                     provider_attempted = True
                     result = arms[arm]
@@ -726,6 +735,8 @@ async def capture(args) -> dict:
         "target_benchmark_id": target_lesson_id,
         "case_set_sha256": _sha256(CASE_SET_PATH.read_bytes() if getattr(args, "case_set", CASE_SET_PATH) == CASE_SET_PATH else Path(args.case_set).read_bytes()),
         "evaluation_mode": "local_candidate_same_provider_model_paired_generation",
+        "evaluation_candidate_id": evaluation_candidate_id,
+
         "semantic_certification": False,
         "runtime_commit": runtime_commit,
         "provider": provider,
