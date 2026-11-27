@@ -315,3 +315,32 @@ def test_community_rule_instruction_explicitly_covers_each_distinct_evidence_dim
         "Use prose",
     ):
         assert required in instruction
+
+
+
+def test_visitor_idea_chunking_contract_matches_explicit_prompt_threshold():
+    prompt = composition._build_general_guide_system_message("What is transparency?")
+    assert "at least 650 characters" in prompt
+    assert "five or more sentences" in prompt
+    assert "at least two paragraphs with a blank line" in prompt
+
+    short_single_movement = " ".join(["A clear idea is explained simply."] * 4)
+    long_single_block = " ".join(
+        [
+            "A distinct idea has its own purpose and consequence.",
+            "A second idea adds another condition and implication.",
+            "A third idea explains a separate mechanism and trade-off.",
+            "A fourth idea describes another safeguard and responsibility.",
+            "A fifth idea states the resulting limit and review path.",
+        ]
+    )
+    long_two_paragraphs = (
+        "A distinct idea has its own purpose and consequence. "
+        "A second idea adds another condition and implication. "
+        "A third idea explains a separate mechanism and trade-off.\n\n"
+        "A fourth idea describes another safeguard and responsibility. "
+        "A fifth idea states the resulting limit and review path."
+    )
+    assert not composition._requires_visitor_idea_chunking(short_single_movement)
+    assert composition._requires_visitor_idea_chunking(long_single_block)
+    assert not composition._requires_visitor_idea_chunking(long_two_paragraphs)
