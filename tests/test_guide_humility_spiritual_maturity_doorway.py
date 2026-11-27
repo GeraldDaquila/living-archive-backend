@@ -20,6 +20,17 @@ def test_unrelated_humility_or_spirituality_questions_do_not_capture_the_doorway
     assert main._select_verified_doorway_conceptual_family("What is spiritual maturity?") is None
 
 
+def test_adjacent_psychological_integration_questions_do_not_capture_the_doorway():
+    unrelated_questions = (
+        "Why does psychological integration matter more than spiritual performance?",
+        "How can I integrate difficult emotions without turning spirituality into performance?",
+        "What is the relationship between humility and psychological integration?",
+        "What is the relationship between spiritual maturity and psychological integration?",
+    )
+    for question in unrelated_questions:
+        assert main._select_verified_doorway_conceptual_family(question) is None, question
+
+
 
 def test_terminal_humility_family_doorway_overrides_generic_preselected_candidate(monkeypatch):
     question = "What is the relationship between humility and spiritual maturity?"
