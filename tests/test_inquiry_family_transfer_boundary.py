@@ -70,24 +70,40 @@ def test_institutional_governance_lesson_is_incompatible_with_lived_pain_questio
     assert decision["reason"] == "cross_family_transfer_blocked"
 
 
-def test_live_selector_never_returns_incompatible_families_for_pain_and_identity_question():
-    humane_orientation = {
-        "reasoning_family": "humane_orientation",
-    }
-    assert lesson_transfer_compatibility(
-        PAIN_IDENTITY_QUESTION, humane_orientation
-    )["compatible"] is True
+def test_live_selector_never_returns_incompatible_families_for_pain_and_identity_question(monkeypatch):
+    import gold_star_lessons
 
-    # The registry's broad humane-orientation exemplar is not automatically
-    # relevant to this narrower question. Retrieval may correctly abstain when
-    # lexical/semantic relevance is insufficient; it must never substitute a
-    # governance lesson merely to fill the candidate list.
+    humane = {
+        "id": "humane-test",
+        "runtime_transfer": True,
+        "exact_answer_authority": False,
+        "query": "How can a person hold pain without losing identity?",
+        "known_theme": "person pain identity",
+        "assertions": ["A person is more than a painful experience."],
+        "reasoning_family": "humane_orientation",
+        "transferable_discipline": "Keep the person's humanity in view.",
+        "abstention_boundary": "",
+        "variants": [],
+    }
+    governance = {
+        **humane,
+        "id": "governance-test",
+        "query": "How should a community decide a policy?",
+        "known_theme": "community policy decision",
+        "reasoning_family": "institutional_governance",
+    }
+    for item in (humane, governance):
+        item["signature_terms"] = gold_star_lessons._lesson_signature(item)
+        item["variant_terms"] = gold_star_lessons._concept_terms(" ".join(item["variants"]))
+        item["reasoning_terms"] = gold_star_lessons._concept_terms(item["reasoning_family"])
+    monkeypatch.setattr(gold_star_lessons, "_LESSONS", [governance, humane])
+
     candidates = select_lesson_candidates(PAIN_IDENTITY_QUESTION)
+    assert [item["benchmark_id"] for item in candidates] == ["humane-test"]
     assert all(
         lesson_transfer_compatibility(PAIN_IDENTITY_QUESTION, item)["compatible"]
         for item in candidates
     )
-    assert all(item.get("reasoning_family") != "institutional_governance" for item in candidates)
 
 
 def test_genuine_community_decision_question_keeps_its_governed_candidate_set():
