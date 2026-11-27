@@ -8,6 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from gold_star_semantic_contract import remove_question_echo as _remove_question_echo
 from community_rule_decision_contract import evaluate_community_rule_response
+from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
@@ -354,6 +355,11 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "basis for scrutiny",
         )) or (
             "letting people verify" in low and "catch and correct" in low
+        ) or (
+            "letting people see" in low and "open to scrutiny" in low
+        ) or (
+            "making decisions" in low and "open to scrutiny" in low
+            and "support justified trust" in low
         )
         reciprocal = any(term in low for term in (
             "reinforce one another", "reinforce each other", "mutually reinforce",
@@ -440,49 +446,8 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 attributable,
                 f"Humility/spiritual-maturity near-miss must be answered by an attributable model response, not deterministic fallback; observed {provenance!r}.",
             ))
-        humility_present = "humility" in low
-        maturity_present = bool(re.search(r"\bspiritual maturit(?:y|ies)\b", low))
-        learning_mechanism = (
-            any(term in low for term in ("learning", "willing to learn", "remain teachable"))
-            and any(term in low for term in (
-                "honest self-appraisal", "honest self-examination", "self-awareness",
-                "recognize our limits", "recognising our limits", "recognizing our limits",
-                "see ourselves clearly",
-            ))
-            and any(term in low for term in (
-                "correction", "accept correction", "being corrected", "accountability",
-                "openness to others", "open to others",
-            ))
-        )
-        lived_maturity = any(term in low for term in (
-            "lived conduct", "lived experience", "how a person lives", "how people live",
-            "daily conduct", "actions and relationships", "ordinary conduct",
-            "responsible action", "responsibility in relationships",
-        ))
-        rejects_self_erasure = any(term in low for term in (
-            "self-erasure", "self erasure", "diminished self-worth", "self-contempt",
-            "not self-abandonment", "not self-abasing",
-        ))
-        preserves_boundaries = any(term in low for term in (
-            "appropriate boundaries", "healthy boundaries", "personal boundaries",
-            "does not mean surrendering boundaries", "doesn't mean surrendering boundaries",
-        ))
-        rejects_automatic_compliance = (
-            any(term in low for term in (
-                "not passivity", "not passive", "not automatic compliance",
-                "not unquestioning compliance", "not blind obedience",
-            ))
-            or bool(re.search(
-                r"\b(?:humility|it)\s+(?:is not|isn't|does not mean|doesn't mean)\b"
-                r"[^.!?;]{0,180}\b(?:passivity|blind obedience|automatic compliance)\b",
-                low,
-            ))
-        )
-        no_guarantee = any(term in low for term in (
-            "does not guarantee", "doesn't guarantee", "not guarantee",
-            "not automatically", "not by itself", "not sufficient by itself",
-            "humility alone cannot", "humility alone does not",
-        ))
+        humility_contract = evaluate_humility_spiritual_maturity_response(query, answer)
+        humility_checks = humility_contract.get("checks") or {}
         expected_title = str((expected_doorway or {}).get("title") or "").strip()
         expected_url = str((expected_doorway or {}).get("url") or "").strip()
         doorway_title = str(rec.get("title") or "").strip() if isinstance(rec, dict) else ""
@@ -508,13 +473,13 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
         no_inline_url = not bool(re.search(r"https?://|www\.", answer, re.I))
         no_orphaned_terminal_quote = not bool(re.search(r"(?<=[.!?])['’]\s*$", answer))
         out += [
-            check("names_both_concepts", humility_present and maturity_present, "Address humility and spiritual maturity as distinct but related concepts."),
-            check("humility_supports_learning_and_correction", learning_mechanism, "Explain how humility supports learning, honest self-appraisal, correction, and openness or accountability."),
-            check("maturity_as_lived_conduct", lived_maturity, "Describe maturity as lived conduct rather than claimed status."),
-            check("not_self_erasure_or_self_contempt", rejects_self_erasure, "Distinguish humility from self-erasure, diminished self-worth, or self-contempt."),
-            check("preserves_appropriate_boundaries", preserves_boundaries, "State that humility does not require surrendering appropriate boundaries."),
-            check("not_passivity_or_automatic_compliance", rejects_automatic_compliance, "Distinguish humility from passivity, blind obedience, or automatic compliance."),
-            check("does_not_guarantee_maturity", no_guarantee, "Do not claim humility alone guarantees spiritual maturity."),
+            check("names_both_concepts", humility_checks.get("names_both_concepts", False), "Address humility and spiritual maturity as distinct but related concepts."),
+            check("humility_supports_learning_and_correction", humility_checks.get("humility_supports_learning_and_correction", False), "Explain how humility supports learning, honest self-appraisal, correction, and openness or accountability."),
+            check("maturity_as_lived_conduct", humility_checks.get("maturity_as_lived_conduct", False), "Describe maturity as lived conduct rather than claimed status."),
+            check("not_self_erasure_or_self_contempt", humility_checks.get("not_self_erasure_or_self_contempt", False), "Distinguish humility from self-erasure, diminished self-worth, or self-contempt."),
+            check("preserves_appropriate_boundaries", humility_checks.get("preserves_appropriate_boundaries", False), "State that humility does not require surrendering appropriate boundaries."),
+            check("not_passivity_or_automatic_compliance", humility_checks.get("not_passivity_or_automatic_compliance", False), "Distinguish humility from passivity, blind obedience, or automatic compliance."),
+            check("does_not_guarantee_maturity", humility_checks.get("does_not_guarantee_maturity", False), "Do not claim humility alone guarantees spiritual maturity."),
             check("relevant_reviewed_archive_doorway", doorway, f"Provide the exact reviewed humility/spiritual-maturity doorway separately from the answer; observed {rec!r}."),
             check("visitor_facing_doorway_rationale", clean_rationale, "Keep the doorway rationale concise and visitor-facing, without source-page or CMS residue."),
             check("answer_contains_no_inline_resource_url", no_inline_url, "Keep the optional Archive destination in the separate doorway field, not embedded in the answer."),
