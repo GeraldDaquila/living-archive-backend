@@ -749,6 +749,15 @@ def _contract_rejection_class(contract_reason):
     return (
         "json_or_parse" if re.search(r"invalid JSON|non-object", str(contract_reason or ""), re.I)
         else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", str(contract_reason or ""), re.I)
+        # A miss on a prompt-specific evidence dimension must not cool the model
+        # across unrelated Guide questions. Preserve the failed check in telemetry
+        # while keeping the candidate eligible for a different task family.
+        else "task_specific_completeness" if re.search(
+            r"community liberty-limit answer is incomplete|"
+            r"transparency-trust answer must explain both directions|"
+            r"transparency-trust answer must explicitly preserve privacy",
+            str(contract_reason or ""), re.I
+        )
         # A URL embedded in provider prose is a repairable response-format defect;
         # canonical doorway selection is attached separately by the server.
         else "response_shape" if re.search(r"(?:embedded|exposed|included).{0,48}\b(?:navigation )?URL\b|URL in visitor prose", str(contract_reason or ""), re.I)
@@ -761,8 +770,19 @@ def _contract_rejection_class(contract_reason):
 def _contract_rejection_reason_code(contract_reason):
     """Return a bounded validator reason code without logging generated content."""
     text = str(contract_reason or "").casefold()
+    community_missing = re.search(
+        r"community liberty-limit answer is incomplete:\\s*([a-z_, ]+)", text
+    )
+    if community_missing:
+        fields = [
+            field.strip()
+            for field in community_missing.group(1).split(",")
+            if re.fullmatch(r"[a-z_]+", field.strip())
+        ]
+        if fields:
+            return "community_rule_incomplete_" + "_".join(fields[:7])
+        return "community_rule_incomplete"
     patterns = (
-        (r"community liberty-limit answer is incomplete", "community_rule_incomplete"),
         (r"transparency-trust answer must explain both directions", "transparency_trust_reciprocity"),
         (r"transparency-trust answer must explicitly preserve privacy", "transparency_trust_disclosure_boundary"),
         (r"semantic paragraph boundaries", "semantic_paragraph_boundaries"),
@@ -795,7 +815,7 @@ def _record_quality_rejection(provider, model, operation, reason, rejection_clas
     # Parsing and response-shape defects are observable contract failures, but
     # they are not by themselves evidence that the model is unsuitable for the
     # operation. Preserve strict visitor validation without cooling a usable lane.
-    if rejection_class in {"json_or_parse", "response_shape"}:
+    if rejection_class in {"json_or_parse", "response_shape", "task_specific_completeness"}:
         print(
             "USE provider quality observe: "
             f"operation={operation}, provider={provider}, model={model}, "
