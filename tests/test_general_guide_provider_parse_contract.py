@@ -353,15 +353,15 @@ def test_long_single_block_is_reflowed_at_sentence_boundary_without_content_chan
 
     reflowed = composition._reflow_visitor_idea_chunking(single_block)
 
-    assert "\\n\\n" in reflowed
+    assert "\n\n" in reflowed
     assert not composition._requires_visitor_idea_chunking(reflowed)
-    assert re.sub(r"\\s+", " ", reflowed) == re.sub(r"\\s+", " ", single_block)
-    assert reflowed.index("The relationship can also work") > reflowed.index("\\n\\n")
+    assert re.sub(r"\s+", " ", reflowed) == re.sub(r"\s+", " ", single_block)
+    assert reflowed.index("The relationship can also work") > reflowed.index("\n\n")
 
 
 def test_short_and_already_chunked_responses_are_not_reflowed():
     short = "A short answer can remain in one paragraph."
-    chunked = "First idea has enough detail to stand alone.\\n\\nSecond idea adds a separate implication."
+    chunked = "First idea has enough detail to stand alone.\n\nSecond idea adds a separate implication."
     assert composition._reflow_visitor_idea_chunking(short) == short
     assert composition._reflow_visitor_idea_chunking(chunked) == chunked
 
@@ -381,5 +381,5 @@ def test_strict_parser_applies_content_preserving_long_answer_reflow():
         emit_telemetry=False,
     )
     parsed = parse(json.dumps({"response": " ".join(sentences)}))
-    assert "\\n\\n" in parsed["response"]
-    assert re.sub(r"\\s+", " ", parsed["response"]) == re.sub(r"\\s+", " ", " ".join(sentences))
+    assert "\n\n" in parsed["response"]
+    assert re.sub(r"\s+", " ", parsed["response"]) == re.sub(r"\s+", " ", " ".join(sentences))
