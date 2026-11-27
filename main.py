@@ -19238,6 +19238,28 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     if re.fullmatch(r"[0-9a-f]{32}", _outer_request_correlation_id)
                     else None
                 )
+
+                # Final semantic/integrity gate: run after every response mutation
+                # and immediately before serialization. Earlier inner/outer gates
+                # remain useful for bounded recovery, but cannot certify a payload
+                # that is subsequently rewritten by metadata or doorway reconciliation.
+                if safe_payload.get("ok", True) is True:
+                    from gold_star_response_floor import apply_response_floor_boundary
+                    _terminal_exact_standard = (
+                        None if str(safe_payload.get("intent") or "").upper()
+                        in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+                        else _final_exact_gold_standard_authority(query)
+                    )
+                    safe_payload, _outer_status = apply_response_floor_boundary(
+                        query,
+                        safe_payload,
+                        _outer_status,
+                        exact_standard=_terminal_exact_standard is not None,
+                    )
+                # Preserve the terminal payload/status exactly as serialized;
+                # downstream audit hooks must not observe a pre-gate candidate.
+                _gold_star_terminal_payload = dict(safe_payload)
+                _gold_star_terminal_status = _outer_status
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
