@@ -1,13 +1,10 @@
 """Regression coverage for bounded Guide provider arbitration and NVIDIA output."""
 
-
 import pytest
-
 import provider_bank
 
 
 def test_guide_lane_prefers_recent_success_over_stale_model_preference(monkeypatch):
-    """A recently proven Lightning candidate outranks an unproven preferred sibling."""
     candidates = [
         {
             "provider": "nvidia",
@@ -59,8 +56,8 @@ def test_openai_compatible_adapter_extracts_typed_text_blocks(monkeypatch):
                 "message": {
                     "content": [
                         {"type": "reasoning", "text": "internal only"},
-                        {"type": "text", "text": "{\\"response\\": "},
-                        {"type": "output_text", "text": "\\"A grounded answer.\\"}"},
+                        {"type": "text", "text": '{"response": '},
+                        {"type": "output_text", "text": '"A grounded answer."}'},
                     ],
                     "reasoning_content": "must not be surfaced",
                 },
@@ -81,7 +78,7 @@ def test_openai_compatible_adapter_extracts_typed_text_blocks(monkeypatch):
         timeout=5,
     )
 
-    assert str(output) == '{\\"response\\": \\"A grounded answer.\\"}'
+    assert str(output) == '{"response": "A grounded answer."}'
     assert output.completion_tokens == 42
 
 
