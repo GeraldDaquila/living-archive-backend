@@ -106,6 +106,8 @@ def test_final_response_floor_enforces_lived_reflective_task_fit():
         PAIN_IDENTITY_QUESTION,
         {"ok": True, "query": PAIN_IDENTITY_QUESTION, "intent": "TOPICAL_INQUIRY",
          "response": OFF_TARGET_GOVERNANCE_ANSWER,
+         "answer_basis": {"kind": "general_knowledge", "label": "General knowledge",
+                          "explanation": "A bounded general answer."},
          "response_provenance": {"class": "deterministic_fallback"},
          "route_source": "general_guide_composition"},
     )
