@@ -144,6 +144,7 @@ def test_off_target_lived_response_gets_one_bounded_repair_without_touching_eval
     assert guard >= 0
     assert deadline > repair
     assert "effective_question,\n                        None," in source[repair:deadline]
+    assert "schema=_build_provider_composition_schema(None)" in source[repair:deadline]
     assert "on_target_repair_accepted" in source
     assert "repair_unavailable_or_still_off_target" in source
 
