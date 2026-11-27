@@ -455,3 +455,9 @@ def test_sanitizer_preserves_contractions_and_terminal_possessives():
 def test_sanitizer_preserves_a_paired_single_quoted_span():
     response = "The phrase 'stay grounded.' captures the point."
     assert composition._sanitize_candidate(response) == response
+
+def test_sanitizer_removes_orphan_after_an_earlier_paired_single_quoted_span():
+    response = "The phrase 'stay grounded.' captures the point. An orphan remains.'"
+    assert composition._sanitize_candidate(response) == (
+        "The phrase 'stay grounded.' captures the point. An orphan remains."
+    )
