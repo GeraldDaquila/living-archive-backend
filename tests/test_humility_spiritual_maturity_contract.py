@@ -55,8 +55,10 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
     parser_source = inspect.getsource(composition._parse_factory)
     assert "evaluate_humility_spiritual_maturity_response" in parser_source
     assert "humility/spiritual-maturity answer is incomplete" in parser_source
-    assert "HUMILITY AND SPIRITUAL MATURITY:" in composition._GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "humility supports spiritual maturity" in composition._GENERAL_GUIDE_SYSTEM_COMPACT
+    system_message = composition._build_general_guide_system_message(QUERY)
+    assert "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT" in system_message
+    assert "honest self-appraisal" in system_message
+    assert "blind obedience" in system_message
 
 
 def test_provider_parser_rejects_incomplete_humility_relationship_answer():
