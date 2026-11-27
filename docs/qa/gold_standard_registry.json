@@ -9278,9 +9278,67 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
       "exact_answer_authority": false
+    },
+    {
+      "benchmark_id": "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should the Guide respond to extraordinary claims?",
+      "expected_response": "The Guide should respond to extraordinary claims with proportionate scrutiny: the more surprising or consequential a claim, the stronger the evidence required before it is treated as reliable. This does not mean dismissing such claims outright, nor accepting them because they are compelling, comforting, or widely repeated. It means asking what evidence supports the claim, whether that evidence can be checked independently, and whether simpler explanations fit the facts just as well or better.\n\nClaims that depart sharply from established understanding carry a higher burden of proof, and the Guide should say so plainly while remaining open to new evidence if it meets that burden. The available Archive material does not contain a specific institutional policy on extraordinary claims, so this is general guidance rather than a statement of official Guide doctrine.",
+      "doorway_status": "VERIFIED",
+      "expected_doorway": {
+        "title": "Levels of Claim",
+        "url": "https://geralddaquila.com/levels-of-claim/",
+        "rationale": "This Living Archive reference distinguishes observation, interpretation, explanation, framework, speculation, and metaphysical reflection, clarifying why different kinds of claims do not carry equal evidential weight. It offers a disciplined next step for identifying what kind of claim is being made before judging what evidence can support it."
+      },
+      "assertions": [
+        "Apply proportionate scrutiny: the more surprising or consequential a claim, the stronger the evidence required before treating it as reliable.",
+        "Do not reflexively dismiss extraordinary claims or accept them because they are compelling, comforting, or widely repeated.",
+        "Ask whether supporting evidence can be checked independently and whether simpler explanations fit the facts as well or better.",
+        "State the higher burden of proof plainly while remaining open to new evidence that meets it.",
+        "Preserve the explicit boundary between general evidentiary guidance and official Living Archive or Guide doctrine; do not invent an institutional policy.",
+        "Keep the complete substantive answer separate from the verified Levels of Claim continuation doorway.",
+        "Do not transfer the exact answer or treat this record as exact-answer authority, deterministic fallback, or active runtime/adaptive learning."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly elevated by the user.",
+        "source_path": "conversation attachment image(20261127-231659).png",
+        "source_date": "2026-11-27",
+        "live_surface": "The Guide visitor-facing Search response.",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, two-paragraph answer, and separate Continue Exploring card with its title and explanatory copy. The canonical Levels of Claim URL is independently verified by the merged live visitor acceptance test in QA/guide_extraordinary_claims_live_e2e.mjs. The screenshot and acceptance test do not establish provider invocation provenance, adaptive application, held-out transfer, or measured visitor outcome improvement.",
+        "review_assessment": "Assistant assessment: 9.5/10. This is an assistant assessment, not a user-assigned numerical rating.",
+        "approval_record": "The user explicitly instructed 'elevate to gold star' after reviewing the visitor-facing screenshot and the assistant's assessment. This authorizes immutable response-quality exemplar status only; it does not authorize exact-answer copying, deterministic fallback, or runtime/adaptive transfer."
+      },
+      "rating": null,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "assistant_assessment_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR RESPONSE REVIEWED; RESPONSE-QUALITY EXEMPLAR ONLY",
+      "runtime_transfer": false,
+      "reasoning_family": "proportionate_evidence_scrutiny_for_extraordinary_claims",
+      "transferable_lesson": "This record is approved as a standalone response-quality exemplar only. It demonstrates proportionate evidentiary scrutiny, independent checkability, comparison with simpler explanations, openness to qualifying new evidence, and a clear boundary between general guidance and institutional doctrine. It is not approved as an active runtime/adaptive lesson.",
+      "transfer_boundary": "Immutable response-quality exemplar only. Do not copy the exact answer or treat it as exact-answer authority or deterministic fallback. Do not dismiss claims solely because they are extraordinary, accept them because they are emotionally compelling or widely repeated, or invent an official Living Archive policy. Apply the evidentiary discipline contextually; this approval does not establish provider contribution retention, adaptive application, held-out transfer, or measured visitor improvement.",
+      "known_theme": "extraordinary claims, proportionate scrutiny, burden of proof, independent verification, simpler explanations, epistemic humility, institutional doctrine boundary",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "proportionate_evidence_scrutiny_for_extraordinary_claims",
+        "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved.",
+        "abstention_boundary": "Do not copy the exact answer, assert unsupported claims as true or false, or invent an official institutional policy. This record is an immutable response-quality exemplar only; no exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "standalone_response_quality_exemplar": true
+      },
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user explicitly instructed 'elevate to gold star' on 2026-11-28 after reviewing the live visitor-facing screenshot and the assistant's 9.5/10 assessment. This authorizes immutable Gold Star response-quality exemplar status only; it does not authorize exact-answer copying, deterministic fallback, or runtime/adaptive transfer.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+      "exact_answer_authority": false
     }
   ],
-  "last_reconciliation_note": "Added the user-approved myths-symbols-stories collective-life response as an immutable standalone response-quality exemplar. Preserved the independently approved humility-and-spiritual-maturity structural-learning contributor already on main. The new myths/symbols record does not enter runtime/adaptive transfer, exact-answer authority, or deterministic fallback. Its visible continuation title is recorded as observed but its canonical URL is not inferred. Inventory reconciled against the full approved record set.",
+  "last_reconciliation_note": "Added the user-approved extraordinary-claims response as an immutable standalone response-quality exemplar. Its canonical Levels of Claim doorway is verified by the live visitor acceptance test. It does not enter runtime/adaptive transfer, exact-answer authority, or deterministic fallback. No display serial was requested; inventory reconciled from record-level status and capability fields.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -9410,22 +9468,22 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 144,
-    "registry_record_count": 184,
-    "review_reconciliation": "Canonical inventory contains 144 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 3 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The humility-and-spiritual-maturity record remains an active bounded structural-learning contributor; the myths-symbols-stories and metaphysical-certainty records are immutable response-quality exemplars only. Exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled for the myths-symbols-stories exemplar. Approval does not assert held-out transfer or measured visitor outcome improvement.",
+    "approved_gold_star_count": 145,
+    "registry_record_count": 185,
+    "review_reconciliation": "Canonical inventory contains 145 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 4 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The extraordinary-claims response is an immutable response-quality exemplar only; its exact answer, deterministic fallback, and runtime/adaptive transfer are not authorized. The Levels of Claim doorway is verified. Approval does not assert provider contribution retention, held-out transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 144 approved Gold Stars; 39 assigned display serials #56–#94; 105 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the myths-symbols-stories response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 105,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 145 approved Gold Stars; 39 assigned display serials #56–#94; 106 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the extraordinary-claims response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 106,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28 approved by user 2026-11-28",
+    "last_approval": "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 3
+    "approved_response_quality_exemplar_count": 4
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -9524,22 +9582,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 144,
-    "registry_record_count": 184,
-    "review_reconciliation": "Canonical inventory contains 144 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 3 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The humility-and-spiritual-maturity record remains an active bounded structural-learning contributor; the myths-symbols-stories and metaphysical-certainty records are immutable response-quality exemplars only. Exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled for the myths-symbols-stories exemplar. Approval does not assert held-out transfer or measured visitor outcome improvement.",
+    "approved_gold_star_count": 145,
+    "registry_record_count": 185,
+    "review_reconciliation": "Canonical inventory contains 145 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 4 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The extraordinary-claims response is an immutable response-quality exemplar only; its exact answer, deterministic fallback, and runtime/adaptive transfer are not authorized. The Levels of Claim doorway is verified. Approval does not assert provider contribution retention, held-out transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 144 approved Gold Stars; 39 assigned display serials #56–#94; 105 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the myths-symbols-stories response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 105,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 145 approved Gold Stars; 39 assigned display serials #56–#94; 106 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the extraordinary-claims response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 106,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28 approved by user 2026-11-28",
+    "last_approval": "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 3
+    "approved_response_quality_exemplar_count": 4
   },
   "last_reconciled": "2026-11-28"
 }
