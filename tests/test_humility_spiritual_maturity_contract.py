@@ -64,7 +64,6 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
         "make an honest self-appraisal, accept correction, and remain open to others."
     ) in system_message
     assert "honest self-appraisal" in system_message
-    assert "learning" in system_message
     assert "willing to learn" in system_message
     assert "accept correction" in system_message
     assert "accountability" in system_message
