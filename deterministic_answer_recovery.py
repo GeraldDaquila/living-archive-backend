@@ -2326,7 +2326,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
                 "people whose circumstances or needs differ, rather than treating one arrangement as workable "
                 "for everyone.\n\n"
                 "People who will be affected should have a meaningful opportunity to shape the rule before adoption. "
-                "They must also be able to question the rule or appeal its application, with observable criteria "
+                "They must also have a meaningful way to question or appeal its application, with observable criteria "
                 "for review and a clear point at which the community will reconsider whether the restriction "
                 "remains necessary and fair. A majority can express a preference, but preference alone does not "
                 "establish necessity or justify shifting avoidable burdens onto others."
