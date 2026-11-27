@@ -12,7 +12,8 @@ from typing import Any
 
 MAX_CANDIDATES = 4
 MIN_EVIDENCE_SPAN = 12
-MAX_EVIDENCE_SPAN = 240
+MAX_EVIDENCE_SPAN = 120
+MAX_EVIDENCE_QUOTE = 240
 REASON_CODES = frozenset({
     "subject_mismatch",
     "lexical_overlap_only",
@@ -129,7 +130,7 @@ def normalize_provider_adjudication(
             answer = str(response or "")
             for candidate_id in selected:
                 quote = quotes_by_id[candidate_id]
-                if not MIN_EVIDENCE_SPAN <= len(quote) <= MAX_EVIDENCE_SPAN:
+                if not MIN_EVIDENCE_SPAN <= len(quote) <= MAX_EVIDENCE_QUOTE:
                     selected_quote_failures.append("selected_quote_length_out_of_bounds")
                     continue
                 if not quote.strip() or answer.count(quote) != 1:
