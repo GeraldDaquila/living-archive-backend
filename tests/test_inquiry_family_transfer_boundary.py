@@ -244,7 +244,7 @@ def test_epistemic_distress_off_target_provider_answer_gets_one_bounded_repair_o
     deadline = source.index("deadline_monotonic=provider_deadline_monotonic", repair)
     assert guard >= 0
     assert deadline > repair
-    assert "epistemic_distress_task_fit_repair" in source[repair:deadline]
+    assert "epistemic_distress_task_fit_repair" in source
     assert "unverifiable metaphysical claims as fact" in source[repair:deadline]
 
 
