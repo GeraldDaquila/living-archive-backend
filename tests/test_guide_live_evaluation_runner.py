@@ -472,6 +472,7 @@ def test_primary_live_smoke_runs_after_live_evaluation_and_shares_its_concurrenc
     assert "group: guide-primary-provider-budgeted-live-validation-primary" in smoke
     assert 'workflows: ["Guide Live Evaluation"]' in smoke
     assert "types: [completed]" in smoke
+    assert "if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}" in smoke
     assert "github.event.workflow_run.head_sha || github.sha" in smoke
     assert "push:" not in smoke.split("workflow_dispatch:", 1)[0]
 
