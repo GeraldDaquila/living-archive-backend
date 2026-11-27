@@ -3755,7 +3755,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     # visitor's named symbolic forms and collective-life mechanism; do not let a
     # generic conceptual orientation pass the final social-mechanism floor.
     asks_symbolic_collective_mechanism = bool(
-        all(re.search(r"\\b" + term + r"\\b", normalized) for term in ("myth", "symbol", "stor"))
+        all(re.search(r"\\b(?:" + term + r")\\b", normalized) for term in (r"myths?", r"symbols?", r"stories|story"))
         and re.search(r"\\b(?:how|organize|organise|shape|structure|coordinate)\\b", normalized)
         and re.search(r"\\bcollective life\\b", normalized)
     )
