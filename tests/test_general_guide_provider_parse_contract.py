@@ -427,3 +427,11 @@ def test_final_visitor_boundary_fails_closed_when_only_source_excerpts_remain():
             "What is the relationship between humility and spiritual maturity?",
             excerpt,
         )
+
+
+def test_quoted_explanation_with_ordinary_parenthetical_is_preserved():
+    response = (
+        '"A person can acknowledge uncertainty while remaining open to correction." '
+        '(for example, in a difficult conversation)'
+    )
+    assert composition._sanitize_candidate(response) == response
