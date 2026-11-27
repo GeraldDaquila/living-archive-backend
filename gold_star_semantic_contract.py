@@ -31,6 +31,7 @@ _PATTERNS = {
     "technical_verification": re.compile(r"\b(?:verify|check|confirm|test)\b.{0,100}\b(?:environment variable|secret|configuration|configured|credential)\b", re.I),
     "uncertain_causation": re.compile(r"\bwhat caused\b|\bwhy did\b.{0,80}\b(?:increase|decrease|spike|drop|change)\b", re.I),
     "strategic_tradeoff": re.compile(r"\bshould\b.{0,100}\b(?:or|versus|vs\.?|rather than)\b", re.I),
+    "conceptual_relationship": re.compile(r"\\b(?:relationship|connection|interplay)\\s+between\\b", re.I),
     "practical_application": re.compile(r"\bhow can\b|\bhow do (?:i|we|they)\b|\bhow should\b", re.I),
     "comparison": re.compile(r"\b(?:difference between|differ from|compare|comparison|versus|vs\.?)\b", re.I),
     "conceptual_explanation": re.compile(r"\bwhat is\b.{0,100}\b(?:and why|why does|why is|how does|what makes)\b", re.I),
