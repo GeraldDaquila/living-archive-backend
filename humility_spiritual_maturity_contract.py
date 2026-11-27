@@ -65,8 +65,21 @@ def evaluate_humility_spiritual_maturity_response(query: str, answer: str) -> di
             "not unquestioning compliance", "not blind obedience",
         ))
         or bool(re.search(
-            r"\b(?:humility|it)\s+(?:is not|isn't|does not mean|doesn't mean)\b"
-            r"[^.!?;]{0,180}\b(?:passivity|blind obedience|automatic compliance)\b",
+            r"\b(?:humility|it|this)\s+(?:is not|isn't|does not mean|doesn't mean|"
+            r"does not entail|doesn't entail|is different from|differs from|"
+            r"is distinct from|is not synonymous with|is not equivalent to)\b"
+            r"[^.!?;]{0,180}\b(?:passivity|passive|blind obedience|automatic compliance)\b",
+            low,
+        ))
+        or bool(re.search(
+            r"\b(?:rather than|instead of|as opposed to|distinct from|different from|"
+            r"not synonymous with|not equivalent to)\b"
+            r"[^.!?;]{0,100}\b(?:passivity|passive|being passive|blind obedience|automatic compliance)\b",
+            low,
+        ))
+        or bool(re.search(
+            r"\bwithout\s+(?:becoming|requiring|implying|entailing)\b"
+            r"[^.!?;]{0,100}\b(?:passivity|passive|being passive|blind obedience|automatic compliance)\b",
             low,
         ))
     )

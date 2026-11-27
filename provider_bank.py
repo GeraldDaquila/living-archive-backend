@@ -845,7 +845,9 @@ def _guide_contract_repair_instruction(contract_reason):
             "State that humility does not require surrendering appropriate boundaries."
         ),
         "not_passivity_or_automatic_compliance": (
-            "Distinguish humility from passivity, blind obedience, and automatic compliance."
+            "State explicitly that humility is not passivity, blind obedience, or automatic compliance. "
+            "A clear sentence such as 'Humility is not passivity, blind obedience, or automatic compliance' "
+            "is acceptable; do not leave this distinction implied."
         ),
         "does_not_guarantee_maturity": "State that humility alone does not guarantee spiritual maturity.",
     }

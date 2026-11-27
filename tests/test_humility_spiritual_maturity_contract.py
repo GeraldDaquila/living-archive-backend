@@ -83,3 +83,25 @@ def test_provider_parser_accepts_complete_humility_relationship_answer():
         "response_shape": "explanatory",
     }))
     assert parsed["response"] == COMPLETE_ANSWER
+
+
+@pytest.mark.parametrize(
+    "boundary_sentence",
+    [
+        "Humility is different from passivity, blind obedience, and automatic compliance.",
+        "Humility is an active openness to learning rather than passivity, blind obedience, or automatic compliance.",
+        "Humility does not entail passivity, blind obedience, or automatic compliance.",
+        "Humility can remain open to correction without becoming passive or unquestioningly compliant.",
+    ],
+)
+def test_humility_boundary_accepts_clear_semantic_paraphrases(boundary_sentence):
+    answer = COMPLETE_ANSWER.replace(
+        "Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
+        "or automatic compliance; it does not mean surrendering appropriate boundaries.",
+        "Humility is not self-erasure, diminished self-worth, or self-contempt; "
+        + boundary_sentence
+        + " It does not mean surrendering appropriate boundaries.",
+    )
+    report = evaluate_humility_spiritual_maturity_response(QUERY, answer)
+    assert report["checks"]["not_passivity_or_automatic_compliance"] is True
+    assert report["passed"] is True
