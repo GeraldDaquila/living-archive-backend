@@ -360,3 +360,145 @@ def test_comparison_question_rejects_the_production_generic_refusal():
 
     assert result["status"] == "fail"
     assert result["reason"] == "generic_nonanswer"
+
+
+
+def test_social_mechanism_near_miss_is_rejected_at_final_response_boundary():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    answer = (
+        "A useful starting point is to ask how myths, symbols, and stories organize "
+        "collective life works through particular conditions rather than assuming a "
+        "single direct cause. Repeated signals, incentives, relationships, constraints, "
+        "and consequences can make some choices feel normal, rewarded, risky, or difficult "
+        "even when formal rules say something different.\n\n"
+        "The next question is what mechanisms are actually operating: what people observe "
+        "others doing, what behavior is rewarded or tolerated, whose judgment carries "
+        "authority, and what happens when concerns are raised. Patterns become more "
+        "consequential when these conditions reinforce one another over time and make "
+        "correction harder or easier.\n\n"
+        "This is a starting explanation rather than a claim about a specific case. A "
+        "stronger account identifies the relationships and evidence that matter, "
+        "distinguishes influence from proof of causation, and remains open to other "
+        "conditions that may change the outcome."
+    )
+    payload, status = apply_response_floor_boundary(
+        query, {"ok": True, "query": query, "response": answer}, 200
+    )
+    assert status == 503
+    assert payload["ok"] is False
+    assert payload["gold_star_v2_quality_floor"]["reason"] == "social_mechanism_example_not_demonstrated"
+
+
+def test_social_mechanism_grounded_example_passes_final_response_boundary():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    answer = (
+        "Shared stories and symbols organize collective life by making expectations "
+        "and belonging visible and memorable.\n\n"
+        "For example, a village retells its founding story at an annual gathering. "
+        "Residents display a carved marker and renew a volunteer rota, so the story "
+        "makes mutual aid part of local identity and turns remembrance into coordinated work.\n\n"
+        "The effect is not automatic: residents may dispute the story, reject the rota, "
+        "or disagree about who is included."
+    )
+    payload, status = apply_response_floor_boundary(
+        query, {"ok": True, "query": query, "response": answer}, 200
+    )
+    assert status == 200
+    assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
+
+
+def test_outermost_floor_runs_after_final_response_mutations_and_before_serialization():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = source.index("async def _guide_outer_visitor_response_boundary")
+    end = source.index("\n\napp = streaming_entry", start)
+    body = source[start:end]
+    reconcile = body.index("_guide_reconcile_verified_doorway_recovery")
+    terminal_floor = body.rindex("apply_response_floor_boundary")
+    serialization = body.index("encoded = json.dumps(")
+    assert reconcile < terminal_floor < serialization
+
+
+
+def test_terminal_floor_rejects_answer_damaged_by_final_payload_mutation():
+    from gold_star_response_floor import apply_response_floor_boundary
+
+    query = "How do myths, symbols, and stories organize collective life?"
+    valid = (
+        "Shared stories and symbols organize collective life by making expectations visible. "
+        "For example, a village retells its founding story at an annual gathering. "
+        "Residents display a carved marker and renew a volunteer rota, so the story "
+        "makes mutual aid part of local identity and turns remembrance into coordinated work."
+    )
+    candidate = {"ok": True, "query": query, "response": valid}
+    accepted, accepted_status = apply_response_floor_boundary(query, candidate, 200)
+    assert accepted_status == 200
+    assert accepted["gold_star_v2_quality_floor"]["status"] == "pass"
+
+    # Simulate the final metadata/doorway reconciliation mutating the visitor
+    # answer after an earlier candidate passed. The terminal gate must inspect
+    # this mutated payload, not reuse the earlier pass decision.
+    mutated = dict(accepted)
+    mutated["response"] = (
+        "Myths, symbols, and stories organize collective life by shaping shared "
+        "expectations and belonging. Repeated narratives influence how communities "
+        "coordinate behavior."
+    )
+    terminal, terminal_status = apply_response_floor_boundary(query, mutated, 200)
+    assert terminal_status == 503
+    assert terminal["ok"] is False
+    assert terminal["gold_star_v2_quality_floor"]["reason"] == (
+        "social_mechanism_example_not_demonstrated"
+    )
+
+
+
+def test_terminal_floor_receives_post_reconciliation_safe_payload():
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    request_boundary = next(
+        node for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_guide_outer_visitor_response_boundary"
+    )
+    sender = next(
+        node for node in ast.walk(request_boundary)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_capture_json_response"
+    )
+    reconcile_calls = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_guide_reconcile_verified_doorway_recovery"
+    ]
+    terminal_calls = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "apply_response_floor_boundary"
+    ]
+    serializations = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "json"
+        and node.func.attr == "dumps"
+    ]
+    assert reconcile_calls and terminal_calls and serializations
+    reconcile_line = max(node.lineno for node in reconcile_calls)
+    serialization_line = min(node.lineno for node in serializations)
+    terminal = max(
+        (node for node in terminal_calls if reconcile_line < node.lineno < serialization_line),
+        key=lambda node: node.lineno,
+    )
+    assert isinstance(terminal.args[1], ast.Name)
+    assert terminal.args[1].id == "safe_payload"

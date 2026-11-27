@@ -5,6 +5,8 @@ import json
 import pytest
 
 import general_guide_composition as guide
+from social_mechanism_grounding_contract import has_grounded_mechanism_example
+from gold_star_response_floor import evaluate_response_floor
 
 
 QUESTION = "How do myths, symbols, and stories organize collective life?"
@@ -33,7 +35,7 @@ def test_developed_illustration_demonstrates_the_mechanism():
         "visible, memorable, and emotionally meaningful. They can establish who is included, what "
         "conduct is admired, and which obligations feel legitimate. For example, a national flag "
         "can remind people that they belong to a political community larger than their household; "
-        "at a public ceremony, that symbol coordinates attention and expresses a shared commitment. "
+        "people gather at a public ceremony and coordinate attention around the symbol, so that the gathering expresses a shared commitment. "
         "The effect is not automatic: people may interpret the same symbol differently or reject "
         "the story attached to it."
     )
@@ -65,8 +67,9 @@ def test_parser_accepts_mechanism_explanation_with_bounded_illustration():
         "Myths, symbols, and stories organize collective life by making shared expectations, "
         "belonging, and authority visible and memorable. They help people interpret who belongs "
         "and which obligations are treated as legitimate. For example, a national flag can remind "
-        "people that they belong to a political community larger than their household; at a public "
-        "ceremony, the symbol coordinates attention and expresses a shared commitment. The effect "
+        "people that they belong to a political community larger than their household; people "
+        "gather at a public ceremony and coordinate attention around the symbol, so that the gathering "
+        "expresses a shared commitment. The effect "
         "is not automatic, because people can interpret the same symbol differently or reject the "
         "story attached to it."
     )
@@ -94,6 +97,57 @@ def test_mechanism_claim_after_example_boundary_cannot_spoof_the_example():
 def test_example_can_explain_mechanism_in_a_single_grounded_sentence():
     response = (
         "A shared story may be repeated at a public gathering. "
-        "For example, a community pledge reminds members of their mutual obligations."
+        "For example, community members recite a pledge together so that the ritual reminds them of mutual obligations."
     )
     assert guide._has_grounded_illustrative_example(response)
+
+
+def test_symbol_name_and_generic_verb_are_not_a_developed_mechanism():
+    response = "For example, a flag reminds people of their identity. Symbols influence communities and reinforce shared values."
+    assert not has_grounded_mechanism_example(response)
+
+
+def test_grounded_example_requires_setting_practice_and_social_effect():
+    response = ("For example, a village retells its founding story at an annual gathering. "
+                "Residents display a carved marker and renew a volunteer rota, so the story "
+                "makes mutual aid part of local identity and turns remembrance into coordinated work.")
+    assert has_grounded_mechanism_example(response)
+
+
+def test_visitor_floor_rejects_abstract_only_mechanism_answer():
+    answer = "Myths, symbols, and stories organize collective life by shaping shared expectations and belonging. Repeated narratives influence how communities coordinate behavior."
+    result = evaluate_response_floor(QUESTION, {"ok": True, "response": answer})
+    assert result["status"] == "fail"
+    assert result["reason"] == "social_mechanism_example_not_demonstrated"
+
+
+
+def test_mechanism_elements_split_across_sentences_do_not_form_a_causal_example():
+    response = (
+        "For example, a village displays a flag. Residents sing at an annual gathering. "
+        "The town coordinates mutual aid because shared symbols reinforce identity."
+    )
+    assert not has_grounded_mechanism_example(response)
+
+def test_exact_live_visitor_near_miss_is_rejected_during_composition():
+    """The screenshot's abstract answer must fail before it reaches the outer boundary."""
+    response = (
+        "A useful starting point is to ask how myths, symbols, and stories organize "
+        "collective life works through particular conditions rather than assuming a "
+        "single direct cause. Repeated signals, incentives, relationships, constraints, "
+        "and consequences can make some choices feel normal, rewarded, risky, or difficult "
+        "even when formal rules say something different.\\n\\n"
+        "The next question is what mechanisms are actually operating: what people observe "
+        "others doing, what behavior is rewarded or tolerated, whose judgment carries "
+        "authority, and what happens when concerns are raised. Patterns become more "
+        "consequential when these conditions reinforce one another over time and make "
+        "correction harder or easier.\\n\\n"
+        "This is a starting explanation rather than a claim about a specific case. A "
+        "stronger account identifies the relationships and evidence that matter, "
+        "distinguishes influence from proof of causation, and remains open to other "
+        "conditions that may change the outcome."
+    )
+    parse = guide._parse_factory([], query=QUESTION, emit_telemetry=False)
+    with pytest.raises(ValueError, match="must include one concrete illustrative example"):
+        parse(json.dumps({"response": response}))
+
