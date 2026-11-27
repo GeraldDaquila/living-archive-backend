@@ -367,7 +367,8 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
         ("fallback_provider", "fallback-model"),
     ]
     assert parser_calls == ["incomplete-primary-output", "complete-fallback-output"]
-    assert ("fallback_provider", 1) in timeout_candidates
+    # The provider route loop is one-based: the next candidate is attempt 2.
+    assert ("fallback_provider", 2) in timeout_candidates
 
 
 def test_guide_contract_repair_preserves_viable_independent_fallback_timeout():
