@@ -492,16 +492,14 @@ def _build_general_guide_system_message(
     )
     if humility_spiritual_maturity_relationship:
         parts.append(
-            "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT: "
-            "Explain the relationship through its actual mechanisms, not as a slogan or a hierarchy. "
-            "State directly that humility supports spiritual maturity, and explain how it supports learning: "
-            "use the ideas of being willing to learn or remaining teachable, honest self-appraisal or self-awareness, "
-            "and accepting correction or accountability. Describe spiritual maturity as lived conduct in actions "
-            "and relationships, not claimed status. Explicitly distinguish humility from self-erasure, diminished "
-            "self-worth, or self-contempt; state that it does not require surrendering appropriate boundaries; "
-            "and distinguish it from passivity, blind obedience, or automatic compliance. State that humility alone "
-            "does not guarantee maturity. State that the relationship is conditional, not automatic. Do not present spiritual status as objectively certified or turn the answer "
-            "into generic therapeutic advice. Answer the visitor directly before offering any doorway."
+            "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences. "
+            "(1) Humility supports spiritual maturity by keeping a person teachable and willing to learn, "
+            "honest in self-appraisal, and open to accepting correction and accountability. "
+            "(2) Spiritual maturity is lived conduct in actions and relationships, not claimed status; "
+            "humility alone does not guarantee it, and the relationship is conditional, not automatic. "
+            "(3) Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
+            "or automatic compliance, and does not require surrendering appropriate boundaries. "
+            "Do not certify spiritual status or offer generic therapeutic advice; answer the visitor directly."
         )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())
