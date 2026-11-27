@@ -9155,7 +9155,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "compassionate_epistemic_grounding_during_metaphysical_distress",
         "transferable_discipline": "For metaphysical certainty-seeking during distress, acknowledge the human need beneath the question before analysis; distinguish lived experience, belief or hope, interpretation, tradition-specific meaning, and what evidence can establish; state unverifiable claims honestly without ridiculing belief or claiming special authority; support present-moment grounding, provisional belief or leaving the question open, independent judgment, and trusted human support or immediate help when safety is at risk.",
-        "abstention_boundary": "Immutable response-quality exemplar only. Do not copy the exact answer to other questions, assert unverifiable metaphysical claims as fact, diagnose the person, infer their beliefs or history, or grant deterministic fallback or runtime/adaptive transfer. Apply only to metaphysical certainty-seeking in the context of fear, grief, or distress, not ordinary philosophical, theological, or academic questions. The related-reading title was visible but its canonical URL was not captured; do not infer a destination.",
+        "abstention_boundary": "NOT_EVALUATED: Immutable response-quality exemplar only. Do not copy the exact answer to other questions, assert unverifiable metaphysical claims as fact, diagnose the person, infer their beliefs or history, or grant deterministic fallback or runtime/adaptive transfer. Apply only to metaphysical certainty-seeking in the context of fear, grief, or distress, not ordinary philosophical, theological, or academic questions. The related-reading title was visible but its canonical URL was not captured; do not infer a destination.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-27",
@@ -9163,9 +9163,7 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
-      "exact_answer_authority": false,
-      "paired_active_benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
-      "pairing_note": "Paired only as a related epistemic-quality review reference. This does not grant runtime transfer, exact-answer authority, deterministic fallback, shared doorway, or selector candidacy."
+      "exact_answer_authority": false
     }
   ],
   "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. The metaphysical-certainty-during-distress screenshot remains a near-miss negative regression only, not an approved Gold Star. Inventory counts remain at 141 approved records and 181 total records.",
