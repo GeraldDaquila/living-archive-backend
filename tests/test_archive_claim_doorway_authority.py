@@ -86,7 +86,7 @@ def test_public_commons_governance_question_selects_knowledge_sensemaking_doorwa
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": (
-            "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve."
+            "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. A Guide must help preserve the conditions that make shared knowledge trustworthy."
         ),
     }
     assert result["doorway_title"] == result["recommendation"]["title"]
@@ -111,7 +111,7 @@ def test_public_commons_gold_star_contract_is_enforced_for_provider_and_determin
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": (
-            "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve."
+            "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. A Guide must help preserve the conditions that make shared knowledge trustworthy."
         ),
     }
     provider_result = main._guide_finalize_visitor_payload(provider_payload, query)
