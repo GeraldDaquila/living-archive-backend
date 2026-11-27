@@ -25,7 +25,7 @@ from social_mechanism_grounding_contract import (
 
 VERSION = "2.2"
 SEMANTIC_SHADOW_VERSION = "1.1"
-SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure", "comparison", "lived_reflective_inquiry", "epistemic_distress", "epistemic_distress_guidance"})
+SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure", "conceptual_relationship", "comparison", "lived_reflective_inquiry", "epistemic_distress", "epistemic_distress_guidance"})
 ANSWER_KEYS = ("response", "answer")
 NON_ANSWER_MARKERS = (
     "i cannot answer that question",
