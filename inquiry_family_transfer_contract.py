@@ -23,7 +23,7 @@ _LIVED_FRAME = re.compile(
     r"reconcile|integrate|heal|recover|remain|stay)\b",
     re.I,
 )
-_GOVERNANCE_QUERY = re.compile(r"\\b(?:community|communities|organization|organisation|institution|team|board|policy|rule|governance|stakeholder)\\b", re.I)\n_GOVERNANCE_ACTION = re.compile(r"\\b(?:decision|decide|authority|accountability|responsibility|outcome|rule|policy|tradeoff|limits?|restrict|allocate)\\b", re.I)\n\n_GOVERNANCE_FAMILY = re.compile(\n    r"(?:governance|institution|organiz|community|stakeholder|decision|"
+_GOVERNANCE_QUERY = re.compile(r"\b(?:community|communities|organization|organisation|institution|team|board|policy|rule|governance|stakeholder)\b", re.I)\n_GOVERNANCE_ACTION = re.compile(r"\b(?:decision|decide|authority|accountability|responsibility|outcome|rule|policy|tradeoff|limits?|restrict|allocate)\b", re.I)\n\n_GOVERNANCE_FAMILY = re.compile(\n    r"(?:governance|institution|organiz|community|stakeholder|decision|"
     r"accountab|power|authority|rule|policy|tradeoff|trade_off|"
     r"ethical_governance|systems_consequence|preaction)",
     re.I,
