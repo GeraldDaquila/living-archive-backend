@@ -283,8 +283,8 @@ def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
         5.64, 4.99, "healthy"
     ) == 5.64
 
-    # Half-open candidates retain their narrower, explicitly supported probe.
+    # Half-open candidates retain their explicitly supported probe minimum.
     assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
-        8.0, 3.0, "half_open"
+        10.0, 6.5, "half_open"
     ) == 5.0
 
