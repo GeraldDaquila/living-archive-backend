@@ -1302,6 +1302,15 @@
       "qualifying_context": "Reflective questions about pain, suffering, identity, self-continuity, and how a person can acknowledge painful experience without allowing it to define the whole self.",
       "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-myths-symbols-stories-collective-life-2026-11-27",
+      "question": "How do myths, symbols, and stories organize collective life?",
+      "reasoning_family": "social_symbolic_mechanism_and_collective_coordination",
+      "transferable_discipline": "Demonstrate how a shared narrative or symbol becomes a repeated public practice, communicates expectations or identity, and contributes to coordinated behaviour. Distinguish narrative, symbol, and practice; preserve contestation and unequal power; distinguish influence from proof.",
+      "qualifying_context": "Questions asking how myths, symbols, stories, rituals, traditions, or shared narratives shape collective identity, norms, authority, cooperation, or social order.",
+      "abstention_boundary": "Do not apply to simple definitions, literary interpretation, personal storytelling, or factual questions. Do not transfer the exemplar's village, flood, carved marker, volunteer rota, or wording as factual claims. Require a fresh example suited to the question, identify it as illustrative where appropriate, and do not imply uniform influence or causal proof.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
