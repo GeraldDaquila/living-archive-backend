@@ -945,3 +945,66 @@ def test_transparency_trust_heldout_accepts_causal_and_reciprocal_equivalent_lan
     }
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
+
+
+def test_response_quality_exemplar_does_not_require_exact_delivery_without_authority():
+    record = {
+        "status": "USER_APPROVED_GOLD_STANDARD",
+        "expected_response": "The frozen exemplar answer.",
+        "gold_star_capabilities": {
+            "generation_class": "user_approved_response_quality_exemplar",
+            "exact_answer_authority": False,
+            "active_quality_contributor": False,
+            "deterministic_fallback_eligible": False,
+        },
+        "assertions": ["Preserve the transferable reasoning discipline."],
+        "freeze_policy": "immutable_user_approved_gold_standard",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": "A different but non-empty answer for human quality review."},
+    }
+    checks = evaluate_gold(record, transport)
+    assert all(item["passed"] for item in checks), checks
+    assert not any(item["name"] == "exact_answer" for item in checks)
+
+
+def test_explicit_no_exact_authority_overrides_legacy_freeze_language():
+    record = {
+        "status": "USER_APPROVED_GOLD_STANDARD",
+        "expected_response": "The frozen exemplar answer.",
+        "gold_star_capabilities": {
+            "generation_class": "user_approved_response_quality_exemplar",
+            "exact_answer_authority": False,
+            "deterministic_fallback_eligible": False,
+        },
+        "assertions": ["Use the exact approved reference answer."],
+        "freeze_policy": "Do not change expected_response.",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": "A different answer for human quality review."},
+    }
+    checks = evaluate_gold(record, transport)
+    assert all(item["passed"] for item in checks), checks
+    assert not any(item["name"] == "exact_answer" for item in checks)
+
+
+def test_explicit_exact_answer_authority_enforces_frozen_answer():
+    record = {
+        "status": "USER_APPROVED_GOLD_STANDARD",
+        "expected_response": "The approved answer.",
+        "gold_star_capabilities": {"exact_answer_authority": True},
+        "assertions": [],
+        "freeze_policy": "immutable_user_approved_gold_standard",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": "Changed answer."},
+    }
+    checks = evaluate_gold(record, transport)
+    exact = next(item for item in checks if item["name"] == "exact_answer")
+    assert exact["passed"] is False
