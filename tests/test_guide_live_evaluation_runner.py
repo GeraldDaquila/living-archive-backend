@@ -482,7 +482,7 @@ def test_humility_spiritual_maturity_live_case_requires_attributable_relational_
         "and care in relationships, rather than a status someone claims. Humility is not "
         "self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
         "or automatic compliance; it does not mean surrendering appropriate boundaries. "
-        "Humility alone does not guarantee maturity; it must be expressed in how a person acts."
+        "The relationship is conditional, not automatic. Humility alone does not guarantee maturity; it must be expressed in how a person acts."
     )
     expected_doorway = {
         "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
