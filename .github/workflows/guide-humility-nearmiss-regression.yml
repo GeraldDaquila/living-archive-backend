@@ -6,6 +6,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "tests/test_humility_spiritual_maturity_contract.py"
       - "tests/test_general_guide_provider_parse_contract.py"
       - "tests/test_guide_humility_spiritual_maturity_doorway.py"
       - "tests/test_answer_doorway_mobile_presentation.py"
@@ -18,6 +20,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "humility_spiritual_maturity_contract.py"
+      - "tests/test_humility_spiritual_maturity_contract.py"
       - "tests/test_general_guide_provider_parse_contract.py"
       - "tests/test_guide_humility_spiritual_maturity_doorway.py"
       - "tests/test_answer_doorway_mobile_presentation.py"
