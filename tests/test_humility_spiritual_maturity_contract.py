@@ -4,6 +4,8 @@ import json
 import pytest
 
 import general_guide_composition as composition
+import gold_star_lessons
+from provider_quota_control import estimate_input_tokens
 from general_guide_composition import _parse_factory
 from humility_spiritual_maturity_contract import (
     evaluate_humility_spiritual_maturity_response,
@@ -56,9 +58,25 @@ def test_provider_prompt_and_admission_parser_share_the_humility_contract():
     assert "evaluate_humility_spiritual_maturity_response" in parser_source
     assert "humility/spiritual-maturity answer is incomplete" in parser_source
     system_message = composition._build_general_guide_system_message(QUERY)
-    assert "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT" in system_message
+    assert "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences." in system_message
     assert "honest self-appraisal" in system_message
     assert "blind obedience" in system_message
+
+
+def test_humility_provider_prompt_keeps_headroom_under_groq_tpm_budget():
+    quality = gold_star_lessons.active_quality_contribution(QUERY)
+    assert quality and len(quality.get("candidates") or []) == 3
+    messages = composition._build_general_guide_provider_messages(
+        QUERY,
+        "U" * 7000,
+        has_gold_star_guidance=True,
+        incomplete_knowledge_plan=composition.build_incomplete_knowledge_plan(QUERY),
+        gold_star_quality_instruction=composition._build_gold_star_quality_instruction(quality),
+    )
+
+    assert len(messages[1]["content"]) == composition.GENERAL_GUIDE_PROVIDER_USER_CONTENT_MAX_CHARS
+    # Keep at least 500 tokens of headroom below the configured 8k TPM ceiling.
+    assert estimate_input_tokens(messages) + 750 <= 7500
 
 
 def test_provider_parser_rejects_incomplete_humility_relationship_answer():
