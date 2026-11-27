@@ -3838,22 +3838,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             finally:
                 _PROVIDER_OPERATION_CONTEXT.reset(_operation_token)
             try:
-                parsed = parse(raw_output)
-            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-                # Transport-successful but unparsable output is a provider
-                # response failure, not an application-owned composition
-                # rejection. Record health and move to the next eligible lane.
-                raise ProviderCallError(
-                    provider + "/" + model + " returned invalid JSON",
-                    provider, model, category="invalid_provider_response"
-                ) from exc
-            if not isinstance(parsed, dict):
-                raise ProviderCallError(
-                    provider + "/" + model + " returned a non-object response",
-                    provider, model, category="invalid_provider_response"
+                try:
+                    parsed = parse(raw_output)
+                except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                    # Transport-successful but unparsable output is a provider
+                    # response failure, not an application-owned composition
+                    # rejection. Record health and move to the next eligible lane.
+                    raise ProviderCallError(
+                        provider + "/" + model + " returned invalid JSON",
+                        provider, model, category="invalid_provider_response"
+                    ) from exc
+                if not isinstance(parsed, dict):
+                    raise ProviderCallError(
+                        provider + "/" + model + " returned a non-object response",
+                        provider, model, category="invalid_provider_response"
+                    )
+                # Parser-owned semantic contracts and the operation envelope
+                # are one admission boundary. A parser ValueError must enter
+                # the same bounded correction path as a normalization ValueError;
+                # otherwise task-specific Guide failures are terminal before
+                # the model can receive its one allowed correction.
+                parsed = _normalize_operation_result(
+                    operation, parsed, messages=effective_messages
                 )
-            try:
-                parsed = _normalize_operation_result(operation, parsed, messages=effective_messages)
             except ValueError as contract_error:
                 if not _evaluation_contract_repair_allowed(evaluation):
                     # A paired arm is one generation, not a generation plus a
