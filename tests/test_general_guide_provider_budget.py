@@ -1284,7 +1284,7 @@ def test_openai_compatible_adapter_extracts_typed_text_blocks(monkeypatch):
         timeout=5,
     )
 
-    assert str(output) == '{"response":"A grounded answer."}'
+    assert str(output) == '{"response": "A grounded answer."}'
     assert output.completion_tokens == 42
 
 
