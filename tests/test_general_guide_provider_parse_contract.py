@@ -461,3 +461,9 @@ def test_sanitizer_removes_orphan_after_an_earlier_paired_single_quoted_span():
     assert composition._sanitize_candidate(response) == (
         "The phrase 'stay grounded.' captures the point. An orphan remains."
     )
+
+def test_sanitizer_preserves_curly_apostrophe_inside_a_paired_quote_before_orphan():
+    response = "The phrase ‘it’s grounded.’ captures the point. An orphan remains.'"
+    assert composition._sanitize_candidate(response) == (
+        "The phrase ‘it’s grounded.’ captures the point. An orphan remains."
+    )
