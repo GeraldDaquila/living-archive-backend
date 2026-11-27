@@ -177,6 +177,24 @@ def test_off_target_lived_response_gets_one_bounded_repair_without_touching_eval
     assert "on_target_repair_accepted" in source
     assert "repair_unavailable_or_still_off_target" in source
 
+def test_epistemic_distress_classifier_covers_natural_bereavement_paraphrases():
+    # Visitors should not need academic terms such as "metaphysical" or
+    # "epistemic" for the same vulnerable certainty-seeking need to be recognized.
+    paraphrases = (
+        "My wife died. Is she still somewhere?",
+        "I am frightened that death means everything disappears. Can anyone know?",
+        "My child is gone and I need to know whether the soul survives.",
+    )
+    for query in paraphrases:
+        result = classify_inquiry_family(query)
+        assert result["family"] == "epistemic_distress"
+
+    # Neither metaphysical curiosity nor distress alone should trigger this
+    # specialized response family.
+    assert classify_inquiry_family("Does consciousness continue after death?")["family"] == "unknown"
+    assert classify_inquiry_family("I am grieving and frightened about the future.")["family"] != "epistemic_distress"
+
+
 def test_epistemic_distress_question_is_classified_and_contracts_the_response():
     query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
     family = classify_inquiry_family(query)
