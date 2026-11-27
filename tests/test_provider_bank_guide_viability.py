@@ -80,6 +80,8 @@ def test_openai_compatible_adapter_extracts_typed_text_blocks(monkeypatch):
 
     assert str(output) == '{"response": "A grounded answer."}'
     assert output.completion_tokens == 42
+    assert output.finish_reason == "stop"
+    assert not provider_bank._provider_output_was_truncated(output)
 
 
 def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monkeypatch):
@@ -470,3 +472,12 @@ def test_provider_output_does_not_misclassify_normal_stop():
     output = provider_bank.ProviderOutput("A complete answer.", finish_reason="stop")
     assert output.finish_reason == "stop"
     assert not provider_bank._provider_output_was_truncated(output)
+
+
+def test_provider_bank_rejects_truncated_output_before_invoking_parser():
+    import inspect
+
+    source = inspect.getsource(provider_bank.route)
+    truncation_guard = source.index("_provider_output_was_truncated(raw_output)")
+    parser_invocation = source.index("parsed = parse(raw_output)")
+    assert truncation_guard < parser_invocation
