@@ -63,3 +63,20 @@ def test_unrelated_mechanism_word_cannot_substitute_for_a_conceptual_link():
     result = evaluate_semantic_contract(QUERY, {"ok": True, "response": answer})
     assert result["status"] == "fail"
     assert "connecting_mechanism_explained" in result["hard_failures"]
+
+
+def test_outer_response_floor_preserves_a_valid_relationship_synthesis():
+    answer = (
+        "Humility is the willingness to recognize the limits of one's understanding, "
+        "while spiritual maturity is the capacity to live with discernment, compassion, "
+        "and responsibility. Humility supports spiritual maturity because it keeps a "
+        "person open to correction and learning. In turn, spiritual maturity deepens "
+        "humility by reducing the need to claim superiority or certainty. This relationship "
+        "is not automatic: humility must be joined to honest reflection and action."
+    )
+    payload, status = apply_response_floor_boundary(
+        QUERY, {"ok": True, "query": QUERY, "response": answer}, 200
+    )
+    assert status == 200
+    assert payload["ok"] is True
+    assert payload["gold_star_v2_quality_floor"]["status"] != "fail"
