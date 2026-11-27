@@ -4,10 +4,7 @@
   "subsystem": "general-purpose-guide",
   "query": "How should a person hold pain without turning it into a total identity?",
   "expected_response": "Pain can be held as something a person experiences without becoming the whole of who they are. The distinction is between carrying pain and being defined by it. Pain is real and may shape a person's responses, memories, and choices, but it does not have to occupy every role in a life. A person can acknowledge that pain is present while also noticing the parts of themselves that exist beside it—curiosities, relationships, skills, humor, care for others, and moments of relief or joy.\n\nOne way to hold this distinction is to shift language from 'I am my pain' to 'I am living with pain' or 'pain is part of my story, not the whole story.' This does not mean minimizing the pain or pretending it doesn't matter. It means refusing to let it edit out everything else.\n\nPractically, this can look like naming the pain when it arises, then deliberately attending to something else that is also true in the same moment—a conversation, a task, a sensation, a value. Over time, that back-and-forth builds evidence that a self can contain pain without being reduced to it. Relationships help too: being seen by others for more than one's suffering reminds a person that their identity extends beyond what hurts.\n\nThere is no fixed timeline or correct way to do this. Some days the pain may feel total, and that does not mean the person has failed or that the distinction has collapsed. Holding pain without identity reduction is an ongoing practice, not a permanent achievement.\n\nIf pain is overwhelming, persistent, or interfering with daily life, speaking with a trusted clinician or counselor can offer support that this general reflection cannot replace.",
-  "expected_doorway": {
-    "title": "From Fragmented Souls to Sovereign Stewards: Reclaiming Identity After 500 Years of Institutional Trauma",
-    "url": null
-  },
+  "expected_doorway": null,
   "doorway_status": "NOT_EVALUATED",
   "rating_out_of_10": 9,
   "assertions": [
@@ -28,5 +25,6 @@
     "approval_record": "The user explicitly instructed 'elevate to gold star' after reviewing the exact visitor-facing screenshot. This authorizes immutable response-level Gold Star elevation; it does not establish adaptive application or measured visitor outcome improvement.",
     "review_assessment": "Assistant assessment: 9.0/10. This is an evaluator assessment, not a user-assigned numerical rating."
   },
-  "freeze_policy": "immutable_user_approved_gold_standard"
+  "freeze_policy": "immutable_user_approved_gold_standard",
+  "visible_continuation_title": "From Fragmented Souls to Sovereign Stewards: Reclaiming Identity After 500 Years of Institutional Trauma"
 }
