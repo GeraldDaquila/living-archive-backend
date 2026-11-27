@@ -9222,9 +9222,65 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested."
+    },
+    {
+      "benchmark_id": "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How do myths, symbols, and stories organize collective life?",
+      "expected_response": "Myths, symbols, and stories help organize collective life by giving people shared ways to interpret events, recognize obligations, and understand who belongs. A story can explain why a community observes a custom; a symbol can make that story recognizable in public; and a repeated ceremony can turn an idea into a coordinated practice. These forms do not control everyone in the same way: people can interpret them differently, challenge their meaning, or refuse the obligations attached to them.\n\nFor example, in a coastal village facing seasonal floods, residents retell a story of a past rescue, gather around a painted boat symbol at an annual meeting, and renew a shared watch rota, which means the story and symbol make mutual obligations visible and coordinate who checks on which households. The mechanism is practical: a shared account makes the reason for cooperation memorable, the public symbol signals that the commitment is held in common, and the meeting assigns responsibilities that residents can see and review. The story does not itself build flood defences or guarantee cooperation; people, resources, trust, and fair procedures still determine what happens.\n\nThe same process can bind people together or exclude them. A founding story may encourage mutual aid, but it may also define some residents as outsiders; a ceremony may renew commitment, but it may silence disagreement if only one interpretation is permitted. To understand a particular community, look at who tells the story, who is represented by the symbol, what people actually do together, who carries the costs, and whether those affected can question or revise the shared account. This is a general conceptual explanation, not a claim that the Living Archive defines these forms in exactly these words.",
+      "expected_doorway": null,
+      "assertions": [
+        "Preserve the exact three-paragraph visitor-facing answer as an immutable response-quality exemplar.",
+        "Explain how stories provide shared interpretation and memory, symbols make meaning publicly recognizable, and repeated ceremonies coordinate practice and obligations.",
+        "Use the coastal-village flood-watch example to connect shared narrative, visible symbol, and assigned/reviewable responsibilities.",
+        "Distinguish symbolic coordination from material outcomes: stories and symbols do not themselves build flood defences or guarantee cooperation.",
+        "Recognize that shared stories and symbols can bind people together and can also exclude, silence disagreement, or privilege one interpretation.",
+        "Make representation, cost-bearing, participation, and the ability to question or revise shared accounts visible.",
+        "Preserve the explicit boundary between general conceptual explanation and formal Living Archive doctrine.",
+        "Keep the continuation resource separate from the substantive answer; do not infer its canonical URL from the screenshot.",
+        "Do not transfer the exact answer, coastal-village example, claims, or doorway to unrelated questions."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing response, explicitly elevated by the user.",
+        "source_path": "conversation attachment image(20261127-222626).png",
+        "source_date": "2026-11-27",
+        "evidence_boundary": "The screenshot establishes the displayed question, exact three-paragraph answer, and visible Continue Exploring title and explanatory text. The canonical destination URL was not captured; the title is recorded as observed but not as a verified doorway. The screenshot does not establish provider provenance, adaptive application, or measured transfer.",
+        "review_assessment": "Assistant assessment: 8.9/10. This is an assistant assessment, not a user-assigned numerical rating.",
+        "visible_continuation_title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+        "visible_continuation_copy": "This related Living Archive resource offers a further point of exploration for the subject raised in your question. It is a separate reading pathway, not a claim that this page is the source of every statement in the answer."
+      },
+      "rating": null,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "assistant_assessment_out_of_10": 8.9,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR ANSWER REVIEWED; RESPONSE-QUALITY EXEMPLAR ONLY",
+      "runtime_transfer": false,
+      "reasoning_family": "stories-symbols-ceremonies-shared-meaning-and-collective-coordination",
+      "transferable_lesson": "This record is approved as a standalone response-quality exemplar only. It demonstrates a clear explanatory progression from shared narrative to public symbol to coordinated practice, tests the mechanism in a concrete example, acknowledges both cohesion and exclusion, and distinguishes general explanation from institutional doctrine. It is not approved as a transferable runtime lesson.",
+      "transfer_boundary": "Immutable response-quality exemplar only. Do not copy the exact answer, coastal-village example, claims, or doorway to other questions. Do not infer that myths or symbols automatically produce cohesion, legitimate authority, fair participation, or material outcomes. Do not attribute these general explanations to formal Living Archive doctrine without an authoritative source. Runtime/adaptive transfer, deterministic fallback, and exact-answer authority are not authorized. The continuation title is visible but its canonical URL was not captured; do not infer a destination.",
+      "known_theme": "myths symbols stories collective life shared meaning public symbols ritual coordination belonging cohesion exclusion representation and institutional legitimacy",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "stories-symbols-ceremonies-shared-meaning-and-collective-coordination",
+        "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved.",
+        "abstention_boundary": "NOT_EVALUATED: The visible continuation title has no captured canonical URL. Do not infer a destination, copy the exact answer, coastal-village example, claims, or doorway to other questions, or attribute general conceptual claims to formal Living Archive doctrine without authoritative evidence.",
+        "standalone_response_quality_exemplar": true
+      },
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user explicitly instructed “elevate to gold star” after reviewing the live visitor-facing screenshot and the assistant's 8.9/10 assessment. This authorizes immutable Gold Star response-quality exemplar status only; it does not authorize exact-answer copying, deterministic fallback, or runtime/adaptive transfer.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "No human-facing display serial was requested; benchmark_id remains the stable identity.",
+      "exact_answer_authority": false
     }
   ],
-  "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. The metaphysical-certainty-during-distress screenshot remains a near-miss negative regression only, not an approved Gold Star. Inventory counts remain at 141 approved records and 181 total records.",
+  "last_reconciliation_note": "Added the user-approved myths-symbols-stories collective-life response as an immutable standalone response-quality exemplar. Preserved the independently approved humility-and-spiritual-maturity structural-learning contributor already on main. The new myths/symbols record does not enter runtime/adaptive transfer, exact-answer authority, or deterministic fallback. Its visible continuation title is recorded as observed but its canonical URL is not inferred. Inventory reconciled against the full approved record set.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -9467,23 +9523,23 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-27",
-    "approved_gold_star_count": 142,
-    "registry_record_count": 182,
-    "review_reconciliation": "Canonical inventory contains 142 USER_APPROVED_GOLD_STANDARD records: 138 active structural-learning contributors, 1 approved exact-query-only successor, 2 approved response-quality exemplars without runtime transfer, and 1 superseded historical reference. The metaphysical-certainty response is approved solely as an immutable response-quality exemplar; its exact answer, unverified doorway URL, deterministic fallback, and runtime/adaptive transfer are not authorized. The earlier off-target governance response remains a negative regression fixture. Approval does not assert held-out transfer or measured visitor outcome improvement.",
+    "last_audit_date": "2026-11-28",
+    "approved_gold_star_count": 144,
+    "registry_record_count": 184,
+    "review_reconciliation": "Canonical inventory contains 144 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 3 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The humility-and-spiritual-maturity record remains an active bounded structural-learning contributor; the myths-symbols-stories and metaphysical-certainty records are immutable response-quality exemplars only. Exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled for the myths-symbols-stories exemplar. Approval does not assert held-out transfer or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-27: 142 approved Gold Stars; 39 assigned display serials #56–#94; 103 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the metaphysical-certainty response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 103,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 144 approved Gold Stars; 39 assigned display serials #56–#94; 105 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the myths-symbols-stories response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 105,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 138,
+    "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-metaphysical-certainty-distress-response-exemplar-2026-11-27 approved by user 2026-11-27",
+    "last_approval": "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 2
+    "approved_response_quality_exemplar_count": 3
   },
-  "last_reconciled": "2026-11-27"
+  "last_reconciled": "2026-11-28"
 }
