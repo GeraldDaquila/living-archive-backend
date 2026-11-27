@@ -24,13 +24,13 @@ INCOMPLETE = (
 COMPLETE = (
     "A rule needs a legitimate shared purpose and demonstrable harm, not simply a "
     "majority preference. Test whether the restriction is necessary and proportionate, "
-    "and whether a less restrictive workable alternative could address the shared need. "
+    "and whether a less restrictive workable alternative could address the shared need.\n\n"
     "Identify who benefits, who bears the costs, and whose liberty is restricted so the "
     "burden is allocated fairly. Provide reasonable accommodation for people whose "
-    "circumstances or needs differ. People most affected should have a meaningful "
-    "opportunity to shape the rule before it is adopted, not merely appeal afterward. "
-    "Provide a route to appeal or challenge its application and observable criteria for "
-    "reviewing whether the rule remains necessary and fair."
+    "circumstances or needs differ.\n\n"
+    "People most affected should have a meaningful opportunity to shape the rule before "
+    "it is adopted, not merely appeal afterward. Provide a route to appeal or challenge "
+    "its application and observable criteria for reviewing whether the rule remains necessary and fair."
 )
 
 
