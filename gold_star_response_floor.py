@@ -124,7 +124,14 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     # Exempt a terminal Markdown list item or heading; prose must finish its final
     # sentence rather than exposing an unfinished trailing clause.
     final_line = answer.rstrip().splitlines()[-1].strip() if answer.rstrip() else ""
-    terminal_sentence = bool(re.search(r'[.!?…][\"’”\\')\\]}}]*\\s*    if len(answer) > 30000:
+    terminal_candidate = answer.rstrip()
+    while terminal_candidate and terminal_candidate[-1] in "\"'”’)]}":
+        terminal_candidate = terminal_candidate[:-1].rstrip()
+    terminal_sentence = bool(terminal_candidate and terminal_candidate[-1] in ".!?…")
+    terminal_structure = bool(re.match(r"^(?:[-*+]\\s+|\\d+[.)]\\s+|#{1,6}\\s+)", final_line))
+    if not terminal_sentence and not terminal_structure:
+        return {"version": VERSION, "status": "fail", "reason": "incomplete_answer_ending"}
+    if len(answer) > 30000:
         return {"version": VERSION, "status": "fail", "reason": "answer_exceeds_contract_limit"}
     if re.search(r"<\s*(?:script|style|html|body|iframe)\b", answer, re.I):
         return {"version": VERSION, "status": "fail", "reason": "unsafe_markup"}
