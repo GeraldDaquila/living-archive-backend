@@ -9409,23 +9409,23 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-27",
-    "approved_gold_star_count": 142,
-    "registry_record_count": 182,
-    "review_reconciliation": "Canonical inventory contains 142 USER_APPROVED_GOLD_STANDARD records: 138 active structural-learning contributors, 1 approved exact-query-only successor, 2 approved response-quality exemplars without runtime transfer, and 1 superseded historical reference. The metaphysical-certainty response is approved solely as an immutable response-quality exemplar; its exact answer, unverified doorway URL, deterministic fallback, and runtime/adaptive transfer are not authorized. The earlier off-target governance response remains a negative regression fixture. Approval does not assert held-out transfer or measured visitor outcome improvement.",
+    "last_audit_date": "2026-11-28",
+    "approved_gold_star_count": 144,
+    "registry_record_count": 184,
+    "review_reconciliation": "Canonical inventory contains 144 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 3 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The humility-and-spiritual-maturity record remains an active bounded structural-learning contributor; the myths-symbols-stories and metaphysical-certainty records are immutable response-quality exemplars only. Exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled for the myths-symbols-stories exemplar. Approval does not assert held-out transfer or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-27: 142 approved Gold Stars; 39 assigned display serials #56–#94; 103 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the metaphysical-certainty response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 103,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 144 approved Gold Stars; 39 assigned display serials #56–#94; 105 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the myths-symbols-stories response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 105,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 138,
+    "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-metaphysical-certainty-distress-response-exemplar-2026-11-27 approved by user 2026-11-27",
+    "last_approval": "general-guide-myths-symbols-stories-collective-life-exemplar-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 2
+    "approved_response_quality_exemplar_count": 3
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
