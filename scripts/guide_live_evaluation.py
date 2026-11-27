@@ -474,6 +474,8 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
         no_orphaned_terminal_quote = not bool(re.search(r"(?<=[.!?])['’]\s*$", answer))
         out += [
             check("names_both_concepts", humility_checks.get("names_both_concepts", False), "Address humility and spiritual maturity as distinct but related concepts."),
+            check("relationship_mechanism", humility_checks.get("relationship_mechanism", False), "Explain in one sentence how humility supports spiritual maturity."),
+            check("relationship_direction_or_boundary", humility_checks.get("relationship_direction_or_boundary", False), "State that the relationship is conditional or not automatic."),
             check("humility_supports_learning_and_correction", humility_checks.get("humility_supports_learning_and_correction", False), "Explain how humility supports learning, honest self-appraisal, correction, and openness or accountability."),
             check("maturity_as_lived_conduct", humility_checks.get("maturity_as_lived_conduct", False), "Describe maturity as lived conduct rather than claimed status."),
             check("not_self_erasure_or_self_contempt", humility_checks.get("not_self_erasure_or_self_contempt", False), "Distinguish humility from self-erasure, diminished self-worth, or self-contempt."),
