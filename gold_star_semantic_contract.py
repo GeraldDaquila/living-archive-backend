@@ -49,7 +49,7 @@ def classify_question(query: str) -> dict[str, Any]:
     if inquiry_family == "personal_lived_reflective":
         return {"version": VERSION, "type": "lived_reflective_inquiry", "confidence": "high"}
     # Explicit user constraints take precedence over generic task verbs.
-    for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
+    for kind in ("explicit_no_handoff", "guide_meta_coverage_policy", "epistemic_category_distinction", "technical_verification", "uncertain_causation", "strategic_tradeoff", "conceptual_relationship", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
             return {"version": VERSION, "type": kind, "confidence": "high"}
     return {"version": VERSION, "type": "unknown", "confidence": "none"}
@@ -195,6 +195,54 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         add("alternatives_visible", _has(low, ("centraliz", "centralis", "distribut", "decentral", "delegate", "delegat")), "Address the alternatives named in the question.")
         add("tradeoffs_visible", _has(low, ("trade-off", "tradeoff", "risks", "risk", "costs", "cost", "benefits", "benefit", "advantages", "advantage", "disadvantages", "disadvantage")), "Make material costs and benefits visible.")
         add("conditional_judgment", _has(low, ("depends on", "when decisions", "when a decision", "if the decision", "routine local decisions", "strategic decisions", "recommend", "hybrid", "retain", "delegate")), "Give conditional reasoning rather than a universal slogan.")
+    elif kind == "conceptual_relationship":
+        # A relationship question is not satisfied by adjacent quotations,
+        # topic-matched excerpts, or separate mini-definitions. The answer must
+        # name both requested concepts and explain the connecting operation.
+        match = re.search(
+            r"\\b(?:relationship|connection|interplay)\\s+between\\s+(.+?)\\s+and\\s+(.+?)(?:[?!.]|$)",
+            str(query or "").strip(),
+            re.I,
+        )
+        subjects = []
+        if match:
+            subjects = [
+                re.sub(r"^(?:the|a|an)\\s+", "", part.strip(" ,;:.!?")).casefold()
+                for part in match.groups()
+            ]
+        subjects_present = len(subjects) == 2 and all(
+            re.search(r"\\b" + re.escape(subject) + r"\\b", low)
+            for subject in subjects
+        )
+        mechanism = bool(re.search(
+            r"\\b(?:because|by|through|allows?|enables?|supports?|shapes?|cultivates?|"
+            r"develops?|strengthens?|depends on|requires?|makes it possible|in turn|"
+            r"reinforces?|influences?)\\b",
+            low,
+        ))
+        relation_direction = bool(re.search(
+            r"\\b(?:both|reciprocal|mutual|in turn|one another|each other|"
+            r"not automatic|not necessarily|conditional|while|although|yet)\\b",
+            low,
+        ))
+        add(
+            "relationship_subjects_covered",
+            subjects_present,
+            "Name and address both concepts the visitor explicitly asks to relate; adjacent topic material is not a substitute.",
+            hard=True,
+        )
+        add(
+            "connecting_mechanism_explained",
+            mechanism,
+            "Explain how one concept affects, enables, constrains, or develops the other; do not merely place quotations side by side.",
+            hard=True,
+        )
+        add(
+            "relationship_direction_or_boundary",
+            relation_direction,
+            "Clarify whether the relationship is reciprocal, conditional, or bounded where that distinction matters.",
+            hard=True,
+        )
     elif kind == "comparison":
         subjects = _extract_comparison_subjects(query)
         if subjects:
