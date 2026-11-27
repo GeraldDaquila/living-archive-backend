@@ -1117,7 +1117,7 @@ def _openai_compatible_text(content):
             value = item.get("text")
             if isinstance(value, str) and value.strip():
                 chunks.append(value.strip())
-        return "\\n".join(chunks).strip()
+        return "".join(chunks).strip()
     return ""
 
 
