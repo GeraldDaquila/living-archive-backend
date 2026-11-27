@@ -771,7 +771,7 @@ def _contract_rejection_reason_code(contract_reason):
     """Return a bounded validator reason code without logging generated content."""
     text = str(contract_reason or "").casefold()
     community_missing = re.search(
-        r"community liberty-limit answer is incomplete:\\s*([a-z_, ]+)", text
+        r"community liberty-limit answer is incomplete:\s*([a-z_, ]+)", text
     )
     if community_missing:
         fields = [
