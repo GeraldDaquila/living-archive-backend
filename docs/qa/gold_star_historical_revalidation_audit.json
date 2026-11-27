@@ -18,10 +18,10 @@
     "superseded": 1,
     "approved_gold_standards_in_audited_subset": 27,
     "superseded_gold_standards_in_audited_subset": 1,
-    "canonical_approved_gold_standards": 140,
-    "canonical_runtime_transfer_approved": 137,
-    "general_purpose_runtime_transfer_records": 133,
-    "general_purpose_transfer_map_entries": 133
+    "canonical_approved_gold_standards": 141,
+    "canonical_runtime_transfer_approved": 138,
+    "general_purpose_runtime_transfer_records": 134,
+    "general_purpose_transfer_map_entries": 134
   },
   "records": [
     {
