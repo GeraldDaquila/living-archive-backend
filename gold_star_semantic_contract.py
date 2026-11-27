@@ -216,9 +216,8 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             for subject in subjects
         )
         mechanism = bool(re.search(
-            r"\b(?:because|by|through|allows?|enables?|supports?|shapes?|cultivates?|"
-            r"develops?|strengthens?|depends on|requires?|makes it possible|in turn|"
-            r"reinforces?|influences?)\b",
+            r"\b(?:allows?|enables?|supports?|shapes?|cultivates?|develops?|"
+            r"strengthens?|depends on|requires?|makes it possible|reinforces?|influences?)\b",
             low,
         ))
         relation_direction = bool(re.search(
