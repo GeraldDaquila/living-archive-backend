@@ -957,7 +957,7 @@ def _sanitize_candidate(text: Any) -> str:
     # emoji marker used by some Archive citation renderings.
     quoted_source_spans = re.compile(r'(?:“[^”\n]{20,1800}”|"[^"\n]{20,1800}")')
     source_title_attribution = re.compile(
-        r"\s*\(\s*(?:[\U0001F300-\U0001FAFF]\s*)?[^()\n]{3,180}\s*\)\s*[.!?]?\s*$"
+        r"\s*\(\s*(?:[\U0001F300-\U0001FAFF]\s*)?(?=[A-Z])[^()\n]{3,180}\s*\)\s*[.!?]?\s*$"
     )
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", raw) if part.strip()]
     retained = []
