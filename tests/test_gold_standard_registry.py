@@ -937,23 +937,9 @@ def test_gold_star_has_one_strict_canonical_definition():
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
             if capability.get("standalone_response_quality_exemplar") is True:
-                assert not record.get("paired_active_benchmark_id")
+                assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
             else:
-                if capability.get("standalone_response_quality_exemplar") is True:
-                    assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
-                else:
-                    assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
-        elif record.get("runtime_transfer") is False and capability.get("generation_class") == "user_approved_response_quality_exemplar":
-            assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
-            assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
-            assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
-            if capability.get("standalone_response_quality_exemplar") is True:
-                assert not record.get("paired_active_benchmark_id")
-            else:
-                if capability.get("standalone_response_quality_exemplar") is True:
-                    assert not record.get("paired_active_benchmark_id"), record["benchmark_id"]
-                else:
-                    assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
+                assert record.get("paired_active_benchmark_id"), record["benchmark_id"]
         elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
