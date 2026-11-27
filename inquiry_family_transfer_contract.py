@@ -12,15 +12,15 @@ from typing import Any, Dict
 _VERSION = "1.0"
 
 _LIVED_SUBJECT = re.compile(
-    r"\\b(?:pain|suffer\\w*|hurt|grief|loss|bereave\\w*|mourning|trauma|"
-    r"shame|fear|loneliness|heartbreak|wound\\w*|identity|selfhood|personhood|"
-    r"belonging|who i am|sense of self)\\b",
+    r"\b(?:pain|suffer\w*|hurt|grief|loss|bereave\w*|mourning|trauma|"
+    r"shame|fear|loneliness|heartbreak|wound\w*|identity|selfhood|personhood|"
+    r"belonging|who i am|sense of self)\b",
     re.I,
 )
 _LIVED_FRAME = re.compile(
-    r"\\b(?:hold|carry|bear|live with|cope with|make sense of|process|"
+    r"\b(?:hold|carry|bear|live with|cope with|make sense of|process|"
     r"turn(?:ing)? into|become|define|identify with|feel|experience|"
-    r"reconcile|integrate|heal|recover|remain|stay)\\b",
+    r"reconcile|integrate|heal|recover|remain|stay)\b",
     re.I,
 )
 _GOVERNANCE_FAMILY = re.compile(
@@ -33,7 +33,7 @@ _GOVERNANCE_FAMILY = re.compile(
 
 def classify_inquiry_family(query: str) -> Dict[str, Any]:
     """Identify a narrow lived/reflective family before generic task verbs."""
-    text = re.sub(r"\\s+", " ", str(query or "")).strip()
+    text = re.sub(r"\s+", " ", str(query or "")).strip()
     if not text:
         return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": []}
     subject = _LIVED_SUBJECT.search(text)
@@ -61,11 +61,11 @@ def lesson_transfer_compatibility(query: str, lesson: Any) -> Dict[str, Any]:
         "relational_human_development_with_epistemic_boundary",
         "continuity_without_preserving_harmful_inheritance",
     }
-    if re.search(r"\\b(?:therapy|therapist|clinical|professional care|self.inquiry|reflection)\\b", q):
+    if re.search(r"\b(?:therapy|therapist|clinical|professional care|self.inquiry|reflection)\b", q):
         allowed.add("reflection_orientation_vs_therapy_professional_boundary")
-    if re.search(r"\\b(?:felt true|feels true|belief|claim|resonat|emotionally compelling)\\b", q):
+    if re.search(r"\b(?:felt true|feels true|belief|claim|resonat|emotionally compelling)\b", q):
         allowed.add("felt_truth_claim_discernment")
-    if re.search(r"\\b(?:soul|oversoul|personality)\\b", q):
+    if re.search(r"\b(?:soul|oversoul|personality)\b", q):
         allowed.add("personality_soul_oversoul_discernment")
     if reasoning_family in allowed and not _GOVERNANCE_FAMILY.search(reasoning_family):
         return {
