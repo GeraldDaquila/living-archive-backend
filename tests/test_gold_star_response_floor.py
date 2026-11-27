@@ -531,19 +531,17 @@ def test_final_response_floor_rejects_truncated_trailing_clause():
     assert payload["gold_star_v2_quality_floor"]["reason"] == "incomplete_answer_ending"
 
 
-def test_final_response_floor_accepts_complete_prose_and_terminal_list_item():
+def test_final_response_floor_accepts_complete_prose_and_short_complete_answer():
     from gold_star_response_floor import apply_response_floor_boundary
 
     query = "How should the Guide respond to extraordinary claims?"
-    complete = (
-        "Treat the claim as a hypothesis and assess its evidence in proportion "
-        "to its implications. Check the source, method, reproducibility, and "
-        "independent corroboration before accepting it. State what remains "
-        "uncertain and what evidence would change the assessment."
-    )
-    payload, status = apply_response_floor_boundary(
-        query, {"ok": True, "query": query, "response": complete}, 200
-    )
-    assert status == 200
-    assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
-
+    for complete in (
+        "Assess the source, method, reproducibility, and independent corroboration. "
+        "State what remains uncertain and what evidence would change the assessment.",
+        "Yes",
+    ):
+        payload, status = apply_response_floor_boundary(
+            query, {"ok": True, "query": query, "response": complete}, 200
+        )
+        assert status == 200
+        assert payload["gold_star_v2_quality_floor"]["status"] == "pass"
