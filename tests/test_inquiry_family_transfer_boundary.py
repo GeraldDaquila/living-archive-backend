@@ -7,6 +7,7 @@ from gold_star_lessons import select_lesson_candidates
 from gold_star_question_contract import build_question_contract
 from gold_star_semantic_contract import evaluate_semantic_contract
 from gold_star_response_floor import evaluate_response_floor
+from deterministic_answer_recovery import compose_recovery, has_registered_recovery
 from general_guide_composition import _build_general_guide_system_prompt
 
 
@@ -64,7 +65,7 @@ def test_genuine_community_decision_question_keeps_its_governed_candidate_set():
         "How should a community decide whether limits on individual freedom are "
         "justified by shared responsibilities?"
     )
-    assert classify_inquiry_family(query)["family"] == "unknown"
+    assert classify_inquiry_family(query)["family"] == "institutional_governance"
     candidates = select_lesson_candidates(query)
     assert candidates
     assert any(
@@ -116,3 +117,11 @@ def test_off_target_lived_response_gets_one_bounded_repair_without_touching_eval
     assert deadline > repair
     assert "on_target_repair_accepted" in source
     assert "repair_unavailable_or_still_off_target" in source
+
+def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_how_template():
+    answer = compose_recovery(PAIN_IDENTITY_QUESTION)
+    assert has_registered_recovery(PAIN_IDENTITY_QUESTION) is True
+    assert "pain" in answer.casefold()
+    assert "identity" in answer.casefold()
+    assert "responsibilities that cannot be lost" not in answer.casefold()
+    assert "people who will live with its consequences" not in answer.casefold()
