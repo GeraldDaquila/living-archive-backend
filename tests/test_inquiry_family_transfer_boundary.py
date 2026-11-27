@@ -327,7 +327,7 @@ def test_epistemic_distress_evaluation_candidate_is_rejected_without_repair():
     ).read_text(encoding="utf-8")
     rejection = source.index('stage="evaluation_candidate_rejected_without_repair"')
     assert "evaluation is not None" in source[source.rfind("if (", 0, rejection):rejection]
-    assert source.index("result = None", rejection) > rejection - 500
+    assert source.rfind("result = None", rejection - 500, rejection) >= 0
 
 
 def test_epistemic_distress_provider_exhaustion_recovery_precedes_archive_contrast():
