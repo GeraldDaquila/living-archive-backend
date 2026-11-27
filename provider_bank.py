@@ -814,6 +814,53 @@ def _contract_rejection_reason_code(contract_reason):
     return "other_contract" if text else "unspecified_contract"
 
 
+def _guide_contract_repair_instruction(contract_reason):
+    """Translate known Guide contract codes into concise, task-specific correction guidance."""
+    text = str(contract_reason or "").casefold()
+    match = re.search(
+        r"humility/spiritual-maturity answer is incomplete:\s*([a-z_, ]+)", text
+    )
+    if not match:
+        return None
+    fields = {
+        field.strip()
+        for field in match.group(1).split(",")
+        if re.fullmatch(r"[a-z_]+", field.strip())
+    }
+    guidance = {
+        "names_both_concepts": "Name humility and spiritual maturity as distinct but related concepts.",
+        "relationship_mechanism": "State directly, in one clear sentence, how humility supports spiritual maturity.",
+        "relationship_direction_or_boundary": "State that the relationship is conditional, not automatic.",
+        "humility_supports_learning_and_correction": (
+            "Explain that humility supports learning through willingness to learn or remaining teachable, "
+            "honest self-appraisal or self-awareness, and accepting correction or accountability."
+        ),
+        "maturity_as_lived_conduct": (
+            "Describe spiritual maturity as lived conduct in actions and relationships, not claimed status."
+        ),
+        "not_self_erasure_or_self_contempt": (
+            "Distinguish humility from self-erasure, diminished self-worth, and self-contempt."
+        ),
+        "preserves_appropriate_boundaries": (
+            "State that humility does not require surrendering appropriate boundaries."
+        ),
+        "not_passivity_or_automatic_compliance": (
+            "Distinguish humility from passivity, blind obedience, and automatic compliance."
+        ),
+        "does_not_guarantee_maturity": "State that humility alone does not guarantee spiritual maturity.",
+    }
+    required = [guidance[field] for field in sorted(fields) if field in guidance]
+    if not required:
+        return None
+    return (
+        "Your preceding Guide answer omitted required humility/spiritual-maturity distinctions. "
+        + " ".join(required)
+        + " Preserve the useful substance and directness of the preceding answer; add only what is missing. "
+        "Do not turn the answer into generic therapeutic advice, claim spiritual status is objectively certified, "
+        "or replace the answer with a list of checklist items."
+    )
+
+
 def _record_quality_rejection(provider, model, operation, reason, rejection_class=None):
     """Penalize substantive provider quality failures, not repairable envelopes."""
     if _is_movement_brief_input_failure(operation, reason):
@@ -3838,22 +3885,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             finally:
                 _PROVIDER_OPERATION_CONTEXT.reset(_operation_token)
             try:
-                parsed = parse(raw_output)
-            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-                # Transport-successful but unparsable output is a provider
-                # response failure, not an application-owned composition
-                # rejection. Record health and move to the next eligible lane.
-                raise ProviderCallError(
-                    provider + "/" + model + " returned invalid JSON",
-                    provider, model, category="invalid_provider_response"
-                ) from exc
-            if not isinstance(parsed, dict):
-                raise ProviderCallError(
-                    provider + "/" + model + " returned a non-object response",
-                    provider, model, category="invalid_provider_response"
+                try:
+                    parsed = parse(raw_output)
+                except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                    # Transport-successful but unparsable output is a provider
+                    # response failure, not an application-owned composition
+                    # rejection. Record health and move to the next eligible lane.
+                    raise ProviderCallError(
+                        provider + "/" + model + " returned invalid JSON",
+                        provider, model, category="invalid_provider_response"
+                    ) from exc
+                if not isinstance(parsed, dict):
+                    raise ProviderCallError(
+                        provider + "/" + model + " returned a non-object response",
+                        provider, model, category="invalid_provider_response"
+                    )
+                # Parser-owned semantic contracts and the operation envelope
+                # are one admission boundary. A parser ValueError must enter
+                # the same bounded correction path as a normalization ValueError;
+                # otherwise task-specific Guide failures are terminal before
+                # the model can receive its one allowed correction.
+                parsed = _normalize_operation_result(
+                    operation, parsed, messages=effective_messages
                 )
-            try:
-                parsed = _normalize_operation_result(operation, parsed, messages=effective_messages)
             except ValueError as contract_error:
                 if not _evaluation_contract_repair_allowed(evaluation):
                     # A paired arm is one generation, not a generation plus a
@@ -4025,6 +4079,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Do not tell the visitor what to do, suggest reallocating or renegotiating, infer hidden motives, or introduce new facts. "
                         "Do not repeat the rejected phrase. Preserve the original question and all valid flags. "
                     )
+                elif humility_repair_instruction:
+                    correction_prompt = humility_repair_instruction
                 elif operation == "general_guide_composition":
                     correction_prompt = (
                         "Your preceding Guide composition failed a response contract: "
@@ -4176,6 +4232,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
             contract_reason = str(exc)
+            humility_repair_instruction = (
+                _guide_contract_repair_instruction(contract_reason)
+                if operation == "general_guide_composition" else None
+            )
             # Classify before quality attribution so repairable envelope failures
             # remain visible without unnecessarily cooling capable providers.
             rejection_class = _contract_rejection_class(contract_reason)
