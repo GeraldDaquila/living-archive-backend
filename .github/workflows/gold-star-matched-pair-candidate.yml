@@ -42,7 +42,7 @@ jobs:
       - name: Verify pinned held-out case set
         run: test -f docs/qa/gold_star_matched_pair_cases.json
       - name: Run matched-pair harness contract tests
-        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py
+        run: PYTHONPATH=. python -m pytest -q tests/test_gold_star_matched_pair_capture.py tests/test_gold_star_matched_pair_workflow.py tests/test_gold_star_shadow_candidate_evaluation.py tests/test_gold_star_shadow_wiring.py
 
   matched-pair-local:
     needs: matched-pair-contract
