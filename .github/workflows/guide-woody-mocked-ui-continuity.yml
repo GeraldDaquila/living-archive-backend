@@ -24,7 +24,7 @@ jobs:
           node-version: "22"
       - name: Validate candidate controller syntax and acceptance source contract
         run: |
-          node --check wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.332.js
+          node --check wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.333.js
           node QA/guide_controller_acceptance_source_contract.mjs
       - name: Verify visitor acceptance and transport failover behavior
         run: node QA/guide_controller_acceptance_behavior.mjs
@@ -35,3 +35,11 @@ jobs:
       - name: Test live WordPress controller with intercepted mock API
         timeout-minutes: 2
         run: timeout --signal=TERM --kill-after=5s 100s node QA/guide_woody_mocked_ui_continuity_e2e.mjs
+
+      - name: Upload mobile rendering evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-mobile-render-evidence
+          path: artifacts/guide-mobile-render.png
+          if-no-files-found: warn
