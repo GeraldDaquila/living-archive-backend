@@ -325,22 +325,15 @@ def test_visitor_idea_chunking_contract_matches_explicit_prompt_threshold():
     assert "at least two paragraphs with a blank line" in prompt
 
     short_single_movement = " ".join(["A clear idea is explained simply."] * 4)
-    long_single_block = " ".join(
-        [
-            "A distinct idea has its own purpose and consequence.",
-            "A second idea adds another condition and implication.",
-            "A third idea explains a separate mechanism and trade-off.",
-            "A fourth idea describes another safeguard and responsibility.",
-            "A fifth idea states the resulting limit and review path.",
-        ]
-    )
-    long_two_paragraphs = (
-        "A distinct idea has its own purpose and consequence. "
-        "A second idea adds another condition and implication. "
-        "A third idea explains a separate mechanism and trade-off.\n\n"
-        "A fourth idea describes another safeguard and responsibility. "
-        "A fifth idea states the resulting limit and review path."
-    )
+    sentences = [
+        "A community's first obligation is to identify the shared purpose and concrete harm that the proposed rule is intended to address, rather than assuming consensus.",
+        "The next question is whether the restriction is necessary and proportionate, and whether a less restrictive workable option could achieve the same legitimate end.",
+        "Decision-makers should identify who benefits, who bears the costs, and whose freedom is limited, including people whose circumstances differ from the majority.",
+        "Affected people should have meaningful influence over design, with reasonable accommodation, transparent reasons, and safeguards against arbitrary enforcement.",
+        "Finally, anyone affected needs a practical route to challenge application, while review criteria should show whether the rule continues to serve its stated purpose.",
+    ]
+    long_single_block = " ".join(sentences)
+    long_two_paragraphs = " ".join(sentences[:3]) + "\n\n" + " ".join(sentences[3:])
     assert not composition._requires_visitor_idea_chunking(short_single_movement)
     assert composition._requires_visitor_idea_chunking(long_single_block)
     assert not composition._requires_visitor_idea_chunking(long_two_paragraphs)
