@@ -72,7 +72,9 @@ def test_institutional_governance_lesson_is_incompatible_with_lived_pain_questio
 
 def test_live_selector_filters_incompatible_families_for_pain_and_identity_question():
     candidates = select_lesson_candidates(PAIN_IDENTITY_QUESTION)
+    assert candidates, "A lived-reflective question must retain at least one compatible lesson when the approved humane-orientation lesson exists."
     assert all(item.get("reasoning_family") == "humane_orientation" for item in candidates)
+    assert any(item.get("reasoning_family") == "humane_orientation" for item in candidates)
 
 
 def test_genuine_community_decision_question_keeps_its_governed_candidate_set():
