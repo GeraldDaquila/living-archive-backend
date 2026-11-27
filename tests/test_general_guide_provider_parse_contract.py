@@ -315,3 +315,25 @@ def test_community_rule_instruction_explicitly_covers_each_distinct_evidence_dim
         "Use prose",
     ):
         assert required in instruction
+
+
+
+def test_visitor_idea_chunking_contract_matches_explicit_prompt_threshold():
+    prompt = composition._build_general_guide_system_message("What is transparency?")
+    assert "at least 650 characters" in prompt
+    assert "five or more sentences" in prompt
+    assert "at least two paragraphs with a blank line" in prompt
+
+    short_single_movement = " ".join(["A clear idea is explained simply."] * 4)
+    sentences = [
+        "A community's first obligation is to identify the shared purpose and concrete harm that the proposed rule is intended to address, rather than assuming consensus.",
+        "The next question is whether the restriction is necessary and proportionate, and whether a less restrictive workable option could achieve the same legitimate end.",
+        "Decision-makers should identify who benefits, who bears the costs, and whose freedom is limited, including people whose circumstances differ from the majority.",
+        "Affected people should have meaningful influence over design, with reasonable accommodation, transparent reasons, and safeguards against arbitrary enforcement.",
+        "Finally, anyone affected needs a practical route to challenge application, while review criteria should show whether the rule continues to serve its stated purpose.",
+    ]
+    long_single_block = " ".join(sentences)
+    long_two_paragraphs = " ".join(sentences[:3]) + "\n\n" + " ".join(sentences[3:])
+    assert not composition._requires_visitor_idea_chunking(short_single_movement)
+    assert composition._requires_visitor_idea_chunking(long_single_block)
+    assert not composition._requires_visitor_idea_chunking(long_two_paragraphs)
