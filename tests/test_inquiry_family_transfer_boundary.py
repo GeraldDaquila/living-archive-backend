@@ -289,3 +289,50 @@ def test_provider_exhaustion_recovery_answers_lived_question_instead_of_generic_
     )
     assert floor["status"] == "pass"
     assert floor["semantic_enforcement"]["status"] == "pass"
+
+
+def test_epistemic_distress_recovery_must_pass_every_semantic_check():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    answer = compose_recovery(query)
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    assert result["status"] == "pass"
+    assert result["failed_checks"] == []
+
+
+def test_epistemic_distress_candidate_is_invalidated_before_repair_and_repair_must_fully_pass():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    invalidation = source.index('stage="candidate_invalidated_before_repair"')
+    repair_message = source.index("_repair_system_message", invalidation)
+    assert source.rfind("result = None", invalidation - 500, invalidation) >= 0
+    assert repair_message > invalidation
+    repair_acceptance = source.index('_repaired_semantic.get("status") == "pass"', repair_message)
+    assert repair_acceptance > repair_message
+    assert '_repaired_semantic.get("status") != "fail"' not in source[repair_message:repair_acceptance + 100]
+
+
+def test_epistemic_distress_evaluation_candidate_is_rejected_without_repair():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    rejection = source.index('stage="evaluation_candidate_rejected_without_repair"')
+    assert "evaluation is not None" in source[source.rfind("if (", 0, rejection):rejection]
+    assert source.index("result = None", rejection) > rejection - 500
+
+
+def test_epistemic_distress_provider_exhaustion_recovery_precedes_archive_contrast():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1] / "general_guide_composition.py"
+    ).read_text(encoding="utf-8")
+    fallback = source.index('recovery="epistemic_distress_guidance"')
+    archive_contrast = source.index("_archive_passage_contrast_recovery(question, documents)", fallback)
+    assert archive_contrast > fallback
+    assert '"semantic_status": "pass"' not in source  # emitted as a keyword, not a payload field
+    assert '_epistemic_recovery_semantic.get("status") != "pass"' in source
