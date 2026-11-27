@@ -286,6 +286,7 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
     raw_outputs = iter(("incomplete-primary-output", "complete-fallback-output"))
     provider_calls = []
     parser_calls = []
+    timeout_candidates = []
 
     monkeypatch.setattr(provider_bank, "_active_active_primary_assignment", lambda *args: False)
     monkeypatch.setattr(provider_bank, "_current_gold_star_evaluation_context", lambda: None)
@@ -304,7 +305,11 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
     monkeypatch.setattr(provider_bank, "_state", lambda *args: state)
     monkeypatch.setattr(provider_bank, "_blocked_for_operation", lambda *args, **kwargs: False)
     monkeypatch.setattr(provider_bank, "acquire_probe", lambda _state: True)
-    monkeypatch.setattr(provider_bank, "_provider_call_timeout", lambda *args, **kwargs: 5.64)
+    def record_provider_call_timeout(operation, item, *args, **kwargs):
+        timeout_candidates.append((item["provider"], kwargs.get("attempt_index")))
+        return 5.64
+
+    monkeypatch.setattr(provider_bank, "_provider_call_timeout", record_provider_call_timeout)
     monkeypatch.setattr(provider_bank, "_capabilities", lambda *args, **kwargs: {"json_schema_strict"})
     monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, **kwargs: parsed)
     monkeypatch.setattr(provider_bank, "_record_predictive_shadow", lambda *args, **kwargs: None)
@@ -362,6 +367,7 @@ def test_guide_skips_same_model_repair_when_it_would_strand_fallback(monkeypatch
         ("fallback_provider", "fallback-model"),
     ]
     assert parser_calls == ["incomplete-primary-output", "complete-fallback-output"]
+    assert ("fallback_provider", 1) in timeout_candidates
 
 
 def test_guide_contract_repair_preserves_viable_independent_fallback_timeout():
