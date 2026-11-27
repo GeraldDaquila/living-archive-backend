@@ -124,7 +124,7 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     terminal_candidate = answer.rstrip()
     while terminal_candidate and terminal_candidate[-1] in "\"'”’)]}":
         terminal_candidate = terminal_candidate[:-1].rstrip()
-    if terminal_candidate and terminal_candidate[-1] not in ".!?…":
+    if not exact_standard and terminal_candidate and terminal_candidate[-1] not in ".!?…":
         trailing_fragment = terminal_candidate.rsplit("\n", 1)[-1].strip()
         incomplete_clause = re.search(
             r"^(?:when|if|because|although|while|unless|until|once|since|whereas|after|before)\s+"
