@@ -9112,6 +9112,55 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing serial allocation was requested."
+    },
+    {
+      "benchmark_id": "general-guide-myths-symbols-stories-collective-life-2026-11-27",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How do myths, symbols, and stories organize collective life?",
+      "expected_response": "Myths, symbols, and stories organize collective life by giving people shared ways to interpret belonging, obligation, origins, and authority. They do not simply dictate behaviour. They make certain identities and expectations memorable, recognizable, and available for people to act on together.\n\nConsider a village that retells a founding story about neighbours who survived a flood by building a common barrier. At an annual remembrance, residents display a carved marker and renew a volunteer rota. The story makes mutual aid part of local identity; the marker makes that commitment visible; and the gathering turns memory into a shared expectation that people contribute when the community faces a common need. In this way, a narrative is carried through a symbol and a repeated practice into coordinated behaviour—not because everyone interprets it identically, but because it gives people a recognizable reason and occasion to act together.\n\nThese forms can also organize power and disagreement. A founding story may define who is treated as belonging, whose contribution is remembered, or which authority appears legitimate. People may contest the story, reinterpret the symbol, or refuse the ritual, so its influence is never automatic or uniform. The useful question is therefore not only what a community's stories say, but who tells them, how they are enacted, whose experience they include, and what patterns of cooperation or exclusion follow.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answer directly how myths, symbols, and stories organize collective life rather than listing abstract mechanisms.",
+        "Explain the distinct roles of shared narrative, visible symbol, and repeated communal practice.",
+        "Include a developed example with a real setting, actors, enacted practice, and a causal link to coordinated behaviour.",
+        "Show how stories can establish belonging, obligations, and legitimacy while allowing contestation and unequal power.",
+        "Avoid treating symbolic influence as automatic, uniform, or proof of causation in every case.",
+        "Keep idea chunks distinct and avoid repeating the same abstract claim across paragraphs."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit authorization to fix architecturally and elevate the response as a Gold Star.",
+        "source_date": "2026-11-27",
+        "live_surface": "The Guide visitor-facing Search response.",
+        "evidence_boundary": "The screenshot establishes the exact question and displayed answer. The improved exemplar below is a revised canonical response approved for elevation by the user's explicit instruction; it is not represented as the exact text of the screenshot. No provider attribution, runtime application trace, or held-out transfer result is claimed.",
+        "approval_record": "User instruction: 'fix architecturally and turn this into a gold star.' This authorizes the revised exemplar and bounded structural learning. It does not establish measured adaptive improvement."
+      },
+      "rating": null,
+      "assistant_assessment_out_of_10": 9.2,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — REVISED EXEMPLAR AND BOUNDED STRUCTURAL LEARNING AUTHORIZED",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "runtime_transfer": true,
+      "reasoning_family": "social_symbolic_mechanism_and_collective_coordination",
+      "transferable_lesson": "For questions about how myths, symbols, stories, rituals, or traditions organize collective life, explain the mechanism through a concrete social sequence: identify the shared narrative or symbol, show who encounters or enacts it and in what recurring setting, explain the expectation or identity it communicates, and trace how that expectation coordinates behaviour or legitimizes authority. Distinguish narrative, symbol, and practice rather than collapsing them into generic 'shared meaning'. Preserve contestation, unequal power, and non-automatic effects; do not infer that a story alone proves why a community acts as it does.",
+      "transfer_boundary": "Apply to questions asking how shared narratives, symbols, rituals, or traditions shape collective identity, norms, authority, cooperation, or social order. Do not force this structure onto simple definitions, literary interpretation, personal storytelling, or factual questions. Never transfer the exemplar's village, flood, carved marker, volunteer rota, or wording as factual claims about the visitor's case. Require a new example appropriate to the question; distinguish illustrative scenarios from empirical evidence; preserve disagreement and alternative explanations. Exact-answer authority and deterministic fallback eligibility remain disabled. Approval of this exemplar does not prove runtime application, held-out transfer, or measured adaptive improvement.",
+      "known_theme": "myths, symbols, stories, rituals, collective life, social identity, norms, authority, coordination",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_structural_learning",
+        "exact_answer_authority": false,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "social_symbolic_mechanism_and_collective_coordination",
+        "transferable_discipline": "Demonstrate how a shared narrative or symbol becomes a repeated public practice, communicates expectations or identity, and contributes to coordinated behaviour; distinguish influence from proof and preserve contestation.",
+        "abstention_boundary": "Apply only to relevant social-mechanism questions. Do not reuse the exemplar's specific illustrative facts or wording, do not imply uniform influence or causal proof, and do not force examples into unrelated questions. Exact-answer authority and deterministic fallback remain disabled."
+      },
+      "user_approved_at": "2026-11-27",
+      "elevation_approval_evidence": "The user explicitly instructed 'fix architecturally and turn this into a gold star.' This authorizes the revised canonical exemplar and bounded structural lesson; it does not establish held-out adaptive transfer or measured outcome improvement.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "No human-facing Gold Star serial was requested."
     }
   ],
   "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. Inventory counts reconciled to 141 approved records and 181 total records.",
