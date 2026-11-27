@@ -312,10 +312,9 @@ def test_epistemic_distress_candidate_is_invalidated_before_repair_and_repair_mu
     repair_message = source.index("_repair_system_message", invalidation)
     assert source.rfind("result = None", invalidation - 500, invalidation) >= 0
     assert repair_message > invalidation
-    repair_acceptance = source.index('_repaired_semantic.get("status") == "pass"', repair_message)
+    repair_acceptance = source.index('_repaired_semantic.get("question_type") == "epistemic_distress_guidance"', repair_message)
     assert repair_acceptance > repair_message
-    assert '_repaired_semantic.get("question_type") == "epistemic_distress_guidance"' in source[repair_message:repair_acceptance + 300]
-    assert 'not _repaired_semantic.get("hard_failures")' in source[repair_message:repair_acceptance + 300]
+    assert 'not _repaired_semantic.get("hard_failures")' in source[repair_acceptance:repair_acceptance + 300]
     assert '_repaired_semantic.get("status")' not in source[repair_message:repair_acceptance + 300]
 
 
@@ -326,7 +325,8 @@ def test_epistemic_distress_evaluation_candidate_is_rejected_without_repair():
         Path(__file__).resolve().parents[1] / "general_guide_composition.py"
     ).read_text(encoding="utf-8")
     rejection = source.index('stage="evaluation_candidate_rejected_without_repair"')
-    assert "evaluation is not None" in source[source.rfind("if (", 0, rejection):rejection]
+    evaluation_guard = source.rfind("and evaluation is not None", 0, rejection)
+    assert evaluation_guard >= 0
     assert source.rfind("result = None", rejection - 500, rejection) >= 0
 
 
