@@ -17,6 +17,11 @@ from typing import Any, Dict, List, Optional
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from inquiry_family_transfer_contract import classify_inquiry_family
+from community_rule_decision_contract import (
+    build_community_rule_decision_instruction,
+    evaluate_community_rule_response,
+    is_community_rule_decision_question,
+)
 from guide_request_budget import composition_provider_deadline
 from guide_incomplete_knowledge import build_incomplete_knowledge_plan
 from guide_answerability import (
@@ -385,21 +390,11 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
 
 
 
-_COMMUNITY_LIBERTY_LIMIT_DECISION_CONTRACT = (
-    "COMMUNITY RULES THAT LIMIT PERSONAL LIBERTY: State legitimate shared purpose and "
-    "demonstrable harm; name who benefits, who bears costs, and whose freedom is restricted; "
-    "include affected people in shaping the rule; test less restrictive workable means and "
-    "accommodation; require necessity and proportionality; provide appeal and review. Necessity "
-    "alone does not establish fair burden allocation."
-)
+_COMMUNITY_LIBERTY_LIMIT_DECISION_CONTRACT = build_community_rule_decision_instruction()
 
 
 def _is_community_liberty_limit_question(question: str) -> bool:
-    low = " ".join(str(question or "").casefold().split())
-    has_liberty = any(term in low for term in ("personal liberty", "individual freedom", "civil liberty"))
-    has_limit = any(term in low for term in ("limit", "restrict", "restriction", "rule"))
-    has_community = any(term in low for term in ("community", "shared obligation", "collective obligation", "shared risk"))
-    return has_liberty and has_limit and has_community
+    return is_community_rule_decision_question(question)
 
 
 def _objective_integrity_instruction(question: str) -> str:
@@ -2981,6 +2976,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
 
+        community_rule_report = evaluate_community_rule_response(query, response)
+        if community_rule_report.get("applies") and not community_rule_report.get("passed"):
+            raise ValueError(
+                "community liberty-limit answer is incomplete: "
+                + ",".join(community_rule_report.get("missing") or [])
+            )
+
         # The Gold Standard is an enforceable composition contract, not only a
         # prompt preference. Reject compressed substantive explanatory answers
         # so the provider bank can retry instead of allowing one paragraph through.
@@ -3291,6 +3293,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 and is_conceptual_relationship_question(query)
                 and not _has_transparency_trust_disclosure_boundary(candidate_for_comparison)
             ):
+                raise strict_exc
+            community_rule_report = evaluate_community_rule_response(
+                query, candidate_for_comparison
+            )
+            if community_rule_report.get("applies") and not community_rule_report.get("passed"):
                 raise strict_exc
             try:
                 try:
