@@ -23,8 +23,7 @@ _LIVED_FRAME = re.compile(
     r"reconcile|integrate|heal|recover|remain|stay)\b",
     re.I,
 )
-_GOVERNANCE_FAMILY = re.compile(
-    r"(?:governance|institution|organiz|community|stakeholder|decision|"
+_GOVERNANCE_QUERY = re.compile(r"\\b(?:community|communities|organization|organisation|institution|team|board|policy|rule|governance|stakeholder)\\b", re.I)\n_GOVERNANCE_ACTION = re.compile(r"\\b(?:decision|decide|authority|accountability|responsibility|outcome|rule|policy|tradeoff|limits?|restrict|allocate)\\b", re.I)\n\n_GOVERNANCE_FAMILY = re.compile(\n    r"(?:governance|institution|organiz|community|stakeholder|decision|"
     r"accountab|power|authority|rule|policy|tradeoff|trade_off|"
     r"ethical_governance|systems_consequence|preaction)",
     re.I,
@@ -36,7 +35,8 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
     text = re.sub(r"\s+", " ", str(query or "")).strip()
     if not text:
         return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": []}
-    subject = _LIVED_SUBJECT.search(text)
+    if _GOVERNANCE_QUERY.search(text) and _GOVERNANCE_ACTION.search(text):
+        return {"version": _VERSION, "family": "institutional_governance", "confidence": "high", "signals": ["governance_subject", "governance_action"]}\n    subject = _LIVED_SUBJECT.search(text)
     frame = _LIVED_FRAME.search(text)
     if subject and frame:
         return {
