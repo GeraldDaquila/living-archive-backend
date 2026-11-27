@@ -4184,6 +4184,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
                         - (time.monotonic() - route_started),
                     )
+                    if deadline_monotonic is not None:
+                        remaining_window = min(
+                            remaining_window,
+                            max(0.0, deadline_monotonic - time.monotonic()),
+                        )
                     recovery_timeout = min(float(recovery_timeout), remaining_window)
                     # The attempt loop is one-based (enumerate(..., start=1));
                     # this index therefore points to the next candidate.
