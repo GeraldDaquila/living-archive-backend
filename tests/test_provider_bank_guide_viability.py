@@ -259,3 +259,32 @@ def test_humility_contract_repair_instruction_expands_only_missing_dimensions():
     assert provider_bank._guide_contract_repair_instruction(
         "unrelated provider failure"
     ) is None
+
+
+def test_guide_contract_repair_preserves_viable_independent_fallback_timeout():
+    # A 5.64-second request remainder cannot support both a 5-second repair
+    # and a 5-second independent candidate. Skip repair rather than stranding
+    # the fallback after a successful but incomplete provider response.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        5.64, 5.64, "healthy"
+    ) == 0.0
+
+    # When both calls fit, bound the repair to the time remaining after the
+    # fallback's supported minimum timeout.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        12.0, 6.5, "healthy"
+    ) == 7.0
+
+
+def test_guide_contract_repair_does_not_reserve_an_unviable_fallback():
+    # A candidate already below its supported minimum is not a viable fallback;
+    # do not waste the current provider's repair opportunity reserving for it.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        5.64, 4.99, "healthy"
+    ) == 5.64
+
+    # Half-open candidates retain their narrower, explicitly supported probe.
+    assert provider_bank._guide_contract_repair_timeout_preserving_fallback(
+        8.0, 3.0, "half_open"
+    ) == 5.0
+
