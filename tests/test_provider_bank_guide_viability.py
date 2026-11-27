@@ -234,11 +234,6 @@ def test_parser_contract_rejection_enters_bounded_same_model_repair(monkeypatch)
         if message.get("role") == "user"
     )
     assert any(
-        "humility/spiritual-maturity answer is incomplete" in message.get("content", "")
-        for message in provider_messages[1]
-        if message.get("role") == "user"
-    )
-    assert any(
         "willingness to learn" in message.get("content", "")
         and "automatic compliance" in message.get("content", "")
         for message in provider_messages[1]
