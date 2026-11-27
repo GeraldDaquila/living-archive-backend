@@ -28,5 +28,7 @@ def test_user_approved_pain_identity_gold_star_is_frozen_exactly():
     assert record["gold_star_capabilities"]["generation_class"] == "user_approved_structural_learning"
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
+    assert "do not infer" in record["gold_star_capabilities"]["abstention_boundary"].casefold()
+    assert fixture["transfer_boundary"] == record["transfer_boundary"]
     assert record["provenance"]["visible_continuation_title"] == fixture["visible_continuation_title"]
     assert record["expected_response"] == fixture["expected_response"]
