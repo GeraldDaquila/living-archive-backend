@@ -114,3 +114,12 @@ def test_matched_pair_runner_accepts_an_explicit_evaluation_only_candidate():
     ):
         import gold_star_lessons
         assert gold_star_lessons.active_quality_contribution(cases[0]["query"]) is not None
+
+
+def test_evaluation_prompt_boundary_is_not_the_source_nonruntime_governance_veto():
+    from gold_star_shadow_candidate_evaluation import _load_candidate
+    candidate = _load_candidate(DEFAULT_CANDIDATE_ID)
+    assert "ordinary philosophical" in candidate["abstention_boundary"]
+    assert "runtime/adaptive transfer" not in candidate["abstention_boundary"]
+    assert "runtime/adaptive transfer" in candidate["source_governance_boundary"]
+    assert candidate["source_query"] == "How should the Guide respond when a user seeks metaphysical certainty during distress?"
