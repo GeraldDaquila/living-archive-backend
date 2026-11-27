@@ -5,6 +5,8 @@ import json
 import pytest
 
 import general_guide_composition as guide
+from social_mechanism_grounding_contract import has_grounded_mechanism_example
+from gold_star_response_floor import evaluate_response_floor
 
 
 QUESTION = "How do myths, symbols, and stories organize collective life?"
@@ -97,3 +99,22 @@ def test_example_can_explain_mechanism_in_a_single_grounded_sentence():
         "For example, a community pledge reminds members of their mutual obligations."
     )
     assert guide._has_grounded_illustrative_example(response)
+
+
+def test_symbol_name_and_generic_verb_are_not_a_developed_mechanism():
+    response = "For example, a flag reminds people of their identity. Symbols influence communities and reinforce shared values."
+    assert not has_grounded_mechanism_example(response)
+
+
+def test_grounded_example_requires_setting_practice_and_social_effect():
+    response = ("For example, a village retells its founding story at an annual gathering. "
+                "Residents display a carved marker and renew a volunteer rota, so the story "
+                "makes mutual aid part of local identity and turns remembrance into coordinated work.")
+    assert has_grounded_mechanism_example(response)
+
+
+def test_visitor_floor_rejects_abstract_only_mechanism_answer():
+    answer = "Myths, symbols, and stories organize collective life by shaping shared expectations and belonging. Repeated narratives influence how communities coordinate behavior."
+    result = evaluate_response_floor(QUESTION, {"ok": True, "response": answer})
+    assert result["status"] == "fail"
+    assert result["reason"] == "social_mechanism_example_not_demonstrated"
