@@ -125,15 +125,15 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     while terminal_candidate and terminal_candidate[-1] in "\"'”’)]}":
         terminal_candidate = terminal_candidate[:-1].rstrip()
     if terminal_candidate and terminal_candidate[-1] not in ".!?…":
-        trailing_fragment = terminal_candidate.rsplit("\\n", 1)[-1].strip()
+        trailing_fragment = terminal_candidate.rsplit("\n", 1)[-1].strip()
         incomplete_clause = re.search(
-            r"^(?:when|if|because|although|while|unless|until|once|since|whereas|after|before)\\s+"
-            r"(?:a|an|the|this|that|these|those|someone|somebody|people|users?|we|you|they|it|he|she)\\b",
+            r"^(?:when|if|because|although|while|unless|until|once|since|whereas|after|before)\s+"
+            r"(?:a|an|the|this|that|these|those|someone|somebody|people|users?|we|you|they|it|he|she)\b",
             trailing_fragment,
             re.IGNORECASE,
         )
         dangling_ending = re.search(
-            r"\\b(?:and|or|but|because|although|while|when|if|to|of|for|with|from|by|the|a|an|that|which|who|whose|is|are|was|were|has|have|had|can|could|should|would|will|may|might|must)$",
+            r"\b(?:and|or|but|because|although|while|when|if|to|of|for|with|from|by|the|a|an|that|which|who|whose|is|are|was|were|has|have|had|can|could|should|would|will|may|might|must)$",
             terminal_candidate,
             re.IGNORECASE,
         )
