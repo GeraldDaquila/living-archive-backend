@@ -20,6 +20,7 @@ ALLOWED = {PRIMARY, "https://living-archive-backend-mirror.onrender.com"}
 PROVIDER_PRIORITY_HELDOUT_IDS = (
     "heldout-community-rule-design-transfer-001",
     "heldout-transparency-trust-relational-synthesis-001",
+    "heldout-humility-spiritual-maturity-nearmiss-001",
 )
 # Use a distinct but semantically equivalent question so the attribution probe
 # cannot inherit a cached answer from the primary visitor smoke.
@@ -431,6 +432,87 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             check("relevant_archive_doorway",doorway,"Provide a separate, optional, verified Archive doorway after the answer."),
             check("visitor_facing_doorway_rationale",clean_rationale,"Do not expose source-page prose or internal CMS metadata in the doorway rationale."),
         ]
+    elif cid=="heldout-humility-spiritual-maturity-nearmiss-001":
+        if require_attributable_llm:
+            attributable, provenance = classify_llm_payload(body)
+            out.append(check(
+                "attributable_llm",
+                attributable,
+                f"Humility/spiritual-maturity near-miss must be answered by an attributable model response, not deterministic fallback; observed {provenance!r}.",
+            ))
+        humility_present = "humility" in low
+        maturity_present = bool(re.search(r"\bspiritual maturit(?:y|ies)\b", low))
+        learning_mechanism = (
+            any(term in low for term in ("learning", "willing to learn", "remain teachable"))
+            and any(term in low for term in (
+                "honest self-appraisal", "honest self-examination", "self-awareness",
+                "recognize our limits", "recognising our limits", "recognizing our limits",
+                "see ourselves clearly",
+            ))
+            and any(term in low for term in (
+                "correction", "accept correction", "being corrected", "accountability",
+                "openness to others", "open to others",
+            ))
+        )
+        lived_maturity = any(term in low for term in (
+            "lived conduct", "lived experience", "how a person lives", "how people live",
+            "daily conduct", "actions and relationships", "ordinary conduct",
+            "responsible action", "responsibility in relationships",
+        ))
+        rejects_self_erasure = any(term in low for term in (
+            "self-erasure", "self erasure", "diminished self-worth", "self-contempt",
+            "not self-abandonment", "not self-abasing",
+        ))
+        preserves_boundaries = any(term in low for term in (
+            "appropriate boundaries", "healthy boundaries", "personal boundaries",
+            "does not mean surrendering boundaries", "doesn't mean surrendering boundaries",
+        ))
+        rejects_automatic_compliance = any(term in low for term in (
+            "not passivity", "not passive", "not automatic compliance",
+            "not unquestioning compliance", "not blind obedience",
+        ))
+        no_guarantee = any(term in low for term in (
+            "does not guarantee", "doesn't guarantee", "not guarantee",
+            "not automatically", "not by itself", "not sufficient by itself",
+            "humility alone cannot", "humility alone does not",
+        ))
+        expected_title = str((expected_doorway or {}).get("title") or "").strip()
+        expected_url = str((expected_doorway or {}).get("url") or "").strip()
+        doorway_title = str(rec.get("title") or "").strip() if isinstance(rec, dict) else ""
+        doorway_url = str(rec.get("url") or "").strip() if isinstance(rec, dict) else ""
+        doorway = bool(
+            expected_title and expected_url and isinstance(rec, dict)
+            and doorway_title == expected_title
+            and doorway_url == expected_url
+        )
+        rationale = str(rec.get("rationale") or "") if isinstance(rec, dict) else ""
+        clean_rationale = (
+            bool(rationale.strip())
+            and not any(term in rationale.casefold() for term in (
+                "meta description", "seo description", "table of contents",
+                "chapter 1", "preface", "post id", "wordpress",
+            ))
+            and not bool(re.match(
+                r"^\s*(?:foreword|introduction|abstract|contents|chapter\s+\d+)",
+                rationale,
+                re.I,
+            ))
+        )
+        no_inline_url = not bool(re.search(r"https?://|www\.", answer, re.I))
+        no_orphaned_terminal_quote = not bool(re.search(r"(?<=[.!?])['’]\s*$", answer))
+        out += [
+            check("names_both_concepts", humility_present and maturity_present, "Address humility and spiritual maturity as distinct but related concepts."),
+            check("humility_supports_learning_and_correction", learning_mechanism, "Explain how humility supports learning, honest self-appraisal, correction, and openness or accountability."),
+            check("maturity_as_lived_conduct", lived_maturity, "Describe maturity as lived conduct rather than claimed status."),
+            check("not_self_erasure_or_self_contempt", rejects_self_erasure, "Distinguish humility from self-erasure, diminished self-worth, or self-contempt."),
+            check("preserves_appropriate_boundaries", preserves_boundaries, "State that humility does not require surrendering appropriate boundaries."),
+            check("not_passivity_or_automatic_compliance", rejects_automatic_compliance, "Distinguish humility from passivity, blind obedience, or automatic compliance."),
+            check("does_not_guarantee_maturity", no_guarantee, "Do not claim humility alone guarantees spiritual maturity."),
+            check("relevant_reviewed_archive_doorway", doorway, f"Provide the exact reviewed humility/spiritual-maturity doorway separately from the answer; observed {rec!r}."),
+            check("visitor_facing_doorway_rationale", clean_rationale, "Keep the doorway rationale concise and visitor-facing, without source-page or CMS residue."),
+            check("answer_contains_no_inline_resource_url", no_inline_url, "Keep the optional Archive destination in the separate doorway field, not embedded in the answer."),
+            check("no_orphaned_terminal_quote", no_orphaned_terminal_quote, "Do not leave a stray quote delimiter after the final sentence."),
+        ]
     elif cid=="heldout-explicit-no-handoff-001":
         distinction=any(x in low for x in ("policy sets","policy defines","policy establishes","procedure describes","procedure explains","steps for","what must be done","what should be done"))
         no_links=not bool(re.search(r"https?://|www\.",answer,re.I))
@@ -514,7 +596,9 @@ def main():
                 (registry_by_id.get(str(source_id)) for source_id in source_ids if registry_by_id.get(str(source_id))),
                 None,
             )
-            expected_doorway=source_record.get("expected_doorway") if isinstance(source_record,dict) else None
+            expected_doorway = item.get("expected_doorway")
+            if not isinstance(expected_doorway, dict):
+                expected_doorway = source_record.get("expected_doorway") if isinstance(source_record,dict) else None
             checks=evaluate_held(item,transport,expected_doorway=expected_doorway)
             if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:
                 checks.append(check(
