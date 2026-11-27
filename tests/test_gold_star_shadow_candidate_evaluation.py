@@ -95,3 +95,22 @@ def test_candidate_scope_and_source_fixture_are_fail_closed():
     assert candidate["runtime_transfer"] is False
     assert candidate["deterministic_fallback_eligible"] is False
     assert candidate["exact_answer_authority"] is False
+
+
+def test_matched_pair_runner_accepts_an_explicit_evaluation_only_candidate():
+    import json
+    from scripts.capture_gold_star_matched_pairs import _load_cases
+    from gold_star_evaluation_context import evaluation_context
+    suite, cases, target_id = _load_cases(
+        Path("docs/qa/gold_star_metaphysical_distress_shadow_cases.json")
+    )
+    assert suite["evaluation_candidate_id"] == "shadow-metaphysical-distress-principles-2026-11-27"
+    assert target_id == "general-guide-metaphysical-certainty-distress-response-exemplar-2026-11-27"
+    assert len(cases) == 3
+    assert len({case["case_family"] for case in cases}) == 3
+    with evaluation_context(
+        arm="treatment", provider="groq", model="openai/gpt-oss-120b",
+        candidate_id=suite["evaluation_candidate_id"],
+    ):
+        import gold_star_lessons
+        assert gold_star_lessons.active_quality_contribution(cases[0]["query"]) is not None
