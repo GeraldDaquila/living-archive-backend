@@ -1083,13 +1083,39 @@ def _sanitize_candidate(text: Any) -> str:
 
     result = "\n\n".join(paragraphs).strip()
     # A stray single quote after terminal punctuation is a common residue from
-    # quoted-source extraction. Remove only an unmatched trailing delimiter;
-    # do not touch contractions ("it's"), possessives ("users'"), or paired
-    # single-quoted spans embedded in otherwise valid visitor prose.
-    if re.search(r"[.!?]['’]\s*$", result) and not re.search(
-        r"(?<!\w)['‘](?=\S)", result
-    ):
-        result = re.sub(r"(?<=[.!?])['’]\s*$", "", result)
+    # quoted-source extraction. Determine whether the terminal delimiter closes
+    # an actually open single-quoted span; an unrelated earlier quote must not
+    # mask a later orphan. Apostrophes inside words and terminal possessives are
+    # not quote delimiters.
+    terminal_quote = re.search(r"(?<=[.!?])(['’])\\s*$", result)
+    if terminal_quote:
+        open_single_quote = False
+        for index, char in enumerate(result[:terminal_quote.start(1)]):
+            previous = result[index - 1] if index else ""
+            following = result[index + 1] if index + 1 < len(result) else ""
+            if char == "‘":
+                open_single_quote = True
+            elif char == "’":
+                if open_single_quote:
+                    open_single_quote = False
+            elif char == "'":
+                if previous.isalnum() and following.isalnum():
+                    continue  # contraction or intra-word apostrophe
+                if previous.isalnum() and (
+                    not following or following.isspace() or following in ".,!?;:)]}"
+                ):
+                    if open_single_quote:
+                        open_single_quote = False
+                    continue  # otherwise a possessive, not a closing delimiter
+                if not following or following.isspace():
+                    if open_single_quote:
+                        open_single_quote = False
+                elif not previous or previous.isspace() or previous in "([{—–-":
+                    open_single_quote = True
+                elif open_single_quote:
+                    open_single_quote = False
+        if not open_single_quote:
+            result = result[:terminal_quote.start(1)].rstrip()
     return result
 
 
