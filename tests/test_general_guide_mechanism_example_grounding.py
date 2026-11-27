@@ -128,3 +128,26 @@ def test_mechanism_elements_split_across_sentences_do_not_form_a_causal_example(
         "The town coordinates mutual aid because shared symbols reinforce identity."
     )
     assert not has_grounded_mechanism_example(response)
+
+def test_exact_live_visitor_near_miss_is_rejected_during_composition():
+    """The screenshot's abstract answer must fail before it reaches the outer boundary."""
+    response = (
+        "A useful starting point is to ask how myths, symbols, and stories organize "
+        "collective life works through particular conditions rather than assuming a "
+        "single direct cause. Repeated signals, incentives, relationships, constraints, "
+        "and consequences can make some choices feel normal, rewarded, risky, or difficult "
+        "even when formal rules say something different.\\n\\n"
+        "The next question is what mechanisms are actually operating: what people observe "
+        "others doing, what behavior is rewarded or tolerated, whose judgment carries "
+        "authority, and what happens when concerns are raised. Patterns become more "
+        "consequential when these conditions reinforce one another over time and make "
+        "correction harder or easier.\\n\\n"
+        "This is a starting explanation rather than a claim about a specific case. A "
+        "stronger account identifies the relationships and evidence that matter, "
+        "distinguishes influence from proof of causation, and remains open to other "
+        "conditions that may change the outcome."
+    )
+    parse = guide._parse_factory([], query=QUESTION, emit_telemetry=False)
+    with pytest.raises(ValueError, match="must include one concrete illustrative example"):
+        parse(json.dumps({"response": response}))
+
