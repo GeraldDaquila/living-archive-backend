@@ -5694,7 +5694,7 @@ def compose(
                 if (
                     _repaired_result
                     and _repaired_response
-                    and _repaired_semantic.get("status") == "pass"
+                    and (_repaired_semantic.get("question_type") == "epistemic_distress_guidance" and not _repaired_semantic.get("hard_failures"))
                 ):
                     result = _repaired_result
                     _emit_guide_outcome(
@@ -5730,7 +5730,7 @@ def compose(
         _evaluation_semantic = _evaluate_epistemic_evaluation_contract(
             question, {"ok": True, "response": str(_evaluation_payload.get("response") or "")}
         )
-        if _evaluation_semantic.get("status") != "pass":
+        if (_evaluation_semantic.get("question_type") != "epistemic_distress_guidance" or bool(_evaluation_semantic.get("hard_failures"))):
             _emit_guide_outcome(
                 "epistemic_distress_task_fit_repair",
                 stage="evaluation_candidate_rejected_without_repair",
@@ -5756,7 +5756,7 @@ def compose(
         _first_semantic = _evaluate_epistemic_semantic_contract(
             question, {"ok": True, "response": _first_response}
         )
-        if _first_semantic.get("status") != "pass":
+        if (_first_semantic.get("question_type") != "epistemic_distress_guidance" or bool(_first_semantic.get("hard_failures"))):
             # Fail closed before attempting repair. If the provider is exhausted,
             # times out, or returns another incomplete answer, the rejected
             # candidate must not remain eligible for downstream delivery.
@@ -5905,14 +5905,14 @@ def compose(
             _epistemic_recovery_semantic = _evaluate_epistemic_recovery(
                 question, {"ok": True, "response": _epistemic_recovery_answer}
             )
-            if _epistemic_recovery_semantic.get("status") != "pass":
+            if (_epistemic_recovery_semantic.get("question_type") != "epistemic_distress_guidance" or bool(_epistemic_recovery_semantic.get("hard_failures")) ):
                 raise RuntimeError(
                     "Epistemic-distress provider-exhaustion recovery failed its semantic admission contract."
                 )
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
                 recovery="epistemic_distress_guidance",
-                semantic_status="pass",
+                semantic_status="hard_checks_passed",
             )
             return {
                 "response": _epistemic_recovery_answer,
