@@ -31,7 +31,7 @@ _PATTERNS = {
     "technical_verification": re.compile(r"\b(?:verify|check|confirm|test)\b.{0,100}\b(?:environment variable|secret|configuration|configured|credential)\b", re.I),
     "uncertain_causation": re.compile(r"\bwhat caused\b|\bwhy did\b.{0,80}\b(?:increase|decrease|spike|drop|change)\b", re.I),
     "strategic_tradeoff": re.compile(r"\bshould\b.{0,100}\b(?:or|versus|vs\.?|rather than)\b", re.I),
-    "conceptual_relationship": re.compile(r"\\b(?:relationship|connection|interplay)\\s+between\\b", re.I),
+    "conceptual_relationship": re.compile(r"\b(?:relationship|connection|interplay)\\s+between\\b", re.I),
     "practical_application": re.compile(r"\bhow can\b|\bhow do (?:i|we|they)\b|\bhow should\b", re.I),
     "comparison": re.compile(r"\b(?:difference between|differ from|compare|comparison|versus|vs\.?)\b", re.I),
     "conceptual_explanation": re.compile(r"\bwhat is\b.{0,100}\b(?:and why|why does|why is|how does|what makes)\b", re.I),
@@ -201,7 +201,7 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         # topic-matched excerpts, or separate mini-definitions. The answer must
         # name both requested concepts and explain the connecting operation.
         match = re.search(
-            r"\\b(?:relationship|connection|interplay)\\s+between\\s+(.+?)\\s+and\\s+(.+?)(?:[?!.]|$)",
+            r"\b(?:relationship|connection|interplay)\\s+between\\s+(.+?)\\s+and\\s+(.+?)(?:[?!.]|$)",
             str(query or "").strip(),
             re.I,
         )
@@ -212,17 +212,17 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
                 for part in match.groups()
             ]
         subjects_present = len(subjects) == 2 and all(
-            re.search(r"\\b" + re.escape(subject) + r"\\b", low)
+            re.search(r"\b" + re.escape(subject) + r"\b", low)
             for subject in subjects
         )
         mechanism = bool(re.search(
-            r"\\b(?:because|by|through|allows?|enables?|supports?|shapes?|cultivates?|"
+            r"\b(?:because|by|through|allows?|enables?|supports?|shapes?|cultivates?|"
             r"develops?|strengthens?|depends on|requires?|makes it possible|in turn|"
             r"reinforces?|influences?)\\b",
             low,
         ))
         relation_direction = bool(re.search(
-            r"\\b(?:both|reciprocal|mutual|in turn|one another|each other|"
+            r"\b(?:both|reciprocal|mutual|in turn|one another|each other|"
             r"not automatic|not necessarily|conditional|while|although|yet)\\b",
             low,
         ))
