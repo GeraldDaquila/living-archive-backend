@@ -1316,3 +1316,20 @@ def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monke
         )
 
     assert error.value.category == "invalid_provider_response"
+
+
+
+@pytest.mark.parametrize(
+    ("reason", "expected"),
+    [
+        ("community liberty-limit answer is incomplete: affected_party_participation", "community_rule_incomplete"),
+        ("transparency-trust answer must explain both directions of influence", "transparency_trust_reciprocity"),
+        ("transparency-trust answer must explicitly preserve privacy", "transparency_trust_disclosure_boundary"),
+        ("substantive multi-idea answer must preserve semantic paragraph boundaries", "semantic_paragraph_boundaries"),
+        ("provider response embedded navigation URLs in visitor prose", "embedded_navigation_url"),
+        ("general composition returned invalid JSON", "invalid_json"),
+        ("unclassified safe validator rejection", "other_contract"),
+    ],
+)
+def test_contract_rejection_reason_telemetry_is_bounded_and_content_free(reason, expected):
+    assert provider_bank._contract_rejection_reason_code(reason) == expected
