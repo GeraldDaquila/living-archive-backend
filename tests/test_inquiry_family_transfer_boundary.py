@@ -47,6 +47,19 @@ def test_pain_and_identity_question_is_classified_before_generic_how_should_task
     assert "LIVED EXPERIENCE AND IDENTITY BOUNDARY" not in governance_prompt
 
 
+def test_lived_experience_without_identity_focus_does_not_require_identity_claims():
+    query = "How should a person live with pain?"
+    family = classify_inquiry_family(query)
+    assert family["family"] == "personal_lived_reflective"
+    assert family["identity_focus"] is False
+    result = evaluate_semantic_contract(
+        query,
+        {"ok": True, "response": "Pain can be difficult to carry. A person can acknowledge it, seek support, and make room for moments of relief without denying what happened."},
+    )
+    assert result["question_type"] == "lived_reflective_inquiry"
+    assert result["hard_failures"] == []
+
+
 def test_institutional_governance_lesson_is_incompatible_with_lived_pain_question():
     lesson = {
         "reasoning_family": "governance_balance_constitutional_stability_participatory_legitimacy_adaptive_responsiveness"
