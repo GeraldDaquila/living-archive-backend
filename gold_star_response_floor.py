@@ -21,7 +21,7 @@ from institutional_learning_failure_contract import is_institutional_learning_fa
 
 VERSION = "2.1"
 SEMANTIC_SHADOW_VERSION = "1.1"
-SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure", "comparison"})
+SEMANTIC_ENFORCED_QUESTION_TYPES = frozenset({"institutional_learning_failure", "comparison", "lived_reflective_inquiry"})
 ANSWER_KEYS = ("response", "answer")
 NON_ANSWER_MARKERS = (
     "i cannot answer that question",
