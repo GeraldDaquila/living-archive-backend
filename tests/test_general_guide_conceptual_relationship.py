@@ -204,3 +204,19 @@ def test_transparency_trust_still_rejects_reciprocity_without_a_non_guarantee_bo
         "to share information and raise concerns, and institutions should respond candidly."
     )
     assert not _has_transparency_trust_reciprocity(response)
+
+
+
+def test_symbolic_collective_life_has_concrete_provider_independent_mechanism_recovery():
+    from general_guide_composition import _requires_grounded_mechanism_example, _has_grounded_illustrative_example
+
+    question = "How do myths, symbols, and stories organize collective life?"
+    response = _conceptual_relationship_recovery(question)
+
+    assert _requires_grounded_mechanism_example(question)
+    assert _has_grounded_illustrative_example(response)
+    assert has_conceptual_relationship_explanation(response, question)
+    assert "coastal village" in response
+    assert "painted boat symbol" in response
+    assert "shared watch rota" in response
+    assert "who carries the costs" in response
