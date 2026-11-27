@@ -35,8 +35,8 @@ def test_user_elevated_compassionate_response_is_a_separate_frozen_gold_star_exe
     assert fixture["exact_answer_authority"] is False
     assert fixture["deterministic_fallback_eligible"] is False
     assert fixture["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
+    assert "NOT_EVALUATED" in fixture["gold_star_capabilities"]["abstention_boundary"]
     assert fixture["doorway_status"] == "NOT_EVALUATED"
-    assert fixture["paired_active_benchmark_id"] == "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15"
     assert fixture["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
     assert fixture["expected_doorway"] is None
     assert fixture["numbering_status"] == "UNASSIGNED"
