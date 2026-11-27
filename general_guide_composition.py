@@ -494,7 +494,7 @@ def _build_general_guide_system_message(
         parts.append(
             "HUMILITY AND SPIRITUAL MATURITY: Use three direct sentences. "
             "(1) Humility supports spiritual maturity through learning: it keeps a person teachable and willing to learn, "
-            "encourages honest self-appraisal, and welcomes correction and accountability. "
+            "encourages honest self-appraisal, and supports accepting correction and accountability. "
             "(2) Spiritual maturity is lived conduct in actions and relationships, not claimed status; "
             "humility alone does not guarantee it, and the relationship is conditional, not automatic. "
             "(3) Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
