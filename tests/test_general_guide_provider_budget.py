@@ -1076,9 +1076,9 @@ def test_initial_and_internal_composition_retries_share_the_reserved_deadline():
 
     assert "from guide_request_budget import composition_provider_deadline" in source
     assert "provider_deadline_monotonic = composition_provider_deadline(" in source
-    # Initial composition, internal retry, and independent lived-response repair
-    # must all consume the same request-reserved provider deadline.
-    assert source.count("deadline_monotonic=provider_deadline_monotonic") == 3
+    # Initial composition, internal retry, and each independent task-fit
+    # repair must consume the same request-reserved provider deadline.
+    assert source.count("deadline_monotonic=provider_deadline_monotonic") == 4
 
 
 def test_general_guide_prefers_recent_success_and_lower_failure_streak_over_stale_transport_totals(monkeypatch):
