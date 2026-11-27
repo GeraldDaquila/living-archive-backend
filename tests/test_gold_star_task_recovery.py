@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 
 import main
-from deterministic_answer_recovery import compose_task_specific_recovery
+from deterministic_answer_recovery import compose_task_specific_recovery, has_registered_recovery
 from gold_star_semantic_contract import evaluate_semantic_contract
 
 
@@ -199,6 +199,7 @@ def test_multi_party_liberty_tradeoff_keeps_deterministic_answer_as_fallback_but
     recovery = compose_task_specific_recovery(question)
     assert recovery["recovery_id"] == "task_fair_community_rule_liberty_and_collective_obligations"
     assert main._task_recovery_requires_attributable_composition(recovery) is True
+    assert has_registered_recovery(question) is True
     ordinary_recovery = compose_task_specific_recovery(CASES[0][0])
     assert main._task_recovery_requires_attributable_composition(ordinary_recovery) is False
 
