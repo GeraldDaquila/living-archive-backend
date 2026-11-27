@@ -40,7 +40,9 @@ def test_growth_within_limits_recovery_answers_the_named_mechanism():
 def test_general_composition_bounds_provider_context_before_admission():
     source = Path("general_guide_composition.py").read_text(encoding="utf-8")
     assert "_evidence_payload(documents)[:6000]" in source
-    assert "user_content[:7000]" in source
+    assert "GENERAL_GUIDE_PROVIDER_USER_CONTENT_MAX_CHARS = 6400" in source
+    assert "_bounded_general_guide_provider_user_content(user_content)" in source
+    assert "user_content[:7000]" not in source
 
 
 from general_guide_gold_standards import find_cross_question_standard_response

@@ -865,20 +865,20 @@ def test_community_rule_gold_star_prompt_fits_configured_groq_tpm_budget():
     assert "Decide before drafting" in adjudication_instruction
     assert "Return exact 12–120-character response offsets" in adjudication_instruction
     assert "rejected IDs use 0,0. Reject if no range" in adjudication_instruction
-    system = guide_composition._build_general_guide_system_message(
+    messages = guide_composition._build_general_guide_provider_messages(
         question,
+        "U" * 7000,
         has_gold_star_guidance=True,
         incomplete_knowledge_plan=guide_composition.build_incomplete_knowledge_plan(question),
-        gold_star_quality_instruction=guide_composition._build_gold_star_quality_instruction(quality),
+        gold_star_quality_instruction=adjudication_instruction,
         public_live_source_instruction=guide_composition._public_live_source_security_instruction(
             {"live_source_evidence_provenance": [{"source": "verified-live-archive-test-fixture"}]}
         ),
+        objective_integrity_instruction=guide_composition._objective_integrity_instruction(question),
     )
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user", "content": "U" * 6400},
-    ]
 
+    assert guide_composition.GENERAL_GUIDE_PROVIDER_USER_CONTENT_MAX_CHARS == 6400
+    assert len(messages[1]["content"]) == 6400
     assert estimate_input_tokens(messages) + 750 <= 8000
 
 
