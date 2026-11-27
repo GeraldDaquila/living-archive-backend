@@ -118,7 +118,12 @@ GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIM
 # and caused false provider exhaustion. Give recovery candidates the supported
 # minimum composition window; the shared 18s arbitration ceiling still bounds
 # the total cost and preserves the six-second integrity-repair reserve.
-GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS
+# Add only 250ms of transport grace to Guide provider calls; the route and
+# outer request deadlines remain the authoritative ceilings.
+GENERAL_GUIDE_PROVIDER_TIMEOUT_GRACE_SECONDS = 0.25
+GENERAL_GUIDE_HALF_OPEN_PROBE_TIMEOUT_SECONDS = (
+    GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS + GENERAL_GUIDE_PROVIDER_TIMEOUT_GRACE_SECONDS
+)
 # NVIDIA's Nemotron 3.5 Super VL has demonstrated successful inference near
 # five seconds, but a full eight-second half-open timeout can strand a proven
 # low-latency sibling after independent-provider failures. Keep a small margin
@@ -129,7 +134,7 @@ GENERAL_GUIDE_NVIDIA_NEMOTRON_HALF_OPEN_TIMEOUT_SECONDS = 5.5
 # independent fallback lanes were quota-denied or timed out. Give this healthy
 # primary a 6.5s floor; half-open probes keep their separate bounded timeout,
 # and the shared 18s arbitration window remains the hard route ceiling.
-GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS = 6.5
+GENERAL_GUIDE_NVIDIA_LIGHTNING_MIN_TIMEOUT_SECONDS = 6.5 + GENERAL_GUIDE_PROVIDER_TIMEOUT_GRACE_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
