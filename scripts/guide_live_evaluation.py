@@ -338,14 +338,19 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
                 "earned rather than assumed", "trust feel earned",
             )))
         )
-        mechanism = any(term in low for term in ("because", "enables", "allows", "allowing", "makes it possible", "basis for scrutiny"))
+        mechanism = any(term in low for term in (
+            "because", "enables", "allows", "allowing", "makes it possible",
+            "basis for scrutiny",
+        )) or (
+            "letting people verify" in low and "catch and correct" in low
+        )
         reciprocal = any(term in low for term in (
             "reinforce one another", "reinforce each other", "mutually reinforce",
             "mutually reinforcing", "strengthen one another", "strengthen each other",
             "work both ways", "works both ways", "other direction", "in two directions",
             "two directions", "in both directions", "conversely", "vice versa",
             "reciprocal", "in turn", "also makes",
-        ))
+        )) or "also make transparency more possible" in low
         boundary = any(term in low for term in (
             "neither guarantees", "does not guarantee", "not guarantee", "not the same",
             "not equivalent", "conditional, not automatic", "one does not substitute for the other",
