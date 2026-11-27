@@ -382,13 +382,13 @@ def _select_verified_doorway_conceptual_family(query):
     # task; ordinary legal/insurance claims and casual mentions do not qualify.
     extraordinary_claim_discernment = (
         re.search(
-            r"\\b(?:extraordinary|unusual|remarkable|anomalous|unverified|unsupported|implausible)\\b",
+            r"\b(?:extraordinary|unusual|remarkable|anomalous|unverified|unsupported|implausible)\b",
             text,
             re.I,
         )
-        and re.search(r"\\b(?:claims?|assertions?|theories|phenomena)\\b", text, re.I)
+        and re.search(r"\b(?:claims?|assertions?|theories|phenomena)\b", text, re.I)
         and re.search(
-            r"\\b(?:evidence|verify|verification|assess|evaluate|respond|response|credible|credibility|warrant|accept|acceptance|discern)\\w*\\b",
+            r"\b(?:evidence|verify|verification|assess|evaluate|respond|response|credible|credibility|warrant|accept|acceptance|discern)\w*\b",
             text,
             re.I,
         )
