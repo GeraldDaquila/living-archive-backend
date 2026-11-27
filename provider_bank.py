@@ -3909,6 +3909,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     operation, parsed, messages=effective_messages
                 )
             except ValueError as contract_error:
+                contract_reason = str(contract_error)
+                humility_repair_instruction = (
+                    _guide_contract_repair_instruction(contract_reason)
+                    if operation == "general_guide_composition" else None
+                )
                 if not _evaluation_contract_repair_allowed(evaluation):
                     # A paired arm is one generation, not a generation plus a
                     # hidden same-model correction. Reject the arm and let the
@@ -4232,10 +4237,6 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
             contract_reason = str(exc)
-            humility_repair_instruction = (
-                _guide_contract_repair_instruction(contract_reason)
-                if operation == "general_guide_composition" else None
-            )
             # Classify before quality attribution so repairable envelope failures
             # remain visible without unnecessarily cooling capable providers.
             rejection_class = _contract_rejection_class(contract_reason)
