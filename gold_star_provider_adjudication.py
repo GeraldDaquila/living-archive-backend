@@ -248,16 +248,17 @@ def build_adjudication_output_contract(candidates: Any) -> str:
     # Keep this contract compact: it is repeated in every provider prompt and
     # competes with visitor evidence for finite context/token budgets.
     return (
-        "Add JSON property adaptive_adjudication with exactly two keys: "
-        "candidate_assessments and application_evidence_quotes. For every candidate "
-        "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
-        "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
+        "Return exactly two JSON keys: candidate_assessments and application_evidence_quotes. "
+        "For each candidate ID (" + ids + "), emit one assessment with candidate_id, "
+        "decision (select/reject), and reason_code (empty for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one quote object per candidate: selected IDs use an exact verbatim 12–240-character substring from the final response that shows the distinctive operation, and the quoted substring must occur exactly once in that final response. If a shorter phrase repeats, choose a longer distinctive contiguous span that occurs only once; never duplicate or pad visitor prose to manufacture uniqueness. Rejected IDs use an empty quote; reject-all uses empty quotes. The runtime locates the quote itself, so do not count character offsets or paraphrase. Prefer few candidates. "
-        "No hidden reasoning or chain-of-thought. "
-        "This report is not visitor-facing and is not proof of semantic quality; "
-        "the runtime validates IDs, complete disposition, reason codes, and quoted evidence, then verifies "
-        "the exact quote occurs once in the final answer. Improvement still requires paired evaluation. "
+        "questions and select only distinct, relevant candidates. After drafting the final response, "
+        "emit one quote per candidate: selected IDs use a verbatim 12–240-character final-answer "
+        "substring showing the distinctive operation and occurring exactly once. If needed, choose a "
+        "longer unique contiguous span; never duplicate or pad visitor prose. Rejected IDs and reject-all "
+        "use empty quotes. Runtime locates the quote; do not count offsets or paraphrase. "
+        "No hidden reasoning. This internal report is not proof of semantic quality; "
+        "improvement requires paired evaluation. "
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'
