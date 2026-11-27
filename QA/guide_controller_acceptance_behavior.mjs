@@ -52,7 +52,7 @@ const response = (status, payload) => ({
 }
 {
   const s = await scenario([response(200,null)]);
-  await assert.rejects(() => s.run({query:"x"},"query"), e => e.name === "GuideApplicationContractError" && e.reason === "missing_visitor_response");
+  await assert.rejects(() => s.run({query:"x"},"query"), e => e.name === "GuideApplicationContractError" && e.reason === "invalid_json_envelope");
   assert.equal(s.calls.length,1,"malformed HTTP 200 must not fail over");
 }
 console.log("PASS: v489.332 application rejection / transport failover behavior");
