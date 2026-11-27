@@ -4,6 +4,9 @@ A qualifying illustration must connect a real-world setting, a shared narrative 
 symbolic form, an enacted communal practice, and a resulting collective effect.
 The causal connection must be expressed in the same sentence as the practice and
 effect; unrelated keywords elsewhere in the illustration cannot satisfy it.
+
+This remains a conservative syntactic admission heuristic, not semantic certification.
+Its reliability must still be assessed with adversarial tests and held-out visitor evaluation.
 """
 from __future__ import annotations
 
