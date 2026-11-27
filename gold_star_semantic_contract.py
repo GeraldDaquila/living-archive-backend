@@ -240,7 +240,8 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             low,
         ))
         add("addresses_named_lived_experience", experience_present, "The answer must engage the experience named by the visitor, not replace it with an adjacent planning framework.", hard=True)
-        add("preserves_experience_identity_distinction", experience_identity_relation, "The answer must explicitly relate the experience to identity without allowing the experience to define the whole person.", hard=True)
+        if classify_inquiry_family(query).get("identity_focus"):
+            add("preserves_experience_identity_distinction", experience_identity_relation, "The answer must explicitly relate the experience to identity without allowing the experience to define the whole person.", hard=True)
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
     elif kind == "conceptual_explanation":
