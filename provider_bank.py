@@ -4226,8 +4226,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                             )
                             continue
                         recovery_timeout = bounded_recovery_timeout
-                if deadline_monotonic is not None and (
-                    recovery_timeout is None or recovery_timeout <= 0.0
+                if (
+                    (deadline_monotonic is not None and recovery_timeout is None)
+                    or (recovery_timeout is not None and recovery_timeout <= 0.0)
                 ):
                     state["probe_in_flight"] = False
                     print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_contract_repair")
