@@ -121,3 +121,23 @@ def test_task_specific_humility_contract_is_authoritative_for_relational_synthes
     assert evaluate_humility_spiritual_maturity_response(QUERY, answer)["passed"] is True
     assert composition.has_conceptual_relationship_explanation(answer, QUERY) is True
 
+
+
+@pytest.mark.parametrize(
+    "boundary_sentence",
+    [
+        "Humility is not a loss of self-respect or a denial of one's worth.",
+        "Humility is different from self-negation and self-abasement.",
+        "Humility does not mean erasing oneself or abandoning self-respect.",
+    ],
+)
+def test_humility_boundary_accepts_clear_self_erasure_paraphrases(boundary_sentence):
+    answer = COMPLETE_ANSWER.replace(
+        "Humility is not self-erasure, diminished self-worth, self-contempt, passivity, blind obedience, "
+        "or automatic compliance; it does not mean surrendering appropriate boundaries.",
+        boundary_sentence + " It does not mean surrendering appropriate boundaries.",
+    )
+    report = evaluate_humility_spiritual_maturity_response(QUERY, answer)
+    assert report["checks"]["not_self_erasure_or_self_contempt"] is True
+    assert report["passed"] is True
+
