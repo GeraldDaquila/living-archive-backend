@@ -414,12 +414,12 @@ try {
           mobileMetrics.answerRightEdge > mobileMetrics.viewportWidth + 1) {
         throw new Error("Mobile answer rendering failed responsive layout checks: " + JSON.stringify(mobileMetrics));
       }
-      const languageSwitcherMetrics = await page.evaluate(() => {
+      const languageSwitcherMetrics = await page.evaluate((rootSelector) => {
         const node = document.querySelector(".gt_float_switcher");
         if (!node) return { found: false };
         const rect = node.getBoundingClientRect();
         const style = getComputedStyle(node);
-        const answer = document.querySelector(ROOT + " #archive-response-text");
+        const answer = document.querySelector(rootSelector + " #archive-response-text");
         const answerRect = answer && answer.getBoundingClientRect();
         const overlapsAnswer = !!answerRect &&
           rect.left < answerRect.right && rect.right > answerRect.left &&
@@ -439,7 +439,7 @@ try {
           parentTag: node.parentElement && node.parentElement.tagName,
           parentClass: node.parentElement && node.parentElement.className
         };
-      });
+      }, ROOT);
       mkdirSync("artifacts", { recursive: true });
       await page.screenshot({ path: "artifacts/guide-mobile-render.png", fullPage: true });
       mark("mobile_render_evidence", { ...mobileMetrics, languageSwitcherMetrics });
