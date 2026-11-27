@@ -500,7 +500,7 @@ def _build_general_guide_system_message(
             "and relationships, not claimed status. Explicitly distinguish humility from self-erasure, diminished "
             "self-worth, or self-contempt; state that it does not require surrendering appropriate boundaries; "
             "and distinguish it from passivity, blind obedience, or automatic compliance. State that humility alone "
-            "does not guarantee maturity. Do not present spiritual status as objectively certified or turn the answer "
+            "does not guarantee maturity. State that the relationship is conditional, not automatic. Do not present spiritual status as objectively certified or turn the answer "
             "into generic therapeutic advice. Answer the visitor directly before offering any doorway."
         )
     if integrity_recovery_instruction:
