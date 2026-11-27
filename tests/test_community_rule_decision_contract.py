@@ -91,13 +91,14 @@ def test_community_rule_instruction_makes_all_six_dimensions_explicit_without_ch
     instruction = build_community_rule_decision_instruction()
     for phrase in (
         "legitimate shared purpose",
-        "least restrictive workable means",
-        "who benefits and who bears the costs",
+        "less restrictive workable means",
+        "who benefits",
+        "who bears costs",
         "reasonable accommodation",
-        "people most affected",
-        "appeal route",
-        "observable review criteria",
-        "do not leave any dimension implicit",
-        "coherent, natural prose",
+        "fair burden allocation",
+        "include affected people in shaping the rule",
+        "appeal and review criteria",
+        "Treat each as distinct evidence",
+        "Use coherent prose",
     ):
         assert phrase in instruction
