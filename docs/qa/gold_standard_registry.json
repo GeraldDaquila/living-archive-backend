@@ -9096,7 +9096,7 @@
       "runtime_transfer": true,
       "reasoning_family": "pain_identity_distinction_and_self_continuity",
       "transferable_lesson": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self; offer gentle, non-coercive language and attention practices; preserve connection to relationships and values; avoid promising a timeline; and identify when additional support may be warranted.",
-      "transfer_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved.",
+      "transfer_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved. Do not infer a canonical destination URL from the visible continuation title.",
       "known_theme": "pain, identity, self-continuity, humane conceptual orientation, practical grounding",
       "gold_star_capabilities": {
         "generation_class": "user_approved_structural_learning",
@@ -9105,7 +9105,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "pain_identity_distinction_and_self_continuity",
         "transferable_discipline": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self; offer gentle, non-coercive language and attention practices; preserve connection to relationships and values; avoid promising a timeline; and identify when additional support may be warranted.",
-        "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved."
+        "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved. Do not infer a canonical destination URL from the visible continuation title."
       },
       "user_approved_at": "2026-11-27",
       "elevation_approval_evidence": "The user explicitly instructed 'elevate to gold star' after reviewing the live visitor-facing screenshot. This authorizes the exact response as an immutable exemplar and the bounded structural lesson below; it does not establish held-out adaptive transfer or measured outcome improvement.",
@@ -9114,7 +9114,7 @@
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing serial allocation was requested."
     }
   ],
-  "last_reconciliation_note": "Added user-approved relational-synthesis Gold Star general-guide-relational-synthesis-concept-pairs-2026-11-24 and preserved its original transparency-and-trust visitor response as a linked diagnostic near-miss. The approved record contributes bounded cross-question reasoning discipline only; exact-answer authority, deterministic fallback, and inferred doorway authority remain disabled. Live inventory totals are derived from canonical records. Added immutable civic-commons provider-exhaustion near-miss evidence linked to the existing approved public-commons Gold Star; no new Gold Star identity or inventory count was created. Added a separately authored objective-integrity successor candidate linked to the immutable self-optimization near-miss. Both remain excluded from approved and active Gold Star counts pending user review and validation; canonical counts reconciled to the 179 existing records plus this new candidate.",
+  "last_reconciliation_note": "Added user-approved pain-and-identity Gold Star general-guide-pain-without-total-identity-2026-11-27 as a bounded structural-learning contributor. The exact visitor answer is frozen as an immutable exemplar; exact-answer authority and deterministic fallback remain disabled. The visible continuation title is preserved separately and its canonical URL is not inferred. Inventory counts reconciled to 141 approved records and 181 total records.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -9243,21 +9243,21 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-26",
-    "approved_gold_star_count": 140,
-    "registry_record_count": 180,
-    "review_reconciliation": "Canonical inventory contains 140 USER_APPROVED_GOLD_STANDARD records: 137 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The original self-optimization response remains immutable diagnostic near-miss evidence; its separately authored successor is approved as a bounded structural-learning contributor. This approval does not assert live visitor application or measured outcome improvement.",
+    "last_audit_date": "2026-11-27",
+    "approved_gold_star_count": 141,
+    "registry_record_count": 181,
+    "review_reconciliation": "Canonical inventory contains 141 USER_APPROVED_GOLD_STANDARD records: 138 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The pain-and-identity response is a user-approved bounded structural-learning contributor. Its exact answer remains immutable, but exact-answer authority and deterministic fallback are disabled. Its doorway URL remains unverified; do not infer a destination from the visible title. Approval does not assert held-out transfer or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-26: 140 approved Gold Stars; 39 assigned display serials #56–#94; 101 approved records explicitly UNASSIGNED with reasons. The new objective-integrity successor is UNASSIGNED because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 101,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-27: 141 approved Gold Stars; 39 assigned display serials #56–#94; 102 approved records explicitly UNASSIGNED with reasons. The new pain-and-identity Gold Star remains UNASSIGNED because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 102,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 137,
+    "active_quality_contributor_count": 138,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-developmental-stewardship-objective-integrity-2026-11-26 approved by user 2026-11-26",
+    "last_approval": "general-guide-pain-without-total-identity-2026-11-27 approved by user 2026-11-27",
     "calibration_candidates_pending_user_review": 0,
     "approved_response_quality_exemplar_count": 1
   },
@@ -9357,23 +9357,23 @@
     }
   ],
   "audit": {
-    "last_audit_date": "2026-11-26",
-    "approved_gold_star_count": 140,
-    "registry_record_count": 180,
-    "review_reconciliation": "Canonical inventory contains 140 USER_APPROVED_GOLD_STANDARD records: 137 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The original self-optimization response remains immutable diagnostic near-miss evidence; its separately authored successor is approved as a bounded structural-learning contributor. This approval does not assert live visitor application or measured outcome improvement.",
+    "last_audit_date": "2026-11-27",
+    "approved_gold_star_count": 141,
+    "registry_record_count": 181,
+    "review_reconciliation": "Canonical inventory contains 141 USER_APPROVED_GOLD_STANDARD records: 138 active structural-learning contributors, 1 approved exact-query-only successor, 1 approved response-quality exemplar without runtime transfer, and 1 superseded historical reference. The pain-and-identity response is a user-approved bounded structural-learning contributor. Its exact answer remains immutable, but exact-answer authority and deterministic fallback are disabled. Its doorway URL remains unverified; do not infer a destination from the visible title. Approval does not assert held-out transfer or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-26: 140 approved Gold Stars; 39 assigned display serials #56–#94; 101 approved records explicitly UNASSIGNED with reasons. The new objective-integrity successor is UNASSIGNED because no display serial was requested.",
-    "unassigned_approved_gold_star_count": 101,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-27: 141 approved Gold Stars; 39 assigned display serials #56–#94; 102 approved records explicitly UNASSIGNED with reasons. The new pain-and-identity Gold Star remains UNASSIGNED because no display serial was requested.",
+    "unassigned_approved_gold_star_count": 102,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 137,
+    "active_quality_contributor_count": 138,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-developmental-stewardship-objective-integrity-2026-11-26 approved by user 2026-11-26",
+    "last_approval": "general-guide-pain-without-total-identity-2026-11-27 approved by user 2026-11-27",
     "calibration_candidates_pending_user_review": 0,
     "approved_response_quality_exemplar_count": 1
   },
-  "last_reconciled": "2026-11-26"
+  "last_reconciled": "2026-11-27"
 }
