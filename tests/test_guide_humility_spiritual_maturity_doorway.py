@@ -65,7 +65,7 @@ def test_relational_answer_contract_distinguishes_humility_from_self_erasure():
     prompt = composition._build_general_guide_system_message(question)
     for required in (
         "HUMILITY AND SPIRITUAL MATURITY",
-        "learning",
+        "willing to learn",
         "honest self-appraisal",
         "self-erasure",
         "diminished self-worth",
