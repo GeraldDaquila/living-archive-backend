@@ -12,7 +12,7 @@ from typing import Any
 
 MAX_CANDIDATES = 4
 MIN_EVIDENCE_SPAN = 12
-MAX_EVIDENCE_SPAN = 120
+MAX_EVIDENCE_SPAN = 240
 REASON_CODES = frozenset({
     "subject_mismatch",
     "lexical_overlap_only",
@@ -252,7 +252,7 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "ID (" + ids + "), emit exactly one assessment object with candidate_id, "
         "decision (select/reject), and reason_code (empty string for select; one of " + reasons +
         " for reject). Assess activation scope and abstention boundary; accept semantically equivalent "
-        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one quote object per candidate: selected IDs use an exact verbatim 12–120-character substring from the final response that shows the distinctive operation; rejected IDs use an empty quote; reject-all uses empty quotes. The runtime locates the quote itself, so do not count character offsets or paraphrase. Prefer few candidates. "
+        "questions. Select only distinct, relevant candidates. After drafting the final response, emit one quote object per candidate: selected IDs use an exact verbatim 12–240-character substring from the final response that shows the distinctive operation; rejected IDs use an empty quote; reject-all uses empty quotes. The runtime locates the quote itself, so do not count character offsets or paraphrase. Prefer few candidates. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
         "the runtime validates IDs, complete disposition, reason codes, and quoted evidence, then verifies "
