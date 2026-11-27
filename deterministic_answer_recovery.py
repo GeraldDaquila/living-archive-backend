@@ -2315,16 +2315,17 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         from community_rule_decision_contract import is_community_rule_decision_question
         if is_community_rule_decision_question(q):
             answer = (
-                "A community should begin with a legitimate shared purpose, grounded in a demonstrable harm, "
+                "A community balancing individual freedom and shared responsibility should begin with a legitimate shared purpose, grounded in a demonstrable harm, "
                 "common need, or coordination problem rather than majority preference alone. It should explain "
                 "the evidence connecting that need to the proposed rule and identify the specific individual "
                 "freedom the rule would affect.\n\n"
-                "Before adopting a restriction, ask whether it is necessary and proportionate, and choose the "
-                "least restrictive workable means that addresses the shared need. State who benefits, who bears "
+                "Before adopting a restriction, ask whether it is necessary and proportionate, and compare less "
+                "restrictive alternatives before choosing the least restrictive workable means that addresses "
+                "the shared need. State who benefits, who bears "
                 "the costs, and how burdens will be fairly distributed. Provide reasonable accommodation for "
                 "people whose circumstances or needs differ, rather than treating one arrangement as workable "
                 "for everyone.\n\n"
-                "People most affected should have a meaningful opportunity to shape the rule before adoption. "
+                "People who will be affected should have a meaningful opportunity to shape the rule before adoption. "
                 "They must also be able to question the rule or appeal its application, with observable criteria "
                 "for review and a clear point at which the community will reconsider whether the restriction "
                 "remains necessary and fair. A majority can express a preference, but preference alone does not "
