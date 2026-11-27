@@ -45,8 +45,17 @@ def _load_candidate(candidate_id: str) -> dict[str, Any] | None:
         or fixture.get("deterministic_fallback_eligible") is not False
     ):
         raise ValueError("Shadow candidate source fixture is not the expected immutable non-runtime exemplar.")
-    return {**candidate, "transferable_discipline": fixture.get("transferable_lesson", ""),
-            "abstention_boundary": fixture.get("gold_star_capabilities", {}).get("abstention_boundary", "")}
+    source_boundary = str(fixture.get("gold_star_capabilities", {}).get("abstention_boundary") or "").strip()
+    evaluation_boundary = str(candidate.get("evaluation_abstention_boundary") or "").strip()
+    if not source_boundary or not evaluation_boundary:
+        raise ValueError("Shadow candidate source or evaluation boundary is missing.")
+    return {
+        **candidate,
+        "source_query": str(fixture.get("query") or ""),
+        "transferable_discipline": fixture.get("transferable_lesson", ""),
+        "source_governance_boundary": source_boundary,
+        "abstention_boundary": evaluation_boundary,
+    }
 
 
 def evaluation_only_candidate_contribution(query: str, candidate_id: str) -> dict[str, Any] | None:
@@ -68,7 +77,7 @@ def evaluation_only_candidate_contribution(query: str, candidate_id: str) -> dic
         "match_basis": "evaluation_only_shadow_candidate",
         "role": "EVALUATION_ONLY",
         "activation_condition": candidate["qualifying_context"],
-        "query": "How should the Guide respond when a user seeks metaphysical certainty during distress?",
+        "query": candidate["source_query"],
         "known_theme": candidate["known_theme"],
         "reasoning_family": candidate["reasoning_family"],
         "discipline": discipline,
