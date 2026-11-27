@@ -1064,6 +1064,40 @@ def test_provider_sensitive_heldout_cases_run_before_sampled_gold_standards():
     ]
     assert len(priority) + len(remaining) == len(cases)
 
+def test_transparency_trust_heldout_accepts_open_scrutiny_and_let_people_see_mechanism():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency and trust influence each other in two directions. "
+        "Transparency—making decisions, reasons, and evidence open to scrutiny—can support justified trust "
+        "by letting people see how and why choices are made. When institutions disclose their processes "
+        "and correct mistakes publicly, that openness can make their conduct more credible. Reasonable trust "
+        "can also make transparency more possible: if people trust that an institution will respond honestly, "
+        "they are more likely to ask questions, share information, and engage constructively, which creates "
+        "the openness that transparency requires. This reciprocity is conditional, not automatic. Disclosure "
+        "does not make poor conduct trustworthy, and trust does not remove the need for accountability. "
+        "Transparency is not indiscriminate disclosure; it must protect privacy, personal and sensitive "
+        "information, and legitimate confidentiality while keeping decisions and uses of power accountable."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm",
+                "provider": "nvidia",
+                "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+                "llm_invoked": True,
+                "provider_invocation_id": "provider-call-actual-live-answer",
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert all(item["passed"] for item in checks), checks
+
+
 def test_transparency_trust_heldout_accepts_causal_and_reciprocal_equivalent_language():
     case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
     answer = (
