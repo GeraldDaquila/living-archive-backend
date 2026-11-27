@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from inquiry_family_transfer_contract import lesson_transfer_compatibility
+from gold_star_evaluation_context import current_evaluation_context
+from gold_star_shadow_candidate_evaluation import evaluation_only_candidate_contribution
 
 CONTRACT_VERSION = "v1"
 _TELEMETRY_LOG = logging.getLogger("use.gold_star.shadow")
@@ -727,7 +729,13 @@ def shadow_observation(
 
 
 def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
-    """Return a bounded candidate set for explicit provider adjudication."""
+    """Return governed guidance; evaluation-only candidates require an explicit isolated treatment context."""
+    evaluation = current_evaluation_context()
+    if evaluation is not None:
+        if evaluation.arm == "control":
+            return None
+        if evaluation.candidate_id:
+            return evaluation_only_candidate_contribution(query, evaluation.candidate_id)
     candidates = select_lesson_candidates(query, limit=4)
     if not candidates:
         return None
