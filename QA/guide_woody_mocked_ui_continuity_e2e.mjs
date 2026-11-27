@@ -414,9 +414,35 @@ try {
           mobileMetrics.answerRightEdge > mobileMetrics.viewportWidth + 1) {
         throw new Error("Mobile answer rendering failed responsive layout checks: " + JSON.stringify(mobileMetrics));
       }
+      const languageSwitcherMetrics = await page.evaluate(() => {
+        const node = document.querySelector(".gt_float_switcher");
+        if (!node) return { found: false };
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        const answer = document.querySelector(ROOT + " #archive-response-text");
+        const answerRect = answer && answer.getBoundingClientRect();
+        const overlapsAnswer = !!answerRect &&
+          rect.left < answerRect.right && rect.right > answerRect.left &&
+          rect.top < answerRect.bottom && rect.bottom > answerRect.top;
+        return {
+          found: true,
+          className: node.className,
+          position: style.position,
+          zIndex: style.zIndex,
+          right: style.right,
+          bottom: style.bottom,
+          width: rect.width,
+          height: rect.height,
+          left: rect.left,
+          top: rect.top,
+          overlapsAnswer,
+          parentTag: node.parentElement && node.parentElement.tagName,
+          parentClass: node.parentElement && node.parentElement.className
+        };
+      });
       mkdirSync("artifacts", { recursive: true });
       await page.screenshot({ path: "artifacts/guide-mobile-render.png", fullPage: true });
-      mark("mobile_render_evidence", mobileMetrics);
+      mark("mobile_render_evidence", { ...mobileMetrics, languageSwitcherMetrics });
     }
     if (i === 2) {
       const doorway = root.locator("#archive-recommendation .la-answer-doorway");
