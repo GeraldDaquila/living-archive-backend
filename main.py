@@ -379,9 +379,9 @@ def _select_verified_doorway_conceptual_family(query):
     # continuation. Require the relational task plus both concepts; generic
     # mentions of humility or spirituality alone must not capture navigation.
     humility_spiritual_maturity = (
-        re.search(r"\\bhumility\\b", text, re.I)
-        and re.search(r"\\bspiritual\\s+maturit(?:y|ies)\\b", text, re.I)
-        and re.search(r"\\b(?:relationship|relation|connection|interplay|between|how does|what role)\\b", text, re.I)
+        re.search(r"\bhumility\b", text, re.I)
+        and re.search(r"\bspiritual\s+maturit(?:y|ies)\b", text, re.I)
+        and re.search(r"\b(?:relationship|relation|connection|interplay|between|how does|what role)\b", text, re.I)
     )
     if humility_spiritual_maturity:
         return "humility_spiritual_maturity"
