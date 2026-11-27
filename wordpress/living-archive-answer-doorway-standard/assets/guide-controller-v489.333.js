@@ -265,10 +265,9 @@ function renderGuideAnswerContent(target, rawValue) {
   if (!target) return false;
   var text = String(rawValue == null ? '' : rawValue).trim();
   var slash = String.fromCharCode(92);
-  if (text.indexOf('\n') === -1 && text.indexOf(slash + 'n') !== -1) {
-    text = text.split(slash + 'r' + slash + 'n').join('\n')
-      .split(slash + 'n').join('\n');
-  }
+  text = text.split(slash + 'r' + slash + 'n').join('\n')
+    .split(slash + 'r').join('\n')
+    .split(slash + 'n').join('\n');
   text = text.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n');
   var html = '';
   try {
