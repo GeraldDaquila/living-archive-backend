@@ -12252,13 +12252,14 @@ def _task_recovery_requires_attributable_composition(task_recovery):
     The registered deterministic answer remains available to the terminal
     provider-exhaustion recovery ladder. It must not pre-empt live composition
     where the task requires weighing contested obligations and affected-party
-participation and the acceptance contract requires attributable synthesis.
+    participation and the acceptance contract requires attributable synthesis.
     """
     return (
         isinstance(task_recovery, dict)
         and str(task_recovery.get("recovery_id") or "")
         == "task_fair_community_rule_liberty_and_collective_obligations"
     )
+
 
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only semantic retrieval is intentionally excluded from the
