@@ -1516,7 +1516,7 @@
       "structural_lesson": "When responding to questions about pain and identity, validate pain without allowing it to become the person's total identity. Distinguish the experience from the whole self; offer gentle, non-coercive language and attention practices; preserve connection to relationships and values; avoid promising a timeline; and identify when additional support may be warranted.",
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
-      "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer."
+      "abstention_boundary": "Apply only to reflective questions about pain, suffering, identity, and self-continuity. Do not diagnose, prescribe treatment, imply pain is a choice, minimize trauma or persistent suffering, or suggest identity practices replace clinical or crisis support. Do not transfer the exact answer, its language, or its continuation title. The destination URL is unverified. Exact-answer authority and deterministic fallback remain disabled. Approval authorizes this bounded structural lesson but does not prove application or held-out adaptive transfer. Doorway status is NOT_EVALUATED; no canonical destination URL is approved."
     }
   ],
   "coverage": {
