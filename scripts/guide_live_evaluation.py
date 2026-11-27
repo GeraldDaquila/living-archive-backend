@@ -497,28 +497,6 @@ def main():
     priority_heldout_cases,remaining_heldout_cases=prioritize_heldout_cases(heldout_cases)
     workload=[("held_out",x) for x in priority_heldout_cases]+[("gold_standard",x) for x in records]+[("held_out",x) for x in remaining_heldout_cases]
     report={"report_schema_version":"1.2.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"critical_evaluation_suite_id":critical_suite.get("suite_id"),"critical_evaluation_suite_version":critical_suite.get("suite_version"),"critical_evaluation_suite_file_sha256":hashlib.sha256(cb).hexdigest(),"git_commit":expected_commit,"runtime_identity":runtime_identity,"gold_standard_registry_count":len(eligible_records),"gold_standard_sample_policy":"stable_evenly_spaced_by_benchmark_id","gold_standard_count":len(records),"max_gold_standards":args.max_gold_standards,"heldout_count":len(heldout_cases),"calibration_heldout_count":len(core_cases),"critical_live_case_count":len(critical_cases),"results":[]}
-    # Run the bounded attribution probe first, before the held-out workload consumes
-    # shared provider TPM capacity. It uses a concise no-link prompt to avoid
-    # provider-authored navigation URLs being mistaken for final answer prose.
-    provider_probe_query_value=build_provider_probe_query()
-    provider_probe_started_at=datetime.now(timezone.utc).isoformat()
-    provider_probe_transport=post(base,provider_probe_query_value)
-    provider_probe_completed_at=datetime.now(timezone.utc).isoformat()
-    provider_probe_body=provider_probe_transport.get("body")
-    provider_probe_body=provider_probe_body if isinstance(provider_probe_body,dict) else {}
-    provider_probe_llm,provider_probe_provenance=classify_llm_payload(provider_probe_body)
-    provider_probe_invocation_id=provider_invocation_id(provider_probe_body)
-    provider_probe_correlation_id=visitor_request_correlation_id(provider_probe_body)
-    provider_probe_checks=[
-        check("http_200",provider_probe_transport.get("status")==200,f"HTTP status {provider_probe_transport.get('status')}; {provider_probe_transport.get('error') or ''}"),
-        check("api_ok",provider_probe_body.get("ok") is True,"API must return ok=true."),
-        check("nonempty_answer",bool(str(provider_probe_body.get("response") or "").strip()),"Provider probe must return a non-empty answer."),
-        check("stakeholder_tradeoff_explanation",has_stakeholder_tradeoff_explanation(provider_probe_body.get("response")),"The probe must name employees, customers, and local residents and explain the benefit/cost trade-off."),
-        check("attributable_llm",provider_probe_llm,"Final visitor response must carry explicit LLM provenance; provider attempts alone do not count."),
-        check("provider_invocation_id",bool(provider_probe_invocation_id),"The final visitor response must include a provider invocation ID; a provider label alone is insufficient."),
-        check("request_correlation_id",bool(provider_probe_correlation_id),"The provider probe must expose the request-local ID used by final-delivery telemetry."),
-    ]
-    report["provider_probe"]={"purpose":"provider_attribution_only_not_gold_star_effectiveness","query":provider_probe_query_value,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"request_correlation_id":provider_probe_correlation_id,"provider_invocation_id":provider_probe_invocation_id,"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
         question=item["query"]
@@ -538,6 +516,12 @@ def main():
             )
             expected_doorway=source_record.get("expected_doorway") if isinstance(source_record,dict) else None
             checks=evaluate_held(item,transport,expected_doorway=expected_doorway)
+            if str(item.get("case_id") or "") in PROVIDER_PRIORITY_HELDOUT_IDS:
+                checks.append(check(
+                    "provider_invocation_id",
+                    bool(provider_invocation_id(body)),
+                    "Critical held-out visitor response must include its final provider invocation ID; a provider label alone is insufficient.",
+                ))
         request_correlation = visitor_request_correlation_id(body)
         checks.append(check(
             "request_correlation_id",
@@ -545,8 +529,31 @@ def main():
             "Visitor response must expose the 32-hex request-local ID used by final-delivery telemetry.",
         ))
         report["results"].append({"evaluation_sequence":index+1,"request_started_at":request_started_at,"request_completed_at":request_completed_at,"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"expected_doorway":expected_doorway,"recommendation":body.get("recommendation") if body else None,"canonical_doorway":body.get("canonical_doorway") if body else None,"doorway_decision":body.get("doorway_decision") if body else None,"doorway_omission_reason":body.get("doorway_omission_reason") if body else None,"deployment_commit_sha":body.get("deployment_commit_sha") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"request_correlation_id":request_correlation,"response_provenance":body.get("response_provenance") if body else None,"answer_envelope":body.get("answer_envelope") if body else None,"provider":body.get("provider") if body else None,"model":body.get("model") if body else None,"claim_adjudication":claim_adjudication_summary(body),"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
+    # Run the bounded attribution probe only after all workload cases. The probe is
+    # diagnostic, not a prerequisite for the critical held-out cases; running it
+    # first can exhaust shared provider health/cooldown capacity and starve them.
+    provider_probe_query_value=build_provider_probe_query()
+    provider_probe_started_at=datetime.now(timezone.utc).isoformat()
+    provider_probe_transport=post(base,provider_probe_query_value)
+    provider_probe_completed_at=datetime.now(timezone.utc).isoformat()
+    provider_probe_body=provider_probe_transport.get("body")
+    provider_probe_body=provider_probe_body if isinstance(provider_probe_body,dict) else {}
+    provider_probe_llm,provider_probe_provenance=classify_llm_payload(provider_probe_body)
+    provider_probe_invocation_id=provider_invocation_id(provider_probe_body)
+    provider_probe_correlation_id=visitor_request_correlation_id(provider_probe_body)
+    provider_probe_checks=[
+        check("http_200",provider_probe_transport.get("status")==200,f"HTTP status {provider_probe_transport.get('status')}; {provider_probe_transport.get('error') or ''}"),
+        check("api_ok",provider_probe_body.get("ok") is True,"API must return ok=true."),
+        check("nonempty_answer",bool(str(provider_probe_body.get("response") or "").strip()),"Provider probe must return a non-empty answer."),
+        check("stakeholder_tradeoff_explanation",has_stakeholder_tradeoff_explanation(provider_probe_body.get("response")),"The probe must name employees, customers, and local residents and explain the benefit/cost trade-off."),
+        check("attributable_llm",provider_probe_llm,"Final visitor response must carry explicit LLM provenance; provider attempts alone do not count."),
+        check("provider_invocation_id",bool(provider_probe_invocation_id),"The final visitor response must include a provider invocation ID; a provider label alone is insufficient."),
+        check("request_correlation_id",bool(provider_probe_correlation_id),"The provider probe must expose the request-local ID used by final-delivery telemetry."),
+    ]
+    report["provider_probe"]={"purpose":"provider_attribution_only_not_gold_star_effectiveness","query":provider_probe_query_value,"request_started_at":provider_probe_started_at,"request_completed_at":provider_probe_completed_at,"transport_status":provider_probe_transport.get("status"),"transport_error":provider_probe_transport.get("error"),"request_id":provider_probe_body.get("request_id"),"request_correlation_id":provider_probe_correlation_id,"provider_invocation_id":provider_probe_invocation_id,"response_provenance":provider_probe_body.get("response_provenance"),"answer_envelope":provider_probe_body.get("answer_envelope"),"provider_provenance":provider_probe_provenance,"attributable_llm":provider_probe_llm,"provider_probe_checks":provider_probe_checks,"response":provider_probe_body.get("response"),"human_review":build_human_review_template(suite.get("human_review_rubric",{})) if provider_probe_llm else None}
+
     gold=[x for x in report["results"] if x["split"]=="gold_standard"]; held=[x for x in report["results"] if x["split"]=="held_out"]
-    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"gold_standard_registry_total":len(eligible_records),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"provider_probe_attributable_llm":provider_probe_llm,"provider_probe_provider":provider_probe_provenance.get("provider"),"provider_probe_model":provider_probe_provenance.get("model"),"provider_probe_passed":all(x["passed"] for x in provider_probe_checks),"provider_probe_has_invocation_id":bool(provider_probe_invocation_id),"provider_probe_has_request_correlation_id":bool(provider_probe_correlation_id),"all_visitor_results_have_request_correlation_ids":all(bool(x.get("request_correlation_id")) for x in report["results"]),"overall_pass":all(x["passed"] for x in report["results"]) and all(x["passed"] for x in provider_probe_checks),"interpretation":"Live run is a bounded sample of registered Gold Standards plus the complete held-out set and one attributable provider probe. The provider probe measures invocation attribution only, not Gold Star application. Heuristic checks require human review; no lesson is promoted automatically."}
+    report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"gold_standard_registry_total":len(eligible_records),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"provider_probe_attributable_llm":provider_probe_llm,"provider_probe_provider":provider_probe_provenance.get("provider"),"provider_probe_model":provider_probe_provenance.get("model"),"provider_probe_passed":all(x["passed"] for x in provider_probe_checks),"provider_probe_has_invocation_id":bool(provider_probe_invocation_id),"provider_probe_has_request_correlation_id":bool(provider_probe_correlation_id),"all_visitor_results_have_request_correlation_ids":all(bool(x.get("request_correlation_id")) for x in report["results"]),"overall_pass":all(x["passed"] for x in report["results"]),"interpretation":"Live run is a bounded sample of registered Gold Standards plus the complete held-out set. The critical held-out cases independently require attributable model provenance and a final provider invocation ID. The separate provider probe is diagnostic only and runs after the workload so it cannot consume capacity needed by critical cases. Heuristic checks require human review; no lesson is promoted automatically."}
     report["evaluation_finished_at"]=datetime.now(timezone.utc).isoformat()
     out=Path(args.output); out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report["summary"],ensure_ascii=False,indent=2)); print(f"Full report: {out}")
