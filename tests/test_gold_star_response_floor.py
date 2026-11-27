@@ -519,7 +519,7 @@ def test_final_response_floor_rejects_truncated_trailing_clause():
         "specific the evidence must be to warrant acceptance. The response "
         "should avoid both uncritical acceptance and reflexive dismissal, "
         "instead focusing on the quality, source, and reproducibility of the "
-        "supporting data.\\n\\nWhen a user"
+        "supporting data.\n\nWhen a user"
     )
     payload, status = apply_response_floor_boundary(
         query, {"ok": True, "query": query, "response": answer}, 200
