@@ -202,6 +202,18 @@ def test_epistemic_distress_semantic_gate_rejects_generic_governance_substitutio
     assert {"recognizes_distress", "preserves_epistemic_boundary", "supports_agency"}.issubset(set(result["hard_failures"]))
 
 
+def test_epistemic_distress_contract_rejects_confident_metaphysical_claims():
+    query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
+    overclaim = (
+        "The person's experience and belief deserve care. The interpretation and tradition are meaningful, "
+        "and the evidence confirms that the afterlife definitely exists. Respond with compassion and support "
+        "while helping the person think independently."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": overclaim})
+    assert result["status"] == "fail"
+    assert "calibrates_metaphysical_uncertainty" in result["hard_failures"]
+
+
 def test_epistemic_distress_provider_exhaustion_recovery_is_on_topic_and_enforced():
     query = "How should the Guide respond when a user seeks metaphysical certainty during distress?"
     answer = compose_recovery(query)
