@@ -127,3 +127,22 @@
   .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h2,
   .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text h3 { margin-top: 1.25em !important; }
 }
+
+/* Keep the site-wide GTranslate control in document flow on the Guide's
+   narrow screens. Its default fixed bottom-right placement can cover the
+   final lines of a long visitor answer. This is scoped to the Guide page;
+   the translation control remains available after the page content. */
+@media (max-width: 700px) {
+  body.page-id-78833 .gtranslate_wrapper.gt_container--6wfbxr {
+    height: auto !important;
+  }
+  body.page-id-78833 #gt_float_wrapper {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    display: block !important;
+    width: max-content;
+    max-width: 100%;
+    margin: 1rem auto !important;
+  }
+}
