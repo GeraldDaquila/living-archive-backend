@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "general_guide_composition.py"
+      - "tests/test_general_guide_provider_parse_contract.py"
       - "tests/test_guide_humility_spiritual_maturity_doorway.py"
       - "tests/test_answer_doorway_mobile_presentation.py"
       - "wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css"
