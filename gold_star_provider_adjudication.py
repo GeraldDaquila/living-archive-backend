@@ -42,7 +42,7 @@ def _candidate_index(candidates: Any) -> dict[str, Mapping[str, Any]]:
 def normalize_provider_adjudication(
     value: Any, *, response: str, candidates: Any
 ) -> dict[str, Any]:
-    """Validate provider-reported decisions and answer offsets, not semantic proof."""
+    """Validate provider-reported decisions and exact answer evidence, not semantic proof."""
     base = {
         "status": "not_observed",
         "selected_candidate_ids": [],
@@ -56,8 +56,9 @@ def normalize_provider_adjudication(
     index = _candidate_index(candidates)
     if not index or not isinstance(value, Mapping):
         return base
-    allowed = {"candidate_assessments", "application_evidence_spans"}
-    if set(value) != allowed:
+    allowed = {"candidate_assessments", "application_evidence_quotes"}
+    legacy_allowed = {"candidate_assessments", "application_evidence_spans"}
+    if set(value) not in (allowed, legacy_allowed):
         return base
     assessments = value.get("candidate_assessments")
     if not isinstance(assessments, list) or len(assessments) != len(index):
@@ -224,9 +225,20 @@ def normalize_provider_adjudication(
             )
         else:
             evidence_reason = "no_selected_candidates"
+    evidence_present = bool(evidence_ids)
+    return {
+        "status": "provider_reported_selected" if selected else "provider_reported_rejected_all",
+        "selected_candidate_ids": selected,
+        "rejection_reason_codes": rejected,
+        "reasoning_discipline_ids": sorted(disciplines),
+        "application_evidence_present": evidence_present,
+        "application_evidence_candidate_ids": evidence_ids,
+        "application": "provider_asserted_span_present" if evidence_present else "not_observed",
+        "application_evidence_reason": evidence_reason,
+    }
 
 def build_adjudication_output_contract(candidates: Any) -> str:
-    """Describe the bounded report; evidence spans are zero-based Unicode code-point offsets, end-exclusive, into the exact final response."""
+    """Describe the bounded report; selected evidence is an exact verbatim answer substring."""
     index = _candidate_index(candidates)
     if not index:
         return ""
@@ -243,10 +255,10 @@ def build_adjudication_output_contract(candidates: Any) -> str:
         "questions. Select only distinct, relevant candidates. After drafting the final response, emit one quote object per candidate: selected IDs use an exact verbatim 12–120-character substring from the final response that shows the distinctive operation; rejected IDs use an empty quote; reject-all uses empty quotes. The runtime locates the quote itself, so do not count character offsets or paraphrase. Prefer few candidates. "
         "No hidden reasoning or chain-of-thought. "
         "This report is not visitor-facing and is not proof of semantic quality; "
-        "the runtime validates IDs, complete disposition, reason codes, and offset bounds, then extracts "
-        "the exact answer substring. Improvement still requires paired evaluation. "
+        "the runtime validates IDs, complete disposition, reason codes, and quoted evidence, then verifies "
+        "the exact quote occurs once in the final answer. Improvement still requires paired evaluation. "
         "Output one object, not adjudication alone: "
         '{"response":"complete visitor answer","doorway_title":"title or empty",'
         '"response_shape":"shape","adaptive_adjudication":'
-        '{"candidate_assessments":[...],"application_evidence_spans":[...]}}.'
+        '{"candidate_assessments":[...],"application_evidence_quotes":[...]}}.'
     )
