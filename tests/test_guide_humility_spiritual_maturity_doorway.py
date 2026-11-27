@@ -70,9 +70,20 @@ def test_shared_json_sender_restores_reviewed_humility_doorway_over_archive_clai
         "url": "https://geralddaquila.com/2026/06/05/why-psychological-integration-matters-more-than-spiritual-performance/",
         "rationale": "A broadly related earlier selection.",
     }
+    provider_answer = (
+        "Humility supports spiritual maturity because it keeps a person willing to learn, "
+        "make an honest self-appraisal, accept correction, and remain open to others. "
+        "Spiritual maturity is visible in lived conduct: responsibility, accountability, "
+        "and care in relationships, rather than a status someone claims. "
+        "Humility is not self-erasure, diminished self-worth, or self-contempt, and it does "
+        "not require surrendering appropriate boundaries. It is also distinct from passivity, "
+        "blind obedience, and automatic compliance. The relationship is conditional, not "
+        "automatic. Humility alone does not guarantee maturity; it must be expressed in "
+        "how a person acts."
+    )
     payload = {
         "query": question,
-        "response": "Provider-authored answer remains unchanged.",
+        "response": provider_answer,
         "response_provenance": "llm",
         "provider_invocation_id": "provider-invocation-123",
         "recommendation": generic,
@@ -92,7 +103,7 @@ def test_shared_json_sender_restores_reviewed_humility_doorway_over_archive_clai
     body = json.loads(response_message["body"].decode("utf-8"))
     expected = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["humility_spiritual_maturity"]
 
-    assert body["response"] == "Provider-authored answer remains unchanged."
+    assert body["response"] == provider_answer
     assert body["response_provenance"] == "llm"
     assert body["provider_invocation_id"] == "provider-invocation-123"
     assert body["recommendation"]["title"] == expected["title"]
