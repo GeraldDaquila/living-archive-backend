@@ -917,3 +917,31 @@ def test_provider_sensitive_heldout_cases_run_before_sampled_gold_standards():
         "heldout-practical-trust-001",
     ]
     assert len(priority) + len(remaining) == len(cases)
+
+def test_transparency_trust_heldout_accepts_causal_and_reciprocal_equivalent_language():
+    case = {"case_id": "heldout-transparency-trust-relational-synthesis-001"}
+    answer = (
+        "Transparency means making decisions, reasons, evidence, and conduct open to scrutiny. "
+        "Trust is the willingness to rely on someone or something despite uncertainty. "
+        "Transparency can support justified trust by letting people verify whether an institution is acting as claimed, "
+        "and by creating opportunities to catch and correct poor conduct. Reasonable trust can also make transparency "
+        "more possible: people are more likely to share information and ask candid questions. Neither guarantees the other. "
+        "Privacy and legitimate confidentiality must still be protected while decisions remain accountable."
+    )
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": answer,
+            "recommendation": None,
+            "response_provenance": {
+                "class": "llm",
+                "provider": "nvidia",
+                "model": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+                "llm_invoked": True,
+            },
+        },
+    }
+    checks = evaluate_held(case, transport)
+    assert all(item["passed"] for item in checks), checks

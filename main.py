@@ -12246,6 +12246,21 @@ def _adjudicate_final_visitor_claims(
         }
 
 
+def _task_recovery_requires_attributable_composition(task_recovery):
+    """Keep multi-party liberty/governance trade-offs on the provider path.
+
+    The registered deterministic answer remains available to the terminal
+    provider-exhaustion recovery ladder. It must not pre-empt live composition
+    where the task requires weighing contested obligations and affected-party
+    participation and the acceptance contract requires attributable synthesis.
+    """
+    return (
+        isinstance(task_recovery, dict)
+        and str(task_recovery.get("recovery_id") or "")
+        == "task_fair_community_rule_liberty_and_collective_obligations"
+    )
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=None):
     # Observation-only semantic retrieval is intentionally excluded from the
     # visitor request path. Active Gold Star contribution remains in the composer,
@@ -12661,7 +12676,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             else _compose_task_specific_recovery(query)
         )
     )
-    if isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip():
+    if (
+        isinstance(_task_recovery, dict)
+        and str(_task_recovery.get("response") or "").strip()
+        and not _task_recovery_requires_attributable_composition(_task_recovery)
+    ):
         _task_answer = str(_task_recovery["response"]).strip()
         _no_handoff = _guide_query_explicitly_forbids_handoff(query)
         _task_doorway = (
@@ -17339,7 +17358,10 @@ async def _use_request_boundary(scope, receive, send):
         None if _final_exact_gold_standard_authority(query) is not None
         else _compose_task_specific_recovery(query)
     )
-    if isinstance(_early_task_recovery, dict):
+    if (
+            isinstance(_early_task_recovery, dict)
+            and not _task_recovery_requires_attributable_composition(_early_task_recovery)
+        ):
         _early_task_result = _basic_inquiry_response(
             query, history, raw_body, task_recovery=_early_task_recovery
         )

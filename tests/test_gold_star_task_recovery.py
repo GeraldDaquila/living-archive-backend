@@ -1,7 +1,8 @@
 import pytest
+from pathlib import Path
 
 import main
-from deterministic_answer_recovery import compose_task_specific_recovery
+from deterministic_answer_recovery import compose_task_specific_recovery, has_registered_recovery
 from gold_star_semantic_contract import evaluate_semantic_contract
 
 
@@ -190,3 +191,26 @@ def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeyp
     assert result["doorway_selection_status"] == "NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH"
     assert result["doorway_selection_evaluated"] is True
     assert result["doorway_selection_source"] == "canonical_search_and_existing_relevance_gates"
+
+def test_multi_party_liberty_tradeoff_keeps_deterministic_answer_as_fallback_but_defers_early_route_to_provider():
+    question = (
+        "How should a community decide whether limits on personal liberty are justified by shared obligations and risks?"
+    )
+    recovery = compose_task_specific_recovery(question)
+    assert recovery["recovery_id"] == "task_fair_community_rule_liberty_and_collective_obligations"
+    assert main._task_recovery_requires_attributable_composition(recovery) is True
+    assert has_registered_recovery(question) is True
+    ordinary_recovery = compose_task_specific_recovery(CASES[0][0])
+    assert main._task_recovery_requires_attributable_composition(ordinary_recovery) is False
+
+
+def test_provider_precedence_helper_fails_closed_for_unrecognized_recovery_ids():
+    assert main._task_recovery_requires_attributable_composition({"recovery_id": "unknown"}) is False
+    assert main._task_recovery_requires_attributable_composition(None) is False
+
+def test_provider_preferred_task_recovery_is_guarded_at_both_early_return_boundaries():
+    source = Path(main.__file__).read_text(encoding="utf-8")
+    assert "and not _task_recovery_requires_attributable_composition(_task_recovery)" in source
+    assert "and not _task_recovery_requires_attributable_composition(_early_task_recovery)" in source
+    # The same registered recovery remains available to the terminal exhaustion path.
+    assert "has_registered_recovery" in source
