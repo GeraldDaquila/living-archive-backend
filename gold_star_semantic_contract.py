@@ -215,11 +215,21 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
             re.search(r"\b" + re.escape(subject) + r"\b", low)
             for subject in subjects
         )
-        mechanism = bool(re.search(
+        mechanism_cue = re.compile(
             r"\b(?:allows?|enables?|supports?|shapes?|cultivates?|develops?|"
             r"strengthens?|depends on|requires?|makes it possible|reinforces?|influences?)\b",
-            low,
-        ))
+            re.I,
+        )
+        relationship_sentences = [
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", low)
+            if sentence.strip()
+        ]
+        mechanism = len(subjects) == 2 and any(
+            all(re.search(r"\b" + re.escape(subject) + r"\b", sentence) for subject in subjects)
+            and mechanism_cue.search(sentence)
+            for sentence in relationship_sentences
+        )
         relation_direction = bool(re.search(
             r"\b(?:both|reciprocal|mutual|in turn|one another|each other|"
             r"not automatic|not necessarily|conditional|while|although|yet)\b",
