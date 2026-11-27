@@ -360,7 +360,7 @@ def evaluate_held(case, transport, *, require_attributable_llm=True, expected_do
             "personal information", "private information",
         ))
         contextual_accountability = any(term in low for term in (
-            "context", "mislead", "accountability", "answerable",
+            "context", "mislead", "accountability", "accountable", "answerable",
         ))
         limits = privacy_boundary and contextual_accountability
         retrieval_only = (
