@@ -68,9 +68,9 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
     active = [item for item in approved if item.get("runtime_transfer") is True]
     assert approved
     assert len(active) <= len(approved)
-    # The approved ledger retains five non-contributing records: one
+    # The approved ledger retains seven non-contributing records: one
     # superseded historical duplicate, one exact-query-only successor, and
-    # four standalone user-approved response-quality exemplars.
+    # five standalone user-approved response-quality exemplars.
     assert len({item["benchmark_id"] for item in approved}) == len(approved)
     assert len({item["benchmark_id"] for item in active}) == len(active)
     assert {
