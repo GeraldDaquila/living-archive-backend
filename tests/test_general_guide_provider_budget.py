@@ -1333,3 +1333,40 @@ def test_openai_compatible_adapter_never_substitutes_reasoning_for_content(monke
 )
 def test_contract_rejection_reason_telemetry_is_bounded_and_content_free(reason, expected):
     assert provider_bank._contract_rejection_reason_code(reason) == expected
+
+
+
+def test_openai_compatible_adapter_preserves_paragraph_separators_between_text_blocks(monkeypatch):
+    monkeypatch.setattr(
+        provider_bank,
+        "_http_json",
+        lambda *args, **kwargs: {
+            "choices": [{
+                "message": {
+                    "content": [
+                        {"type": "reasoning", "text": "must remain hidden"},
+                        {"type": "text", "text": "First paragraph has a distinct function. It develops one idea.\n\n"},
+                        {"type": "output_text", "text": "Second paragraph advances the next idea. It adds a consequence."},
+                    ],
+                },
+                "finish_reason": "stop",
+            }],
+        },
+    )
+
+    output = provider_bank._openai_compatible(
+        "https://api.nvidia.com/v1",
+        "test-key",
+        "nvidia",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        [{"role": "user", "content": "test"}],
+        200,
+        schema={"mode": "text"},
+        timeout=5,
+    )
+
+    assert str(output) == (
+        "First paragraph has a distinct function. It develops one idea.\n\n"
+        "Second paragraph advances the next idea. It adds a consequence."
+    )
+    assert "must remain hidden" not in str(output)
