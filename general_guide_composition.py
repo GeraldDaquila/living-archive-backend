@@ -3359,7 +3359,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 if _requires_grounded_mechanism_example(query) and not _has_grounded_illustrative_example(response):
                     raise ValueError(
                         "provider response failed the hard social-mechanism grounding boundary: "
-                        "one concrete illustrative example that demonstrates the mechanism is required"
+                        "must include one concrete illustrative example that demonstrates the mechanism"
                     )
                 # Answer-first is constitutional at the visitor boundary. The
                 # soft-contract lane may relax paragraph count or examples, but
