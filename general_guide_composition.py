@@ -385,7 +385,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         and "TRANSPARENCY AND TRUST RECIPROCITY" not in rendered
     ):
         rendered += (
-            "\n\nHUMILITY AND SPIRITUAL MATURITY:\nWhen asked about the relationship between humility and spiritual maturity, answer that relationship directly and name both concepts. Explain in a sentence how humility supports spiritual maturity through learning, honest self-appraisal, and openness to correction or accountability. Describe maturity as lived conduct in actions and relationships, not a claimed status. Explicitly distinguish humility from self-erasure, diminished self-worth, or self-contempt; preserve appropriate personal boundaries; distinguish humility from passivity, blind obedience, or automatic compliance; and state that humility alone does not guarantee spiritual maturity. Do not present spiritual status as objectively certified.\n\nTRANSPARENCY AND TRUST RECIPROCITY:\n"
+            "\n\nTRANSPARENCY AND TRUST RECIPROCITY:\n"
             "When asked about the relationship between transparency and trust, explain both directions of influence. "
             "Transparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction. "
             "Reasonable trust can also make transparency more possible by encouraging candid disclosure, questions, shared information, and engagement; "
@@ -494,13 +494,14 @@ def _build_general_guide_system_message(
         parts.append(
             "HUMILITY AND SPIRITUAL MATURITY — RELATIONAL EXPLANATION CONTRACT: "
             "Explain the relationship through its actual mechanisms, not as a slogan or a hierarchy. "
-            "Show how humility can support spiritual maturity by making learning, honest self-appraisal, "
-            "correction, accountability, and openness to other people possible; explain how maturity is "
-            "expressed in lived conduct rather than claimed status. Make clear that humility is not "
-            "self-erasure, diminished self-worth, passivity, automatic compliance, or surrender of "
-            "appropriate boundaries. Distinguish humility from self-contempt without turning the answer "
-            "into generic therapeutic advice. Preserve reciprocity where warranted, avoid claiming that "
-            "humility alone guarantees maturity, and answer the visitor directly before offering any doorway."
+            "State directly that humility supports spiritual maturity, and explain how it supports learning: "
+            "use the ideas of being willing to learn or remaining teachable, honest self-appraisal or self-awareness, "
+            "and accepting correction or accountability. Describe spiritual maturity as lived conduct in actions "
+            "and relationships, not claimed status. Explicitly distinguish humility from self-erasure, diminished "
+            "self-worth, or self-contempt; state that it does not require surrendering appropriate boundaries; "
+            "and distinguish it from passivity, blind obedience, or automatic compliance. State that humility alone "
+            "does not guarantee maturity. Do not present spiritual status as objectively certified or turn the answer "
+            "into generic therapeutic advice. Answer the visitor directly before offering any doorway."
         )
     if integrity_recovery_instruction:
         parts.append(integrity_recovery_instruction.strip())
