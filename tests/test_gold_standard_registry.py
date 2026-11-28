@@ -2791,7 +2791,9 @@ def test_ecological_technology_solutionism_successor_is_frozen_standalone_gold_s
     assert record["rating_out_of_10"] is None
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "NOT_EVALUATED"
-    assert record["provenance"]["visible_continuation_title"] == "Technology Must Remain in Service to Life"
+    assert record["provenance"]["visible_continuation_title"] == "Temple of Joy: Reclaiming Pleasure as a Planetary Service Code"
+    assert "not a canonical URL" in record["doorway_note"]
+    assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["runtime_transfer"] is False
     capabilities = record["gold_star_capabilities"]
     assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
