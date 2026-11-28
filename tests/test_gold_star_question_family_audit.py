@@ -28,7 +28,7 @@ def test_question_family_audit_is_deterministic_and_does_not_mutate_registry():
         item.get("status") == "USER_APPROVED_GOLD_STANDARD"
         for item in registry["records"]
     )
-    assert first["unique_normalized_question_family_count"] == 159
+    assert first["unique_normalized_question_family_count"] == 160
     assert first["repeated_question_family_count"] == 6
     assert first["review_required_family_count"] == 0
     assert first["identical_response_group_count"] == 0
