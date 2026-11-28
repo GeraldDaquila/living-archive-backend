@@ -10468,22 +10468,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 159,
-    "registry_record_count": 200,
-    "review_reconciliation": "Canonical inventory contains 159 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 20 approved non-runtime records, including 18 approved response-quality exemplars (17 standalone). The ethical-credibility-of-future-vision response is an immutable standalone response-quality exemplar only; its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "approved_gold_star_count": 160,
+    "registry_record_count": 201,
+    "review_reconciliation": "Canonical inventory contains 160 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 21 approved non-runtime records, including 19 approved response-quality exemplars (18 explicitly flagged as standalone). The nonprofit mission-care operational-capacity response is an immutable standalone response-quality exemplar only; its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 159 approved Gold Stars; 39 assigned display serials; 120 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 120,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 160 approved Gold Stars; 39 assigned display serials; 121 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 121,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-ethical-credibility-future-vision-2026-11-28 approved by user 2026-11-28",
+    "last_approval": "general-guide-nonprofit-mission-care-operational-capacity-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 18
+    "approved_response_quality_exemplar_count": 19
   },
   "last_reconciled": "2026-11-28"
 }
