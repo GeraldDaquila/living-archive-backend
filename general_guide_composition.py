@@ -5044,6 +5044,40 @@ def enforce_response_contracts(question: str, response: str) -> str:
     return candidate
 
 
+
+def apply_terminal_response_contract(question: str, payload: dict) -> dict:
+    """Re-apply context-sensitive conversational continuations to the final payload.
+
+    This is deliberately called after the outer response-quality floor, immediately
+    before JSON serialization. Earlier composition can be rewritten by terminal
+    recovery and response-floor rebuilding, so it cannot be the only enforcement
+    point for an otherwise valid optional continuation.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    intent = str(payload.get("intent") or "").strip().upper()
+    if intent in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
+        return payload
+    if (
+        payload.get("navigation_suppressed_by_task_contract")
+        or payload.get("processing") == "final_visitor_boundary_explicit_no_handoff"
+        or payload.get("doorway_omission_reason") == "user_requested_no_further_reading"
+    ):
+        return payload
+
+    response = str(payload.get("response") or payload.get("answer") or "").strip()
+    if not response:
+        return payload
+    contracted = enforce_response_contracts(question, response)
+    if contracted == response:
+        return payload
+
+    finalized = dict(payload)
+    finalized["response"] = contracted
+    if "answer" in finalized:
+        finalized["answer"] = contracted
+    return finalized
+
 def _has_responsibility_boundary_explanation(response: str) -> bool:
     """Require the answer to explain boundaries, not merely prescribe small steps."""
     text = _normalize_space(response).lower()

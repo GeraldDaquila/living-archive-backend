@@ -19538,6 +19538,21 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                         _outer_status,
                         exact_standard=_terminal_exact_standard is not None,
                     )
+                    # The terminal response floor may rebuild or replace visitor
+                    # prose after every earlier composition/finalizer. Re-apply the
+                    # shared context-sensitive continuation decision here, after
+                    # that last mutation and immediately before JSON serialization.
+                    safe_payload = general_guide_composition.apply_terminal_response_contract(
+                        query, safe_payload
+                    )
+                    if isinstance(safe_payload, dict):
+                        _terminal_continuation_text = _sanitize_basic_inquiry_response(
+                            str(safe_payload.get("response") or safe_payload.get("answer") or "")
+                        )
+                        if _terminal_continuation_text:
+                            safe_payload["response"] = _terminal_continuation_text
+                            if "answer" in safe_payload:
+                                safe_payload["answer"] = _terminal_continuation_text
                 # Preserve the terminal payload/status exactly as serialized;
                 # downstream audit hooks must not observe a pre-gate candidate.
                 _gold_star_terminal_payload = dict(safe_payload)
