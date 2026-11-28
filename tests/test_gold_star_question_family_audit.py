@@ -87,3 +87,74 @@ def test_question_normalization_is_conservative_and_unicode_aware():
     assert normalize("How should governance balance stability and participation?") != normalize(
         "How should governance balance stability, participation, and responsiveness?"
     )
+
+
+def test_new_approval_requires_user_reviewed_question_family_disposition():
+    module = _module()
+    baseline = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    candidate = json.loads(json.dumps(baseline))
+    record = json.loads(json.dumps(next(item for item in candidate["records"] if item.get("status") == "USER_APPROVED_GOLD_STANDARD")))
+    record["benchmark_id"] = "test-new-family-requires-review"
+    record["query"] = "A wholly new test question family?"
+    record["user_reviewed_response"] = True
+    record["explicit_user_elevation_approval"] = True
+    candidate["records"].append(record)
+
+    errors = module.validate_new_approval_reviews(candidate, baseline)
+    assert any("missing question_family_review" in error for error in errors)
+
+
+def test_new_approval_accepts_correct_new_family_review_and_rejects_wrong_family_id():
+    module = _module()
+    baseline = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    candidate = json.loads(json.dumps(baseline))
+    record = json.loads(json.dumps(next(item for item in candidate["records"] if item.get("status") == "USER_APPROVED_GOLD_STANDARD")))
+    record["benchmark_id"] = "test-new-family-reviewed"
+    record["query"] = "A distinct test question family for governance?"
+    record["user_reviewed_response"] = True
+    record["explicit_user_elevation_approval"] = True
+    normalized = module.normalize_question(record["query"])
+    family_id = "qf-" + __import__("hashlib").sha256(normalized.encode("utf-8")).hexdigest()[:16]
+    record["question_family_review"] = {
+        "family_id": family_id,
+        "classification": "NEW_QUESTION_FAMILY",
+        "reviewed_by": "user",
+        "reviewed_at": "2026-11-28",
+        "rationale": "Reviewed as a genuinely distinct normalized question family.",
+        "related_benchmark_ids": [],
+    }
+    candidate["records"].append(record)
+
+    assert module.validate_new_approval_reviews(candidate, baseline) == []
+    record["question_family_review"]["family_id"] = "qf-wrong"
+    assert any("family_id does not match" in error for error in module.validate_new_approval_reviews(candidate, baseline))
+
+
+def test_new_standalone_exemplar_must_disclose_every_same_question_record():
+    module = _module()
+    baseline = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    candidate = json.loads(json.dumps(baseline))
+    existing = next(
+        item for item in candidate["records"]
+        if item.get("benchmark_id") == "general-guide-archive-cosmology-epistemic-discernment-2026-11-28"
+    )
+    record = json.loads(json.dumps(existing))
+    record["benchmark_id"] = "test-new-cosmology-standalone-exemplar"
+    record["user_reviewed_response"] = True
+    record["explicit_user_elevation_approval"] = True
+    normalized = module.normalize_question(record["query"])
+    family_id = "qf-" + __import__("hashlib").sha256(normalized.encode("utf-8")).hexdigest()[:16]
+    related = sorted([existing["benchmark_id"]])
+    record["question_family_review"] = {
+        "family_id": family_id,
+        "classification": "STANDALONE_RESPONSE_QUALITY_EXEMPLAR",
+        "reviewed_by": "user",
+        "reviewed_at": "2026-11-28",
+        "rationale": "Distinct approved response exemplar, not a duplicate record.",
+        "related_benchmark_ids": related,
+    }
+    candidate["records"].append(record)
+
+    assert module.validate_new_approval_reviews(candidate, baseline) == []
+    record["question_family_review"]["related_benchmark_ids"] = []
+    assert any("related_benchmark_ids" in error for error in module.validate_new_approval_reviews(candidate, baseline))
