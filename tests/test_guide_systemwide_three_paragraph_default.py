@@ -917,3 +917,73 @@ def test_trust_community_stewardship_recovery_matches_live_acceptance_contract()
     assert doorway["title"] == "Trust Architecture"
     assert doorway["url"] == "https://geralddaquila.com/trust-architecture/"
     assert "stewardship imperative" in doorway["rationale"].lower()
+
+
+
+def test_technology_solutionism_ecological_question_is_recognized_without_overmatching():
+    from deterministic_answer_recovery import is_technology_solutionism_ecological_question
+
+    assert is_technology_solutionism_ecological_question(
+        "How should the Guide respond to claims that technology alone will solve ecological crises?"
+    )
+    assert not is_technology_solutionism_ecological_question(
+        "How can technology help restore degraded ecosystems?"
+    )
+    assert not is_technology_solutionism_ecological_question(
+        "How can technology improve workplace productivity?"
+    )
+    assert not is_technology_solutionism_ecological_question(
+        "What are the main causes of biodiversity loss?"
+    )
+
+
+def test_technology_solutionism_contract_replaces_generic_process_advice():
+    from deterministic_answer_recovery import (
+        _technology_solutionism_ecological_recovery,
+        is_technology_solutionism_ecological_question,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "How should the Guide respond to claims that technology alone will solve ecological crises?"
+    generic = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one.\n\n"
+        "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction. Include the knowledge of people affected by the decision.\n\n"
+        "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+    )
+    expected = _technology_solutionism_ecological_recovery()
+    assert is_technology_solutionism_ecological_question(query)
+    assert enforce_response_contracts(query, generic) == expected
+    assert enforce_response_contracts(query, expected) == expected
+    assert len([p for p in expected.split("\n\n") if p.strip()]) == 3
+    assert "cannot solve them by itself" in expected
+    assert "rebound effects" in expected
+    assert "biodiversity" in expected
+    assert "affected communities" in expected
+    assert "monitored over time" in expected
+
+
+def test_technology_solutionism_deterministic_recovery_is_registered():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_technology_solutionism_ecological_question,
+        _technology_solutionism_ecological_recovery,
+    )
+
+    query = "How should the Guide respond to claims that technology alone will solve ecological crises?"
+    assert is_technology_solutionism_ecological_question(query)
+    assert has_registered_recovery(query)
+    assert compose_recovery(query) == _technology_solutionism_ecological_recovery()
+
+
+def test_technology_solutionism_provider_prompt_carries_ecological_reasoning_contract():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert source.count("TECHNOLOGY-SOLUTIONISM AND ECOLOGICAL CRISES:") == 2
+    for term in (
+        "full life cycle", "rebound effects", "production and consumption",
+        "affected-community knowledge", "ecosystem protection", "restoration",
+    ):
+        assert term in source
