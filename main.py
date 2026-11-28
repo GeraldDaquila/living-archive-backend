@@ -78,6 +78,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import deterministic_answer_recovery
 import gold_star_evaluation_runner as _gold_star_eval_runner
 
 # The outer visitor boundary and shared finalizer must emit through the same
@@ -12787,6 +12788,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # does not pay for general discovery and then discard that work for recovery.
     healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
     trust_stewardship_short_circuit = _is_trust_community_stewardship_question(query)
+    society_resilience_short_circuit = deterministic_answer_recovery.is_society_resilience_question(query)
     # Explicit homepage navigation is a deterministic site-level destination,
     # not a subject-discovery request. Resolve it before retrieval/composition
     # so provider variance cannot suppress a clearly requested homepage.
@@ -12935,7 +12937,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
     # These are answer-first explanatory intents, not pure subject-finding requests.
-    if healthy_community_short_circuit or trust_stewardship_short_circuit:
+    if healthy_community_short_circuit or trust_stewardship_short_circuit or society_resilience_short_circuit:
         discovery_subject = ""
     # Resolve bounded public concepts before retrieval, not after it. A stable
     # orientation answer must never erase the visitor's opportunity to discover
@@ -13026,6 +13028,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         # Repeating broad searches cannot improve the already approved destination.
         authoritative_doorway = _normalize_authoritative_recommendation(
             _trust_community_stewardship_canonical_recommendation(query, context_data)
+        )
+    elif society_resilience_short_circuit:
+        # The societal-resilience inquiry has a verified cross-scale continuation.
+        # Keep this distinct from the original, weakly related individual-self doorway.
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            deterministic_answer_recovery.registered_recovery_recommendation(query)
         )
     else:
         _doorway_context = dict(context_data)
@@ -14044,6 +14052,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             # Preserve the early approved doorway; do not clear it merely because
             # the redundant late recovery is intentionally skipped.
             composition_context["authoritative_doorway"] = authoritative_doorway
+
+    if society_resilience_short_circuit:
+        # Reassert the reviewed society-level doorway at the terminal topic boundary.
+        # The answer remains independently validated by enforce_response_contracts below.
+        _society_doorway = deterministic_answer_recovery.registered_recovery_recommendation(query)
+        if _society_doorway:
+            authoritative_doorway = _normalize_authoritative_recommendation(_society_doorway)
+            archive_evidence_unavailable = False
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context.pop("evidence_sufficiency_unavailable", None)
 
     # Single owner for the responsibility-boundary answer contract. This runs
     # after all generation, discovery, sanitization, and topic-specific rewrites,
