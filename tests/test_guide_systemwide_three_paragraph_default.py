@@ -1131,12 +1131,12 @@ def test_society_resilience_terminal_boundary_preserves_a_provider_answer_that_m
         "Societal resilience is the capacity to absorb shocks and disruption, keep essential services operating, "
         "reorganize when needed, and adapt through learning. Ecological systems, economic networks, infrastructure, "
         "public institutions, and cultural and social relationships are interdependent; no single sector can secure "
-        "resilience on its own.\\n\\n"
+        "resilience on its own.\n\n"
         "A range of supply sources, backup capacity, and modular services can limit the spread of failures. Trust and "
         "legitimate coordination allow people to share reliable information and mobilize resources; shared meaning and "
         "cultural memory help communities interpret events and carry lessons forward. Feedback loops support correction, "
         "while concentrated dependencies and exclusion can trigger cascading failures and leave unequal exposure and "
-        "recovery.\\n\\n"
+        "recovery.\n\n"
         "Assess resilience by asking whether essential services can continue, whether alternatives exist, whether affected "
         "people can access support and shape decisions, and whether institutions learn. Indicators include continuity, "
         "fair recovery, ecological integrity, adaptation, and whether repeated shocks lead to better arrangements rather "
@@ -1161,7 +1161,6 @@ def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
     from deterministic_answer_recovery import registered_recovery_recommendation
 
     query = "What makes a society resilient?"
-    doorway = registered_recovery_recommendation(query)
     finalized = main._guide_finalize_visitor_payload(
         {
             "ok": True,
