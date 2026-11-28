@@ -2103,3 +2103,13 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 ## Newly elevated — 2026-11-28
 
 - **Gold Star:** `general-guide-society-resilience-integrative-systems-2026-11-28` preserves the screenshot's original answer as a near-miss and records the structurally corrected successor to “What makes a society resilient?” The successor explains resilience as an interconnected social-system capacity, including ecological and economic foundations, infrastructure, institutions, social and cultural networks, diversity, redundancy, modularity, trust, shared meaning, cultural memory, feedback, cascading failures, unequal exposure, and equitable recovery. Assistant assessment: **9.5/10**; this is not a user-assigned numerical rating. The corrected continuation is **Collective Nervous Systems: How Cultures Regulate Human Coherence**, separately verified as a published WordPress post (post ID 57155). This is an immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled. Its display serial remains `UNASSIGNED`. Approval does not establish provider provenance or measured visitor outcome improvement.
+
+
+## Gold Star successor — 2026-11-28
+
+- **Response-quality exemplar candidate:** `general-guide-nonprofit-mission-care-operational-capacity-2026-11-28` preserves the corrected successor to “A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?” The successor connects mission priority, institutional care, role and authority design, actual operating capacity, and governance feedback. It explains the reinforcing overload loop as a mechanism to investigate rather than a universal diagnosis, and supplies a practical sequence from stabilization through workload mapping, explicit tradeoffs, redesign, ownership, and review.
+- **Assessment:** 9.7/10 (assistant assessment, not a user-assigned rating).
+- **Original near-miss:** preserved separately in issue #2177; it is not overwritten or counted as the corrected successor.
+- **Doorway:** visible title **Infrastructure Before Ideology** is recorded as screenshot evidence only. Canonical URL not evaluated.
+- **Governance:** intended as a standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial remains unassigned.
+- **Evidence boundary:** the fixture and focused tests do not establish provider provenance, live deployment, adaptive transfer, or measured visitor outcome improvement. Canonical JSON registry reconciliation remains a required gate before final promotion.
