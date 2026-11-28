@@ -10419,7 +10419,7 @@
       "transfer_boundary": "Apply this structural lesson only to questions about mission-driven nonprofit work where staff burnout, overload, or unsustainable commitments require connecting care, purpose, institutional structure, and operating capacity. Treat human capacity as a real operating constraint; align mission priorities, staff voice and recovery, roles, decision rights, accountability, incentives, communication, funded capacity, explicit tradeoffs, and governance feedback. Test burnout mechanisms with staff rather than assuming a universal cause. Do not copy the exact approved answer, examples, or doorway into unrelated questions. Do not diagnose staff or substitute generic resilience advice for institutional change. Exact-answer authority and deterministic fallback remain disabled. Doorway status is NOT_EVALUATED; do not infer or invent a canonical destination.",
       "known_theme": "nonprofit mission sustainability; staff burnout; institutional care; role clarity; operational capacity; governance feedback; workload; mission prioritization",
       "gold_star_capabilities": {
-        "generation_class": "user_approved_structural_learning",
+        "generation_class": "user_approved_response_quality_exemplar",
         "exact_answer_authority": false,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": false,
@@ -10584,7 +10584,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 164,
     "registry_record_count": 205,
-    "review_reconciliation": "Canonical inventory contains 164 approved records: 140 active runtime-transfer contributors and 24 approved non-runtime records, including 22 response-quality exemplars (19 explicitly standalone). The nonprofit mission-care question family has one bounded active structural-learning contributor and two paired, non-runtime response-quality exemplars.",
+    "review_reconciliation": "Canonical inventory contains 164 approved records: 140 active runtime-transfer contributors and 24 approved non-runtime records, including 23 response-quality exemplars (19 explicitly standalone). The nonprofit mission-care question family has one bounded active structural-learning contributor and two paired, non-runtime response-quality exemplars.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 164 approved Gold Stars; 39 assigned display serials; 125 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the nonprofit mission-care family promotion.",
@@ -10597,7 +10597,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28 promoted by explicit user authorization on 2026-11-28; bounded structural-learning authority only",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 22
+    "approved_response_quality_exemplar_count": 23
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10698,7 +10698,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 164,
     "registry_record_count": 205,
-    "review_reconciliation": "Canonical inventory contains 164 approved records: 140 active runtime-transfer contributors and 24 approved non-runtime records, including 22 response-quality exemplars (19 explicitly standalone). The nonprofit mission-care question family has one bounded active structural-learning contributor and two paired, non-runtime response-quality exemplars.",
+    "review_reconciliation": "Canonical inventory contains 164 approved records: 140 active runtime-transfer contributors and 24 approved non-runtime records, including 23 response-quality exemplars (19 explicitly standalone). The nonprofit mission-care question family has one bounded active structural-learning contributor and two paired, non-runtime response-quality exemplars.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 164 approved Gold Stars; 39 assigned display serials; 125 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the nonprofit mission-care family promotion.",
@@ -10711,7 +10711,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28 promoted by explicit user authorization on 2026-11-28; bounded structural-learning authority only",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 22
+    "approved_response_quality_exemplar_count": 23
   },
   "last_reconciled": "2026-11-28"
 }
