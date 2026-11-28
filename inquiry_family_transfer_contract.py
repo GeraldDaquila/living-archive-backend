@@ -7,7 +7,7 @@ A detected family is a routing constraint, not a claim of psychological diagnosi
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 _VERSION = "1.0"
 
@@ -84,19 +84,9 @@ def classify_inquiry_family(query: str) -> Dict[str, Any]:
     return {"version": _VERSION, "family": "unknown", "confidence": "none", "signals": [], "identity_focus": False}
 
 
-def lesson_transfer_compatibility(
-    query: str,
-    lesson: Any,
-    *,
-    inquiry: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
-    """Fail closed when a lived inquiry is paired with an institutional lesson.
-
-    Callers evaluating multiple lessons for one visitor query may pass the
-    already-computed inquiry classification to avoid repeating regex work.
-    Omitting it preserves the original public call contract.
-    """
-    inquiry = inquiry if inquiry is not None else classify_inquiry_family(query)
+def lesson_transfer_compatibility(query: str, lesson: Any) -> Dict[str, Any]:
+    """Fail closed when a lived inquiry is paired with an institutional lesson."""
+    inquiry = classify_inquiry_family(query)
     family = inquiry["family"]
     reasoning_family = str((lesson or {}).get("reasoning_family") or "").strip()
     if family in {"epistemic_distress", "epistemic_distress_guidance"}:

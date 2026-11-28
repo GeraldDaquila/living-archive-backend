@@ -15,10 +15,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from inquiry_family_transfer_contract import (
-    classify_inquiry_family,
-    lesson_transfer_compatibility,
-)
+from inquiry_family_transfer_contract import lesson_transfer_compatibility
 
 CONTRACT_VERSION = "v1"
 _TELEMETRY_LOG = logging.getLogger("use.gold_star.shadow")
@@ -472,11 +469,10 @@ def select_lesson_candidates(
     # A cross-question lesson must first belong to the visitor's inquiry family.
     # This is a hard retrieval boundary, not a prompt suggestion for later
     # provider adjudication. Exact-query authority above remains unchanged.
-    inquiry = classify_inquiry_family(query)
     compatible_candidates = []
     blocked_families = set()
     for candidate in candidates:
-        transfer = lesson_transfer_compatibility(query, candidate, inquiry=inquiry)
+        transfer = lesson_transfer_compatibility(query, candidate)
         if transfer.get("compatible"):
             compatible_candidates.append(candidate)
         else:
