@@ -10170,7 +10170,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 157,
     "registry_record_count": 198,
-    "review_reconciliation": "Canonical inventory contains 157 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 18 approved non-runtime records, including 15 approved response-quality exemplars. The wise-transition societal-capacities response is an immutable standalone response-quality exemplar only. Its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 157 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 18 approved non-runtime records, including 16 approved response-quality exemplars (15 standalone). The wise-transition societal-capacities response is an immutable standalone response-quality exemplar only. Its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 157 approved Gold Stars; 39 assigned display serials; 118 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this response-quality exemplar.",
@@ -10183,7 +10183,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-wise-transition-societal-capacities-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 15
+    "approved_response_quality_exemplar_count": 16
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10284,7 +10284,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 157,
     "registry_record_count": 198,
-    "review_reconciliation": "Canonical inventory contains 157 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 18 approved non-runtime records, including 15 approved response-quality exemplars. The wise-transition societal-capacities response is an immutable standalone response-quality exemplar only. Its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 157 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 18 approved non-runtime records, including 16 approved response-quality exemplars (15 standalone). The wise-transition societal-capacities response is an immutable standalone response-quality exemplar only. Its visible Continue Exploring title is recorded without inferring a canonical URL. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 157 approved Gold Stars; 39 assigned display serials; 118 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this response-quality exemplar.",
@@ -10297,7 +10297,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-wise-transition-societal-capacities-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 15
+    "approved_response_quality_exemplar_count": 16
   },
   "last_reconciled": "2026-11-28"
 }
