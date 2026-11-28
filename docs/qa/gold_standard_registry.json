@@ -9953,7 +9953,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "institutional_decline_transition_and_renewal",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The answer distinguishes decline, transition, and renewal using observable institutional patterns while maintaining the boundary between general observations and formal diagnosis.",
-        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, not a canonical URL or verified thematic fit. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a standalone response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, but not a canonical URL or verified thematic fit. Do not infer a URL or certify the doorway from screenshot evidence alone. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
