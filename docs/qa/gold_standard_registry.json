@@ -10424,7 +10424,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "nonprofit_mission_care_structure_and_operational_capacity",
         "transferable_discipline": "Treat human capacity as a real operating constraint; align mission priorities, care, roles, decision rights, incentives, communication, funded capacity, explicit tradeoffs, and governance feedback. Close with a staff-informed actionable decision step.",
-        "abstention_boundary": "Standalone response-quality exemplar only. Do not copy exact answer wording, examples, or doorway to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized."
+        "abstention_boundary": "Standalone response-quality exemplar only. Do not copy exact answer wording, examples, or doorway to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized. Doorway status is NOT_EVALUATED; do not infer or invent a canonical destination."
       },
       "assertions": [
         "Purpose is translated into explicit mission priorities and stop/defer choices.",
