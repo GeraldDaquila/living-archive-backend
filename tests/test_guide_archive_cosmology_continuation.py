@@ -129,3 +129,38 @@ def test_existing_continuation_heading_without_question_keeps_reply_trigger():
     assert result.endswith(
         "Which specific claim from the Living Archive would you like to examine first?"
     )
+
+
+def test_terminal_payload_contract_reapplies_doorway_after_response_floor_and_before_json_serialization():
+    payload = {"response": BASE_RESPONSE, "answer": BASE_RESPONSE}
+    result = composition.apply_terminal_response_contract(QUERY, payload)
+
+    assert result is not payload
+    assert payload["response"] == BASE_RESPONSE
+    assert result["response"].startswith(BASE_RESPONSE)
+    assert result["response"].count("Put this distinction to work") == 1
+    assert result["answer"] == result["response"]
+
+    # The final ASGI sender must reapply the shared decision after the terminal
+    # response floor, not merely trust the earlier composition-stage result.
+    main_source = (ROOT.parent / "main.py").read_text(encoding="utf-8")
+    terminal_gate = main_source.rfind("# Final semantic/integrity gate:")
+    floor = main_source.index("apply_response_floor_boundary(", terminal_gate)
+    continuation = main_source.index(
+        "general_guide_composition.apply_terminal_response_contract(", floor
+    )
+    serialization = main_source.index("encoded = json.dumps(", continuation)
+    assert terminal_gate < floor < continuation < serialization
+
+
+def test_terminal_payload_contract_preserves_explicit_no_handoff_and_safety():
+    no_handoff = {
+        "response": BASE_RESPONSE,
+        "navigation_suppressed_by_task_contract": True,
+    }
+    safety = {
+        "response": BASE_RESPONSE,
+        "intent": "SAFETY_CONVERSATION",
+    }
+    assert composition.apply_terminal_response_contract(QUERY, no_handoff) is no_handoff
+    assert composition.apply_terminal_response_contract(QUERY, safety) is safety
