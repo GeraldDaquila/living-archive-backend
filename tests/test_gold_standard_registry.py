@@ -2207,6 +2207,7 @@ def test_approved_gold_star_may_preserve_not_evaluated_doorway_without_authorizi
 
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["doorway_status"] == "NOT_EVALUATED"
+    capabilities = record["gold_star_capabilities"]
     assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["expected_doorway"] is None
     assert not record.get("doorway_omission_exception_reason")
@@ -2893,6 +2894,7 @@ def test_ethical_future_vision_credibility_gold_star_is_frozen_standalone_exempl
     assert "way to stop or change it" in record["expected_response"]
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "NOT_EVALUATED"
+    assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["provenance"]["visible_continuation_title"] == (
         "At the Bottom of the Abyss: Not Giving Up When Nothing Makes Sense"
     )
