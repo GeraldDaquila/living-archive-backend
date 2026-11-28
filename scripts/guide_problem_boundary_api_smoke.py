@@ -69,6 +69,36 @@ try:
         assert result.get("doorway_selection_source") == "registered_task_recovery", (question, result.get("doorway_selection_source"))
         assert result.get("response_provenance", {}).get("class") == "deterministic_recovery", question
         print("PASS", question, len(answer), doorway["title"], flush=True)
+
+    ethical_question = (
+        "A policy is legal and popular but may impose concentrated harm on a minority. "
+        "How should the Guide frame the ethical question without pretending the Archive supplies a verdict?"
+    )
+    print("REQUEST", ethical_question, flush=True)
+    result = ask(ethical_question)
+    answer = result.get("response")
+    assert isinstance(answer, str) and len(answer) > 700, ethical_question
+    for concept in (
+        "legality tells us",
+        "popularity tells us",
+        "ethically defensible",
+        "meaningful voice",
+        "less harmful workable alternatives",
+        "proportionality",
+        "the archive can help",
+        "reasonable disagreement",
+    ):
+        assert concept in answer.casefold(), (ethical_question, concept)
+    doorway = result.get("recommendation") or result.get("canonical_doorway") or {}
+    assert doorway.get("title") != "Boundary Conditions", (
+        "The near-miss's problem-boundary doorway must not be carried into the ethical-legitimacy successor.",
+        doorway,
+    )
+    assert result.get("processing") == "task_specific_deterministic_recovery", (
+        ethical_question, result.get("processing")
+    )
+    assert result.get("response_provenance", {}).get("class") == "deterministic_recovery", ethical_question
+    print("PASS", ethical_question, len(answer), "ethical-legitimacy recovery", flush=True)
 finally:
     server.terminate()
     try:
