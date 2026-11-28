@@ -13,6 +13,25 @@ from scripts.guide_live_evaluation import (
 )
 
 
+def test_report_distinguishes_canonical_approved_total_from_guide_evaluation_sample_pool():
+    approved = [
+        {"status": "USER_APPROVED_GOLD_STANDARD", "subsystem": "general-purpose-guide"},
+        {"status": "USER_APPROVED_GOLD_STANDARD", "subsystem": "guide_epistemic_orientation"},
+        {"status": "FROZEN_REFERENCE_ONLY", "subsystem": "general-purpose-guide"},
+    ]
+    canonical_approved_count = sum(
+        1 for record in approved
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    )
+    guide_evaluation_eligible = [
+        record for record in approved
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("status") in {"USER_APPROVED_GOLD_STANDARD", "FROZEN_REFERENCE_ONLY"}
+    ]
+    assert canonical_approved_count == 2
+    assert len(guide_evaluation_eligible) == 2
+
+
 def test_provider_attribution_probe_uses_unique_cache_key_per_run():
     first = live_evaluation.build_provider_probe_query()
     second = live_evaluation.build_provider_probe_query()
