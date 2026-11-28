@@ -488,7 +488,8 @@ def test_mixed_source_provenance_contract_is_narrow_and_complete():
         "name the claims it builds on, and explain the reasoning behind the inference. "
         "Mark each claim or clause separately, or split the sentence when boundaries "
         "are unclear. If the source or locator is unavailable and cannot be verified, "
-        "disclose that limitation. Do not invent quotations or attribute the Guide's "
+        "disclose that limitation. A citation should support only the claim it actually establishes. "
+        "Do not invent quotations or attribute the Guide's "
         "interpretation to the author."
     )
     assert is_source_provenance_question(query)
