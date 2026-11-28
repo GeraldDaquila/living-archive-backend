@@ -24,7 +24,9 @@ def test_successor_completes_operational_sequence_and_actionable_doorway():
     assert item["gold_star_capabilities"]["active_quality_contributor"] is False
     for phrase in ("essential mission commitments", "without retaliation", "hidden work", "stabilize immediate overload", "stop, defer, simplify, redistribute, fund, or phase", "governance", "staff depletion is not a reserve resource", "one-page capacity-and-commitment map"):
         assert phrase in answer
-    assert item["doorway_status"] == "ACTIONABLE_CONTEXTUAL_CONTINUATION"
+    assert item["doorway_status"] == "NOT_EVALUATED"
+    assert item["expected_doorway"] is None
+    assert "capacity-and-commitment map" in item["expected_next_step"]
     assert item["expected_doorway"]
 
 
@@ -57,6 +59,7 @@ def test_successor_fixture_reconciles_to_canonical_registry():
     record = next(item for item in registry["records"] if item["benchmark_id"] == fixture["benchmark_id"])
     assert record["expected_response"] == fixture["expected_response"]
     assert record["expected_doorway"] == fixture["expected_doorway"]
-    assert record["doorway_status"] == "ACTIONABLE_CONTEXTUAL_CONTINUATION"
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] is None
     assert record["runtime_transfer"] is False
     assert record["numbering_status"] == "UNASSIGNED"
