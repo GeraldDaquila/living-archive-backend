@@ -143,6 +143,7 @@ def test_blinded_review_packet_preserves_its_pinned_historical_inventory_snapsho
         "general-guide-developmental-stewardship-objective-integrity-2026-11-26",
         "general-guide-pain-without-total-identity-2026-11-27",
         "general-guide-humility-spiritual-maturity-2026-11-28",
+            "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28",
     }
     active_at_snapshot = sorted(
         (
