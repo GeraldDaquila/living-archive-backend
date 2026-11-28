@@ -2711,8 +2711,40 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 149
-    assert len(registry["records"]) == 189
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 149
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 110
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 8
+    assert len(approved) == 151
+    assert len(registry["records"]) == 192
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 151
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 112
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 10
+
+
+def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
+    registry = _registry()
+    records = {item["benchmark_id"]: item for item in registry["records"]}
+    earlier = records["general-guide-human-discernment-ai-governance-2026-11-28"]
+    latest = records["general-guide-human-discernment-ai-governance-doorway-refined-2026-11-28"]
+    near_miss = records["general-guide-human-discernment-ai-support-near-miss-2026-11-28"]
+
+    assert near_miss["status"] == "RECOVERED_REGRESSION_SCENARIO"
+    assert near_miss["freeze_policy"].startswith("Preserve the exact original response unchanged")
+    assert earlier["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert earlier["freeze_policy"] == "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change."
+    assert latest["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert latest["query"] == earlier["query"]
+    assert latest["expected_response"].startswith("AI should be used as a tool that extends human judgment rather than as a substitute for it.")
+    assert "The relationship is conditional" in latest["expected_response"]
+    assert "what a human still needs to verify, judge, or decide" in latest["expected_response"]
+    assert latest["assistant_assessment_out_of_10"] == 9.2
+    assert latest["user_reviewed_response"] is True
+    assert latest["explicit_user_elevation_approval"] is True
+    assert latest["expected_doorway"] is None
+    assert latest["doorway_status"] == "NOT_EVALUATED"
+    assert latest["runtime_transfer"] is False
+    capabilities = latest["gold_star_capabilities"]
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert latest["numbering_status"] == "UNASSIGNED"
+    assert latest["provenance"]["visible_continuation_title"] == "Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"
