@@ -98,3 +98,8 @@ def test_model_instruction_rejects_stage_assignment_from_single_behavior():
     instruction = build_developmental_stage_hierarchy_instruction(TARGET)
     assert "Do not assign a stage to a person from one behavior or label" in instruction
     assert "uneven or domain-specific development" in instruction
+
+
+def test_worse_person_question_triggers_nonranking_contract():
+    question = "Does an earlier developmental stage make someone a worse person?"
+    assert is_developmental_stage_hierarchy_question(question)
