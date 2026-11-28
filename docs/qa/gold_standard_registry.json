@@ -10137,7 +10137,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "ethical_credibility_future_vision",
         "transferable_discipline": "Assess the legitimacy of a proposed future by scrutinizing who benefits, who bears costs, who can dissent, whether means align with values, and whether outcomes can be evaluated and corrected.",
-        "abstention_boundary": "Preserve the exact approved response as a standalone response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, but not a canonical URL or independent verification of thematic fit. Do not infer a URL or treat the linked essay as the source of every statement in the answer. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a standalone response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, but not a canonical URL or independent verification of thematic fit. Do not infer a URL or treat the linked essay as the source of every statement in the answer. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
