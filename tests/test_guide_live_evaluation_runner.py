@@ -35,6 +35,19 @@ def test_exact_approved_answer_is_enforced():
     assert exact["passed"] is False
 
 
+def test_frozen_reference_immutability_does_not_grant_exact_runtime_answer_authority():
+    record = {
+        "status": "FROZEN_REFERENCE_ONLY",
+        "expected_response": "The immutable historical reference.",
+        "assertions": ["Exactly three paragraphs."],
+        "freeze_policy": "Do not change expected_response without explicit user authorization.",
+    }
+    transport = {"status": 200, "error": None, "body": {"ok": True, "response": "A semantically equivalent answer in three paragraphs."}}
+    checks = evaluate_gold(record, transport)
+    assert not any(item["name"] == "exact_answer" for item in checks)
+    assert all(item["passed"] for item in checks), checks
+
+
 def test_explicit_no_handoff_overrides_recorded_doorway():
     record = {
         "status": "FROZEN_REFERENCE_ONLY",
