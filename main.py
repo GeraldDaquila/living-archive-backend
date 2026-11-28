@@ -8865,11 +8865,7 @@ def _guide_finalize_visitor_payload(payload, query):
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
         finalized = _apply_stewardship_consent_relationship_boundary(query, finalized)
-    if (
-        deterministic_answer_recovery.is_society_resilience_question(query)
-        and finalized.get("processing") != "final_visitor_boundary_explicit_no_handoff"
-        and not finalized.get("navigation_suppressed_by_task_contract")
-    ):
+    if deterministic_answer_recovery.is_society_resilience_question(query):
         # Terminal society-resilience contract: specialist finalizers above may
         # rewrite the response after the main composition boundary. Preserve a
         # substantive provider answer when it meets the contract; repair only a
@@ -8884,7 +8880,17 @@ def _guide_finalize_visitor_payload(payload, query):
         finalized["response"] = _society_candidate
         if "answer" in finalized:
             finalized["answer"] = _society_candidate
-        _society_doorway = deterministic_answer_recovery.registered_recovery_recommendation(query)
+
+        # Answer quality still applies when the visitor explicitly declines a
+        # continuation. Only the doorway is suppressed by that separate choice.
+        _explicit_no_handoff = (
+            finalized.get("processing") == "final_visitor_boundary_explicit_no_handoff"
+            or bool(finalized.get("navigation_suppressed_by_task_contract"))
+        )
+        _society_doorway = (
+            None if _explicit_no_handoff
+            else deterministic_answer_recovery.registered_recovery_recommendation(query)
+        )
         if _society_doorway:
             finalized["recommendation"] = _society_doorway
             finalized["canonical_doorway"] = _society_doorway
@@ -8897,8 +8903,6 @@ def _guide_finalize_visitor_payload(payload, query):
             finalized["doorway_selection_source"] = "registered_society_resilience_contract"
             finalized["doorway_omission_reason"] = None
             finalized["doorway_omission_exception_reason"] = None
-            finalized["navigation_suppressed_by_task_contract"] = False
-
     return _finish_gold_star_delivery_trace(finalized)
 
 
