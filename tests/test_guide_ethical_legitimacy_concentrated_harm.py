@@ -102,6 +102,6 @@ def test_canonical_registry_contains_only_the_corrected_standalone_successor():
     assert record["numbering_status"] == "UNASSIGNED"
     assert record["question_family_review"]["family_id"] == "qf-d2637dc092092951"
     assert registry["integrity_audit"]["approved_gold_star_count"] == 169
-    assert registry["integrity_audit"]["registry_record_count"] == 209
+    assert registry["integrity_audit"]["registry_record_count"] == 210
     assert registry["integrity_audit"]["active_quality_contributor_count"] == 139
     assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 28
