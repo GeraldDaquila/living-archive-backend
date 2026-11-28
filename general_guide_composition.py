@@ -672,9 +672,9 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "Apply reasoning, never exemplar wording. Return exact 12–120-character response offsets; rejected IDs use 0,0. Reject if no range. "
         "Community rules: state shared purpose and evidence of need; majority preference is not proof. "
         "Reject candidates that add no value or match only lexically. Never transfer exemplar content or doorways, or override the question, evidence, or response form. "
-        "If none qualifies, answer normally.\\n"
-        "Ranked candidates (for adjudication, not automatic application):\\n"
-        + candidate_evidence + "\\n\\n"
+        "If none qualifies, answer normally.\n"
+        "Ranked candidates (for adjudication, not automatic application):\n"
+        + candidate_evidence + "\\n\n"
     )
     return instruction + "\n\n" + _build_gold_star_adjudication_output_contract(candidates)
 
