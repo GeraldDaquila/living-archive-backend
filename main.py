@@ -16827,6 +16827,88 @@ async def _use_send_json(send, payload, status_code=200):
                 + str(_floor_result.get("reason") or "unknown")
             )
 
+    # Society resilience has a reviewed question-family doorway that must
+    # survive the generic terminal selector above. Reassert it after every
+    # route, doorway policy, and response-floor transformation, immediately
+    # before serialization. Preserve good provider prose; repair only defects.
+    if (
+        isinstance(payload, dict)
+        and _boundary_query
+        and _boundary_standard is None
+        and not _boundary_safety
+        and payload.get("ok", True) is True
+        and not payload.get("error_type")
+        and str(payload.get("intent") or "").strip().upper() != "GLOSSARY_HANDOFF"
+        and not bool(payload.get("handoff_pending"))
+    ):
+        from deterministic_answer_recovery import (
+            is_society_resilience_question,
+            has_society_resilience_explanation,
+            _society_resilience_recovery,
+            registered_recovery_recommendation,
+        )
+        if is_society_resilience_question(_boundary_query):
+            _society_final_response = _sanitize_basic_inquiry_response(
+                str(payload.get("response") or payload.get("answer") or "")
+            )
+            if not has_society_resilience_explanation(_society_final_response):
+                _society_final_response = _society_resilience_recovery()
+            payload = dict(payload)
+            payload["response"] = _society_final_response
+            if "answer" in payload:
+                payload["answer"] = _society_final_response
+
+            _society_route_context = payload.get("gold_star_v2_route_context") or {}
+            _society_question_contract = (
+                _society_route_context.get("question_contract")
+                if isinstance(_society_route_context, dict) else {}
+            ) or {}
+            _society_constraints = (
+                _society_question_contract.get("constraints")
+                if isinstance(_society_question_contract, dict) else {}
+            ) or {}
+            _society_no_handoff = bool(
+                _sender_explicit_no_handoff
+                or payload.get("navigation_suppressed_by_task_contract")
+                or payload.get("processing") == "final_visitor_boundary_explicit_no_handoff"
+                or (
+                    isinstance(_society_constraints, dict)
+                    and _society_constraints.get("no_handoff")
+                )
+            )
+            if _society_no_handoff:
+                payload["recommendation"] = None
+                payload["canonical_doorway"] = None
+                payload["authoritative_doorway"] = None
+                payload["doorway_title"] = None
+                payload["doorway_url"] = None
+                payload["doorway_rationale"] = None
+                payload["doorway_decision"] = "omit"
+                payload["doorway_selection_status"] = "SUPPRESSED_BY_EXPLICIT_NO_HANDOFF"
+                payload["doorway_selection_evaluated"] = True
+                payload["doorway_selection_source"] = "explicit_no_handoff"
+                payload["doorway_omission_reason"] = "user_requested_no_further_reading"
+                payload["doorway_omission_exception_reason"] = None
+                payload["navigation_suppressed_by_task_contract"] = True
+            else:
+                _society_doorway = _normalize_authoritative_recommendation(
+                    registered_recovery_recommendation(_boundary_query)
+                )
+                if _society_doorway:
+                    payload["recommendation"] = _society_doorway
+                    payload["canonical_doorway"] = _society_doorway
+                    payload["authoritative_doorway"] = _society_doorway
+                    payload["doorway_title"] = _society_doorway["title"]
+                    payload["doorway_url"] = _society_doorway["url"]
+                    payload["doorway_rationale"] = _society_doorway.get("rationale")
+                    payload["doorway_decision"] = "selected"
+                    payload["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                    payload["doorway_selection_evaluated"] = True
+                    payload["doorway_selection_source"] = "registered_society_resilience_contract"
+                    payload["doorway_omission_reason"] = None
+                    payload["doorway_omission_exception_reason"] = None
+                    payload["navigation_suppressed_by_task_contract"] = False
+
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
