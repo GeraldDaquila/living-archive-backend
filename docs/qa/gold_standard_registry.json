@@ -9668,7 +9668,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "human_agency_and_accountable_ai_use",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. AI may support information processing, while people retain evaluation, contextual judgment, and final decision responsibility.",
-        "abstention_boundary": "Do not copy the exact answer to unrelated questions. The screenshot's visible Continue Exploring title does not establish a canonical URL. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: The screenshot's visible Continue Exploring title does not establish a canonical URL. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
