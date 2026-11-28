@@ -13,6 +13,25 @@ from scripts.guide_live_evaluation import (
 )
 
 
+def test_report_distinguishes_canonical_approved_total_from_guide_evaluation_sample_pool():
+    approved = [
+        {"status": "USER_APPROVED_GOLD_STANDARD", "subsystem": "general-purpose-guide"},
+        {"status": "USER_APPROVED_GOLD_STANDARD", "subsystem": "guide_epistemic_orientation"},
+        {"status": "FROZEN_REFERENCE_ONLY", "subsystem": "general-purpose-guide"},
+    ]
+    canonical_approved_count = sum(
+        1 for record in approved
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    )
+    guide_evaluation_eligible = [
+        record for record in approved
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("status") in {"USER_APPROVED_GOLD_STANDARD", "FROZEN_REFERENCE_ONLY"}
+    ]
+    assert canonical_approved_count == 2
+    assert len(guide_evaluation_eligible) == 2
+
+
 def test_provider_attribution_probe_uses_unique_cache_key_per_run():
     first = live_evaluation.build_provider_probe_query()
     second = live_evaluation.build_provider_probe_query()
@@ -33,6 +52,19 @@ def test_exact_approved_answer_is_enforced():
     checks = evaluate_gold(record, transport)
     exact = next(item for item in checks if item["name"] == "exact_answer")
     assert exact["passed"] is False
+
+
+def test_frozen_reference_immutability_does_not_grant_exact_runtime_answer_authority():
+    record = {
+        "status": "FROZEN_REFERENCE_ONLY",
+        "expected_response": "The immutable historical reference.",
+        "assertions": ["Exactly three paragraphs."],
+        "freeze_policy": "Do not change expected_response without explicit user authorization.",
+    }
+    transport = {"status": 200, "error": None, "body": {"ok": True, "response": "A semantically equivalent answer in three paragraphs."}}
+    checks = evaluate_gold(record, transport)
+    assert not any(item["name"] == "exact_answer" for item in checks)
+    assert all(item["passed"] for item in checks), checks
 
 
 def test_explicit_no_handoff_overrides_recorded_doorway():

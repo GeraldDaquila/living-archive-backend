@@ -34,6 +34,13 @@ def test_humility_relationship_question_is_narrowly_classified():
     assert not is_humility_spiritual_maturity_question("What is spiritual maturity?")
 
 
+def test_live_browser_acceptance_recognizes_the_shared_learning_mechanism_paraphrases():
+    root = Path(__file__).resolve().parents[1]
+    qa_source = (root / "QA" / "guide_healthy_community_live_e2e.mjs").read_text(encoding="utf-8")
+    assert r"\b(?:learning|willing to learn|remain teachable|teachability)\b" in qa_source
+    assert evaluate_humility_spiritual_maturity_response(QUERY, COMPLETE_ANSWER)["checks"]["humility_supports_learning_and_correction"] is True
+
+
 def test_complete_humility_relationship_answer_passes_shared_contract():
     report = evaluate_humility_spiritual_maturity_response(QUERY, COMPLETE_ANSWER)
     assert report["applies"] is True
