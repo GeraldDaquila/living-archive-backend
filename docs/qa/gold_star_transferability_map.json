@@ -1526,6 +1526,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Apply only to questions asking about humility's relationship to spiritual maturity, spiritual development, teachability, or grounded conduct. Do not equate humility with self-negation, compliance, passivity, or submission; do not infer spiritual status from self-description or spiritual experiences; do not claim humility guarantees maturity. Do not transfer this exact answer, wording, or doorway into unrelated questions. The approved answer is an immutable response exemplar; its approval does not prove provider contribution retention, request-level adaptive application, held-out transfer, or measured visitor improvement. Exact-answer authority and deterministic fallback remain disabled."
+    },
+    {
+      "benchmark_id": "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28",
+      "question": "A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?",
+      "family": "nonprofit_mission_care_structure_and_operational_capacity",
+      "structural_lesson": "Treat human capacity as a real operating constraint; align mission priorities, care, staff voice and recovery, roles, decision rights, accountability, incentives, communication, funded capacity, explicit tradeoffs, and governance feedback. Test burnout mechanisms with staff rather than assuming a universal cause. Close with a staff-informed actionable decision step.",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Apply this structural lesson only to questions about mission-driven nonprofit work where staff burnout, overload, or unsustainable commitments require connecting care, purpose, institutional structure, and operating capacity. Treat human capacity as a real operating constraint; align mission priorities, staff voice and recovery, roles, decision rights, accountability, incentives, communication, funded capacity, explicit tradeoffs, and governance feedback. Test burnout mechanisms with staff rather than assuming a universal cause. Do not copy the exact approved answer, examples, or doorway into unrelated questions. Do not diagnose staff or substitute generic resilience advice for institutional change. Exact-answer authority and deterministic fallback remain disabled. Doorway status is NOT_EVALUATED; do not infer or invent a canonical destination."
     }
   ],
   "coverage": {

@@ -2157,3 +2157,12 @@ The canonical JSON ledger is large enough that the ordinary Contents-file interf
 - **Doorway:** the answer closes with a staff-informed capacity-and-commitment review. The visible title **Infrastructure Before Ideology** remains screenshot evidence only; no canonical URL is asserted.
 - **Governance:** standalone response-quality exemplar only; no exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial.
 - **Reconciled canonical registry:** 205 records; 164 approved Gold Stars; 139 active runtime contributors; 23 response-quality exemplars (22 standalone); 39 numbered; 125 unassigned.
+
+
+## Nonprofit mission-care runtime learning promotion — 2026-11-28
+
+- **Active bounded contributor:** `general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28` is promoted from standalone response-quality exemplar to `user_approved_structural_learning` / `active_quality_contributor` under the user's explicit instruction to proceed with runtime contributor promotion. Its frozen expected response is unchanged; only its bounded transferable lesson and authority metadata change.
+- **Question-family lineage:** `general-guide-nonprofit-mission-care-operational-capacity-2026-11-28` and `general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28` remain distinct, non-runtime response-quality exemplars and now explicitly pair to the single active contributor. The family audit records one active structural lesson with two preserved response exemplars, rather than three independent standalone exemplars.
+- **Runtime boundary:** no exact-answer authority, deterministic fallback, canonical doorway inference, or display serial is granted. The visible doorway remains `NOT_EVALUATED`. Original near-miss records remain unchanged.
+- **Production evidence:** live visitor acceptance run `46119994224` passed against commit `d16be1069dd9f09a166784e68ff78fedb08a08f5` (HTTP 200; all nine operational response checks). This verifies the question-family operational response path; it does not claim the exact frozen registry answer was returned verbatim or prove held-out transfer or measured visitor outcomes.
+- **Reconciliation:** 205 records; 164 approved Gold Stars; 140 active contributors; 23 response-quality exemplars; 19 standalone exemplars; 39 assigned serials; 125 unassigned approvals.
