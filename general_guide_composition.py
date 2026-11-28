@@ -52,6 +52,11 @@ from gold_star_provider_adjudication import (
 )
 
 from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
+from free_will_predestination_contract import (
+    is_free_will_predestination_question,
+    has_free_will_predestination_explanation,
+    free_will_predestination_recovery,
+)
 from nonprofit_mission_care_contract import build_nonprofit_mission_care_instruction
 from nonprofit_mission_care_response_contract import (
     evaluate_nonprofit_mission_care_response,
@@ -427,6 +432,20 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
     if epistemic_distress:
         rendered += (
             "\n\nMETAPHYSICAL UNCERTAINTY DURING DISTRESS: Recognize the human need behind certainty-seeking without diagnosing or assuming the visitor's history. Distinguish personal experience, belief, interpretation, tradition-specific teaching, and verifiable evidence. Never present unverifiable metaphysical claims as established fact or exploit distress by positioning the Guide as an oracle or final authority. Respect the visitor's beliefs without endorsing unsupported certainty; support independent judgment, grounded choices, and appropriate human support if safety is at risk. Do not substitute governance, stakeholder, outcome, or decision-accountability frameworks for this epistemic and human question."
+        )
+    if is_free_will_predestination_question(question):
+        rendered += (
+            "\n\nFREE WILL, PREDESTINATION, AND DETERMINISM: "
+            "Distinguish theological predestination from divine foreknowledge, philosophical determinism, "
+            "and ordinary causal influence; do not treat them as synonyms. Explain compatibilism as one "
+            "contested account, not a consensus. Distinguish freedom from coercion or external compulsion "
+            "from the stronger claim that a person could have done otherwise under exactly the same past "
+            "and conditions. Explain reasons-responsive agency through deliberation, values, and reasons, "
+            "while acknowledging that these are themselves shaped by prior causes and circumstances. "
+            "State the incompatibilist challenge fairly. Preserve differences among theological traditions "
+            "and philosophical positions; do not assume the visitor's commitments or claim the dispute is settled. "
+            "Do not infer that causal influence automatically means programming or that the experience of choosing "
+            "proves freedom from prior causes."
         )
     if classify_inquiry_family(question).get("family") == "personal_lived_reflective":
         rendered += (
@@ -3304,6 +3323,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
 
         if (
+            is_free_will_predestination_question(query)
+            and not has_free_will_predestination_explanation(response)
+        ):
+            raise ValueError(
+                "free-will/predestination answer must distinguish theological predestination, causal determinism, compatibilist and incompatibilist accounts, and conditioned agency"
+            )
+
+        if (
             re.search(r"\breverence\b", query, re.I)
             and re.search(r"\bcredulity\b", query, re.I)
             and is_conceptual_relationship_question(query)
@@ -3610,6 +3637,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError("provider response too short for basic visitor bounds")
                 if len(response) > 7000:
                     raise ValueError("provider response too long for basic visitor bounds")
+                # Preserve question-specific conceptual requirements in the
+                # hard-integrity compatibility lane. A strict-lane rejection
+                # must not be undone by soft fallback for a substantive omission.
+                if (
+                    is_free_will_predestination_question(query)
+                    and not has_free_will_predestination_explanation(response)
+                ):
+                    raise ValueError(
+                        "free-will/predestination answer must distinguish theological predestination, causal determinism, compatibilist and incompatibilist accounts, and conditioned agency"
+                    )
                 # Social-mechanism example grounding is a task-specific meaning
                 # requirement, not a stylistic preference. Preserve it across
                 # both parser lanes so compatibility fallback cannot re-admit
@@ -4841,6 +4878,11 @@ def _append_archive_cosmology_evidence_continuation(
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if (
+        is_free_will_predestination_question(question)
+        and not has_free_will_predestination_explanation(candidate)
+    ):
+        candidate = free_will_predestination_recovery()
     from deterministic_answer_recovery import (
         is_technology_solutionism_ecological_question,
         has_technology_solutionism_ecological_explanation,
