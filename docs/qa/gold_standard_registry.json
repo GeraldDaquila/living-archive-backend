@@ -9691,22 +9691,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 146,
-    "registry_record_count": 186,
-    "review_reconciliation": "Canonical inventory contains 146 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 5 approved standalone response-quality exemplars without runtime transfer, and 1 superseded historical reference. The extraordinary-claims and reverence-versus-credulity responses are immutable response-quality exemplars only; neither has exact-answer authority, deterministic fallback, or runtime/adaptive transfer. The Levels of Claim doorway is verified; the reverence/credulity continuation URL remains unevaluated. Screenshot approval does not assert provider contribution retention, held-out transfer, or measured visitor outcome improvement.",
+    "approved_gold_star_count": 147,
+    "registry_record_count": 187,
+    "review_reconciliation": "Canonical inventory contains 147 USER_APPROVED_GOLD_STANDARD records: 139 active structural-learning contributors, 1 approved exact-query-only successor, 1 superseded historical reference, and 6 approved standalone response-quality exemplars without runtime transfer. The digital-humanism response is an immutable response-quality exemplar only; its exact answer, deterministic fallback, and runtime/adaptive transfer are not authorized. Its visible Emotional Contagion in the Digital Age continuation title is recorded, but the canonical URL is not captured and doorway status remains NOT_EVALUATED. Approval does not assert provider contribution retention, held-out transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 146 approved Gold Stars; 39 assigned display serials #56–#94; 107 approved records explicitly UNASSIGNED with reasons. No serial was allocated for either standalone response-quality exemplar added on 2026-11-28.",
-    "unassigned_approved_gold_star_count": 107,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-28: 147 approved Gold Stars; 39 assigned display serials #56–#94; 108 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the digital-humanism response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 108,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-reverence-credulity-2026-11-28 approved by user 2026-11-28",
+    "last_approval": "general-guide-digital-humanism-human-centered-ai-exemplar-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 5
+    "approved_response_quality_exemplar_count": 6
   },
   "last_reconciled": "2026-11-28"
 }
