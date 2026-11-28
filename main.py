@@ -315,6 +315,9 @@ def _select_verified_doorway_conceptual_family(query):
     text = str(query or "")
     if _guide_query_explicitly_forbids_handoff(text):
         return None
+    from one_sided_team_conflict_contract import is_one_sided_team_conflict_question
+    if is_one_sided_team_conflict_question(text):
+        return "one_sided_team_conflict_context"
     from institutional_learning_failure_contract import is_institutional_learning_failure_question
     if is_institutional_learning_failure_question(text):
         return "institutional_learning_failure"
@@ -603,6 +606,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "one_sided_team_conflict_context": {
+        "title": "Building Trust-Centered Organizations",
+        "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+        "rationale": (
+            "This Archive essay examines how leadership signals, shared cultural norms, "
+            "trust, power, and accountability shape organizational life. It offers a relevant "
+            "continuation from a team conflict to the conditions that make an organization "
+            "trustworthy and answerable in practice."
+        ),
+    },
     "digital_archive_context_preservation": {
         "title": "Living Archives: The Future of Knowledge May Be Relational, Not Linear",
         "url": "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/",
@@ -6583,6 +6596,24 @@ def _guide_restore_verified_doorway(payload, query):
         and not _gold_star_doorway_omission_is_justified(exact_standard)
     ):
         _family = _select_verified_doorway_conceptual_family(query)
+        if _family == "one_sided_team_conflict_context":
+            _family_candidate = _normalize_authoritative_recommendation(
+                _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
+            )
+            if _family_candidate is not None:
+                safe["recommendation"] = _family_candidate
+                safe["canonical_doorway"] = _family_candidate
+                safe["authoritative_doorway"] = _family_candidate
+                safe["doorway_title"] = _family_candidate["title"]
+                safe["doorway_url"] = _family_candidate["url"]
+                safe["doorway_rationale"] = _family_candidate["rationale"]
+                safe["doorway_decision"] = "selected"
+                safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                safe["doorway_selection_evaluated"] = True
+                safe["doorway_selection_source"] = "reviewed_one_sided_team_conflict_family"
+                safe["doorway_omission_reason"] = None
+                safe["doorway_omission_exception_reason"] = None
+                return safe
         if _family == "extraordinary_claim_discernment":
             _family_candidate = _normalize_authoritative_recommendation(
                 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
