@@ -115,3 +115,17 @@ def test_corrected_successor_is_registered_as_standalone_gold_star_only():
     assert record["expected_response"].endswith(
         "Which specific claim from the Living Archive would you like to examine first?"
     )
+
+
+def test_existing_continuation_heading_without_question_keeps_reply_trigger():
+    response = (
+        BASE_RESPONSE
+        + "\\n\\n**Put this distinction to work**\\n\\n"
+        + "We can examine source support, cross-source synthesis, and interpretation."
+    )
+    result = composition.enforce_response_contracts(QUERY, response)
+
+    assert result.count("Put this distinction to work") == 1
+    assert result.endswith(
+        "Which specific claim from the Living Archive would you like to examine first?"
+    )
