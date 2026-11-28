@@ -596,6 +596,7 @@ def test_complex_future_scenario_contract_replaces_generic_provider_checklist():
     expected = compose_recovery(query)
     assert enforce_response_contracts(query, generic) == expected
     assert enforce_response_contracts(query, expected) == expected
+    assert has_technology_solutionism_ecological_explanation(expected)
 
 
 def test_complex_future_scenario_classifier_does_not_capture_ordinary_uncertainty_or_routine_forecasts():
@@ -940,6 +941,7 @@ def test_technology_solutionism_ecological_question_is_recognized_without_overma
 def test_technology_solutionism_contract_replaces_generic_process_advice():
     from deterministic_answer_recovery import (
         _technology_solutionism_ecological_recovery,
+        has_technology_solutionism_ecological_explanation,
         is_technology_solutionism_ecological_question,
     )
     from general_guide_composition import enforce_response_contracts
@@ -987,3 +989,17 @@ def test_technology_solutionism_provider_prompt_carries_ecological_reasoning_con
         "affected-community knowledge", "ecosystem protection", "restoration",
     ):
         assert term in source
+
+
+
+def test_technology_solutionism_contract_preserves_complete_provider_composition():
+    from deterministic_answer_recovery import (
+        has_technology_solutionism_ecological_explanation,
+        _technology_solutionism_ecological_recovery,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "How should the Guide respond to claims that technology alone will solve ecological crises?"
+    complete = _technology_solutionism_ecological_recovery()
+    assert has_technology_solutionism_ecological_explanation(complete)
+    assert enforce_response_contracts(query, complete) == complete
