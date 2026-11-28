@@ -1,3 +1,14 @@
+
+
+## Gold Star — 2026-11-28
+
+- **Approved standalone response-quality exemplar:** `general-guide-organizational-transformation-readiness-2026-11-28` preserves the corrected successor to “A leader wants fast organizational transformation. How should the Guide test whether the change is real, ethical, and developmentally wise?” The successor evaluates reality, ethics, and developmental capacity as independent tests; requires supporting evidence and counter-evidence; and uses non-compensatory PASS / HOLD / STOP-REDESIGN decisions with a reviewable record.
+- **Assessment:** 9.8/10 (assistant assessment, not a user-assigned rating).
+- **Original near-miss:** preserved separately in issue #2175; it is not overwritten or counted as the approved successor.
+- **Doorway:** visible continuation title is recorded as screenshot evidence only; no canonical URL is inferred.
+- **Governance:** immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial remains unassigned.
+- **Evidence boundary:** approval and tests do not establish provider provenance, live deployment, adaptive transfer, or measured visitor outcome improvement.
+
 ## Newly elevated — 2026-11-28
 
 - **Gold Star:** `general-guide-organizational-transformation-readiness-2026-11-28` preserves the corrected successor to the live question “A leader wants fast organizational transformation. How should the Guide test whether the change is real, ethical, and developmentally wise?” The user explicitly approved elevation on 2026-11-28. Assistant assessment: **9.8/10** (assistant assessment, not a user-assigned rating). The successor makes reality, ethics, and developmental capacity independent tests; requires supporting and counter-evidence; and closes with non-compensatory PASS / HOLD / STOP-REDESIGN decisions, practical next actions, and a reviewable decision record. The PASS/HOLD/STOP sequence is expressly an operational synthesis, not a universal numeric threshold or canonical Archive checklist. The original screenshot response is preserved as a positive near-miss baseline in issue #2175. The visible Continue Exploring title is recorded without inferring a canonical URL. This is an immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial: `UNASSIGNED`.
@@ -2103,3 +2114,20 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 ## Newly elevated — 2026-11-28
 
 - **Gold Star:** `general-guide-society-resilience-integrative-systems-2026-11-28` preserves the screenshot's original answer as a near-miss and records the structurally corrected successor to “What makes a society resilient?” The successor explains resilience as an interconnected social-system capacity, including ecological and economic foundations, infrastructure, institutions, social and cultural networks, diversity, redundancy, modularity, trust, shared meaning, cultural memory, feedback, cascading failures, unequal exposure, and equitable recovery. Assistant assessment: **9.5/10**; this is not a user-assigned numerical rating. The corrected continuation is **Collective Nervous Systems: How Cultures Regulate Human Coherence**, separately verified as a published WordPress post (post ID 57155). This is an immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled. Its display serial remains `UNASSIGNED`. Approval does not establish provider provenance or measured visitor outcome improvement.
+
+
+## Canonical registry transport and maintenance
+
+The canonical JSON ledger is large enough that the ordinary Contents-file interface may return an incomplete or empty payload. For complete reads and safe updates, follow the Git Database API procedure in [Large canonical Gold Star registry: read, verify, and update](GOLD_STAR_REGISTRY_LARGE_FILE_OPERATIONS.md). The procedure preserves this JSON file as the sole authority and uses blob SHA, base tree, parent commit, and an expected branch-head SHA to prevent partial reads and lost updates.
+
+
+## Gold Star — 2026-11-28
+
+- **Approved standalone response-quality exemplar:** `general-guide-nonprofit-mission-care-operational-capacity-2026-11-28` records the corrected successor to “A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?” The successor connects mission priority, institutional care, structure and decision rights, actual operating capacity, and governance feedback. It explains the reinforcing overload loop as a mechanism to investigate rather than a universal diagnosis, and supplies a practical sequence from stabilization through workload mapping, explicit tradeoffs, redesign, ownership, and review.
+- **Assessment:** 9.7/10 (assistant assessment, not a user-assigned rating).
+- **Original near-miss:** preserved separately in issue #2177; it is not overwritten or counted as the corrected successor.
+- **Doorway:** visible title **Infrastructure Before Ideology** is recorded as screenshot evidence only. Canonical URL not evaluated.
+- **Governance:** immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial remains unassigned.
+- **Canonical reconciliation:** 202 registry records; 161 approved Gold Stars; 139 active runtime-transfer contributors; 20 approved response-quality exemplars, 19 explicitly standalone; 39 assigned serials; 122 approved records unassigned; zero documented numbering gaps. The canonical JSON registry remains the sole source of these counts.
+- **Evidence boundary:** approval and fixture tests do not establish provider provenance, live deployment, adaptive transfer, or measured visitor outcome improvement.
+
