@@ -17,5 +17,14 @@
   "numbering_unassigned_reason": "Gold Star elevation is authorized; no human-facing display serial allocation was requested.",
   "approval_state": "USER APPROVED GOLD STAR — CORRECTED RESPONSE REVIEWED; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
   "user_approved_at": "2026-11-28",
-  "elevation_approval_evidence": "The user reviewed the original visitor response, instructed that it be preserved as a near-miss, and explicitly authorized structural correction and Gold Star elevation on 2026-11-28. This authorizes an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation."
+  "elevation_approval_evidence": "The user reviewed the original visitor response, instructed that it be preserved as a near-miss, and explicitly authorized structural correction and Gold Star elevation on 2026-11-28. This authorizes an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation.",
+  "abstention_boundary": "NOT_EVALUATED: No canonical doorway has been verified for this question. Do not infer a URL or treat the visible Boundary Conditions card from the near-miss as the ethical inquiry's destination.",
+  "gold_star_capabilities": {
+    "generation_class": "user_approved_response_quality_exemplar",
+    "exact_answer_authority": false,
+    "active_quality_contributor": false,
+    "deterministic_fallback_eligible": false,
+    "standalone_response_quality_exemplar": true,
+    "abstention_boundary": "NOT_EVALUATED: Standalone non-runtime exemplar only. Do not issue a verdict without the relevant facts, applicable rights and law, affected people's testimony, and source-grounded principles. Do not invent the Archive's position or infer a canonical doorway."
+  }
 }
