@@ -983,7 +983,7 @@ def test_technology_solutionism_deterministic_recovery_is_registered():
 
 def test_technology_solutionism_provider_prompt_carries_ecological_reasoning_contract():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
-    assert source.count("TECHNOLOGY-SOLUTIONISM AND ECOLOGICAL CRISES:") == 2
+    assert source.count("TECHNOLOGY-SOLUTIONISM / ECOLOGY:") == 2
     for term in (
         "life-cycle", "rebound effects", "production/consumption",
         "affected communities", "ecosystem protection", "restoration",
