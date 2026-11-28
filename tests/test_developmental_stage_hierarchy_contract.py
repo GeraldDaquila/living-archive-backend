@@ -75,7 +75,7 @@ def test_better_person_question_triggers_nonranking_contract():
 
 
 def test_archive_specific_stage_question_preserves_source_boundary():
-    question = "Does the Living Archive describe a developmental stage as higher?"
+    question = "Does the Living Archive describe a human developmental stage as higher?"
     assert is_developmental_stage_hierarchy_question(question)
     instruction = build_developmental_stage_hierarchy_instruction(question)
     assert "separate verified source claims from general interpretation" in instruction
