@@ -100,3 +100,20 @@ def test_precomputed_selector_preserves_real_registry_rankings():
         f"Precomputed selector changed {len(mismatches)} of {len(queries)} "
         f"real-registry outcomes: {mismatches[:10]}"
     )
+
+
+def test_selector_classifies_visitor_inquiry_once_for_all_candidates(monkeypatch):
+    import inquiry_family_transfer_contract as transfer_contract
+
+    original = transfer_contract.classify_inquiry_family
+    calls = []
+
+    def counted(query):
+        calls.append(query)
+        return original(query)
+
+    monkeypatch.setattr(transfer_contract, "classify_inquiry_family", counted)
+    query = "How should a community make accountable decisions about shared resources?"
+    lessons.select_lesson_candidates(query)
+
+    assert calls == [query]
