@@ -2713,7 +2713,7 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
     assert len(approved) == 154
     assert len(registry["records"]) == 195
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 153
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 154
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 115
     assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 13
 
