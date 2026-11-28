@@ -53,6 +53,10 @@ from gold_star_provider_adjudication import (
 
 from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
 from nonprofit_mission_care_contract import build_nonprofit_mission_care_instruction
+from nonprofit_mission_care_response_contract import (
+    evaluate_nonprofit_mission_care_response,
+    recover_nonprofit_mission_care_response,
+)
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -3233,6 +3237,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 + ",".join(humility_report.get("missing") or [])
             )
 
+        nonprofit_report = evaluate_nonprofit_mission_care_response(query, response)
+        if nonprofit_report.get("applies") and not nonprofit_report.get("passed"):
+            raise ValueError(
+                "nonprofit mission-care answer is operationally incomplete: "
+                + ",".join(nonprofit_report.get("missing") or [])
+            )
+
         community_rule_report = evaluate_community_rule_response(query, response)
         if community_rule_report.get("applies") and not community_rule_report.get("passed"):
             raise ValueError(
@@ -3630,6 +3641,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError(
                         "humility/spiritual-maturity answer is incomplete: "
                         + ",".join(humility_report.get("missing") or [])
+                    )
+                nonprofit_report = evaluate_nonprofit_mission_care_response(query, response)
+                if nonprofit_report.get("applies") and not nonprofit_report.get("passed"):
+                    raise ValueError(
+                        "nonprofit mission-care answer is operationally incomplete: "
+                        + ",".join(nonprofit_report.get("missing") or [])
                     )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
@@ -5045,6 +5062,15 @@ def enforce_response_contracts(question: str, response: str) -> str:
             re.I,
         ):
             raise ValueError("Archive-scoped meaning answer must provide a substantive definition, not a circular meta-definition")
+    nonprofit_report = evaluate_nonprofit_mission_care_response(question, candidate)
+    if nonprofit_report.get("applies") and not nonprofit_report.get("passed"):
+        candidate = recover_nonprofit_mission_care_response()
+        nonprofit_report = evaluate_nonprofit_mission_care_response(question, candidate)
+        if not nonprofit_report.get("passed"):
+            raise RuntimeError(
+                "Nonprofit mission-care response contract failed after deterministic recovery: "
+                + ",".join(nonprofit_report.get("missing") or [])
+            )
     return candidate
 
 
