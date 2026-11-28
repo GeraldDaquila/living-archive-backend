@@ -84,6 +84,7 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         "general-guide-extraordinary-claims-proportionate-scrutiny-2026-11-28",
         "general-guide-reverence-credulity-2026-11-28",
         "general-guide-digital-humanism-human-centered-ai-exemplar-2026-11-28",
+        "general-guide-digital-archive-context-preservation-2026-11-28",
         "general-guide-engagement-optimization-knowledge-system-exemplar-2026-11-28",
     }
 
