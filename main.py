@@ -586,10 +586,33 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:consequential|consequence|stakes|significant|matter)\w*\b", text, re.I)
     ):
         return "consequential_action_under_uncertainty"
+    # Digital-archive questions about preserving context need a continuation
+    # that directly addresses the difference between storing records and
+    # connecting knowledge relationally. Require the domain plus a context/
+    # preservation signal; generic mentions of archives alone do not qualify.
+    digital_archive_context_preservation = (
+        re.search(r"\\bdigital\\s+archives?\\b", text, re.I)
+        and re.search(r"\\b(?:preserv\\w*|retain\\w*|maintain\\w*)\\b", text, re.I)
+        and re.search(r"\\b(?:context|provenance|metadata|relationship|relationships|connection|connections)\\b", text, re.I)
+    )
+    if digital_archive_context_preservation:
+        return "digital_archive_context_preservation"
+
     return None
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "digital_archive_context_preservation": {
+        "title": "Living Archives: The Future of Knowledge May Be Relational, Not Linear",
+        "url": "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/",
+        "rationale": (
+            "This essay directly contrasts preserving and storing records with connecting knowledge "
+            "in ways that retain meaning and context. It explains how archives preserve records over "
+            "time while showing why relationships among information matter for understanding. It is "
+            "a relevant next step for considering why a digital archive should preserve context, not "
+            "merely accumulate content."
+        ),
+    },
     "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
     "extraordinary_claim_discernment": {
         "title": "Levels of Claim",
@@ -6574,6 +6597,24 @@ def _guide_restore_verified_doorway(payload, query):
                 safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
                 safe["doorway_selection_evaluated"] = True
                 safe["doorway_selection_source"] = "reviewed_extraordinary_claim_discernment_family"
+                safe["doorway_omission_reason"] = None
+                safe["doorway_omission_exception_reason"] = None
+                return safe
+        if _family == "digital_archive_context_preservation":
+            _family_candidate = _normalize_authoritative_recommendation(
+                _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
+            )
+            if _family_candidate is not None:
+                safe["recommendation"] = _family_candidate
+                safe["canonical_doorway"] = _family_candidate
+                safe["authoritative_doorway"] = _family_candidate
+                safe["doorway_title"] = _family_candidate["title"]
+                safe["doorway_url"] = _family_candidate["url"]
+                safe["doorway_rationale"] = _family_candidate["rationale"]
+                safe["doorway_decision"] = "selected"
+                safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                safe["doorway_selection_evaluated"] = True
+                safe["doorway_selection_source"] = "reviewed_digital_archive_context_preservation_family"
                 safe["doorway_omission_reason"] = None
                 safe["doorway_omission_exception_reason"] = None
                 return safe
