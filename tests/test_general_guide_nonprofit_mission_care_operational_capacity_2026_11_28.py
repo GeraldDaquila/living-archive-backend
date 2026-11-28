@@ -40,8 +40,8 @@ def test_nonprofit_mission_care_operational_capacity_successor_is_complete_and_b
 
     assert "not an individual failure" in answer
     assert "not an assumption about every nonprofit" in answer
-    assert fixture["doorway_status"] == "NOT_EVALUATED"
-    assert fixture["expected_doorway"] is None
+    assert fixture["doorway_status"] == "NOT_EVALUATED"  # Earlier approved baseline remains unchanged.
+    assert fixture["expected_doorway"] is None  # Earlier baseline's doorway remains unevaluated.
     assert fixture["visible_continuation_title"] == "Infrastructure Before Ideology"
     assert "no canonical url is inferred" in capabilities["abstention_boundary"].lower()
     assert "issue #2177" in fixture["provenance"]["original_near_miss"]
