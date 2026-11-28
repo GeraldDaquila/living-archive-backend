@@ -10561,7 +10561,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "intervention_benefit_burden_power_consent_and_accountability",
         "transferable_discipline": "Map benefits, costs, decision authority, affected parties, meaningful participation or refusal, answerability for outcomes, and information needed for affected people to judge an intervention. Do not make a project-specific distributional judgment without evidence.",
-        "abstention_boundary": "Standalone response-quality exemplar only. Do not invent beneficiaries, cost-bearers, consent, authority, or outcomes. Distinguish stewardship, consent, and responsibility; transparency does not itself establish trustworthiness or accountability. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer. The visible Continue Exploring title is screenshot evidence only; do not infer a canonical URL.",
+        "abstention_boundary": "NOT_EVALUATED: Standalone response-quality exemplar only. Do not invent beneficiaries, cost-bearers, consent, authority, or outcomes. Do not infer a canonical URL from the visible title. Distinguish stewardship, consent, and responsibility; transparency does not itself establish trustworthiness or accountability. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",
