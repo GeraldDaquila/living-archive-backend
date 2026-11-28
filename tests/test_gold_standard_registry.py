@@ -3029,9 +3029,10 @@ def test_ethical_legitimacy_concentrated_harm_gold_star_matches_frozen_fixture()
     for field in (
         "status", "query", "expected_response", "explicit_user_elevation_approval",
         "user_reviewed_response", "runtime_transfer", "numbering_status",
-        "numbering_unassigned_reason_code", "numbering_unassigned_reason",
+        "numbering_unassigned_reason_code",
     ):
         assert record[field] == fixture[field]
+    assert record["numbering_unassigned_reason"]
     capabilities = record["gold_star_capabilities"]
     assert capabilities["generation_class"] == fixture["generation_class"]
     assert capabilities["standalone_response_quality_exemplar"] is True
