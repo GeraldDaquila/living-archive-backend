@@ -2711,11 +2711,11 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 158
-    assert len(registry["records"]) == 199
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17
+    assert len(approved) == 159
+    assert len(registry["records"]) == 200
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 159
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 120
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 18
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2831,11 +2831,11 @@ def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star(
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 158
-    assert len(registry["records"]) == 199
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17
+    assert len(approved) == 159
+    assert len(registry["records"]) == 200
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 159
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 120
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 18
 
 
 
@@ -2871,8 +2871,44 @@ def test_society_resilience_gold_star_registry_record_preserves_verified_success
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 158
-    assert len(registry["records"]) == 199
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17
+    assert len(approved) == 159
+    assert len(registry["records"]) == 200
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 159
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 120
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 18
+
+
+def test_ethical_future_vision_credibility_gold_star_is_frozen_standalone_exemplar():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-ethical-credibility-future-vision-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What makes a future vision ethically credible?"
+    assert "who bears its costs" in record["expected_response"]
+    assert "meaningful consent" in record["expected_response"]
+    assert "way to stop or change it" in record["expected_response"]
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["provenance"]["visible_continuation_title"] == (
+        "At the Bottom of the Abyss: Not Giving Up When Nothing Makes Sense"
+    )
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.8
+    assert record["rating"] is None
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 159
+    assert len(registry["records"]) == 200
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 159
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 120
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 18
