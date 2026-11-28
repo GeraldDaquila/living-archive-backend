@@ -89,6 +89,7 @@ def _install_provider_exhaustion(monkeypatch):
     monkeypatch.setattr(
         general_guide_composition, "route_with_model_bank", exhausted_provider_bank
     )
+    monkeypatch.setattr(use_main, "route_with_model_bank", exhausted_provider_bank)
     return calls
 
 
