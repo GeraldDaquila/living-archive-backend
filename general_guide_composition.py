@@ -52,6 +52,11 @@ from gold_star_provider_adjudication import (
 )
 
 from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
+from guide_source_provenance_contract import (
+    is_source_provenance_question,
+    build_source_provenance_instruction,
+    evaluate_source_provenance_response,
+)
 from free_will_predestination_contract import (
     is_free_will_predestination_question,
     has_free_will_predestination_explanation,
@@ -82,7 +87,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.57"
+CONTRACT_VERSION = "v1.58"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -397,6 +402,8 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         if include:
             paragraphs.append(paragraph)
     rendered = "\n\n".join(paragraphs)
+    if is_source_provenance_question(question):
+        rendered += "\n\n" + build_source_provenance_instruction()
     # Keep this specialist reasoning contract out of every unrelated provider
     # prompt; attach it only to the ecological technology-solutionism family.
     technology_solutionism_ecological = (
@@ -3264,6 +3271,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        provenance_report = evaluate_source_provenance_response(query, response)
+        if provenance_report.get("applies") and not provenance_report.get("passed"):
+            raise ValueError(
+                "mixed-source provenance answer is incomplete: "
+                + ",".join(provenance_report.get("missing") or [])
+            )
 
         humility_report = evaluate_humility_spiritual_maturity_response(query, response)
         if humility_report.get("applies") and not humility_report.get("passed"):
