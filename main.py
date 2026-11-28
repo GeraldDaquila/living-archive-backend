@@ -8893,22 +8893,35 @@ def _guide_finalize_visitor_payload(payload, query):
             finalized.get("processing") == "final_visitor_boundary_explicit_no_handoff"
             or bool(finalized.get("navigation_suppressed_by_task_contract"))
         )
-        _society_doorway = (
-            None if _explicit_no_handoff
-            else registered_recovery_recommendation(query)
-        )
-        if _society_doorway:
-            finalized["recommendation"] = _society_doorway
-            finalized["canonical_doorway"] = _society_doorway
-            finalized["doorway_title"] = _society_doorway["title"]
-            finalized["doorway_url"] = _society_doorway["url"]
-            finalized["doorway_rationale"] = _society_doorway["rationale"]
-            finalized["doorway_decision"] = "selected"
-            finalized["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+        if _explicit_no_handoff:
+            # Clear any earlier generic fallback doorway; merely declining to add
+            # this family doorway would leave a stale recommendation visible.
+            finalized["recommendation"] = None
+            finalized["canonical_doorway"] = None
+            finalized["authoritative_doorway"] = None
+            finalized["doorway_title"] = None
+            finalized["doorway_url"] = None
+            finalized["doorway_rationale"] = None
+            finalized["doorway_decision"] = "omit"
+            finalized["doorway_selection_status"] = "SUPPRESSED_BY_EXPLICIT_NO_HANDOFF"
             finalized["doorway_selection_evaluated"] = True
-            finalized["doorway_selection_source"] = "registered_society_resilience_contract"
-            finalized["doorway_omission_reason"] = None
+            finalized["doorway_selection_source"] = "explicit_no_handoff"
+            finalized["doorway_omission_reason"] = "user_requested_no_further_reading"
             finalized["doorway_omission_exception_reason"] = None
+        else:
+            _society_doorway = registered_recovery_recommendation(query)
+            if _society_doorway:
+                finalized["recommendation"] = _society_doorway
+                finalized["canonical_doorway"] = _society_doorway
+                finalized["doorway_title"] = _society_doorway["title"]
+                finalized["doorway_url"] = _society_doorway["url"]
+                finalized["doorway_rationale"] = _society_doorway["rationale"]
+                finalized["doorway_decision"] = "selected"
+                finalized["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                finalized["doorway_selection_evaluated"] = True
+                finalized["doorway_selection_source"] = "registered_society_resilience_contract"
+                finalized["doorway_omission_reason"] = None
+                finalized["doorway_omission_exception_reason"] = None
     return _finish_gold_star_delivery_trace(finalized)
 
 
