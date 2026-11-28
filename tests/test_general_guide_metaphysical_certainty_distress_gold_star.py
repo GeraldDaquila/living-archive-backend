@@ -57,10 +57,10 @@ def test_registry_audit_counts_reconcile_without_changing_active_learning_popula
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
     active = [item for item in approved if item.get("runtime_transfer") is True]
-    assert len(approved) == 168
-    assert len(registry["records"]) == 209
+    assert len(approved) == 170
+    assert len(registry["records"]) == 211
     assert len(active) == 139
     assert registry["integrity_audit"]["approved_gold_star_count"] == len(approved)
     assert registry["integrity_audit"]["registry_record_count"] == len(registry["records"])
     assert registry["integrity_audit"]["active_quality_contributor_count"] == len(active)
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 27
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 29
