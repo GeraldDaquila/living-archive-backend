@@ -93,7 +93,7 @@ def test_new_approval_requires_user_reviewed_question_family_disposition():
     module = _module()
     baseline = json.loads(REGISTRY.read_text(encoding="utf-8"))
     candidate = json.loads(json.dumps(baseline))
-    record = json.loads(json.dumps(candidate["records"][0]))
+    record = json.loads(json.dumps(next(item for item in candidate["records"] if item.get("status") == "USER_APPROVED_GOLD_STANDARD")))
     record["benchmark_id"] = "test-new-family-requires-review"
     record["query"] = "A wholly new test question family?"
     record["user_reviewed_response"] = True
@@ -108,7 +108,7 @@ def test_new_approval_accepts_correct_new_family_review_and_rejects_wrong_family
     module = _module()
     baseline = json.loads(REGISTRY.read_text(encoding="utf-8"))
     candidate = json.loads(json.dumps(baseline))
-    record = json.loads(json.dumps(candidate["records"][0]))
+    record = json.loads(json.dumps(next(item for item in candidate["records"] if item.get("status") == "USER_APPROVED_GOLD_STANDARD")))
     record["benchmark_id"] = "test-new-family-reviewed"
     record["query"] = "A distinct test question family for governance?"
     record["user_reviewed_response"] = True
