@@ -2176,7 +2176,7 @@ The canonical JSON ledger is large enough that the ordinary Contents-file interf
 - **Gold Star:** `general-guide-developmental-stage-hierarchy-nonranking-2026-11-28` preserves the exact corrected visitor-facing response to “A visitor describes a developmental stage as “higher” than another. How can the Guide examine the claim while avoiding a ranking of people?” as an immutable standalone response-quality exemplar.
 - **Assessment:** 9.6/10 (assistant assessment, not a user-assigned rating).
 - **Near-miss preservation:** the original generic decision-process answer remains unchanged in GitHub issue #2197 and is not counted as an approved record.
-- **Question-family review:** `NEW_QUESTION_FAMILY`; no other approved record has the same normalized exact question. Family ID: `qf-3e0269910e85b3a8`.
+- **Question-family review:** `NEW_QUESTION_FAMILY`; no other approved record has the same normalized exact question. Family ID: `qf-cd6550fcd889c285`.
 - **Doorway:** the visible title is **The Resonance & Coherence Assessment**. Its canonical URL is not established by the screenshot; doorway status remains `NOT_EVALUATED`.
 - **Governance:** standalone response-quality exemplar only. Exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, and display serial remain disabled/unassigned.
 - **Evidence boundary:** the screenshot establishes the displayed answer and continuation card; it does not establish provider invocation provenance, adaptive transfer, or measured visitor outcomes.
