@@ -56,7 +56,8 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     doorway_record = next(item for item in approved if item["benchmark_id"] == doorway_fixture["benchmark_id"])
     assert doorway_record["expected_response"] == doorway_fixture["expected_response"]
     assert doorway_record["expected_doorway"] == doorway_fixture["expected_doorway"]
-    assert doorway_record["doorway_status"] == "ACTIONABLE_CONTEXTUAL_CONTINUATION"
+    assert doorway_record["doorway_status"] == "NOT_EVALUATED"
+    assert doorway_record["expected_doorway"] is None
     assert doorway_record["runtime_transfer"] is False
     assert doorway_record["numbering_status"] == "UNASSIGNED"
 
