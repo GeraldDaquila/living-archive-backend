@@ -12937,7 +12937,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
     # These are answer-first explanatory intents, not pure subject-finding requests.
-    if healthy_community_short_circuit or trust_stewardship_short_circuit or society_resilience_short_circuit:
+    if healthy_community_short_circuit or trust_stewardship_short_circuit:
+        discovery_subject = ""
+    if society_resilience_short_circuit:
         discovery_subject = ""
     # Resolve bounded public concepts before retrieval, not after it. A stable
     # orientation answer must never erase the visitor's opportunity to discover
