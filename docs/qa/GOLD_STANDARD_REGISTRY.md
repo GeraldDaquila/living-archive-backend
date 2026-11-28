@@ -1,3 +1,9 @@
+## Newly elevated — 2026-11-28
+
+- **Gold Star:** `general-guide-archive-cosmology-epistemic-discernment-2026-11-28` preserves the corrected successor to “A visitor wants proof that the Archive’s cosmology is true. How should the Guide distinguish coherence, usefulness, evidence, and metaphysical commitment?” after the user explicitly authorized structural repair and elevation. Assistant assessment: **9.7/10** (assistant assessment, not a user-assigned rating). The successor preserves the distinction between direct Archive claims, cross-source synthesis, and orientation, then adds one optional in-Guide continuation inviting the visitor to examine a specific claim through source support, synthesis, and interpretation or metaphysical commitment. The continuation uses the existing Guide reply panel; no external canonical URL is inferred. The original screenshot response remains the immutable near-miss baseline in issue #2179. This is a standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial: `UNASSIGNED`.
+
+- **Registry reconciliation:** 203 records; 162 approved Gold Stars; 139 active runtime-transfer contributors; 21 approved response-quality exemplars (20 standalone); 39 numbered records; 123 approved records unassigned a display serial.
+
 
 
 ## Gold Star — 2026-11-28
