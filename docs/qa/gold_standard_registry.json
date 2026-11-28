@@ -9486,7 +9486,7 @@
       "approval_state": "USER APPROVED GOLD STAR — SUCCESSOR RESPONSE AUTHORIZED; RESPONSE-QUALITY EXEMPLAR ONLY",
       "user_approved_at": "2026-11-28",
       "elevation_approval_evidence": "User instructed: 'record as near-miss. enhance structurally and turn this into a gold star response' after reviewing the exact visitor-facing screenshot. This authorizes preservation of the original as a near-miss and elevation of the separately authored successor as a response-quality Gold Star exemplar.",
-      "freeze_policy": "Preserve this approved response as an immutable response-quality exemplar. Do not authorize exact-answer substitution, deterministic fallback, or runtime/adaptive transfer without separate implementation and evaluation evidence.",
+      "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
       "runtime_transfer": false,
       "reasoning_family": "human-agency-and-accountable-ai-use",
       "transferable_lesson": "AI can extend analysis and expand the field of options, but must not acquire authority over human purposes, values, or consequential decisions. Human discernment includes framing the question, identifying obligations and affected parties, testing evidence and uncertainty, considering consequences, and retaining answerability. Meaningful oversight requires the ability to understand, challenge, reject, appeal, and correct AI-influenced outputs.",
@@ -9499,7 +9499,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "human_agency_and_accountable_ai_use",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The answer distinguishes AI's analytic contribution from human authority, develops discernment as purpose-framing and evidence-based judgment, and requires accountable institutional oversight.",
-        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. Do not copy the exact answer to unrelated questions, infer a canonical doorway URL from the screenshot title, or claim provider provenance, adaptive transfer, or measured visitor improvement. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. Do not copy the exact answer to unrelated questions. Do not infer a canonical doorway URL from the screenshot title. Do not claim provider provenance, adaptive transfer, or measured visitor improvement. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
@@ -9521,8 +9521,8 @@
         "evidence_boundary": "The screenshot establishes the original answer only. The successor is a separately authored and user-authorized response-quality exemplar; no claim is made that this exact text has already been returned by the live provider or that adaptive transfer has been demonstrated. The visible continuation title is preserved in doorway_note only; expected_doorway remains null until its canonical destination is independently verified."
       },
       "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "RESPONSE_QUALITY_EXEMPLAR_NO_RUNTIME_TRANSFER",
-      "numbering_unassigned_reason": "This is an approved standalone response-quality exemplar. It is not yet an active structural-learning contributor and receives no display serial.",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Standalone response-quality exemplar; no display serial requested and no runtime/adaptive transfer is authorized.",
       "doorway_note": "The screenshot shows the continuation title 'Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill', but the canonical URL has not been independently verified. Preserve the title as screenshot evidence only; do not invent or infer a URL."
     }
   ],
