@@ -30,7 +30,7 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
             }]
         })
         self.assertIn(
-            "Never transfer exemplar content or doorways.",
+            "Never transfer exemplar content or doorways, or override the question, evidence, or response form.",
             instruction,
         )
         self.assertIn("authority_mode", composition)
