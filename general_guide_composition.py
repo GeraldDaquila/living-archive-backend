@@ -4796,10 +4796,15 @@ def _append_archive_cosmology_evidence_continuation(
             re.I,
         )
     )
-    if (
-        "put this distinction to work" in candidate.casefold()
-        or already_has_relevant_question
-    ):
+    has_contextual_heading = "put this distinction to work" in candidate.casefold()
+    if has_contextual_heading:
+        if re.search(r"\\?\\s*$", candidate):
+            return candidate
+        return (
+            candidate
+            + "\\n\\nWhich specific claim from the Living Archive would you like to examine first?"
+        )
+    if already_has_relevant_question:
         return candidate
 
     return (
