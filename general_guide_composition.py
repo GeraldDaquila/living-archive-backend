@@ -5219,6 +5219,17 @@ def apply_terminal_response_contract(question: str, payload: dict) -> dict:
     if intent in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
         return payload
 
+    navigation_suppressed = bool(
+        payload.get("navigation_suppressed_by_task_contract")
+        or payload.get("processing") == "final_visitor_boundary_explicit_no_handoff"
+        or payload.get("doorway_omission_reason") == "user_requested_no_further_reading"
+    )
+    # Preserve established no-handoff payload identity for ordinary questions.
+    # Mixed-source provenance is the exception: omission of a doorway must not
+    # allow an unrelated substantive answer to bypass its task-specific contract.
+    if navigation_suppressed and not is_source_provenance_question(question):
+        return payload
+
     response = str(payload.get("response") or payload.get("answer") or "").strip()
     if not response:
         return payload
