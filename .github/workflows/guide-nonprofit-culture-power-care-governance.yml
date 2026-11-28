@@ -6,6 +6,8 @@ on:
       - "main.py"
       - "general_guide_composition.py"
       - "nonprofit_mission_care_contract.py"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28.json"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-nearmiss-2026-11-28.json"
       - "tests/test_nonprofit_mission_care_doorway_contract.py"
       - "tests/test_nonprofit_culture_power_care_governance.py"
       - ".github/workflows/guide-nonprofit-culture-power-care-governance.yml"
