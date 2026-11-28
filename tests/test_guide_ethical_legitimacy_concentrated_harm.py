@@ -68,7 +68,7 @@ def test_corrected_exemplar_is_separate_and_has_no_automatic_runtime_authority()
         (ROOT / "tests/fixtures/general_guide_policy_legality_minority_harm_gold_star.json")
         .read_text(encoding="utf-8")
     )
-    assert fixture["status"] == "USER_APPROVED_GOLD_STANDARD_CANDIDATE"
+    assert fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert fixture["explicit_user_elevation_approval"] is True
     assert fixture["query"] == QUERY
     assert fixture["expected_response"] == compose_task_specific_recovery(QUERY)["response"]
