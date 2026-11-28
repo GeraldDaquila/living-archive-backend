@@ -635,6 +635,24 @@ def _community_project_tradeoff_recovery():
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def is_technology_solutionism_ecological_question(question):
+    """Recognize claims that technology alone can solve ecological crises."""
+    q = _clean(question).casefold()
+    ecological = bool(re.search(r"\b(?:ecolog(?:y|ical)|environment(?:al)?|climate|biodiversity|ecosystem(?:s)?|planetary)\b", q))
+    technology = bool(re.search(r"\b(?:technolog(?:y|ical)|innovation|engineering|artificial intelligence|ai|geoengineering|automation)\b", q))
+    sole_solution = bool(re.search(r"\b(?:alone|by itself|on its own|sole solution|silver bullet|panacea|will solve|can solve|solve .* crisis|solve .* problem)\b", q))
+    return ecological and technology and sole_solution
+
+
+def _technology_solutionism_ecological_recovery():
+    """Explain technology's contribution and limits within ecological stewardship."""
+    return (
+        "Technology can help address ecological crises, but it cannot solve them by itself. Tools such as renewable energy, ecological monitoring, cleaner production, and restoration methods can reduce particular pressures or support repair; their effects depend on what they replace, how they are produced, who controls them, and the rules governing their use. Ecological crises also arise from patterns of production and consumption, land use, unequal access to resources, incentives that reward shifting costs, and institutions that fail to protect shared living systems. A new tool does not automatically change those conditions.\n\n"
+        "The test is not whether a technology is innovative or efficient in isolation, but what it does across its full life cycle and at real scale. Account for energy and material inputs, mining and water demand, pollution and waste, effects on soil, habitats and biodiversity, who bears the burdens, and whether efficiency gains trigger greater total consumption through rebound effects. Compare the technology with non-technological and combined responses, including reducing demand, changing practices, protecting ecosystems, and restoring damaged places. The right mix depends on evidence and local conditions; neither automatic faith nor blanket rejection is warranted.\n\n"
+        "Technology becomes useful within a wider practice of stewardship: public rules and incentives must reward ecological repair rather than merely growth; affected communities and ecological knowledge must shape decisions; responsibilities for costs and harms must be clear; and outcomes must be monitored over time, with power to correct or stop approaches that fail. Engineers and innovators can expand options, but they cannot decide by themselves what should be protected, what harms are acceptable, or who should bear them. Those are governance and ethical decisions for accountable people and institutions. The measure of progress is demonstrable reduction of ecological harm and restoration of the conditions that sustain life—not technological novelty."
+    )
+
+
 def is_external_discernment_outsourcing_question(question):
     """Recognize questions auditing reliance on external authorities for personal discernment."""
     q = _clean(question).casefold()
@@ -1123,6 +1141,7 @@ def has_registered_recovery(question):
         or is_felt_truth_claim_discernment_question(question)
         or is_oversoul_ego_authority_question(question)
         or is_external_discernment_outsourcing_question(question)
+        or is_technology_solutionism_ecological_question(question)
         or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
         or is_trust_community_stewardship_question(question)
@@ -2182,6 +2201,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The purpose is not simply to produce a plausible answer. It is to make an answer answerable: open to examination, challenge, correction, and further inquiry. "
             "That is a form of stewardship of knowledge—handling what has been found carefully enough that neither the source nor the visitor is asked to carry more certainty than the evidence can bear."
         )
+    elif is_technology_solutionism_ecological_question(q):
+        answer = _technology_solutionism_ecological_recovery()
     elif is_community_project_tradeoff_question(q):
         answer = _community_project_tradeoff_recovery()
     elif _is_modes_of_knowing_dialogue_question(q):
