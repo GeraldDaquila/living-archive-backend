@@ -62,7 +62,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.55"
+CONTRACT_VERSION = "v1.56"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -5408,6 +5408,27 @@ def _track_gold_star_composition_attempt(function):
     return _tracked_compose
 
 @_track_gold_star_composition_attempt
+def _build_semantic_repair_instruction(failed_checks: Any) -> str:
+    """Build a bounded repair instruction from privacy-safe semantic check IDs."""
+    if not isinstance(failed_checks, (list, tuple)):
+        return ""
+    allowed = [
+        value for value in failed_checks
+        if isinstance(value, str) and re.fullmatch(r"[a-z0-9_]{1,64}", value)
+    ][:8]
+    if not allowed:
+        return ""
+    return (
+        "SUPPORTED SEMANTIC-CONTRACT REPAIR: The previous candidate did not satisfy "
+        "these bounded task-fit checks: " + ", ".join(allowed) + ". "
+        "Recompose the answer so it genuinely satisfies each requirement in natural language. "
+        "Do not mention these internal check names, discuss the validation process, or add "
+        "keyword-only phrases. Preserve the visitor's actual question, evidence boundaries, "
+        "and verified doorway. Do not invent facts or Archive doctrine. The repaired answer "
+        "must stand on its own and pass the same complete response floor."
+    )
+
+
 def compose(
 
     *,
@@ -5416,6 +5437,7 @@ def compose(
     context_data: Dict[str, Any],
     history_text: str = "",
     integrity_recovery: bool = False,
+    semantic_repair_checks: Optional[List[str]] = None,
     deadline_monotonic: float | None = None,
 ) -> Optional[Dict[str, Any]]:
     """Compose one ordinary Guide answer through the provider-neutral bank."""
@@ -5693,6 +5715,11 @@ def compose(
         if integrity_recovery
         else ""
     )
+    semantic_repair_instruction = _build_semantic_repair_instruction(semantic_repair_checks)
+    if semantic_repair_instruction:
+        integrity_recovery_instruction = (
+            integrity_recovery_instruction + semantic_repair_instruction + "\\n\\n"
+        )
     archive_contrast_instruction = (
         "ARCHIVE PASSAGE CONTRAST CONTRACT: The visitor asks for two relevant Archive passages that differ in emphasis. Use exactly two distinct retrieved canonical passages with substantive excerpts; do not invent, substitute, or infer sources. Present them separately and symmetrically before synthesis. Label them Passage 1 and Passage 2, name each exact source title, and explain each passage's own central emphasis in its own terms using only what its retrieved text supports. Preserve qualifications, scope, and context; do not caricature either passage or imply disagreement where there is only a difference in focus. Then state precisely what differs, what may remain compatible, and what evidence would be needed to resolve any genuine tension. Only after both representations may you offer a cautious synthesis. Cite/link both exact canonical sources. If fewer than two usable passages were retrieved, do not claim to have found two: state that the comparison could not be grounded yet and offer a targeted route to refine retrieval. Never replace this task with generic process advice or a refusal unrelated to the evidence.\n\n"
         if _requires_archive_passage_contrast(question)
