@@ -34,9 +34,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.56"
+    assert guide.CONTRACT_VERSION == "v1.57"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.56"
+    assert snapshot["contract_version"] == "v1.57"
     assert snapshot["provider_neutral"] is True
 
 
@@ -121,8 +121,8 @@ def test_conceptual_relationships_require_task_relevant_discernment():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.56"
-    assert guide.contract_snapshot()["contract_version"] == "v1.56"
+    assert guide.CONTRACT_VERSION == "v1.57"
+    assert guide.contract_snapshot()["contract_version"] == "v1.57"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -156,8 +156,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.56"
-    assert guide.contract_snapshot()["contract_version"] == "v1.56"
+    assert guide.CONTRACT_VERSION == "v1.57"
+    assert guide.contract_snapshot()["contract_version"] == "v1.57"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -416,3 +416,54 @@ def test_explicit_practical_application_questions_remain_practical():
     assert guide.is_practical_application_question(
         "What would our organization actually do differently to practice trust?"
     )
+
+
+def test_developmental_stage_hierarchy_instruction_is_question_scoped():
+    target = (
+        "A visitor describes a developmental stage as 'higher' than another. "
+        "How can the Guide examine the claim while avoiding a ranking of people?"
+    )
+    prompt = guide._build_general_guide_system_message(target)
+    assert "DEVELOPMENTAL-STAGE CLAIMS — DISTINGUISH DEVELOPMENT FROM HUMAN RANK" in prompt
+    assert "Answer the developmental claim itself" in prompt
+
+    adjacent = guide._build_general_guide_system_message(
+        "What is the difference between growth, adaptation, maturity, and integration?"
+    )
+    assert "DEVELOPMENTAL-STAGE CLAIMS — DISTINGUISH DEVELOPMENT FROM HUMAN RANK" not in adjacent
+
+
+def test_final_response_boundary_accepts_the_approved_nonranking_screenshot_answer():
+    import json
+    from pathlib import Path
+
+    fixture_path = (
+        Path(__file__).resolve().parents[1]
+        / "tests/fixtures/general-guide-developmental-stage-hierarchy-nonranking-2026-11-28.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = {"response": fixture["expected_response"], "intent": "ANSWER"}
+    finalized = guide.apply_terminal_response_contract(fixture["query"], payload)
+    assert finalized["response"] == fixture["expected_response"]
+
+
+def test_provider_parser_rejects_generic_governance_nearmiss_for_stage_hierarchy():
+    import json
+    import pytest
+
+    query = (
+        "A visitor describes a developmental stage as 'higher' than another. "
+        "How can the Guide examine the claim while avoiding a ranking of people?"
+    )
+    parser = guide._parse_factory([], query)
+    generic_governance_answer = json.dumps({
+        "response": (
+            "Start by defining the outcome and responsibilities. Compare options, "
+            "examine costs, and choose deliberately while remaining accountable "
+            "for what follows."
+        ),
+        "doorway_title": "",
+        "response_shape": "conceptual",
+    })
+    with pytest.raises(ValueError, match="developmental-stage answer fails the non-ranking reasoning contract"):
+        parser(generic_governance_answer)

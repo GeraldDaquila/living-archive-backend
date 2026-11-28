@@ -3,7 +3,7 @@
 - **Approved standalone response-quality exemplar:** `general-guide-ethical-legitimacy-concentrated-harm-2026-11-28` preserves the corrected successor to “A policy is legal and popular but may impose concentrated harm on a minority. How should the Guide frame the ethical question without pretending the Archive supplies a verdict?” The successor distinguishes legal permission, majority support, and ethical legitimacy; maps concentrated benefits and burdens; examines minority voice, evidence, necessity, alternatives, proportionality, safeguards, and accountability; and keeps the Archive's role orienting rather than adjudicating.
 - **Near-miss preservation:** The original boundary-focused screenshot response remains unchanged in `tests/fixtures/general_guide_policy_legality_minority_harm_nearmiss.json`. It is not registered as a Gold Star and is not overwritten by the corrected successor.
 - **Authority boundary:** Standalone response-quality exemplar only. Exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. No display serial was requested or allocated.
-- **Registry reconciliation:** 208 records; 167 approved Gold Stars; 139 active runtime-transfer contributors; 26 response-quality exemplars (25 standalone); 39 numbered records; 128 approved records unassigned a display serial.
+- **Registry reconciliation:** 209 records; 168 approved Gold Stars; 139 active runtime-transfer contributors; 27 response-quality exemplars (26 standalone); 39 numbered records; 129 approved records unassigned a display serial.
 
 ## Newly elevated — 2026-11-28
 
@@ -2176,3 +2176,22 @@ The canonical JSON ledger is large enough that the ordinary Contents-file interf
 - **Evidence boundary:** screenshot and registry fixture preserve the visitor-visible response; they do not establish provider invocation provenance, adaptive transfer, or measured visitor outcome improvement.
 
 - **Reconciled canonical registry:** 206 records; 165 approved Gold Stars; 139 active runtime contributors; 24 response-quality exemplars (23 standalone); 39 numbered; 126 unassigned; zero duplicate benchmark IDs.
+
+## Developmental-stage hierarchy without ranking people — 2026-11-28
+
+- **Gold Star:** `general-guide-developmental-stage-hierarchy-nonranking-2026-11-28` preserves the exact corrected visitor-facing response to “A visitor describes a developmental stage as “higher” than another. How can the Guide examine the claim while avoiding a ranking of people?” as an immutable standalone response-quality exemplar.
+- **Assessment:** 9.6/10 (assistant assessment, not a user-assigned rating).
+- **Near-miss preservation:** the original generic decision-process answer remains unchanged in GitHub issue #2197 and is not counted as an approved record.
+- **Question-family review:** `NEW_QUESTION_FAMILY`; no other approved record has the same normalized exact question. Family ID: `qf-cd6550fcd889c285`.
+- **Doorway:** the visible title is **The Resonance & Coherence Assessment**. Its canonical URL is not established by the screenshot; doorway status remains `NOT_EVALUATED`.
+- **Governance:** standalone response-quality exemplar only. Exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, and display serial remain disabled/unassigned.
+- **Evidence boundary:** the screenshot establishes the displayed answer and continuation card; it does not establish provider invocation provenance, adaptive transfer, or measured visitor outcomes.
+
+- **Reconciled canonical registry:** 209 records; 168 approved Gold Stars; 139 active runtime contributors; 27 response-quality exemplars (26 standalone); 39 numbered; 129 unassigned; zero duplicate benchmark IDs.
+
+## Canonical cross-branch registry reconciliation — 2026-11-28
+
+The current canonical registry is the record-level union of `main` and PR #2198. The two snapshots share 207 identical benchmark records. The only branch-specific additions are `general-guide-ethical-legitimacy-concentrated-harm-2026-11-28` from `main` and `general-guide-developmental-stage-hierarchy-nonranking-2026-11-28` from PR #2198. Both are retained as immutable standalone response-quality exemplars; neither is an active runtime contributor, exact-answer authority, deterministic fallback, or numbered record. The original developmental-stage near-miss remains separately preserved in issue #2197.
+
+- **Canonical totals:** 209 unique registry records; 168 approved Gold Stars; 139 active runtime contributors; 29 approved non-runtime records; 27 response-quality exemplars, of which 26 are standalone; 39 numbered records; 129 explicitly unassigned records.
+- **Integrity:** zero duplicate benchmark IDs; 207 shared records match exactly; no display serial has been allocated by this reconciliation.

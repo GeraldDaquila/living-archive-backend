@@ -3,8 +3,8 @@
   "purpose": "Historical batch classification snapshot for the original approved tranche. Canonical inventory totals below are computed from the current registry; classifications remain the explicitly scoped 23-record historical batch and must not be interpreted as the full current approved inventory.",
   "generated_from_registry": "docs/qa/gold_standard_registry.json",
   "totals": {
-    "canonical_registry_records": 208,
-    "canonical_approved_gold_standards": 167,
+    "canonical_registry_records": 209,
+    "canonical_approved_gold_standards": 168,
     "canonical_runtime_transfer_approved": 139,
     "general_purpose_runtime_transfer_records": 135,
     "general_purpose_transfer_map_entries": 135,
