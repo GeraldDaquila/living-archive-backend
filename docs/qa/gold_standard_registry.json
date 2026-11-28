@@ -8624,7 +8624,6 @@
         "active_quality_contributor": false,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "consequence_aware_governance_tradeoff_and_accountability",
-        "standalone_response_quality_exemplar": true,
         "transferable_discipline": "For consequential governance questions, begin with the outcome sought, non-negotiable responsibilities, and the people who will bear the consequences. Compare realistic alternatives rather than presuming one course; examine benefits, harms, cost-bearers, affected-party knowledge, and evidence that would justify changing direction. Make reasoning and limits visible, preserve accountability, and keep AI in an advisory role rather than transferring decision authority to it.",
         "abstention_boundary": "The doorway state remains NOT_EVALUATED because the screenshot does not establish a canonical destination URL. Do not infer or invent a canonical doorway or destination. Apply to governance and institutional decision-making questions involving consequential change, trade-offs, affected parties, and accountability. Do not treat this as a universal decision procedure or substitute it for institution-specific constitutional, legal, or factual analysis. Do not infer that participation alone confers consent or authority. Do not transfer the exact answer to unrelated questions, and do not grant deterministic fallback eligibility."
       },
@@ -9945,7 +9944,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 153,
     "registry_record_count": 194,
-    "review_reconciliation": "Canonical inventory contains 153 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 14 approved non-runtime records, including 12 standalone response-quality exemplars. The economy-and-life visitor response is preserved as an immutable response-quality exemplar only. Its visible Continue Exploring title and explanatory copy are recorded without inferring a canonical URL or certifying thematic fit. Approval does not establish provider invocation provenance, held-out transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 153 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 14 approved non-runtime records, including 11 standalone response-quality exemplars. The economy-and-life visitor response is preserved as an immutable response-quality exemplar only. Its visible Continue Exploring title and explanatory copy are recorded without inferring a canonical URL or certifying thematic fit. Approval does not establish provider invocation provenance, held-out transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 153 approved Gold Stars; 39 assigned display serials; 114 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the economy-and-life response-quality exemplar.",
@@ -9958,7 +9957,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-economy-life-sustaining-conditions-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 12
+    "approved_response_quality_exemplar_count": 11
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10059,7 +10058,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 153,
     "registry_record_count": 194,
-    "review_reconciliation": "Canonical inventory contains 153 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 14 approved non-runtime records, including 12 standalone response-quality exemplars. The economy-and-life visitor response is preserved as an immutable response-quality exemplar only. Its visible Continue Exploring title and explanatory copy are recorded without inferring a canonical URL or certifying thematic fit. Approval does not establish provider invocation provenance, held-out transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 153 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 14 approved non-runtime records, including 11 standalone response-quality exemplars. The economy-and-life visitor response is preserved as an immutable response-quality exemplar only. Its visible Continue Exploring title and explanatory copy are recorded without inferring a canonical URL or certifying thematic fit. Approval does not establish provider invocation provenance, held-out transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 153 approved Gold Stars; 39 assigned display serials; 114 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the economy-and-life response-quality exemplar.",
@@ -10072,7 +10071,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-economy-life-sustaining-conditions-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 12
+    "approved_response_quality_exemplar_count": 11
   },
   "last_reconciled": "2026-11-28"
 }
