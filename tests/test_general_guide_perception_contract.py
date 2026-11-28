@@ -610,7 +610,6 @@ def test_complete_mixed_source_answer_passes_final_visitor_boundary():
         "own analysis, name the quoted or paraphrased claims it builds on, and explain the reasoning behind "
         "the inference. If the layers are interwoven, separate each claim-bearing clause or split the sentence. "
         "A citation must support only the claim it establishes. If the source or locator is unavailable, "
-        "disclose that limitation rather than inventing source details or attributing the Guide's inference "
-        "to the author."
+        "disclose that limitation. Do not invent source details or attribute the Guide's inference to the author."
     )
     assert guide.enforce_response_contracts(question, complete) == complete
