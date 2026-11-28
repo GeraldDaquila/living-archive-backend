@@ -2618,4 +2618,5 @@ def test_user_approved_reverence_credulity_response_is_frozen_response_quality_e
     assert capabilities["active_quality_contributor"] is False
     assert capabilities["deterministic_fallback_eligible"] is False
     assert capabilities["standalone_response_quality_exemplar"] is True
+    assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["numbering_status"] == "UNASSIGNED"
