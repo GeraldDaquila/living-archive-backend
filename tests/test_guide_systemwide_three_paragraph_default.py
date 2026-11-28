@@ -1092,3 +1092,30 @@ def test_society_resilience_provider_prompt_carries_cross_system_reasoning_contr
         "unequal exposure", "cultural memory", "fair recovery", "institutional learning",
     ):
         assert term in source
+
+
+
+def test_society_resilience_terminal_visitor_boundary_preserves_answer_and_verified_doorway():
+    import main
+    from deterministic_answer_recovery import (
+        _society_resilience_recovery,
+        registered_recovery_recommendation,
+    )
+
+    query = "What makes a society resilient?"
+    doorway = registered_recovery_recommendation(query)
+    provider_payload = {
+        "ok": True,
+        "response": "A resilient society has strong institutions, a diverse economy, and good infrastructure.",
+        "recommendation": doorway,
+        "canonical_doorway": doorway,
+        "doorway_title": doorway["title"],
+        "doorway_url": doorway["url"],
+        "doorway_rationale": doorway["rationale"],
+    }
+    finalized = main._guide_finalize_visitor_payload(provider_payload, query)
+    assert finalized["response"] == _society_resilience_recovery()
+    assert finalized["recommendation"]["title"] == doorway["title"]
+    assert finalized["recommendation"]["url"] == doorway["url"]
+    assert finalized["canonical_doorway"]["url"] == doorway["url"]
+    assert finalized["doorway_url"] == doorway["url"]
