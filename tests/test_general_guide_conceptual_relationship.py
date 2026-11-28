@@ -220,3 +220,40 @@ def test_symbolic_collective_life_has_concrete_provider_independent_mechanism_re
     assert "painted boat symbol" in response
     assert "shared watch rota" in response
     assert "who carries the costs" in response
+
+
+REVERENCE_CREDULITY_QUESTION = "What is the difference between reverence and credulity?"
+
+
+def test_reverence_credulity_recovery_answers_the_distinction_directly():
+    from general_guide_composition import (
+        _has_reverence_credulity_distinction,
+        is_generic_nonanswer,
+    )
+
+    response = _conceptual_relationship_recovery(REVERENCE_CREDULITY_QUESTION)
+
+    assert response
+    assert _has_reverence_credulity_distinction(response)
+    assert has_conceptual_relationship_explanation(response, REVERENCE_CREDULITY_QUESTION)
+    assert not is_generic_nonanswer(REVERENCE_CREDULITY_QUESTION, response)
+    assert "respect" in response.casefold()
+    assert "evidence" in response.casefold()
+    assert "unquestioning agreement" in response.casefold()
+    assert "not a claim that the Living Archive states a formal definition" in response
+
+
+def test_reverence_credulity_contract_rejects_respectful_but_credulous_nonanswer():
+    from general_guide_composition import _has_reverence_credulity_distinction
+
+    off_task = (
+        "Reverence is important in many cultures because people value traditions and respected "
+        "teachers. Credulity can also influence how people relate to beliefs and institutions. "
+        "People should think carefully about their lives, listen to others, and remain open to "
+        "different perspectives. Communities benefit when people communicate and learn together."
+    )
+    assert not _has_reverence_credulity_distinction(off_task)
+
+
+def test_reverence_credulity_question_is_recognized_as_conceptual_comparison():
+    assert is_conceptual_relationship_question(REVERENCE_CREDULITY_QUESTION)
