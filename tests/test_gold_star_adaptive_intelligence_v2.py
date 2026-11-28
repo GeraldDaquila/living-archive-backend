@@ -70,7 +70,7 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
     assert len(active) <= len(approved)
     # The approved ledger retains five non-contributing records: one
     # superseded historical duplicate, one exact-query-only successor, and
-    # three standalone user-approved response-quality exemplars.
+    # four standalone user-approved response-quality exemplars.
     assert len({item["benchmark_id"] for item in approved}) == len(approved)
     assert len({item["benchmark_id"] for item in active}) == len(active)
     assert {
