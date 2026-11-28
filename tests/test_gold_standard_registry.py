@@ -2830,8 +2830,8 @@ def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star(
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 153
-    assert len(registry["records"]) == 194
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 153
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 114
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 11
+    assert len(approved) == 154
+    assert len(registry["records"]) == 195
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 154
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 115
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 13
