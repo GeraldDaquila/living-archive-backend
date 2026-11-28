@@ -154,3 +154,81 @@ def test_composer_exception_is_bounded_to_one_attempt_and_preserves_original():
     assert outcome["attempts"] == 1
     assert outcome["failure_type"] == "RuntimeError"
     assert result["response"] == "Original."
+
+
+def test_supported_semantic_contract_failure_allows_one_bounded_repair_with_check_ids():
+    from gold_star_bounded_repair import repair_eligibility
+
+    floor = {
+        "status": "fail",
+        "reason": "supported_semantic_contract_failed",
+        "semantic_enforcement": {
+            "failed_checks": [
+                "relationship_subjects_covered",
+                "connecting_mechanism_explained",
+            ]
+        },
+    }
+    result = repair_eligibility(
+        floor, "guide_basic_inquiry", "normal",
+        True, False, 100.0, now=90.0,
+    )
+    assert result["eligible"] is True
+    assert result["failed_criterion"] == "supported_semantic_contract_failed"
+    assert result["failed_checks"] == [
+        "relationship_subjects_covered",
+        "connecting_mechanism_explained",
+    ]
+    assert result["max_attempts"] == 1
+    assert result["semantic_certification"] is False
+
+
+def test_semantic_contract_repair_fails_closed_without_bounded_check_ids():
+    from gold_star_bounded_repair import repair_eligibility
+
+    for checks in (None, [], ["raw visitor text: economy"], [object()]):
+        floor = {
+            "status": "fail",
+            "reason": "supported_semantic_contract_failed",
+            "semantic_enforcement": {"failed_checks": checks},
+        }
+        result = repair_eligibility(
+            floor, "guide_basic_inquiry", "normal",
+            True, False, 100.0, now=90.0,
+        )
+        assert result["eligible"] is False
+        assert result["reason"] == "semantic_failure_codes_unavailable"
+
+
+def test_semantic_contract_repair_keeps_exact_and_non_composition_routes_excluded():
+    from gold_star_bounded_repair import repair_eligibility
+
+    floor = {
+        "status": "fail",
+        "reason": "supported_semantic_contract_failed",
+        "semantic_enforcement": {"failed_checks": ["relationship_subjects_covered"]},
+    }
+    assert not repair_eligibility(
+        floor, "guide_basic_inquiry", "normal", True, False, 100.0,
+        exact_standard=True, now=90.0,
+    )["eligible"]
+    assert not repair_eligibility(
+        floor, "guide_early_deterministic_boundary", "normal",
+        True, False, 100.0, now=90.0,
+    )["eligible"]
+
+
+def test_semantic_repair_instruction_uses_only_bounded_check_identifiers():
+    from general_guide_composition import _build_semantic_repair_instruction
+
+    instruction = _build_semantic_repair_instruction([
+        "relationship_subjects_covered",
+        "connecting_mechanism_explained",
+        "raw visitor question: economy",
+    ])
+    assert "relationship_subjects_covered" in instruction
+    assert "connecting_mechanism_explained" in instruction
+    assert "raw visitor question" not in instruction
+    assert "economy" not in instruction
+    assert "keyword-only phrases" in instruction
+    assert _build_semantic_repair_instruction(["not a valid identifier"]) == ""
