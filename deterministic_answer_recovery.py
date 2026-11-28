@@ -653,6 +653,21 @@ def _technology_solutionism_ecological_recovery():
     )
 
 
+def has_technology_solutionism_ecological_explanation(response):
+    """Require direct, systems-level, life-cycle, alternative, and stewardship reasoning."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    text = _clean(response).casefold()
+    direct = bool(re.search(r"\btechnology\b.{0,100}\b(?:cannot|can't|does not|doesn't)\b.{0,60}\bsolve\b.{0,30}\b(?:alone|by itself|on its own)\b", text))
+    systems = all(term in text for term in ("production and consumption", "land use", "incentives", "governance"))
+    life_cycle = all(term in text for term in ("life cycle", "rebound effects", "biodiversity", "waste")) and bool(re.search(r"\b(?:soil|water)\b", text))
+    alternatives = bool(re.search(r"\b(?:reducing demand|demand reduction)\b", text)) and bool(re.search(r"\b(?:restoration|restoring|restore)\b", text))
+    stewardship = bool(re.search(r"\b(?:affected communities|affected people)\b", text)) and bool(re.search(r"\bmonitor(?:ed|ing)?\b", text)) and bool(re.search(r"\b(?:accountable|accountability|responsibilit)\b", text))
+    contribution = bool(re.search(r"\b(?:can help|can contribute|useful|support repair|reduce particular pressures)\b", text))
+    return direct and systems and life_cycle and alternatives and stewardship and contribution
+
+
 def is_external_discernment_outsourcing_question(question):
     """Recognize questions auditing reliance on external authorities for personal discernment."""
     q = _clean(question).casefold()
