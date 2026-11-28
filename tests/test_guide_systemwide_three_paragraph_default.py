@@ -985,8 +985,8 @@ def test_technology_solutionism_provider_prompt_carries_ecological_reasoning_con
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert source.count("TECHNOLOGY-SOLUTIONISM AND ECOLOGICAL CRISES:") == 2
     for term in (
-        "full life cycle", "rebound effects", "production and consumption",
-        "affected-community knowledge", "ecosystem protection", "restoration",
+        "life-cycle", "rebound effects", "production/consumption",
+        "affected communities", "ecosystem protection", "restoration",
     ):
         assert term in source
 
