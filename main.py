@@ -591,9 +591,9 @@ def _select_verified_doorway_conceptual_family(query):
     # connecting knowledge relationally. Require the domain plus a context/
     # preservation signal; generic mentions of archives alone do not qualify.
     digital_archive_context_preservation = (
-        re.search(r"\\bdigital\\s+archives?\\b", text, re.I)
-        and re.search(r"\\b(?:preserv\\w*|retain\\w*|maintain\\w*)\\b", text, re.I)
-        and re.search(r"\\b(?:context|provenance|metadata|relationship|relationships|connection|connections)\\b", text, re.I)
+        re.search(r"\bdigital\s+archives?\b", text, re.I)
+        and re.search(r"\b(?:preserv\w*|retain\w*|maintain\w*)\b", text, re.I)
+        and re.search(r"\b(?:context|provenance|metadata|relationship|relationships|connection|connections)\b", text, re.I)
     )
     if digital_archive_context_preservation:
         return "digital_archive_context_preservation"
