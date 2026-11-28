@@ -1,0 +1,31 @@
+{
+  "benchmark_id": "general-guide-wise-transition-societal-capacities-2026-11-28",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "What kinds of capacities must societies cultivate for wise transition?",
+  "expected_response": "Societies must cultivate capacities for collective sense-making, the ability to hold and navigate deep uncertainty without collapsing into certainty, and the practice of stewardship that distributes responsibility across generations rather than concentrating it in the present. These capacities are not merely technical or institutional; they are cultural and imaginative, requiring the space to envision alternatives to the inherited architectures of living that currently shape what is considered possible. The work of wise transition is less about optimizing existing systems and more about awakening within them—becoming conscious authors of the life that is already unfolding rather than passively inheriting the scripts handed down by families, institutions, and economies.",
+  "assistant_assessment_out_of_10": 9.5,
+  "doorway_status": "NOT_EVALUATED",
+  "expected_doorway": null,
+  "visible_continuation_title": "Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill",
+  "provenance": {
+    "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly elevated by the user.",
+    "source_date": "2026-11-28",
+    "live_surface": "Guide visitor-facing Search response",
+    "evidence_boundary": "The screenshot establishes the exact question, displayed visitor-facing answer, and separate Continue Exploring card with visible title and explanatory copy. It does not establish provider invocation provenance, canonical doorway URL, adaptive transfer, or measured visitor outcomes.",
+    "visible_continuation_title": "Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill",
+    "visible_continuation_copy": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive.",
+    "review_assessment": "Assistant assessment: 9.5/10. This is an assistant assessment, not a user-assigned rating."
+  },
+  "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+  "runtime_transfer": false,
+  "gold_star_capabilities": {
+    "generation_class": "user_approved_response_quality_exemplar",
+    "exact_answer_authority": false,
+    "active_quality_contributor": false,
+    "deterministic_fallback_eligible": false,
+    "reasoning_family": "wise_transition_societal_capacities",
+    "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The response connects collective sense-making, uncertainty navigation, stewardship across generations, cultural imagination, and collective authorship as capacities for wise transition.",
+    "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a standalone response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, but not a canonical URL or verified thematic fit. Do not infer a URL or certify the doorway from screenshot evidence alone. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+    "standalone_response_quality_exemplar": true
+  }
+}
