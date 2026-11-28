@@ -27,6 +27,7 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     numbered = [record for record in approved if isinstance(record.get("gold_star_number"), int)]
     unassigned = [record for record in approved if record.get("numbering_status") == "UNASSIGNED"]
     audit = registry["integrity_audit"]
+    assert registry["audit"] == audit, "Canonical audit mirrors must remain synchronized."
 
     assert len(ids) == len(set(ids)), "Canonical benchmark IDs must be unique."
     assert len(records) == audit["registry_record_count"]
