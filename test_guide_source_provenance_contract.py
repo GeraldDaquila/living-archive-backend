@@ -78,7 +78,7 @@ def test_labels_without_locators_or_inferential_bridge_fail():
 
 def test_interpretation_must_not_be_misattributed():
     response = PASSING.replace(
-        "Do not invent quotations or attribute the Guide's interpretation to the author.",
+        "A citation should support only the claim it actually establishes. Do not invent quotations or attribute the Guide's interpretation to the author.",
         "Invent quotations and attribute the Guide's interpretation to the author.",
     )
     report = evaluate_source_provenance_response(QUESTION, response)
@@ -147,3 +147,20 @@ def test_provenance_recovery_is_registered_with_a_verified_relevant_doorway():
             "from the Guide's own interpretation; it is not a source citation for any particular quotation."
         ),
     }
+
+
+def test_provider_exhaustion_recovery_preserves_real_paragraph_breaks():
+    response = compose_recovery(QUESTION)
+    assert response.count("\n\n") == 2
+    assert "\\n\\n" not in response
+    assert evaluate_source_provenance_response(QUESTION, response)["passed"] is True
+
+
+def test_citation_must_not_launder_interpretation_as_source_fact():
+    response = PASSING.replace(
+        "A citation should support only the claim it actually establishes. ",
+        "A single citation supports every claim in the sentence, including the Guide's interpretation. ",
+    )
+    report = evaluate_source_provenance_response(QUESTION, response)
+    assert report["passed"] is False
+    assert "citation_scope_integrity" in report["missing"]
