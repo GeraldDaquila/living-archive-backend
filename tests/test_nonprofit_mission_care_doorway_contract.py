@@ -49,3 +49,14 @@ def test_nonprofit_contract_does_not_capture_unrelated_questions():
     import general_guide_composition as composition
     message = composition._build_general_guide_system_message("What is the history of nonprofit organizations?")
     assert "NONPROFIT MISSION-CARE OPERATIONAL COMPLETION" not in message
+
+
+def test_successor_fixture_reconciles_to_canonical_registry():
+    registry = json.loads((ROOT / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    fixture = json.loads(SUCCESSOR.read_text(encoding="utf-8"))
+    record = next(item for item in registry["records"] if item["benchmark_id"] == fixture["benchmark_id"])
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert record["doorway_status"] == "ACTIONABLE_CONTEXTUAL_CONTINUATION"
+    assert record["runtime_transfer"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
