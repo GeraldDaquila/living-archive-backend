@@ -2711,11 +2711,11 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 152
-    assert len(registry["records"]) == 193
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 152
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 113
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 11
+    assert len(approved) == 153
+    assert len(registry["records"]) == 194
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 153
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 114
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 12
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2764,6 +2764,34 @@ def test_externalities_stewardship_response_is_frozen_standalone_gold_star():
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["provenance"]["visible_continuation_title"] == "The Stewardship Age"
+    assert record["runtime_transfer"] is False
+    capabilities = record["gold_star_capabilities"]
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+
+
+
+def test_ecological_technology_solutionism_successor_is_frozen_standalone_gold_star():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-technology-solutionism-ecological-stewardship-2026-11-28"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How should the Guide respond to claims that technology alone will solve ecological crises?"
+    assert record["expected_response"].startswith("Technology can help address ecological crises, but it cannot solve them by itself.")
+    assert "rebound effects" in record["expected_response"]
+    assert "affected communities" in record["expected_response"]
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.5
+    assert record["rating_out_of_10"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["provenance"]["visible_continuation_title"] == "Technology Must Remain in Service to Life"
     assert record["runtime_transfer"] is False
     capabilities = record["gold_star_capabilities"]
     assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
