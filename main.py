@@ -8865,7 +8865,13 @@ def _guide_finalize_visitor_payload(payload, query):
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
         finalized = _apply_stewardship_consent_relationship_boundary(query, finalized)
-    if deterministic_answer_recovery.is_society_resilience_question(query):
+    from deterministic_answer_recovery import (
+        is_society_resilience_question,
+        has_society_resilience_explanation,
+        _society_resilience_recovery,
+        registered_recovery_recommendation,
+    )
+    if is_society_resilience_question(query):
         # Terminal society-resilience contract: specialist finalizers above may
         # rewrite the response after the main composition boundary. Preserve a
         # substantive provider answer when it meets the contract; repair only a
@@ -8873,10 +8879,10 @@ def _guide_finalize_visitor_payload(payload, query):
         _society_candidate = _sanitize_basic_inquiry_response(
             str(finalized.get("response") or finalized.get("answer") or "")
         )
-        if not deterministic_answer_recovery.has_society_resilience_explanation(
+        if not has_society_resilience_explanation(
             _society_candidate
         ):
-            _society_candidate = deterministic_answer_recovery._society_resilience_recovery()
+            _society_candidate = _society_resilience_recovery()
         finalized["response"] = _society_candidate
         if "answer" in finalized:
             finalized["answer"] = _society_candidate
@@ -8889,7 +8895,7 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         _society_doorway = (
             None if _explicit_no_handoff
-            else deterministic_answer_recovery.registered_recovery_recommendation(query)
+            else registered_recovery_recommendation(query)
         )
         if _society_doorway:
             finalized["recommendation"] = _society_doorway
