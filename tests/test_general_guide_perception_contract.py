@@ -467,3 +467,87 @@ def test_provider_parser_rejects_generic_governance_nearmiss_for_stage_hierarchy
     })
     with pytest.raises(ValueError, match="developmental-stage answer fails the non-ranking reasoning contract"):
         parser(generic_governance_answer)
+
+
+def test_mixed_source_provenance_contract_is_narrow_and_complete():
+    from guide_source_provenance_contract import (
+        evaluate_source_provenance_response,
+        is_source_provenance_question,
+    )
+
+    query = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    complete = (
+        "For a direct quotation, preserve the exact wording and identify the source "
+        "document and page or section locator. For a paraphrase, restate the passage "
+        "in your own words and preserve its scope, qualifications, modality, and "
+        "conditions. For interpretation, identify it as the Guide's own analysis, "
+        "name the claims it builds on, and explain the reasoning behind the inference. "
+        "Mark each claim or clause separately, or split the sentence when boundaries "
+        "are unclear. If the source or locator is unavailable and cannot be verified, "
+        "disclose that limitation. Do not invent quotations or attribute the Guide's "
+        "interpretation to the author."
+    )
+    assert is_source_provenance_question(query)
+    report = evaluate_source_provenance_response(query, complete)
+    assert report["applies"] is True
+    assert report["passed"] is True
+    assert report["missing"] == []
+
+
+def test_mixed_source_provenance_contract_rejects_labels_without_evidence_boundaries():
+    from guide_source_provenance_contract import evaluate_source_provenance_response
+
+    query = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    weak = (
+        'Put the quotation in quotation marks. Say "in other words" before the '
+        "paraphrase. Add an interpretation tag and a citation."
+    )
+    report = evaluate_source_provenance_response(query, weak)
+    assert report["applies"] is True
+    assert report["passed"] is False
+    assert "source_locator" in report["missing"]
+    assert "inferential_bridge" in report["missing"]
+    assert "unavailable_source_disclosure" in report["missing"]
+
+
+def test_mixed_source_provenance_contract_does_not_capture_ordinary_questions():
+    from guide_source_provenance_contract import (
+        evaluate_source_provenance_response,
+        is_source_provenance_question,
+    )
+
+    for query in (
+        "What is a quotation?",
+        "How do I paraphrase a difficult paragraph?",
+        "What is the difference between interpretation and inference?",
+        "How do I cite a source in APA style?",
+    ):
+        assert not is_source_provenance_question(query)
+        assert evaluate_source_provenance_response(query, "A general answer.")["applies"] is False
+
+
+def test_mixed_source_provenance_contract_rejects_false_interpretive_attribution():
+    from guide_source_provenance_contract import evaluate_source_provenance_response
+
+    query = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    response = (
+        "For a direct quotation, preserve the exact wording and identify the source "
+        "document and page locator. For a paraphrase, restate it in your own words "
+        "and preserve its scope and qualifications. For interpretation, identify it "
+        "as the Guide's own analysis, name the claims it builds on, and explain the "
+        "reasoning behind the inference. Mark each clause separately. If the source "
+        "or locator is unavailable, disclose that limitation. Invent quotations and "
+        "attribute the Guide's interpretation to the author."
+    )
+    report = evaluate_source_provenance_response(query, response)
+    assert report["passed"] is False
+    assert "no_false_attribution" in report["missing"]
