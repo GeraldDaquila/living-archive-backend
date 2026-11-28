@@ -2684,3 +2684,35 @@ def test_user_approved_engagement_optimization_response_is_frozen_response_quali
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["numbering_status"] == "UNASSIGNED"
+
+def test_user_approved_digital_archive_context_preservation_gold_star_is_registered_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-digital-archive-context-preservation-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How can a digital archive preserve context rather than merely store content?"
+    assert record["expected_response"].startswith("A digital archive preserves context by keeping the circumstances")
+    assert "The key distinction is that content is what was said or shown" in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "Living Archives: The Future of Knowledge May Be Relational, Not Linear"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/"
+    assert record["doorway_status"] == "VERIFIED"
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.6
+    assert record["rating"] is None
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 149
+    assert len(registry["records"]) == 189
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 149
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 110
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 8
