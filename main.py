@@ -16108,7 +16108,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             query=query,
             context_data=composition_context,
             history_text=_history_text(history),
-            integrity_recovery=True,
+            integrity_recovery=(
+                _repair_decision.get("failed_criterion") != "supported_semantic_contract_failed"
+            ),
+            semantic_repair_checks=_repair_decision.get("failed_checks"),
             deadline_monotonic=request_deadline,
         )
 
@@ -16126,6 +16129,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         contains_unsafe_markup=_basic_inquiry_contains_html_markup,
         fallback_provider=_provider_name,
         fallback_model=_model_name,
+    )
+    _emit_guide_outcome(
+        "bounded_composition_repair",
+        stage=(
+            "accepted" if _repair_outcome.get("status") == "repaired"
+            else "attempted_failed" if _repair_outcome.get("attempts")
+            else "not_attempted"
+        ),
+        failure_kind=_repair_decision.get("failed_criterion"),
+        failed_check_ids=_repair_decision.get("failed_checks") or [],
+        attempts=int(_repair_outcome.get("attempts") or 0),
+        repair_reason=_repair_outcome.get("reason") or _repair_outcome.get("status"),
+        revalidation_status=_repair_outcome.get("revalidation_status"),
     )
     if _repair_outcome.get("attempts"):
         composition_repair_attempted = True

@@ -1,6 +1,7 @@
 """Eligibility gate for one bounded, evidence-directed composition repair."""
 from __future__ import annotations
 
+import re
 from typing import Any, Dict
 
 from gold_star_route_capabilities import route_capability
@@ -13,6 +14,7 @@ REPAIRABLE_FAILURES = frozenset({
     "generic_nonanswer",
     "answer_exceeds_contract_limit",
     "unsafe_markup",
+    "supported_semantic_contract_failed",
 })
 
 
@@ -31,6 +33,21 @@ def repair_eligibility(
     if not isinstance(floor_result, dict) or floor_result.get("status") != "fail":
         return {"version": VERSION, "eligible": False, "reason": "no_enforceable_defect", "max_attempts": MAX_REPAIR_ATTEMPTS}
     failure = str(floor_result.get("reason") or "")
+    failed_checks: list[str] = []
+    if failure == "supported_semantic_contract_failed":
+        semantic = floor_result.get("semantic_enforcement")
+        raw_checks = semantic.get("failed_checks") if isinstance(semantic, dict) else None
+        if isinstance(raw_checks, list):
+            failed_checks = [
+                value for value in raw_checks
+                if isinstance(value, str) and re.fullmatch(r"[a-z0-9_]{1,64}", value)
+            ][:8]
+        if not failed_checks:
+            return {
+                "version": VERSION, "eligible": False,
+                "reason": "semantic_failure_codes_unavailable",
+                "failed_criterion": failure, "max_attempts": MAX_REPAIR_ATTEMPTS,
+            }
     if failure not in REPAIRABLE_FAILURES:
         return {"version": VERSION, "eligible": False, "reason": "defect_not_safely_repairable", "failed_criterion": failure, "max_attempts": MAX_REPAIR_ATTEMPTS}
     if exact_standard:
@@ -53,6 +70,7 @@ def repair_eligibility(
         "eligible": True,
         "reason": "single_bounded_composition_repair_available",
         "failed_criterion": failure,
+        "failed_checks": failed_checks,
         "max_attempts": MAX_REPAIR_ATTEMPTS,
         "semantic_certification": False,
     }
