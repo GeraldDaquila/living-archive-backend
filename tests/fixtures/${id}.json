@@ -1,0 +1,31 @@
+{
+  "benchmark_id": "general-guide-institutional-decline-transition-renewal-2026-11-28",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "What signs suggest an institution is in decline, transition, or renewal?",
+  "expected_response": "Signs of institutional decline usually appear before a formal crisis. Look for decision-making that slows or concentrates in a small circle, rising internal distrust, repeated avoidance of hard problems, talent leaving, metrics being gamed rather than improved, and a gap between stated mission and daily behavior. When an institution can no longer explain why it exists or what it is trying to preserve, decline is often already underway rather than approaching. Transition is harder to spot from the outside because it can look like either decline or renewal depending on where you stand. Common signals include leadership turnover, new mandates or restructuring, visible disagreement about direction, pilot programs alongside legacy operations, and a period in which old rules no longer fully apply but new ones have not yet taken hold.\n\nRenewal shows up when the institution begins making decisions consistent with its stated purpose again: hard trade-offs are faced, resources shift toward the core mission, new people are brought in with real authority, and trust starts to rebuild inside and outside the organization. Renewal is not simply change; it is change that restores the institution's capacity to do what it was created to do. These patterns are general observations drawn from organizational and institutional studies, not claims about any specific institution or a formal diagnostic framework. The available Archive material discusses renewal in broad civic and national terms but does not provide a specific checklist of institutional decline signals, so I cannot attribute a particular taxonomy to it. A useful next step is the Philippine Renewal Framework, which examines institutional trust, governance challenges, and paths toward civic renewal in a systems-oriented way.",
+  "assistant_assessment_out_of_10": 9.4,
+  "doorway_status": "NOT_EVALUATED",
+  "expected_doorway": null,
+  "visible_continuation_title": "Where Do We Start?: A Systems Blueprint for Cultural Renewal in the Philippines",
+  "provenance": {
+    "source": "User-supplied screenshot of the live Guide visitor-facing Search response, explicitly elevated by the user.",
+    "source_date": "2026-11-28",
+    "live_surface": "Guide visitor-facing Search response",
+    "evidence_boundary": "The screenshot establishes the exact question, displayed two-paragraph answer, and separate Continue Exploring card with visible title and explanatory copy. It does not establish provider invocation provenance, canonical doorway URL, adaptive transfer, or measured visitor outcomes.",
+    "visible_continuation_title": "Where Do We Start?: A Systems Blueprint for Cultural Renewal in the Philippines",
+    "visible_continuation_copy": "This related Living Archive resource offers a further point of exploration for the subject raised in your question. It is a separate reading pathway, not a claim that the page is the source of every statement in the answer.",
+    "review_assessment": "Assistant assessment: 9.4/10. This is an assistant assessment, not a user-assigned numerical rating."
+  },
+  "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+  "runtime_transfer": false,
+  "gold_star_capabilities": {
+    "generation_class": "user_approved_response_quality_exemplar",
+    "exact_answer_authority": false,
+    "active_quality_contributor": false,
+    "deterministic_fallback_eligible": false,
+    "reasoning_family": "institutional_decline_transition_and_renewal",
+    "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The answer distinguishes decline, transition, and renewal using observable institutional patterns while maintaining the boundary between general observations and formal diagnosis.",
+    "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and explanatory copy, not a canonical URL or verified thematic fit. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+    "standalone_response_quality_exemplar": true
+  }
+}
