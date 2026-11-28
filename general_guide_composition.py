@@ -4793,6 +4793,7 @@ def _append_archive_cosmology_evidence_continuation(
             r"\b(?:which|what)\b.{0,180}\b(?:claim|source|passage|evidence)\b"
             r".{0,120}\b(?:examine|trace|compare|assess|inspect)\b",
             tail,
+            re.I,
         )
     )
     if (
