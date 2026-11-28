@@ -512,7 +512,7 @@ try {
       typeof body.response === "string" &&
       low.includes("humility") &&
       low.includes("spiritual maturity") &&
-      /\\b(?:learning|willing to learn|remain teachable|teachability)\\b/.test(low) &&
+      /\b(?:learning|willing to learn|remain teachable|teachability)\b/.test(low) &&
       (low.includes("honest self-appraisal") || low.includes("honest self-examination") || low.includes("self-awareness")) &&
       low.includes("correction") &&
       low.includes("lived conduct") &&
