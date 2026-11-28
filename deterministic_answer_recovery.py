@@ -1505,6 +1505,49 @@ def compose_task_specific_recovery(question):
     if not q:
         return None
 
+    # Ethical-legitimacy questions about a legal/popular policy imposing
+    # concentrated harm need an explicit ethical frame before generic
+    # problem-boundary or governance reasoning. This is an inquiry scaffold,
+    # not an Archive verdict or a claim that legality/majority support settles
+    # legitimacy.
+    if (
+        re.search(r"\\bpolic(?:y|ies)\\b", q)
+        and re.search(r"\\b(?:legal|lawful|legally\\s+permitted)\\b", q)
+        and re.search(r"\\b(?:popular|majority|widely\\s+supported|publicly\\s+supported)\\b", q)
+        and re.search(r"\\b(?:minority|minorities|concentrated\\s+harm|disproportionate\\s+harm)\\b", q)
+        and re.search(r"\\b(?:ethical|ethic|legitimacy|legitimate|frame|framing|verdict|decide|judge)\\b", q)
+    ):
+        return {
+            "recovery_id": "task_ethical_legitimacy_concentrated_harm",
+            "response": (
+                "The ethical question is not settled by showing that a policy is legal or popular. "
+                "Legality tells us what the current legal order permits; popularity tells us what a "
+                "majority supports. Neither, by itself, establishes whether the policy's purposes, "
+                "means, and consequences are ethically defensible—especially when serious burdens "
+                "fall disproportionately on a minority. The Guide should keep those questions "
+                "distinct rather than treating majority approval as a substitute for examining harm.\\n\\n"
+                "Start by making the distribution of effects visible. Who receives the policy's "
+                "benefits, who bears its direct and indirect costs, and how severe, lasting, or "
+                "reversible are those costs? Ask whether the affected minority has meaningful voice "
+                "in the decision, whether its rights, dignity, safety, or essential interests are "
+                "put at risk, and whether the evidence has been disaggregated enough to reveal "
+                "unequal effects that an overall average could hide. Then examine the policy's "
+                "stated public purpose, the evidence that the policy is necessary to achieve it, "
+                "less harmful workable alternatives, proportionality between the public benefit "
+                "and the burdens imposed, and safeguards such as accommodation, remedy, appeal, "
+                "independent review, and a time-bound reassessment.\\n\\n"
+                "The Archive can help make the relevant principles, tensions, affected interests, "
+                "and unanswered questions visible; it should not be presented as having issued a "
+                "verdict unless a specific, authoritative source actually establishes one. The "
+                "Guide should identify which principles are being weighed, what evidence supports "
+                "each claim, whose testimony is missing, and where reasonable disagreement remains. "
+                "It can then help people ask what would make the policy more justifiable, what "
+                "evidence could change the assessment, and who is accountable for reviewing the "
+                "harm. The judgment remains with the responsible people and institutions, subject "
+                "to the rights, laws, and accountability processes that genuinely apply."
+            ),
+        }
+
     # Fair-rule questions need a concrete governance test, not a generic
     # liberty-versus-community slogan. This is bounded general reasoning and
     # does not claim to state a formal Living Archive doctrine.
