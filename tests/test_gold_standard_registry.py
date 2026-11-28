@@ -1239,7 +1239,7 @@ def test_unmerged_developmental_language_56_proposal_is_not_the_canonical_assign
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     record = next(r for r in registry["records"] if r["benchmark_id"] == "general-guide-developmental-language-gold-star-2026-11-09")
     assert record["gold_star_number"] == 57
-    assert record["numbering_recovery"]["source_pr"] == 1530
+    assert record["numbering_recovery"]["source_pr"] == 1430
     assert "PR #1429" not in record["numbering_recovery"]["authority_basis"]
 
 
