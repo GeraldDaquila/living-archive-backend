@@ -3105,7 +3105,7 @@ def test_user_approved_mixed_source_provenance_response_is_standalone_gold_star(
     assert record["doorway_status"] == fixture["doorway_status"] == "VERIFIED"
     assert record["expected_doorway"]["title"] == "Levels of Claim"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
-    assert "not evidence for any particular quotation" in record["expected_doorway"]["rationale"]
+    assert "not a source citation for any particular quotation" in record["expected_doorway"]["rationale"]
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is False
