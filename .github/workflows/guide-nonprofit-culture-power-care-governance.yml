@@ -5,6 +5,10 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "nonprofit_mission_care_contract.py"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28.json"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-nearmiss-2026-11-28.json"
+      - "tests/test_nonprofit_mission_care_doorway_contract.py"
       - "tests/test_nonprofit_culture_power_care_governance.py"
       - ".github/workflows/guide-nonprofit-culture-power-care-governance.yml"
   push:
@@ -37,4 +41,4 @@ jobs:
       - name: Compile changed Guide modules
         run: python -m py_compile main.py general_guide_composition.py
       - name: Run nonprofit culture, power, care, and governance regressions
-        run: timeout --signal=TERM --kill-after=30s 8m python -m pytest -q tests/test_nonprofit_culture_power_care_governance.py
+        run: timeout --signal=TERM --kill-after=30s 8m python -m pytest -q tests/test_nonprofit_culture_power_care_governance.py tests/test_nonprofit_mission_care_doorway_contract.py

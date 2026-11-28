@@ -36,7 +36,7 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     assert len(response_quality) == audit["approved_response_quality_exemplar_count"]
     assert len(numbered) == audit["numbered_gold_star_record_count"]
     assert len(unassigned) == audit["unassigned_approved_gold_star_count"]
-    assert len(standalone) == 19
+    assert len(standalone) == 22
 
     record = next(record for record in approved if record["benchmark_id"] == BENCHMARK_ID)
     assert record["expected_response"] == fixture["expected_response"]
@@ -49,6 +49,17 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     assert record["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
+
+    doorway_fixture = json.loads(
+        (ROOT / "tests/fixtures/general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28.json").read_text(encoding="utf-8")
+    )
+    doorway_record = next(item for item in approved if item["benchmark_id"] == doorway_fixture["benchmark_id"])
+    assert doorway_record["expected_response"] == doorway_fixture["expected_response"]
+    assert doorway_record["expected_doorway"] == doorway_fixture["expected_doorway"]
+    assert doorway_record["doorway_status"] == "NOT_EVALUATED"
+    assert doorway_record["expected_doorway"] is None
+    assert doorway_record["runtime_transfer"] is False
+    assert doorway_record["numbering_status"] == "UNASSIGNED"
 
 
 def test_large_registry_git_database_runbook_is_present_and_complete():

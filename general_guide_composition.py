@@ -52,6 +52,7 @@ from gold_star_provider_adjudication import (
 )
 
 from humility_spiritual_maturity_contract import evaluate_humility_spiritual_maturity_response
+from nonprofit_mission_care_contract import build_nonprofit_mission_care_instruction
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -501,6 +502,9 @@ def _build_general_guide_system_message(
     ]
     if objective_integrity_instruction:
         parts.append(objective_integrity_instruction.strip())
+    nonprofit_mission_care_instruction = build_nonprofit_mission_care_instruction(question)
+    if nonprofit_mission_care_instruction:
+        parts.append(nonprofit_mission_care_instruction)
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):

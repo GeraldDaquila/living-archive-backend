@@ -1,0 +1,50 @@
+{
+  "benchmark_id": "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?",
+  "expected_response": "A nonprofit's mission and its staff's human capacity are not competing priorities. The mission depends on people having enough time, authority, support, and trust to do the work well. When the organization treats commitment as an unlimited resource, the gap between its promises and its actual capacity is silently transferred to staff. Over time, that can erode trust, make accountability defensive, and turn service into depletion. The task is to redesign the operating system so that purpose, care, structure, and operational reality reinforce one another.\n\n**1. Protect purpose by making priorities real.** Separate essential mission commitments from accumulated programs, reporting demands, urgent requests, and inherited practices. State what must continue, what can be simplified or deferred, and what should stop. If commitments exceed capacity, leadership must narrow the promise, secure resources, or change the schedule—not make staff absorb the shortfall.\n\n**2. Make care an institutional obligation.** Care means safe and manageable workloads, dignity, fair treatment, predictable recovery, respectful supervision, and a credible way to raise concerns without retaliation. It also means that staff knowledge can change priorities and decisions. Wellbeing initiatives cannot compensate for chronic overload, conflicting demands, or responsibility without authority.\n\n**3. Build trust-centered structure.** Align roles, decision rights, accountability, incentives, communication, staffing, and resources. Give people authority proportionate to the responsibilities they carry. Remove unowned work, contradictory instructions, approval bottlenecks, and rewards that quietly favor overwork or heroic rescue. Accountability should make commitments and constraints visible, not punish people for capacity limits they cannot control.\n\n**4. Compare actual demand with funded capacity.** Map formal commitments and the work actually performed, including coordination, administration, emotional labor, interruptions, compliance, and other hidden work. Compare the demand with available people, time, skills, funding, and support. Examine how workload is distributed across roles and teams. Overtime, missed recovery, backlogs, recurring emergencies, errors, absence, turnover, and silence are signals to investigate with staff—not proof of a single cause.\n\nA possible reinforcing loop is mission expansion without added capacity, followed by chronic overload, reduced recovery and voice, declining trust, more errors or conflict, absence and turnover, and still less capacity for those who remain. Test whether this pattern is present rather than assuming it explains every nonprofit's situation.\n\n**5. Turn the findings into accountable decisions.** First stabilize immediate overload and protect people who raise concerns. Then map commitments, workload, staffing, funding, decision rights, incentives, and hidden work with staff participation. Identify the gap between what the organization promises and what it can sustainably deliver. Make explicit tradeoffs: stop, defer, simplify, redistribute, fund, or phase work. For every change, name the decision owner, the authority and resources required, the staff who must be consulted, and a review date. Review workload, staff experience, service quality, and mission outcomes with staff and governance; revise the design when evidence shows it is not working.\n\nThe governing principle is simple: mission fidelity does not justify unlimited extraction of human capacity. Trust-centered infrastructure makes care consequential in decisions, makes accountability fair, and makes purpose operationally credible. The organization must change its commitments, resources, incentives, or design before asking people to carry an unsustainable gap.\n\n**A practical next step:** convene a short, staff-informed capacity-and-commitment review. On one page, list essential and discretionary commitments; estimate the real work and hidden workload each requires; map funded people, time, authority, and support; mark the largest gaps; and decide what to protect, redesign, defer, fund, or stop. Record who can authorize each tradeoff, how staff concerns will be protected, and when staff and governance will review the effects.",
+  "assistant_assessment_out_of_10": 9.9,
+  "doorway_status": "NOT_EVALUATED",
+  "expected_doorway": null,
+  "visible_continuation_title": "Infrastructure Before Ideology",
+  "runtime_transfer": false,
+  "gold_star_capabilities": {
+    "generation_class": "user_approved_response_quality_exemplar",
+    "standalone_response_quality_exemplar": true,
+    "exact_answer_authority": false,
+    "active_quality_contributor": false,
+    "deterministic_fallback_eligible": false,
+    "reasoning_family": "nonprofit_mission_care_structure_and_operational_capacity",
+    "transferable_discipline": "Treat human capacity as a real operating constraint; align mission priorities, care, roles, decision rights, incentives, communication, funded capacity, explicit tradeoffs, and governance feedback. Close with a staff-informed actionable decision step.",
+    "abstention_boundary": "Standalone response-quality exemplar only. Do not copy exact answer wording, examples, or doorway to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized."
+  },
+  "assertions": [
+    "Purpose is translated into explicit mission priorities and stop/defer choices.",
+    "Care is an institutional duty with protected staff voice and recovery.",
+    "Structure aligns roles, authority, accountability, incentives, communication, and resources.",
+    "Actual workload, including hidden work, is compared with funded capacity.",
+    "Trust erosion and burnout feedback loops are hypotheses to investigate, not universal diagnoses.",
+    "The operating sequence includes stabilization, mapping, tradeoffs, accountable redesign, and staff/governance review.",
+    "The next step is a concrete staff-informed capacity-and-commitment review.",
+    "No external doorway URL or runtime authority is invented."
+  ],
+  "expected_next_step": "Run a staff-informed capacity-and-commitment review; map commitments, hidden workload, funded capacity, authority, and incentives; choose explicit tradeoffs; assign decision owners and a review date.",
+  "provenance": {
+    "source": "User-supplied screenshot of a second live Guide visitor-facing Search response, followed by explicit authorization to fix structurally and elevate the corrected successor.",
+    "source_date": "2026-11-28",
+    "live_surface": "Guide visitor-facing Search response",
+    "evidence_boundary": "The screenshot establishes the question, exact compressed answer, and visible resource title. The successor is a separately authored operational synthesis. The screenshot does not establish provider invocation provenance, a canonical resource URL, adaptive transfer, or measured visitor outcomes.",
+    "original_near_miss": "The exact compressed response is preserved in tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-nearmiss-2026-11-28.json; earlier distinct near-misses remain preserved in #2177 and #2181.",
+    "visible_continuation_title": "Infrastructure Before Ideology",
+    "review_assessment": "Assistant assessment: 9.9/10. This is an assistant assessment, not a user-assigned numerical rating."
+  },
+  "numbering_status": "UNASSIGNED",
+  "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+  "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+  "approval_state": "USER APPROVED GOLD STAR — TRUST-CENTERED OPERATIONAL SUCCESSOR; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
+  "user_reviewed_response": true,
+  "explicit_user_elevation_approval": true,
+  "user_approved_at": "2026-11-28",
+  "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+  "doorway_note": "The visible title Infrastructure Before Ideology is preserved as screenshot evidence only. No verified canonical destination URL is asserted; the answer supplies its own actionable in-Guide next step."
+}
