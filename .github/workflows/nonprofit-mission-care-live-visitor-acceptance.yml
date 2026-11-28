@@ -115,6 +115,8 @@ jobs:
             "passed": all(checks.values()),
             "response": answer,
           }
+          with open("nonprofit-mission-care-live-visitor-acceptance.json", "w", encoding="utf-8") as evidence:
+              json.dump(report, evidence, ensure_ascii=False, indent=2)
           print(json.dumps(report, ensure_ascii=False, indent=2))
           if not report["passed"]:
               raise SystemExit("Nonprofit mission-care live visitor acceptance failed")
@@ -125,6 +127,6 @@ jobs:
         with:
           name: nonprofit-mission-care-live-visitor-acceptance
           path: |
-            /tmp/nonprofit-mission-care-live-visitor-acceptance.json
+            nonprofit-mission-care-live-visitor-acceptance.json
           if-no-files-found: ignore
           retention-days: 30
