@@ -10765,7 +10765,7 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
       "question_family_review": {
-        "family_id": "qf-5ae69008b40f59f1",
+        "family_id": "qf-b122b6c7a7d59381",
         "classification": "NEW_QUESTION_FAMILY",
         "reviewed_by": "user",
         "reviewed_at": "2026-11-28",
