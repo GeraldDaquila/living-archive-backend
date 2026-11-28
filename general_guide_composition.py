@@ -5407,7 +5407,6 @@ def _track_gold_star_composition_attempt(function):
         return result
     return _tracked_compose
 
-@_track_gold_star_composition_attempt
 def _build_semantic_repair_instruction(failed_checks: Any) -> str:
     """Build a bounded repair instruction from privacy-safe semantic check IDs."""
     if not isinstance(failed_checks, (list, tuple)):
@@ -5429,6 +5428,7 @@ def _build_semantic_repair_instruction(failed_checks: Any) -> str:
     )
 
 
+@_track_gold_star_composition_attempt
 def compose(
 
     *,
