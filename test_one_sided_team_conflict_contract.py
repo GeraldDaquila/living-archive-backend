@@ -1,6 +1,8 @@
 """Focused acceptance tests for one-sided team-conflict reasoning."""
 from pathlib import Path
 
+import main
+
 from one_sided_team_conflict_contract import (
     build_one_sided_team_conflict_instruction,
     evaluate_one_sided_team_conflict_response,
@@ -62,3 +64,22 @@ def test_irrelevant_retrieval_doorway_is_not_part_of_contract_response():
     response = recover_one_sided_team_conflict_response()
     assert "NESARA" not in response
     assert "GESARA" not in response
+
+
+def test_verified_team_conflict_doorway_family_is_selected():
+    assert main._select_verified_doorway_conceptual_family(TARGET) == "one_sided_team_conflict_context"
+
+
+def test_irrelevant_upstream_doorway_is_replaced_at_terminal_restore():
+    decoy = {
+        "title": "What Is NESARA and GESARA? Origins, Claims, and Why the Theory Keeps Resurfacing",
+        "url": "https://geralddaquila.com/2026/10/19/nesara-gesara-a-vision-for-global-financial-reform-amid-systemic-discontent/",
+        "rationale": "Unrelated resource.",
+    }
+    result = main._guide_restore_verified_doorway(
+        {"response": "A complete answer.", "recommendation": decoy}, TARGET
+    )
+    assert result["recommendation"]["title"] == "Building Trust-Centered Organizations"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/"
+    assert result["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
+    assert result["doorway_selection_source"] == "reviewed_one_sided_team_conflict_family"
