@@ -30,39 +30,29 @@ def has_free_will_predestination_explanation(response: str) -> bool:
     """Require distinct metaphysical, causal, and agency distinctions without prescribing wording."""
     text = " ".join(str(response or "").casefold().split())
     requirements = (
-        # Theological predestination is not simply another name for determinism.
         (
             r"\bpredestination\b",
             r"\b(?:determinism|deterministic|causal determinism)\b",
             r"\b(?:different|distinct|not the same|not identical|not synonymous|separate)\b",
         ),
-        # Compatibilism is identified as one contested account, not consensus.
         (
             r"\bcompatibilis\w*\b",
-            r"\b(?:one account|one view|some philosophers|some traditions|some thinkers|"
-            r"one philosophical|one position)\b",
-            r"\b(?:contested|disputed|not settled|not universally accepted|not a consensus|"
-            r"other views|critics|disagreement)\b",
+            r"\b(?:one account|one view|some philosophers|some traditions|some thinkers|one philosophical|one position)\b",
+            r"\b(?:contested|disputed|not settled|not universally accepted|not a consensus|other views|critics|disagreement)\b",
         ),
-        # Freedom from coercion is not identical to alternative possibilities.
         (
             r"\b(?:coercion|coerced|external constraint|compulsion|compelled)\b",
-            r"\b(?:otherwise|alternative possibilit\w*|could have done otherwise|"
-            r"same circumstances|same conditions|same past)\b",
+            r"\b(?:otherwise|alternative possibilit\w*|could have done otherwise|same circumstances|same conditions|same past)\b",
         ),
-        # Reasons-responsive agency and the causal shaping of reasons are both addressed.
         (
             r"\b(?:reason\w*|deliberat\w*|reflection|values)\b",
             r"\b(?:agency|choice|choosing|action)\b",
             r"\b(?:shaped|formed|influenced|conditioned|arise from|arising from)\b",
         ),
-        # The incompatibilist objection is stated rather than waved away.
         (
             r"\b(?:incompatibilis\w*|libertarian free will|libertarian view)\b",
-            r"\b(?:otherwise|sourcehood|ultimate source|same past|laws of nature|"
-            r"could have done otherwise)\b",
+            r"\b(?:otherwise|sourcehood|ultimate source|same past|laws of nature|could have done otherwise)\b",
         ),
-        # The answer does not collapse distinct theological traditions into one.
         (
             r"\b(?:traditions?|theolog\w*|religious frameworks?|faith traditions?)\b",
             r"\b(?:differ|var\w*|disagree|not uniform|not all|some)\b",
@@ -84,9 +74,7 @@ def free_will_predestination_recovery() -> str:
         "that the knower causes it. Philosophical determinism is different again: it holds that "
         "events follow from prior conditions together with the laws or regularities of nature. "
         "Causal influence and conditioning are weaker claims still. These ideas are related, "
-        "but they are not interchangeable.
-
-"
+        "but they are not interchangeable.\n\n"
         "Compatibilism is one philosophical account. It argues that a person can act freely "
         "even in a causally determined world when the action flows from the person's own "
         "deliberation, values, and reasons rather than from coercion or external compulsion. "
@@ -94,18 +82,14 @@ def free_will_predestination_recovery() -> str:
         "does not automatically mean being forced. At the same time, those influences help form "
         "the very reasons and desires through which a person chooses. Compatibilism therefore "
         "offers an account of agency within causes; it does not show that a person is the "
-        "uncaused origin of every desire or decision, and it is not a settled consensus.
-
-"
+        "uncaused origin of every desire or decision, and it is not a settled consensus.\n\n"
         "Incompatibilist views press a different question. If the entire past and the laws of "
         "nature fixed what happens, could the person genuinely have done otherwise under exactly "
         "those same conditions? Some argue that freedom requires such alternative possibilities "
         "or that the person must be, in a deeper sense, the source of the choice. From that "
         "perspective, determinism and the strongest form of free will are in tension. The "
         "distinction between acting without coercion and being able to choose otherwise is "
-        "important: the first does not automatically settle the second.
-
-"
+        "important: the first does not automatically settle the second.\n\n"
         "So people are not adequately described as simply 'programmed.' A causal explanation "
         "of how a choice arose does not by itself prove that the person was coerced, that "
         "deliberation is meaningless, or that responsibility disappears. But neither does the "
