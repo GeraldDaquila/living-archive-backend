@@ -22,8 +22,9 @@ def build_nonprofit_mission_care_instruction(question: str) -> str:
         "Give an actionable sequence: stabilize immediate overload and protect staff voice; "
         "map commitments, workload, staffing, funding, authority, and hidden work; identify "
         "the capacity gap; make explicit stop/defer/simplify/redistribute/fund/phase tradeoffs; "
-        "redesign roles and escalation; assign owners and resources; review with staff and "
-        "governance and revise when evidence changes. End with one concrete next action "
+        "redesign roles and escalation; align incentives and communication with human capacity; "
+        "assign owners and resources; review with staff and governance and revise when evidence changes. "
+        "Treat trust erosion as a pattern to investigate, not an assumed diagnosis. End with one concrete next action "
         "such as a staff-informed capacity-and-commitment map. Do not invent a resource URL "
         "or present a visible resource title as a verified destination."
     )
