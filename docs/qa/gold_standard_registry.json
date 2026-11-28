@@ -10253,7 +10253,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "archive_cosmology_epistemic_discernment",
         "transferable_discipline": "Keep direct source claims, cross-source synthesis, and orientation distinct; preserve source traceability and epistemic restraint; when a visitor's question naturally invites it, offer one optional in-Guide claim-examination continuation rather than an unrelated external link.",
-        "abstention_boundary": "Standalone response-quality exemplar only. The answer distinguishes direct Archive claims, cross-source synthesis, and orientation; it does not claim to prove the Archive's cosmology true. The optional in-Guide continuation is not an external canonical destination. Do not infer a URL, exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer.",
+        "abstention_boundary": "NOT_EVALUATED: No external canonical destination is asserted. The corrected successor offers an optional in-Guide claim-examination continuation through the existing reply panel. Do not infer a URL, exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
