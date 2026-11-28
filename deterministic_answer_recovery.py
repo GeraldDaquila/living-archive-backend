@@ -1511,11 +1511,11 @@ def compose_task_specific_recovery(question):
     # not an Archive verdict or a claim that legality/majority support settles
     # legitimacy.
     if (
-        re.search(r"\\bpolic(?:y|ies)\\b", q)
-        and re.search(r"\\b(?:legal|lawful|legally\\s+permitted)\\b", q)
-        and re.search(r"\\b(?:popular|majority|widely\\s+supported|publicly\\s+supported)\\b", q)
-        and re.search(r"\\b(?:minority|minorities|concentrated\\s+harm|disproportionate\\s+harm)\\b", q)
-        and re.search(r"\\b(?:ethical|ethic|legitimacy|legitimate|frame|framing|verdict|decide|judge)\\b", q)
+        re.search(r"\bpolic(?:y|ies)\b", q)
+        and re.search(r"\b(?:legal|lawful|legally\s+permitted)\b", q)
+        and re.search(r"\b(?:popular|majority|widely\s+supported|publicly\s+supported)\b", q)
+        and re.search(r"\b(?:minority|minorities|concentrated\s+harm|disproportionate\s+harm)\b", q)
+        and re.search(r"\b(?:ethical|ethic|legitimacy|legitimate|frame|framing|verdict|decide|judge)\b", q)
     ):
         return {
             "recovery_id": "task_ethical_legitimacy_concentrated_harm",
@@ -1525,7 +1525,7 @@ def compose_task_specific_recovery(question):
                 "majority supports. Neither, by itself, establishes whether the policy's purposes, "
                 "means, and consequences are ethically defensible—especially when serious burdens "
                 "fall disproportionately on a minority. The Guide should keep those questions "
-                "distinct rather than treating majority approval as a substitute for examining harm.\\n\\n"
+                "distinct rather than treating majority approval as a substitute for examining harm.\n\n"
                 "Start by making the distribution of effects visible. Who receives the policy's "
                 "benefits, who bears its direct and indirect costs, and how severe, lasting, or "
                 "reversible are those costs? Ask whether the affected minority has meaningful voice "
@@ -1535,7 +1535,7 @@ def compose_task_specific_recovery(question):
                 "stated public purpose, the evidence that the policy is necessary to achieve it, "
                 "less harmful workable alternatives, proportionality between the public benefit "
                 "and the burdens imposed, and safeguards such as accommodation, remedy, appeal, "
-                "independent review, and a time-bound reassessment.\\n\\n"
+                "independent review, and a time-bound reassessment.\n\n"
                 "The Archive can help make the relevant principles, tensions, affected interests, "
                 "and unanswered questions visible; it should not be presented as having issued a "
                 "verdict unless a specific, authoritative source actually establishes one. The "
