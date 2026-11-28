@@ -9436,7 +9436,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "human_centered_ai_governance_and_archive_boundary",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved.",
-        "abstention_boundary": "Doorway status is NOT_EVALUATED because the screenshot did not capture a canonical URL. Do not copy the exact answer, assert a universally agreed technical standard, attribute general principles to formal Living Archive doctrine, or infer a destination URL. This record is an immutable response-quality exemplar only; no exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "Doorway status is NOT_EVALUATED because the screenshot did not capture a canonical URL. Do not infer a destination URL. Do not copy the exact answer, assert a universally agreed technical standard, attribute general principles to formal Living Archive doctrine, or infer a destination URL. This record is an immutable response-quality exemplar only; no exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",
