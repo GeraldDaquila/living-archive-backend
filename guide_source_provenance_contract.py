@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-CONTRACT_VERSION = "v1"
+CONTRACT_VERSION = "v2"
 
 
 def is_source_provenance_question(query: Any) -> bool:
@@ -56,7 +56,7 @@ def evaluate_source_provenance_response(query: Any, response: Any) -> Dict[str, 
         ),
         "source_locator": bool(
             re.search(r"\b(?:source|author|work|document)\b", text)
-            and re.search(r"\b(?:page|section|paragraph|chapter|timestamp|locator|location)\b", text)
+            and re.search(r"\b(?:page|section|paragraph|chapter|timestamp|line|locator|heading|anchor|timecode)\b", text)
         ),
         "paraphrase_fidelity": bool(
             re.search(r"\bparaphras\w*\b", text)
@@ -80,6 +80,11 @@ def evaluate_source_provenance_response(query: Any, response: Any) -> Dict[str, 
             re.search(r"\b(?:unavailable|cannot be verified|could not be verified|not available|not supplied)\b", text)
             and re.search(r"\b(?:source|locator|location|metadata)\b", text)
         ),
+        "citation_scope_integrity": bool(
+            re.search(r"\bcitation\w*\b", text)
+            and re.search(r"\bonly\b.{0,100}\bclaim\w*\b|\bclaim\w*\b.{0,100}\bonly\b", text)
+            and re.search(r"\b(?:support|establish|substantiate|prove)\w*\b", text)
+        ),
         "no_false_attribution": bool(
             re.search(r"\b(?:do not|don't|never|must not|should not)\b.{0,100}\b(?:attribute|imply|invent|fabricat|lend)\w*\b", text)
             or re.search(r"\bnot (?:the source's|the source’s|the author's|the author’s)\b", text)
@@ -92,3 +97,29 @@ def evaluate_source_provenance_response(query: Any, response: Any) -> Dict[str, 
         "missing": missing,
         "version": CONTRACT_VERSION,
     }
+
+
+
+def build_source_provenance_recovery_response() -> str:
+    """Answer the mixed-source traceability task when provider composition is unavailable.
+
+    This is a bounded task-family recovery, not a Gold Star fixture lookup or
+    exact-answer fallback. It teaches the reusable method without inventing
+    source text, locators, or Archive-specific authority.
+    """
+    return (
+        "Keep the three layers distinguishable at the smallest practical claim-bearing span. "
+        "A single citation at the end of a mixed sentence can blur who is responsible for each claim, "
+        "so mark the clauses separately or split the sentence when the boundaries are unclear.\n\n"
+        "For a direct quotation, reproduce the exact wording in quotation marks and identify the author, "
+        "work or version, and precise locator available in the source—such as a page, section, paragraph, "
+        "or timestamp. Mark omissions, insertions, and editorial emphasis. For a paraphrase, use the "
+        "Guide's own words and cite the passage being restated; preserve its scope, qualifications, "
+        "conditions, modality, and degree of certainty.\n\n"
+        "For interpretation, identify it as the Guide's own analysis, name the quoted or paraphrased claims "
+        "it builds on, and explain the reasoning that connects them. A citation should support only the "
+        "source-derived claim it establishes; it must not lend the source's authority to the Guide's inference. "
+        "If the source text or precise locator is unavailable or cannot be verified, disclose that limit rather "
+        "than inventing a quotation or metadata. A reader should be able to identify what the source says, "
+        "what the Guide restates, and where the Guide's inference begins."
+    )

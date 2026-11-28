@@ -3,6 +3,10 @@ import re
 
 from personal_reference_resolution import is_personal_reference_question, personal_reference_fallback
 from inquiry_family_transfer_contract import classify_inquiry_family
+from guide_source_provenance_contract import (
+    is_source_provenance_question,
+    build_source_provenance_recovery_response,
+)
 
 
 def _clean(value):
@@ -1181,6 +1185,7 @@ def has_registered_recovery(question):
         institutional_learning_failure = False
     return bool(
         institutional_learning_failure
+        or is_source_provenance_question(question)
         or is_guide_personal_decision_agency_question(question)
         or is_weekly_stewardship_action_question(question)
         or is_personal_stewardship_invitation_question(question)
@@ -1231,6 +1236,17 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_source_provenance_question(question):
+        return {
+            "title": "Levels of Claim",
+            "url": "https://geralddaquila.com/levels-of-claim/",
+            "rationale": (
+                "This published Living Archive method distinguishes observation, interpretation, explanation, "
+                "and other levels of claim, and explains why they should not be presented with equal evidential "
+                "weight. It is a directly relevant continuation for keeping source-derived material distinct "
+                "from the Guide's own interpretation; it is not a source citation for any particular quotation."
+            ),
+        }
     if is_society_resilience_question(question):
         return {
             "title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
@@ -2196,6 +2212,12 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # This task has a bounded answer independent of live source retrieval: explain
+    # claim-level traceability without pretending to verify a particular source.
+    # Keep it ahead of the generic "how should" decision-advice recovery.
+    if is_source_provenance_question(q):
+        return build_source_provenance_recovery_response()
 
     if _is_epistemic_distress_guidance_question(q):
         return _epistemic_distress_guidance_recovery()

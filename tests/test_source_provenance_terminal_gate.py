@@ -73,3 +73,12 @@ def test_ordinary_conceptual_question_is_not_forced_into_provenance_template():
     report = evaluate_source_provenance_response(ordinary_question, ordinary_answer)
     assert report["applies"] is False
     assert enforce_response_contracts(ordinary_question, ordinary_answer) == ordinary_answer
+
+
+
+def test_provider_exhaustion_recovery_passes_the_same_final_provenance_gate():
+    from deterministic_answer_recovery import compose_recovery
+
+    recovery = compose_recovery(QUESTION)
+    assert evaluate_source_provenance_response(QUESTION, recovery)["passed"] is True
+    assert enforce_response_contracts(QUESTION, recovery) == recovery

@@ -666,7 +666,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_without_global
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "never requires three paragraphs or any fixed number of response units" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" not in composition_source
-    assert 'CONTRACT_VERSION = "v1.59"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.60"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != general_guide_composition.CONTRACT_VERSION' in main_source
@@ -3101,8 +3101,11 @@ def test_user_approved_mixed_source_provenance_response_is_standalone_gold_star(
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_doorway"] is None
-    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert record["doorway_status"] == fixture["doorway_status"] == "VERIFIED"
+    assert record["expected_doorway"]["title"] == "Levels of Claim"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
+    assert "not a source citation for any particular quotation" in record["expected_doorway"]["rationale"]
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is False

@@ -4,6 +4,11 @@ from guide_source_provenance_contract import (
     evaluate_source_provenance_response,
     is_source_provenance_question,
 )
+from deterministic_answer_recovery import (
+    compose_recovery,
+    has_registered_recovery,
+    registered_recovery_recommendation,
+)
 from general_guide_composition import (
     _requires_fresh_provider_composition,
     apply_terminal_response_contract,
@@ -24,7 +29,8 @@ PASSING = (
     "name the claims it builds on, and explain the reasoning behind the inference. "
     "Mark each claim or clause separately, or split the sentence when boundaries "
     "are unclear. If the source or locator is unavailable and cannot be verified, "
-    "disclose that limitation. Do not invent quotations or attribute the Guide's "
+    "disclose that limitation. A citation should support only the claim it actually establishes. "
+    "Do not invent quotations or attribute the Guide's "
     "interpretation to the author."
 )
 
@@ -73,7 +79,7 @@ def test_labels_without_locators_or_inferential_bridge_fail():
 
 def test_interpretation_must_not_be_misattributed():
     response = PASSING.replace(
-        "Do not invent quotations or attribute the Guide's interpretation to the author.",
+        "A citation should support only the claim it actually establishes. Do not invent quotations or attribute the Guide's interpretation to the author.",
         "Invent quotations and attribute the Guide's interpretation to the author.",
     )
     report = evaluate_source_provenance_response(QUESTION, response)
@@ -118,3 +124,44 @@ def test_off_topic_response_cannot_escape_through_terminal_payload_contract():
 
 def test_compliant_provenance_response_survives_final_contract():
     assert enforce_response_contracts(QUESTION, PASSING) == PASSING
+
+
+
+def test_provider_exhaustion_uses_task_specific_provenance_recovery():
+    response = compose_recovery(QUESTION)
+    report = evaluate_source_provenance_response(QUESTION, response)
+    assert report["applies"] is True
+    assert report["passed"] is True
+    assert "compare realistic options" not in response.casefold()
+    assert "people who will live with its consequences" not in response.casefold()
+
+
+def test_provenance_recovery_is_registered_with_a_verified_relevant_doorway():
+    assert has_registered_recovery(QUESTION)
+    assert registered_recovery_recommendation(QUESTION) == {
+        "title": "Levels of Claim",
+        "url": "https://geralddaquila.com/levels-of-claim/",
+        "rationale": (
+            "This published Living Archive method distinguishes observation, interpretation, explanation, "
+            "and other levels of claim, and explains why they should not be presented with equal evidential "
+            "weight. It is a directly relevant continuation for keeping source-derived material distinct "
+            "from the Guide's own interpretation; it is not a source citation for any particular quotation."
+        ),
+    }
+
+
+def test_provider_exhaustion_recovery_preserves_real_paragraph_breaks():
+    response = compose_recovery(QUESTION)
+    assert response.count("\n\n") == 2
+    assert "\\n\\n" not in response
+    assert evaluate_source_provenance_response(QUESTION, response)["passed"] is True
+
+
+def test_citation_must_not_launder_interpretation_as_source_fact():
+    response = PASSING.replace(
+        "A citation should support only the claim it actually establishes. ",
+        "A single citation supports every claim in the sentence, including the Guide's interpretation. ",
+    )
+    report = evaluate_source_provenance_response(QUESTION, response)
+    assert report["passed"] is False
+    assert "citation_scope_integrity" in report["missing"]

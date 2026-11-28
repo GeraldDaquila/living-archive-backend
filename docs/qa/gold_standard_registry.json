@@ -10712,7 +10712,11 @@
       "subsystem": "general-purpose-guide",
       "query": "For a sentence that combines a direct quotation, a paraphrase, and an interpretation, how should the Guide make each layer traceable?",
       "expected_response": "To make all three layers traceable, annotate them at the smallest practical claim-bearing span, rather than attaching one citation to an entire sentence. For a direct quotation, preserve the exact wording, place it in quotation marks, and identify the author or work and the precise page, section, paragraph, timestamp, or other locator available in the source; mark omissions, insertions, and editorial emphasis. For a paraphrase, use the Guide's own words and cite the exact passage it restates, preserving the source's scope, qualifications, conditions, and degree of certainty. For interpretation, signal that it is the Guide's analysis, identify the quoted or paraphrased claims it builds on, and explain the reasoning that connects them. If the three layers are interwoven, mark each clause or span separately—or split the sentence if the boundaries are unclear. A citation should support only the claim it actually establishes; it must not lend the source's authority to the Guide's interpretation. If the source text or locator is unavailable, disclose that limitation rather than inventing a quotation or source detail. The reader should be able to verify what the source says, see what the Guide restates, and understand where the Guide's inference begins.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "Levels of Claim",
+        "url": "https://geralddaquila.com/levels-of-claim/",
+        "rationale": "This published Living Archive method distinguishes observation, interpretation, explanation, and other levels of claim, and explains why they should not be presented with equal evidential weight. It is a directly relevant continuation for keeping source-derived material distinct from the Guide's own interpretation; it is not a source citation for any particular quotation."
+      },
       "assertions": [
         "Distinguish direct quotation, paraphrase, and Guide-generated interpretation as separate epistemic layers.",
         "Preserve direct quotation wording exactly and identify the source/work plus a precise locator available in that source.",
@@ -10725,21 +10729,28 @@
         "Ensure citations support only the claims they actually establish; prevent citation laundering.",
         "Disclose unavailable or unverifiable source text/locators rather than inventing quotations or metadata.",
         "Keep the original screenshot answer immutable as a near-miss baseline, separate from this corrected successor.",
-        "Do not infer a canonical doorway URL or transfer exact answer authority, deterministic fallback, active quality contribution, or runtime/adaptive authority."
+        "Attach the verified Levels of Claim continuation as a separate, relevant next step; do not imply that the page verifies any particular quotation or paraphrase source. Exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive authority remain disabled."
       ],
       "provenance": {
         "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit instruction to preserve the original as a near-miss, structurally repair the response, and turn the corrected successor into a Gold Star.",
-        "source_path": "conversation attachment image(20261128-123703).png; corrected successor fixture tests/fixtures/general_guide_mixed_source_provenance_gold_star.json",
+        "source_path": "conversation attachments image(20261128-123703).png and image(20261128-135156).png; corrected successor fixture tests/fixtures/general_guide_mixed_source_provenance_gold_star.json; WordPress published page post ID 70276",
         "source_date": "2026-11-28",
         "live_surface": "Guide visitor-facing Search response",
-        "evidence_boundary": "The screenshot establishes the exact visitor question, original response, and visible Continue Exploring title. The corrected successor is a separately authored response-quality exemplar. The screenshot does not establish provider invocation provenance, a canonical doorway URL, runtime/adaptive transfer, or measured visitor outcomes.",
+        "evidence_boundary": "The screenshots establish the exact visitor question and the generic governance response; the earlier screenshot also shows the unrelated ARK-004 continuation, while the fourth-attempt screenshot shows no useful continuation. The canonical Levels of Claim page was separately verified as a published WordPress page (post ID 70276, permalink https://geralddaquila.com/levels-of-claim/). Its relevance is as a next step for distinguishing source-derived material from interpretation, not as evidence for any particular quotation or paraphrase. The corrected response remains a standalone response-quality exemplar; no exact-answer authority, deterministic fallback eligibility, active quality contribution, runtime/adaptive transfer, or measured visitor outcomes are implied.",
         "original_near_miss": "The exact original answer is preserved verbatim in GitHub issue #2208. It remains a near-miss and is not overwritten or counted as this corrected successor.",
         "review_assessment": "Assistant assessment: 9.7/10. This is an assistant assessment, not a user-assigned numerical rating.",
-        "visible_continuation_title": "ARK-004: Post-Fiat Trade — The Community Ledger SOP"
+        "visible_continuation_title": "ARK-004: Post-Fiat Trade — The Community Ledger SOP",
+        "doorway_verification": {
+          "status": "VERIFIED",
+          "post_id": 70276,
+          "title": "Levels of Claim",
+          "url": "https://geralddaquila.com/levels-of-claim/",
+          "rationale": "This published Living Archive method distinguishes observation, interpretation, explanation, and other levels of claim, and explains why they should not be presented with equal evidential weight. It is a directly relevant continuation for keeping source-derived material distinct from the Guide's own interpretation; it is not a source citation for any particular quotation."
+        }
       },
       "rating": null,
       "freeze_policy": "immutable_user_approved_gold_standard",
-      "doorway_status": "NOT_EVALUATED",
+      "doorway_status": "VERIFIED",
       "assistant_assessment_out_of_10": 9.7,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
@@ -10747,7 +10758,7 @@
       "runtime_transfer": false,
       "reasoning_family": "mixed_source_claim_level_provenance",
       "transferable_lesson": "For answers combining source material and Guide analysis, preserve exact quotation wording and source locators; paraphrase in the Guide's own words without changing scope or qualification; label interpretation as the Guide's inference and expose the claims and reasoning supporting it; separate interwoven claims at span level; and never let a citation imply support for a claim the source does not make.",
-      "transfer_boundary": "Immutable standalone response-quality exemplar only. Do not copy the exact answer, claims, or wording into unrelated responses. Do not infer source text, locators, or canonical doorway URLs. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer is authorized.",
+      "transfer_boundary": "Immutable standalone response-quality exemplar only. Do not copy the exact answer, claims, or wording into unrelated responses. Do not infer source text or locators. The verified Levels of Claim doorway is a separate conceptual continuation, not evidence for any particular quotation or paraphrase. No exact-answer authority, deterministic fallback eligibility, active quality contribution, or runtime/adaptive transfer is authorized.",
       "known_theme": "direct quotation; paraphrase; interpretation; claim-level provenance; source attribution; citation integrity; epistemic transparency; inferential boundaries",
       "gold_star_capabilities": {
         "generation_class": "user_approved_response_quality_exemplar",
@@ -10756,7 +10767,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "mixed_source_claim_level_provenance",
         "transferable_discipline": "Separate quotation, paraphrase, and interpretation at claim/span level; preserve source fidelity and precise available locators; expose the Guide's inferential bridge; prevent citation laundering and false attribution.",
-        "abstention_boundary": "NOT_EVALUATED: Standalone response-quality exemplar only. If source text or a precise locator is unavailable, disclose the limitation and do not invent it. Do not infer a canonical doorway URL. Exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled.",
+        "abstention_boundary": "NOT_EVALUATED for source-text verification: this remains a standalone response-quality exemplar only. If source text or a precise locator is unavailable, disclose the limitation and do not invent it. The separately verified Levels of Claim doorway is a relevant continuation, not source evidence for the visitor's example. Exact-answer authority, deterministic fallback eligibility, active quality contribution, and runtime/adaptive transfer remain disabled.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",

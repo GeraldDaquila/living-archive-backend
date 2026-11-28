@@ -2,8 +2,12 @@
   "benchmark_id": "general-guide-mixed-source-claim-level-provenance-2026-11-28",
   "query": "For a sentence that combines a direct quotation, a paraphrase, and an interpretation, how should the Guide make each layer traceable?",
   "expected_response": "To make all three layers traceable, annotate them at the smallest practical claim-bearing span, rather than attaching one citation to an entire sentence. For a direct quotation, preserve the exact wording, place it in quotation marks, and identify the author or work and the precise page, section, paragraph, timestamp, or other locator available in the source; mark omissions, insertions, and editorial emphasis. For a paraphrase, use the Guide's own words and cite the exact passage it restates, preserving the source's scope, qualifications, conditions, and degree of certainty. For interpretation, signal that it is the Guide's analysis, identify the quoted or paraphrased claims it builds on, and explain the reasoning that connects them. If the three layers are interwoven, mark each clause or span separately—or split the sentence if the boundaries are unclear. A citation should support only the claim it actually establishes; it must not lend the source's authority to the Guide's interpretation. If the source text or locator is unavailable, disclose that limitation rather than inventing a quotation or source detail. The reader should be able to verify what the source says, see what the Guide restates, and understand where the Guide's inference begins.",
-  "expected_doorway": null,
-  "doorway_status": "NOT_EVALUATED",
+  "expected_doorway": {
+    "title": "Levels of Claim",
+    "url": "https://geralddaquila.com/levels-of-claim/",
+    "rationale": "This published Living Archive method distinguishes observation, interpretation, explanation, and other levels of claim, and explains why they should not be presented with equal evidential weight. It is a directly relevant continuation for keeping source-derived material distinct from the Guide's own interpretation; it is not a source citation for any particular quotation."
+  },
+  "doorway_status": "VERIFIED",
   "runtime_transfer": false,
   "exact_answer_authority": false,
   "deterministic_fallback_eligible": false,

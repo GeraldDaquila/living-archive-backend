@@ -87,7 +87,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.59"
+CONTRACT_VERSION = "v1.60"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -179,11 +179,11 @@ _COMPOSITION_CACHE_LOCK = threading.Lock()
 
 
 def _requires_fresh_provider_composition(question: str) -> bool:
-    """Keep the reviewed humility/maturity relational probe on a fresh provider path.
+    """Keep live acceptance probes and mixed-source provenance questions off cache.
 
-    A cached composition is valid reusable visitor content, but it cannot satisfy
-    a live acceptance check whose purpose is to verify current provider execution
-    and the relational-answer contract for this near-miss family.
+    A cached answer cannot demonstrate current provider composition. Mixed-source
+    provenance additionally requires the claim-level instruction and terminal
+    validator to be applied to this exact visitor question.
     """
     normalized = _normalize_space(question).casefold()
     humility = re.search(r"\bhumility\b", normalized)
