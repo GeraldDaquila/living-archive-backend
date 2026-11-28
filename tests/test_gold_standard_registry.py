@@ -3042,3 +3042,41 @@ def test_ethical_legitimacy_concentrated_harm_gold_star_matches_frozen_fixture()
     assert record["question_family_review"]["family_id"] == "qf-d2637dc092092951"
     assert record["runtime_transfer"] is False
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+def test_record_level_union_counts_and_integrity_mirrors_are_exact():
+    registry = _registry()
+    records = registry["records"]
+    approved = [
+        item for item in records
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active = [item for item in approved if item.get("runtime_transfer") is True]
+    response_quality = [
+        item for item in approved
+        if item.get("gold_star_capabilities", {}).get("generation_class")
+        == "user_approved_response_quality_exemplar"
+    ]
+    standalone = [
+        item for item in approved
+        if item.get("gold_star_capabilities", {}).get("standalone_response_quality_exemplar") is True
+    ]
+    numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
+    unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
+
+    assert len({item["benchmark_id"] for item in records}) == 209
+    assert len(records) == 209
+    assert len(approved) == 168
+    assert len(active) == 139
+    assert len(response_quality) == 27
+    assert len(standalone) == 26
+    assert len(numbered) == 39
+    assert len(unassigned) == 129
+    assert registry["integrity_audit"] == registry["audit"]
+    audit = registry["integrity_audit"]
+    assert audit["registry_record_count"] == 209
+    assert audit["approved_gold_star_count"] == 168
+    assert audit["active_quality_contributor_count"] == 139
+    assert audit["approved_response_quality_exemplar_count"] == 27
+    assert audit["numbered_gold_star_record_count"] == 39
+    assert audit["unassigned_approved_gold_star_count"] == 129
