@@ -442,6 +442,28 @@ def test_final_response_boundary_accepts_the_approved_nonranking_screenshot_answ
         / "tests/fixtures/general-guide-developmental-stage-hierarchy-nonranking-2026-11-28.json"
     )
     fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-    assert guide.enforce_response_contracts(
-        fixture["query"], fixture["expected_response"]
-    ) == fixture["expected_response"]
+    payload = {"response": fixture["expected_response"], "intent": "ANSWER"}
+    finalized = guide.apply_terminal_response_contract(fixture["query"], payload)
+    assert finalized["response"] == fixture["expected_response"]
+
+
+def test_provider_parser_rejects_generic_governance_nearmiss_for_stage_hierarchy():
+    import json
+    import pytest
+
+    query = (
+        "A visitor describes a developmental stage as 'higher' than another. "
+        "How can the Guide examine the claim while avoiding a ranking of people?"
+    )
+    parser = guide._parse_factory([], query)
+    generic_governance_answer = json.dumps({
+        "response": (
+            "Start by defining the outcome and responsibilities. Compare options, "
+            "examine costs, and choose deliberately while remaining accountable "
+            "for what follows."
+        ),
+        "doorway_title": "",
+        "response_shape": "conceptual",
+    })
+    with pytest.raises(ValueError, match="developmental-stage answer fails the non-ranking reasoning contract"):
+        parser(generic_governance_answer)
