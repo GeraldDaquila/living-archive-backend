@@ -10013,7 +10013,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-restoration-capacity-contraction-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 12
+    "approved_response_quality_exemplar_count": 13
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10127,7 +10127,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-restoration-capacity-contraction-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 12
+    "approved_response_quality_exemplar_count": 13
   },
   "last_reconciled": "2026-11-28"
 }
