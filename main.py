@@ -1847,6 +1847,36 @@ def _topic_anchor_groups(text):
     }
 
 
+def _digital_archiving_candidate_fit(query, doc):
+    """Require archival-domain evidence before a digital-archive doorway can qualify.
+
+    Generic words such as context, history, preservation, or systems can occur
+    in unrelated resources. When the visitor's subject is digital archiving,
+    the candidate must independently identify archival practice through a
+    distinctive domain marker in its title or body. This gate is shared by
+    retrieved documents and Guide Node fallbacks.
+    """
+    normalized_query = _normalize_query(query)
+    if not re.search(r"\\bdigital\\s+archives?\\b|\\bdigital\\s+archiv\\w*\\b", normalized_query, re.I):
+        return True
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "")
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if not title.strip() or not body.strip():
+        return False
+    candidate = f"{title} {body[:6000]}"
+    # These markers identify the archival domain or a recognized archival
+    # method; generic context/history/system vocabulary is deliberately absent.
+    return bool(re.search(
+        r"\\b(?:digital\\s+archives?|archival|recordkeeping|records\\s+management|"
+        r"digital\\s+preservation|provenance|metadata|original\\s+order|"
+        r"custody\\s+history|collection\\s+arrangement)\\b",
+        candidate,
+        re.I,
+    ))
+
+
 def _topic_specific_candidate_fit(query, doc):
     """Require substantive topic evidence for multi-concept public-system questions.
 
@@ -1953,6 +1983,8 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False, "invalid_title_or_canonical_url"
+    if not _digital_archiving_candidate_fit(query, doc):
+        return False, "digital_archiving_subject_mismatch"
     bridge_supported = _conceptual_bridge_supported(query, doc)
     if not _topic_specific_candidate_fit(query, doc) and not bridge_supported:
         return False, "topic_fit_missing"
