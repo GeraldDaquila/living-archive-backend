@@ -1857,7 +1857,7 @@ def _digital_archiving_candidate_fit(query, doc):
     retrieved documents and Guide Node fallbacks.
     """
     normalized_query = _normalize_query(query)
-    if not re.search(r"\\bdigital\\s+archives?\\b|\\bdigital\\s+archiv\\w*\\b", normalized_query, re.I):
+    if not re.search(r"\bdigital\s+archives?\b|\bdigital\s+archiv\w*\b", normalized_query, re.I):
         return True
     if not isinstance(doc, dict):
         return False
@@ -1869,9 +1869,9 @@ def _digital_archiving_candidate_fit(query, doc):
     # These markers identify the archival domain or a recognized archival
     # method; generic context/history/system vocabulary is deliberately absent.
     return bool(re.search(
-        r"\\b(?:digital\\s+archives?|archival|recordkeeping|records\\s+management|"
-        r"digital\\s+preservation|provenance|metadata|original\\s+order|"
-        r"custody\\s+history|collection\\s+arrangement)\\b",
+        r"\b(?:digital\s+archives?|archival|recordkeeping|records\s+management|"
+        r"digital\s+preservation|provenance|metadata|original\s+order|"
+        r"custody\s+history|collection\s+arrangement)\b",
         candidate,
         re.I,
     ))
