@@ -68,7 +68,7 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
     active = [item for item in approved if item.get("runtime_transfer") is True]
     assert approved
     assert len(active) <= len(approved)
-    # The approved ledger retains fourteen non-contributing records:
+    # The approved ledger retains fifteen non-contributing records:
     # historical/exact-query-only records, one paired governance exemplar, and
     # eleven standalone user-approved response-quality exemplars. Keep this exact
     # set synchronized with the canonical registry; none is runtime-transfer eligible.
