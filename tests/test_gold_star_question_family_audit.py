@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY = ROOT / "docs" / "qa" / "gold_star_registry.json"
+REGISTRY = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 SCRIPT = ROOT / "scripts" / "qa" / "audit_gold_star_question_families.py"
 
 
