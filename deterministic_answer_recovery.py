@@ -635,6 +635,39 @@ def _community_project_tradeoff_recovery():
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def is_society_resilience_question(question):
+    """Recognize society-level resilience inquiries without capturing individual, business, or ecology-only cases."""
+    q = _clean(question).casefold()
+    collective = bool(re.search(r"\\b(?:societ(?:y|al)|social systems?|communities|community|civic systems?|public institutions?)\\b", q))
+    resilience = bool(re.search(r"\\b(?:resilien\\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\\b", q))
+    individual = bool(re.search(r"\\b(?:myself|my own|personal resilience|individual resilience|mental resilience)\\b", q))
+    business = bool(re.search(r"\\b(?:business|company|enterprise|workplace|organizational continuity)\\b", q))
+    ecology_only = bool(re.search(r"\\b(?:ecosystem|ecological|habitat|species|forest|wetland)\\b", q)) and not bool(re.search(r"\\b(?:societ(?:y|al)|social|community|civic|institution)\\b", q))
+    return collective and resilience and not individual and not business and not ecology_only
+
+
+def _society_resilience_recovery():
+    """Explain resilience as a cross-scale property of interdependent social systems."""
+    return (
+        "A society is resilient when it can absorb disruption, maintain the functions people depend on, reorganize when existing arrangements no longer work, and learn its way into changed conditions. Resilience does not always mean returning to the previous state: if that state contained serious vulnerabilities or inequities, recovery should reduce them rather than restore them unchanged. It is a property of an interconnected system, not a virtue that any one institution or group can supply alone. Ecological foundations sustain food, water, health, and livelihoods; economies and infrastructure move essential goods and services; institutions coordinate decisions and resources; and social and cultural networks help people interpret events, preserve knowledge, and act together.\n\n"
+        "These parts reinforce one another through identifiable mechanisms. Diversity gives a society more than one way to meet a need; redundancy provides alternatives when a critical service fails; and modularity can prevent a local failure from spreading unchecked. Trust and legitimate institutions help information travel and resources reach people, while shared meaning, cultural memory, and education help communities interpret signals, coordinate action, and carry lessons across generations. Feedback makes emerging problems visible, and learning turns experience into revised practices and rules. The reverse is also true: concentrated dependencies, brittle infrastructure, misinformation, exclusion, or loss of institutional legitimacy can weaken coordination and turn one shock into cascading failures. Exposure and recovery capacity are rarely equal, so a society cannot be called resilient simply because some groups or sectors recover while others bear lasting damage.\n\n"
+        "A practical assessment asks whether essential services can continue or be restored; whether there are alternative sources, routes, skills, and decision channels; whether reliable information and public feedback reach decision-makers; whether people most exposed to harm can obtain support and influence recovery; and whether institutions retain and act on lessons. Look for continuity of essential functions, speed and fairness of recovery, the ability to adapt without sacrificing ecological foundations, and evidence that repeated disruptions produce learning rather than repeated failure. The exact mix differs by place and threat. The underlying test is whether the society can keep coordinating, protect the conditions that sustain life, distribute recovery fairly, and change course when evidence shows that its old arrangements are no longer adequate."
+    )
+
+
+def has_society_resilience_explanation(response):
+    """Check for direct definition, cross-system mechanisms, failure dynamics, and practical diagnostics."""
+    text = _clean(response).casefold()
+    direct = bool(re.search(r"\\b(?:absorb|withstand)\\b.{0,100}\\b(?:disruption|shock|disturbance)\\b", text)) and bool(re.search(r"\\b(?:adapt|reorganize|reorganise|learn)\\w*\\b", text))
+    domains = sum(bool(re.search(pattern, text)) for pattern in (
+        r"\\becolog\\w*\\b", r"\\beconom\\w*\\b", r"\\binfrastructur\\w*\\b", r"\\binstitution\\w*\\b", r"\\bsocial\\b", r"\\bcultur\\w*\\b"
+    ))
+    mechanisms = sum(term in text for term in ("trust", "feedback", "shared meaning", "memory", "coordination", "learning"))
+    failure_dynamics = bool(re.search(r"\\b(?:cascading failures?|cascade)\\b", text)) and bool(re.search(r"\\b(?:unequal|inequalit|excluded|exposure)\\w*\\b", text))
+    diagnostics = bool(re.search(r"\\b(?:assess|assessment|indicators?|look for|ask whether)\\b", text)) and bool(re.search(r"\\b(?:essential services|recovery|adaptation)\\b", text))
+    return direct and domains >= 4 and mechanisms >= 3 and failure_dynamics and diagnostics
+
+
 def is_technology_solutionism_ecological_question(question):
     """Recognize claims that technology alone can solve ecological crises."""
     q = _clean(question).casefold()
@@ -1157,6 +1190,7 @@ def has_registered_recovery(question):
         or is_oversoul_ego_authority_question(question)
         or is_external_discernment_outsourcing_question(question)
         or is_technology_solutionism_ecological_question(question)
+        or is_society_resilience_question(question)
         or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
         or is_trust_community_stewardship_question(question)
@@ -1197,6 +1231,16 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_society_resilience_question(question):
+        return {
+            "title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+            "url": "https://geralddaquila.com/2026/09/28/collective-nervous-systems-how-cultures-regulate-human-coherence/",
+            "rationale": (
+                "This published Living Archive essay directly examines how shared information, meaning, trust, cultural memory, "
+                "feedback, and coordination help societies adapt and maintain resilience. It is a cross-scale continuation "
+                "of the question about the conditions that make a society resilient."
+            ),
+        }
     if is_human_development_comparison_question(question):
         return human_development_comparison_doorway()
     if is_orientation_information_contrast_question(question):
@@ -2218,6 +2262,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     elif is_technology_solutionism_ecological_question(q):
         answer = _technology_solutionism_ecological_recovery()
+    elif is_society_resilience_question(q):
+        answer = _society_resilience_recovery()
     elif is_community_project_tradeoff_question(q):
         answer = _community_project_tradeoff_recovery()
     elif _is_modes_of_knowing_dialogue_question(q):
