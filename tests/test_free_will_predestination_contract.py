@@ -93,7 +93,7 @@ def test_final_response_boundary_repairs_only_an_incomplete_answer():
 def test_question_specific_prompt_is_attached_only_to_this_relationship_family():
     prompt = composition._build_general_guide_system_prompt(QUESTION)
     assert "FREE WILL, PREDESTINATION, AND DETERMINISM" in prompt
-    assert "compatibilism is one philosophical account" in prompt.casefold()
+    assert "compatibilism as one contested account" in prompt.casefold()
 
     unrelated = composition._build_general_guide_system_prompt("What does free will mean?")
     assert "FREE WILL, PREDESTINATION, AND DETERMINISM" not in unrelated
