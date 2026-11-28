@@ -9868,7 +9868,7 @@
       "doorway_note": "Continue Exploring: From Contraction to Capacity. The screenshot establishes the visible title and explanatory copy, not a canonical URL. Doorway status remains NOT_EVALUATED."
     }
   ],
-  "last_reconciliation_note": "2026-11-28: Added general-guide-restoration-capacity-contraction-2026-11-28 as an immutable standalone response-quality exemplar after explicit user approval of the exact live visitor-facing screenshot. The visible Continue Exploring title is preserved without inferring a canonical URL. Record-derived inventory: 195 total records, 154 approved Gold Stars, 139 active runtime-transfer contributors, and 12 approved response-quality exemplars. This approval does not establish provider provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+  "last_reconciliation_note": "2026-11-28: Added general-guide-restoration-capacity-contraction-2026-11-28 as an immutable standalone response-quality exemplar after explicit user approval of the exact live visitor-facing screenshot. The visible Continue Exploring title is preserved without inferring a canonical URL. Record-derived inventory: 195 total records, 154 approved Gold Stars, 139 active runtime-transfer contributors, and 13 approved response-quality exemplars. This approval does not establish provider provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
