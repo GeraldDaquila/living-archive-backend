@@ -2763,11 +2763,8 @@ def test_externalities_stewardship_response_is_frozen_standalone_gold_star():
     assert record["explicit_user_elevation_approval"] is True
     assert record["assistant_assessment_out_of_10"] == 9.2
     assert record["rating_out_of_10"] is None
-    assert record["expected_doorway"] == fixture["expected_doorway"]
-    assert record["doorway_status"] == fixture["doorway_status"] == "VERIFIED"
-    assert record["expected_doorway"]["title"] == "Levels of Claim"
-    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
-    assert "not evidence for any particular quotation" in record["expected_doorway"]["rationale"]
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["provenance"]["visible_continuation_title"] == "The Stewardship Age"
     assert record["runtime_transfer"] is False
     capabilities = record["gold_star_capabilities"]
@@ -3104,8 +3101,11 @@ def test_user_approved_mixed_source_provenance_response_is_standalone_gold_star(
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_doorway"] is None
-    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert record["doorway_status"] == fixture["doorway_status"] == "VERIFIED"
+    assert record["expected_doorway"]["title"] == "Levels of Claim"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
+    assert "not evidence for any particular quotation" in record["expected_doorway"]["rationale"]
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is False
