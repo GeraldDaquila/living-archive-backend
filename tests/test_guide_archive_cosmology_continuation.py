@@ -1,5 +1,6 @@
 """Regression tests for the Guide's context-sensitive Archive claim-review continuation."""
 
+import json
 from pathlib import Path
 
 import general_guide_composition as composition
@@ -89,3 +90,28 @@ def test_existing_guide_reply_surface_renders_only_for_a_conversational_invitati
     assert "var invitesReply = /\\?\\s*" in controller
     assert "renderOrdinaryFollowupPanel(data.response)" in controller
     assert "submitOrdinaryFollowup(panel, input, button, status)" in controller
+
+
+def test_corrected_successor_is_registered_as_standalone_gold_star_only():
+    registry = json.loads(
+        (ROOT.parent / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
+    )
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-archive-cosmology-epistemic-discernment-2026-11-28"
+    )
+
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["expected_doorway"] is None
+    assert record["expected_response"].endswith(
+        "Which specific claim from the Living Archive would you like to examine first?"
+    )
