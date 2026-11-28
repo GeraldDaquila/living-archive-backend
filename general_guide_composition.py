@@ -3637,6 +3637,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError("provider response too short for basic visitor bounds")
                 if len(response) > 7000:
                     raise ValueError("provider response too long for basic visitor bounds")
+                # Preserve question-specific conceptual requirements in the
+                # hard-integrity compatibility lane. A strict-lane rejection
+                # must not be undone by soft fallback for a substantive omission.
+                if (
+                    is_free_will_predestination_question(query)
+                    and not has_free_will_predestination_explanation(response)
+                ):
+                    raise ValueError(
+                        "free-will/predestination answer must distinguish theological predestination, causal determinism, compatibilist and incompatibilist accounts, and conditioned agency"
+                    )
                 # Social-mechanism example grounding is a task-specific meaning
                 # requirement, not a stylistic preference. Preserve it across
                 # both parser lanes so compatibility fallback cannot re-admit
