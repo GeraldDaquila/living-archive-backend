@@ -5231,14 +5231,8 @@ def apply_terminal_response_contract(question: str, payload: dict) -> dict:
         if "answer" in finalized:
             finalized["answer"] = contracted
 
-    # These flags govern only the optional navigation surface. They are
-    # intentionally evaluated after the answer has passed its final contract.
-    if (
-        finalized.get("navigation_suppressed_by_task_contract")
-        or finalized.get("processing") == "final_visitor_boundary_explicit_no_handoff"
-        or finalized.get("doorway_omission_reason") == "user_requested_no_further_reading"
-    ):
-        return finalized
+    # Navigation-suppression flags affect only optional doorway rendering;
+    # they do not alter or bypass the validated substantive answer.
     return finalized
 
 def _has_responsibility_boundary_explanation(response: str) -> bool:
