@@ -2711,11 +2711,11 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 153
-    assert len(registry["records"]) == 194
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 153
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 114
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 12
+    assert len(approved) == 154
+    assert len(registry["records"]) == 195
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 154
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 115
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 13
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2802,3 +2802,37 @@ def test_ecological_technology_solutionism_successor_is_frozen_standalone_gold_s
     assert capabilities["deterministic_fallback_eligible"] is False
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
+
+def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-economy-life-sustaining-conditions-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What is the relationship between economy and the conditions that sustain life?"
+    assert record["expected_response"].startswith("Economy and the conditions that sustain life stand in a reciprocal relationship:")
+    assert "The relationship is therefore conditional rather than fixed" in record["expected_response"]
+    assert "the self-contained machine separate from the living world" not in record["expected_response"]
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.3
+    assert record["rating"] is None
+    assert record["rating_out_of_10"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["provenance"]["visible_continuation_title"] == "The Life We Inherit: Becoming the Author of a Conscious Life"
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 154
+    assert len(registry["records"]) == 195
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 154
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 115
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 13
