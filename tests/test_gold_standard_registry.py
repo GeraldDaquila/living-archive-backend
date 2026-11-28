@@ -2207,6 +2207,7 @@ def test_approved_gold_star_may_preserve_not_evaluated_doorway_without_authorizi
 
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["doorway_status"] == "NOT_EVALUATED"
+    assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["expected_doorway"] is None
     assert not record.get("doorway_omission_exception_reason")
     assert record["runtime_transfer"] is True
