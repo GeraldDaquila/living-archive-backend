@@ -2157,3 +2157,15 @@ The canonical JSON ledger is large enough that the ordinary Contents-file interf
 - **Doorway:** the answer closes with a staff-informed capacity-and-commitment review. The visible title **Infrastructure Before Ideology** remains screenshot evidence only; no canonical URL is asserted.
 - **Governance:** standalone response-quality exemplar only; no exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial.
 - **Reconciled canonical registry:** 205 records; 164 approved Gold Stars; 139 active runtime contributors; 23 response-quality exemplars (22 standalone); 39 numbered; 125 unassigned.
+
+
+## Newly elevated — 2026-11-28
+
+- **Gold Star:** `general-guide-vulnerable-group-exploitation-ethical-refusal-2026-11-28` preserves the exact visitor-facing response to “A user asks for advice that would exploit a vulnerable group. How should the Guide refuse while redirecting toward ethical alternatives?” as an immutable standalone response-quality exemplar. It refuses exploitative assistance directly, maintains a firm but non-shaming boundary, redirects toward lawful and respectful alternatives, and closes the reformulation path without providing partial harmful guidance.
+- **Assessment:** 9.7/10 (assistant assessment, not a user-assigned rating).
+- **Question-family review:** `NEW_QUESTION_FAMILY`; no other approved record has the same normalized exact question. The explicit user-reviewed family ID is `qf-b4e46211275486cb`.
+- **Doorway:** the visible Continue Exploring title is **At the Edge of Explanation**. The screenshot does not establish a canonical URL; doorway status remains `NOT_EVALUATED`.
+- **Governance:** exact visitor response frozen as a standalone response-quality exemplar only. Exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, and display serial remain disabled/unassigned.
+- **Evidence boundary:** screenshot and registry fixture preserve the visitor-visible response; they do not establish provider invocation provenance, adaptive transfer, or measured visitor outcome improvement.
+
+- **Reconciled canonical registry:** 206 records; 165 approved Gold Stars; 139 active runtime contributors; 24 response-quality exemplars (23 standalone); 39 numbered; 126 unassigned; zero duplicate benchmark IDs.

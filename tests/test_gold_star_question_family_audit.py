@@ -28,7 +28,7 @@ def test_question_family_audit_is_deterministic_and_does_not_mutate_registry():
         item.get("status") == "USER_APPROVED_GOLD_STANDARD"
         for item in registry["records"]
     )
-    assert first["unique_normalized_question_family_count"] == 157
+    assert first["unique_normalized_question_family_count"] == 158
     assert first["repeated_question_family_count"] == 6
     assert first["review_required_family_count"] == 0
     assert first["identical_response_group_count"] == 0
@@ -158,3 +158,16 @@ def test_new_standalone_exemplar_must_disclose_every_same_question_record():
     assert module.validate_new_approval_reviews(candidate, baseline) == []
     record["question_family_review"]["related_benchmark_ids"] = []
     assert any("related_benchmark_ids" in error for error in module.validate_new_approval_reviews(candidate, baseline))
+
+
+def test_vulnerable_group_refusal_has_explicit_new_question_family_review():
+    module = _module()
+    current = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    baseline = json.loads(json.dumps(current))
+    candidate_id = "general-guide-vulnerable-group-exploitation-ethical-refusal-2026-11-28"
+    candidate_record = next(item for item in current["records"] if item["benchmark_id"] == candidate_id)
+    baseline["records"] = [item for item in baseline["records"] if item["benchmark_id"] != candidate_id]
+
+    assert candidate_record["question_family_review"]["classification"] == "NEW_QUESTION_FAMILY"
+    assert candidate_record["question_family_review"]["related_benchmark_ids"] == []
+    assert module.validate_new_approval_reviews(current, baseline) == []
