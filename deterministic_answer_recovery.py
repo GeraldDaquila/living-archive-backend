@@ -638,11 +638,11 @@ def _community_project_tradeoff_recovery():
 def is_society_resilience_question(question):
     """Recognize society-level resilience inquiries without capturing individual, business, or ecology-only cases."""
     q = _clean(question).casefold()
-    collective = bool(re.search(r"\\b(?:societ(?:y|al)|social systems?|communities|community|civic systems?|public institutions?)\\b", q))
-    resilience = bool(re.search(r"\\b(?:resilien\\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\\b", q))
-    individual = bool(re.search(r"\\b(?:myself|my own|personal resilience|individual resilience|mental resilience)\\b", q))
-    business = bool(re.search(r"\\b(?:business|company|enterprise|workplace|organizational continuity)\\b", q))
-    ecology_only = bool(re.search(r"\\b(?:ecosystem|ecological|habitat|species|forest|wetland)\\b", q)) and not bool(re.search(r"\\b(?:societ(?:y|al)|social|community|civic|institution)\\b", q))
+    collective = bool(re.search(r"\b(?:societ(?:y|al)|social systems?|communities|community|civic systems?|public institutions?)\b", q))
+    resilience = bool(re.search(r"\b(?:resilien\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\b", q))
+    individual = bool(re.search(r"\b(?:myself|my own|personal resilience|individual resilience|mental resilience)\b", q))
+    business = bool(re.search(r"\b(?:business|company|enterprise|workplace|organizational continuity)\b", q))
+    ecology_only = bool(re.search(r"\b(?:ecosystem|ecological|habitat|species|forest|wetland)\b", q)) and not bool(re.search(r"\b(?:societ(?:y|al)|social|community|civic|institution)\b", q))
     return collective and resilience and not individual and not business and not ecology_only
 
 
@@ -658,13 +658,13 @@ def _society_resilience_recovery():
 def has_society_resilience_explanation(response):
     """Check for direct definition, cross-system mechanisms, failure dynamics, and practical diagnostics."""
     text = _clean(response).casefold()
-    direct = bool(re.search(r"\\b(?:absorb|withstand)\\b.{0,100}\\b(?:disruption|shock|disturbance)\\b", text)) and bool(re.search(r"\\b(?:adapt|reorganize|reorganise|learn)\\w*\\b", text))
+    direct = bool(re.search(r"\b(?:absorb|withstand)\b.{0,100}\b(?:disruption|shock|disturbance)\b", text)) and bool(re.search(r"\b(?:adapt|reorganize|reorganise|learn)\w*\b", text))
     domains = sum(bool(re.search(pattern, text)) for pattern in (
-        r"\\becolog\\w*\\b", r"\\beconom\\w*\\b", r"\\binfrastructur\\w*\\b", r"\\binstitution\\w*\\b", r"\\bsocial\\b", r"\\bcultur\\w*\\b"
+        r"\becolog\w*\b", r"\beconom\w*\b", r"\binfrastructur\w*\b", r"\binstitution\w*\b", r"\bsocial\b", r"\bcultur\w*\b"
     ))
     mechanisms = sum(term in text for term in ("trust", "feedback", "shared meaning", "memory", "coordination", "learning"))
-    failure_dynamics = bool(re.search(r"\\b(?:cascading failures?|cascade)\\b", text)) and bool(re.search(r"\\b(?:unequal|inequalit|excluded|exposure)\\w*\\b", text))
-    diagnostics = bool(re.search(r"\\b(?:assess|assessment|indicators?|look for|ask whether)\\b", text)) and bool(re.search(r"\\b(?:essential services|recovery|adaptation)\\b", text))
+    failure_dynamics = bool(re.search(r"\b(?:cascading failures?|cascade)\b", text)) and bool(re.search(r"\b(?:unequal|inequalit|excluded|exposure)\w*\b", text))
+    diagnostics = bool(re.search(r"\b(?:assess|assessment|indicators?|look for|ask whether)\b", text)) and bool(re.search(r"\b(?:essential services|recovery|adaptation)\b", text))
     return direct and domains >= 4 and mechanisms >= 3 and failure_dynamics and diagnostics
 
 
