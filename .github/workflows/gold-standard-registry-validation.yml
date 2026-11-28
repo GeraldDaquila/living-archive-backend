@@ -12,6 +12,7 @@ on:
       - "gold_star_inventory.py"
       - "scripts/validate_gold_star_registry.py"
       - "scripts/qa/audit_gold_star_question_families.py"
+      - "docs/qa/GOLD_STAR_ELEVATION_REVIEW_STANDARD.md"
       - "tests/test_gold_star_question_family_audit.py"
       - "tests/test_gold_star_lessons.py"
       - "tests/test_gold_star_cross_question_pattern_learning.py"
@@ -43,6 +44,9 @@ on:
       - "docs/qa/gold_standard_registry.json"
       - "gold_star_lessons.py"
       - "scripts/validate_gold_star_registry.py"
+      - "scripts/qa/audit_gold_star_question_families.py"
+      - "tests/test_gold_star_question_family_audit.py"
+      - "docs/qa/GOLD_STAR_ELEVATION_REVIEW_STANDARD.md"
       - "tests/test_gold_star_lessons.py"
       - "docs/qa/GOLD_STANDARD_REGISTRY.md"
       - "scripts/qa/report_gold_standard_registry.py"
@@ -108,7 +112,7 @@ jobs:
         run: |
           mkdir -p qa-artifacts
           python scripts/qa/report_gold_standard_registry.py --output qa-artifacts/gold-standard-registry-report.json
-          python scripts/qa/audit_gold_star_question_families.py --output qa-artifacts/gold-star-question-family-audit.json
+          python scripts/qa/audit_gold_star_question_families.py --enforce-new-approvals --output qa-artifacts/gold-star-question-family-audit.json
       - name: Publish registry identity report
         uses: actions/upload-artifact@v4
         with:
