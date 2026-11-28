@@ -435,7 +435,7 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
         )
     if is_free_will_predestination_question(question):
         rendered += (
-            "\\n\\nFREE WILL, PREDESTINATION, AND DETERMINISM: "
+            "\n\nFREE WILL, PREDESTINATION, AND DETERMINISM: "
             "Distinguish theological predestination from divine foreknowledge, philosophical determinism, "
             "and ordinary causal influence; do not treat them as synonyms. Explain compatibilism as one "
             "contested account, not a consensus. Distinguish freedom from coercion or external compulsion "
