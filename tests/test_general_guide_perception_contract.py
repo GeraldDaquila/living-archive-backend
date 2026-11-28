@@ -1,5 +1,6 @@
 """Regression contract preserving the established General Guide writer."""
 
+import pytest
 import general_guide_composition as guide
 
 
@@ -34,9 +35,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.58"
+    assert guide.CONTRACT_VERSION == "v1.59"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.58"
+    assert snapshot["contract_version"] == "v1.59"
     assert snapshot["provider_neutral"] is True
 
 
@@ -121,8 +122,8 @@ def test_conceptual_relationships_require_task_relevant_discernment():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.58"
-    assert guide.contract_snapshot()["contract_version"] == "v1.58"
+    assert guide.CONTRACT_VERSION == "v1.59"
+    assert guide.contract_snapshot()["contract_version"] == "v1.59"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -156,8 +157,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.58"
-    assert guide.contract_snapshot()["contract_version"] == "v1.58"
+    assert guide.CONTRACT_VERSION == "v1.59"
+    assert guide.contract_snapshot()["contract_version"] == "v1.59"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -551,3 +552,83 @@ def test_mixed_source_provenance_contract_rejects_false_interpretive_attribution
     report = evaluate_source_provenance_response(query, response)
     assert report["passed"] is False
     assert "no_false_attribution" in report["missing"]
+
+
+def test_mixed_source_provenance_questions_bypass_cached_composition():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    assert guide._requires_fresh_provider_composition(question)
+
+
+def test_final_visitor_boundary_rejects_unrelated_governance_answer():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one.\\n\\n"
+        "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction. Include the knowledge of people affected by the decision, especially "
+        "where they will carry consequences they did not choose.\\n\\n"
+        "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+    )
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.enforce_response_contracts(question, unrelated)
+
+
+def test_terminal_payload_revalidates_mixed_source_provenance():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one."
+    )
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.apply_terminal_response_contract(
+            question, {"response": unrelated, "intent": "TOPICAL_INQUIRY"}
+        )
+
+
+def test_complete_mixed_source_answer_passes_final_visitor_boundary():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    complete = (
+        "To make all three layers traceable, annotate them at the smallest practical claim-bearing span. "
+        "For a direct quotation, preserve the exact wording and identify the source or work and a precise "
+        "page, section, paragraph, or timestamp locator; mark omissions and insertions. For a paraphrase, "
+        "use the Guide's own words and cite the exact passage it restates, preserving the source's scope, "
+        "qualifications, conditions, and degree of certainty. For interpretation, identify it as the Guide's "
+        "own analysis, name the quoted or paraphrased claims it builds on, and explain the reasoning behind "
+        "the inference. If the layers are interwoven, separate each claim-bearing clause or split the sentence. "
+        "A citation must support only the claim it establishes. If the source or locator is unavailable, "
+        "disclose that limitation. Do not invent source details or attribute the Guide's inference to the author."
+    )
+    assert guide.enforce_response_contracts(question, complete) == complete
+
+
+def test_navigation_suppression_never_bypasses_answer_validation():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one."
+    )
+    payload = {
+        "response": unrelated,
+        "intent": "TOPICAL_INQUIRY",
+        "navigation_suppressed_by_task_contract": True,
+    }
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.apply_terminal_response_contract(question, payload)

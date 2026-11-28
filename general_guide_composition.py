@@ -87,7 +87,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.58"
+CONTRACT_VERSION = "v1.59"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -192,7 +192,10 @@ def _requires_fresh_provider_composition(question: str) -> bool:
         r"\b(?:relationship|relate|related|connection|interplay|interact)\b",
         normalized,
     )
-    return bool(humility and maturity and relational)
+    return bool(
+        (humility and maturity and relational)
+        or is_source_provenance_question(question)
+    )
 
 
 def _composition_cache_key(
@@ -5178,41 +5181,69 @@ def enforce_response_contracts(question: str, response: str) -> str:
                 "One-sided team-conflict response failed the final context contract: "
                 + ",".join(one_sided_conflict_report.get("missing") or [])
             )
+
+    # The provider parser is an early admission check, not the final authority.
+    # Re-evaluate provenance after every deterministic recovery, sanitization,
+    # and visitor-language transformation so no later path can replace a
+    # question-specific answer with a fluent but unrelated response.
+    source_provenance_report = evaluate_source_provenance_response(question, candidate)
+    if source_provenance_report.get("applies") and not source_provenance_report.get("passed"):
+        missing = ",".join(source_provenance_report.get("missing") or [])
+        _emit_guide_outcome(
+            "final_source_provenance_rejected",
+            failed_checks=missing,
+            contract_version=source_provenance_report.get("version"),
+        )
+        raise RuntimeError(
+            "Final visitor response failed the mixed-source provenance contract: " + missing
+        )
+    if source_provenance_report.get("applies"):
+        _emit_guide_outcome(
+            "final_source_provenance_passed",
+            contract_version=source_provenance_report.get("version"),
+        )
     return candidate
 
 
 
 def apply_terminal_response_contract(question: str, payload: dict) -> dict:
-    """Re-apply context-sensitive conversational continuations to the final payload.
+    """Enforce answer contracts on the final payload independently of navigation.
 
-    This is deliberately called after the outer response-quality floor, immediately
-    before JSON serialization. Earlier composition can be rewritten by terminal
-    recovery and response-floor rebuilding, so it cannot be the only enforcement
-    point for an otherwise valid optional continuation.
+    This runs after the outer response-quality floor, immediately before JSON
+    serialization. Navigation suppression may omit a doorway, but it must never
+    bypass validation of the substantive visitor answer.
     """
     if not isinstance(payload, dict):
         return payload
     intent = str(payload.get("intent") or "").strip().upper()
     if intent in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
         return payload
-    if (
+
+    navigation_suppressed = bool(
         payload.get("navigation_suppressed_by_task_contract")
         or payload.get("processing") == "final_visitor_boundary_explicit_no_handoff"
         or payload.get("doorway_omission_reason") == "user_requested_no_further_reading"
-    ):
+    )
+    # Preserve established no-handoff payload identity for ordinary questions.
+    # Mixed-source provenance is the exception: omission of a doorway must not
+    # allow an unrelated substantive answer to bypass its task-specific contract.
+    if navigation_suppressed and not is_source_provenance_question(question):
         return payload
 
     response = str(payload.get("response") or payload.get("answer") or "").strip()
     if not response:
         return payload
-    contracted = enforce_response_contracts(question, response)
-    if contracted == response:
-        return payload
 
-    finalized = dict(payload)
-    finalized["response"] = contracted
-    if "answer" in finalized:
-        finalized["answer"] = contracted
+    contracted = enforce_response_contracts(question, response)
+    finalized = payload
+    if contracted != response:
+        finalized = dict(payload)
+        finalized["response"] = contracted
+        if "answer" in finalized:
+            finalized["answer"] = contracted
+
+    # Navigation-suppression flags affect only optional doorway rendering;
+    # they do not alter or bypass the validated substantive answer.
     return finalized
 
 def _has_responsibility_boundary_explanation(response: str) -> bool:
@@ -6185,7 +6216,7 @@ def compose(
                 objective_integrity_instruction=objective_integrity_instruction,
             ),
             max_tokens=750,
-            parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
+            parse=_parse_factory(documents, question, gold_star_quality.get("candidates") if gold_star_quality else None),
             schema=provider_schema,
             deadline_monotonic=provider_deadline_monotonic,
         )
@@ -6246,7 +6277,7 @@ def compose(
                     max_tokens=750,
                     parse=_parse_factory(
                         documents,
-                        effective_question,
+                        question,
                         None,
                     ),
                     schema=_build_provider_composition_schema(
@@ -6466,7 +6497,7 @@ def compose(
                     max_tokens=750,
                     parse=_parse_factory(
                         documents,
-                        effective_question,
+                        question,
                         None,
                     ),
                     schema=_build_provider_composition_schema(None),
