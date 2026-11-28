@@ -1892,7 +1892,7 @@ def _digital_archiving_candidate_fit(query, doc):
     # These markers identify the archival domain or a recognized archival
     # method; generic context/history/system vocabulary is deliberately absent.
     return bool(re.search(
-        r"\b(?:digital\s+archives?|archival|recordkeeping|records\s+management|"
+        r"\b(?:digital\s+archives?|living\s+archives?|archiv(?:al|es?)|recordkeeping|records\s+management|"
         r"digital\s+preservation|provenance|metadata|original\s+order|"
         r"custody\s+history|collection\s+arrangement)\b",
         candidate,
