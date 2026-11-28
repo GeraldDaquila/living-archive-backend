@@ -27,7 +27,6 @@ def test_successor_completes_operational_sequence_and_actionable_doorway():
     assert item["doorway_status"] == "NOT_EVALUATED"
     assert item["expected_doorway"] is None
     assert "capacity-and-commitment map" in item["expected_next_step"]
-    assert item["expected_doorway"]
 
 
 def test_question_contract_is_narrow_and_excludes_adjacent_questions():
