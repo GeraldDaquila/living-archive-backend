@@ -6356,7 +6356,7 @@ def compose(
                     max_tokens=750,
                     parse=_parse_factory(
                         documents,
-                        question,
+                        effective_question,
                         None,
                     ),
                     schema=_build_provider_composition_schema(None),
