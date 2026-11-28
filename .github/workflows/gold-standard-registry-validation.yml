@@ -23,6 +23,7 @@ on:
       - "scripts/qa/report_gold_standard_registry.py"
       - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
       - "tests/test_gold_standard_registry.py"
+      - "tests/test_general_guide_wise_transition_societal_capacities_2026_11_28_gold_star.py"
       - "docs/qa/SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md"
       - "tests/test_system_wide_orientation_standard.py"
       - "docs/qa/ECOSYSTEM_ORIENTATION_AUDIT_BASELINE.md"
@@ -92,7 +93,7 @@ jobs:
           python -m json.tool docs/qa/gold_standard_registry.json > /dev/null
           python -m pip install --upgrade pytest
           python scripts/validate_gold_star_registry.py
-          python -m pytest -q tests/test_gold_standard_registry.py tests/test_event_pattern_structure_contract.py tests/test_gold_star_lessons.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_remedy_selection.py tests/test_gold_star_qualitative_transfer_review.py tests/test_gold_star_transferability_map.py tests/test_public_commons_civic_renewal_gold_star_registry.py tests/test_live_guide_gold_standard_capture.py tests/test_system_wide_orientation_standard.py tests/test_ecosystem_orientation_audit_baseline.py
+          python -m pytest -q tests/test_gold_standard_registry.py tests/test_event_pattern_structure_contract.py tests/test_gold_star_lessons.py tests/test_general_guide_wise_transition_societal_capacities_2026_11_28_gold_star.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_remedy_selection.py tests/test_gold_star_qualitative_transfer_review.py tests/test_gold_star_transferability_map.py tests/test_public_commons_civic_renewal_gold_star_registry.py tests/test_live_guide_gold_standard_capture.py tests/test_system_wide_orientation_standard.py tests/test_ecosystem_orientation_audit_baseline.py
       - name: Generate registry and application identity report
         env:
           QA_APPLICATION_COMMIT: ${{ github.sha }}
