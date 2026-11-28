@@ -9924,9 +9924,81 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial was requested.",
       "doorway_note": "Continue Exploring: From Contraction to Capacity. The screenshot establishes the visible title and explanatory copy, not a canonical URL. Doorway status remains NOT_EVALUATED."
+    },
+    {
+      "benchmark_id": "general-guide-society-resilience-integrative-systems-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What makes a society resilient?",
+      "expected_response": "A society is resilient when it can absorb disruption, maintain the functions people depend on, reorganize when existing arrangements no longer work, and learn its way into changed conditions. Resilience does not always mean returning to the previous state: if that state contained serious vulnerabilities or inequities, recovery should reduce them rather than restore them unchanged. It is a property of an interconnected system, not a virtue that any one institution or group can supply alone. Ecological foundations sustain food, water, health, and livelihoods; economies and infrastructure move essential goods and services; institutions coordinate decisions and resources; and social and cultural networks help people interpret events, preserve knowledge, and act together.\n\nThese parts reinforce one another through identifiable mechanisms. Diversity gives a society more than one way to meet a need; redundancy provides alternatives when a critical service fails; and modularity can prevent a local failure from spreading unchecked. Trust and legitimate institutions help information travel and resources reach people, while shared meaning, cultural memory, and education help communities interpret signals, coordinate action, and carry lessons across generations. Feedback makes emerging problems visible, and learning turns experience into revised practices and rules. The reverse is also true: concentrated dependencies, brittle infrastructure, misinformation, exclusion, or loss of institutional legitimacy can weaken coordination and turn one shock into cascading failures. Exposure and recovery capacity are rarely equal, so a society cannot be called resilient simply because some groups or sectors recover while others bear lasting damage.\n\nA practical assessment asks whether essential services can continue or be restored; whether there are alternative sources, routes, skills, and decision channels; whether reliable information and public feedback reach decision-makers; whether people most exposed to harm can obtain support and influence recovery; and whether institutions retain and act on lessons. Look for continuity of essential functions, speed and fairness of recovery, the ability to adapt without sacrificing ecological foundations, and evidence that repeated disruptions produce learning rather than repeated failure. The exact mix differs by place and threat. The underlying test is whether the society can keep coordinating, protect the conditions that sustain life, distribute recovery fairly, and change course when evidence shows that its old arrangements are no longer adequate.",
+      "expected_doorway": {
+        "title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+        "url": "https://geralddaquila.com/2026/09/28/collective-nervous-systems-how-cultures-regulate-human-coherence/",
+        "rationale": "This published Living Archive essay directly examines how shared information, meaning, trust, cultural memory, feedback, and coordination help societies adapt and maintain resilience. It is a cross-scale continuation of the question about the conditions that make a society resilient."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating": null,
+      "assistant_assessment_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER AUTHORIZED GOLD STAR — STRUCTURALLY CORRECTED SUCCESSOR; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user explicitly instructed “preserve as near-miss. fix structurally and turn this into a gold star” on 2026-11-28 after reviewing the exact live visitor-facing screenshot. This authorizes the structurally corrected successor as a separate immutable standalone response-quality exemplar; the original response remains preserved as a near-miss.",
+      "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+      "runtime_transfer": false,
+      "reasoning_family": "society-level-resilience-and-collective-adaptation",
+      "transferable_lesson": "Explain resilience as a cross-scale property of interdependent social systems. Identify how ecological foundations, economic and infrastructure systems, institutions, social and cultural networks interact; explain diversity, redundancy, modularity, trust, legitimacy, shared meaning, cultural memory, feedback, and learning as mechanisms; surface dependencies, cascading failures, unequal exposure, and unequal recovery; and offer practical indicators of continuity, fair recovery, ecological integrity, adaptation, and institutional learning. Do not assume resilience means restoring an unchanged prior state.",
+      "transfer_boundary": "Standalone response-quality exemplar only. Transfer the bounded systems-reasoning discipline to society-level resilience questions; do not copy the exact answer to unrelated questions or impose this framework on individual resilience, business continuity, or ecology-only resilience questions. No exact-answer authority, deterministic fallback eligibility, or active runtime/adaptive transfer is authorized.",
+      "known_theme": "societal resilience; social systems; ecological foundations; economic diversity; infrastructure; redundancy; modularity; trust; legitimacy; collective coordination; shared meaning; cultural memory; feedback; institutional learning; cascading failures; unequal exposure; equitable recovery",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "society-level-resilience-and-collective-adaptation",
+        "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. Explain resilience through cross-system causal relationships and mechanisms, not a list of factors. Account for cascading failures, unequal vulnerability, and learning-led adaptation.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved successor as a response-quality exemplar only. Do not copy it verbatim to unrelated questions, and do not infer Archive-specific doctrine from a general explanation. No exact-answer authority, deterministic fallback, or active runtime/adaptive transfer is authorized.",
+        "standalone_response_quality_exemplar": true
+      },
+      "assertions": [
+        "Define societal resilience as the capacity to absorb disruption, maintain essential functions, reorganize, and learn/adapt; do not equate it with returning unchanged to a harmful baseline.",
+        "Explain the interdependence of ecological foundations, economies, infrastructure, institutions, and social and cultural networks.",
+        "Explain diversity, redundancy, and modularity as distinct mechanisms that create alternatives and contain local failures.",
+        "Show how trust, legitimate institutions, shared meaning, cultural memory, education, feedback, and learning enable collective coordination.",
+        "Explain how concentrated dependencies, brittle infrastructure, misinformation, exclusion, and loss of legitimacy can create cascading failures.",
+        "Recognize that exposure and recovery capacity are unequal; do not call a society resilient merely because some groups or sectors recover.",
+        "Offer practical diagnostic questions and indicators for essential-service continuity, alternative channels, reliable information, equitable support, ecological integrity, adaptation, and institutional learning.",
+        "Keep the substantive explanation complete and separate from the optional Continue Exploring doorway.",
+        "Use the verified Collective Nervous Systems essay as a related cross-scale continuation, not as the claimed source of every statement in the general explanation.",
+        "Preserve the original screenshot response as a near-miss; do not overwrite it or attach its weak individual-self doorway to the corrected successor.",
+        "Do not claim provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit user authorization to preserve the original as a near-miss and elevate the structurally corrected successor.",
+        "source_path": "conversation attachment image(20261128-040043).png",
+        "source_date": "2026-11-28",
+        "live_surface": "Guide visitor-facing Search response",
+        "evidence_boundary": "The screenshot establishes the exact question, original two-paragraph response, and separate Continue Exploring card with the visible title “The Architecture of Self-Esteem: Building a Resilient Sense of Self” and its explanatory copy. The successor is the structurally corrected response-quality exemplar. The corrected doorway and published canonical permalink were separately verified through the connected Living Archive WordPress source. The screenshot does not establish provider invocation provenance, active adaptive transfer, or measured visitor outcomes.",
+        "visible_continuation_title": "The Architecture of Self-Esteem: Building a Resilient Sense of Self",
+        "visible_continuation_copy": "This related Living Archive resource offers a further point of exploration for the subject raised in your question. It is a separate reading pathway, not a claim that the page is the source of every statement in the answer.",
+        "canonical_doorway_verification": {
+          "source": "Published WordPress post retrieved through the connected Living Archive WordPress source",
+          "post_id": 57155,
+          "status": "publish",
+          "title": "Collective Nervous Systems: How Cultures Regulate Human Coherence",
+          "url": "https://geralddaquila.com/2026/09/28/collective-nervous-systems-how-cultures-regulate-human-coherence/",
+          "verification": "Published post title, status, and canonical permalink verified; its content explicitly connects cultural meaning, trust, information flow, memory, coordination, and societal resilience."
+        },
+        "review_assessment": "Assistant assessment: 9.5/10. This is an assistant assessment, not a user-assigned numerical rating."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+      "doorway_note": "Continue Exploring: Collective Nervous Systems: How Cultures Regulate Human Coherence. The published post is a verified continuation on societal resilience. The original individual-self doorway is preserved only as near-miss evidence and is not attached to the corrected successor.",
+      "rating_out_of_10": null
     }
   ],
-  "last_reconciliation_note": "2026-11-28: Added general-guide-restoration-capacity-contraction-2026-11-28 as an immutable standalone response-quality exemplar after explicit user approval of the exact live visitor-facing screenshot. The visible Continue Exploring title is preserved without inferring a canonical URL. Record-derived inventory: 196 total records, 155 approved Gold Stars, 139 active runtime-transfer contributors, 14 approved response-quality exemplars (13 standalone). This approval does not establish provider provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+  "last_reconciliation_note": "2026-11-28: Added general-guide-society-resilience-integrative-systems-2026-11-28 as an immutable standalone response-quality exemplar after explicit user authorization to preserve the original response as a near-miss and elevate the structurally corrected successor. The original individual-self doorway is preserved as near-miss evidence; the corrected successor uses a separately verified canonical Collective Nervous Systems continuation. Record-derived inventory: 197 total records, 156 approved Gold Stars, 139 active runtime-transfer contributors, and 15 approved response-quality exemplars (14 explicitly flagged as standalone). This approval does not establish provider provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -10170,22 +10242,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 155,
-    "registry_record_count": 196,
-    "review_reconciliation": "Canonical inventory contains 155 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 16 approved non-runtime records, including 14 response-quality exemplars (13 explicitly flagged as standalone). The restoration-capacity response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "approved_gold_star_count": 156,
+    "registry_record_count": 197,
+    "review_reconciliation": "Canonical inventory contains 156 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 17 approved non-runtime records, including 15 response-quality exemplars (14 explicitly flagged as standalone). The society-resilience response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 155 approved Gold Stars; 39 assigned display serials; 116 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the restoration-capacity response-quality exemplar.",
-    "unassigned_approved_gold_star_count": 116,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 156 approved Gold Stars; 39 assigned display serials; 117 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the society-resilience response-quality exemplar.",
+    "unassigned_approved_gold_star_count": 117,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-restoration-capacity-contraction-2026-11-28 approved by user 2026-11-28",
+    "last_approval": "general-guide-society-resilience-integrative-systems-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 14
+    "approved_response_quality_exemplar_count": 15
   },
   "last_reconciled": "2026-11-28"
 }
