@@ -9799,14 +9799,14 @@
         "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit user authorization to preserve the original as a near-miss and elevate the structurally corrected successor.",
         "source_date": "2026-11-28",
         "live_surface": "Guide visitor-facing Search response",
-        "evidence_boundary": "The screenshot establishes the exact question, original three-paragraph response, and separate Continue Exploring card with its visible title and explanatory copy. The successor is the structurally corrected response-quality exemplar. The screenshot does not establish provider invocation provenance, canonical doorway URL, active adaptive transfer, or measured visitor outcomes.",
-        "visible_continuation_title": "Technology Must Remain in Service to Life",
-        "visible_continuation_copy": "This resource offers a related perspective on the question you have raised, and a useful next step if you would like to explore the topic further in the Living Archive."
+        "evidence_boundary": "The screenshot establishes the exact question, original three-paragraph response, and separate Continue Exploring card with the visible title “Temple of Joy: Reclaiming Pleasure as a Planetary Service Code” and its explanatory copy. The successor is the structurally corrected response-quality exemplar. The screenshot does not establish provider invocation provenance, canonical doorway URL, active adaptive transfer, or measured visitor outcomes.",
+        "visible_continuation_title": "Temple of Joy: Reclaiming Pleasure as a Planetary Service Code",
+        "visible_continuation_copy": "This related Living Archive resource offers a further point of exploration for the subject raised in your question. It is a separate reading pathway, not a claim that the page is the source of every statement in the answer."
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
-      "doorway_note": "Continue Exploring: Technology Must Remain in Service to Life. The screenshot establishes the visible title and explanatory copy, not a canonical URL.",
+      "doorway_note": "Continue Exploring: Temple of Joy: Reclaiming Pleasure as a Planetary Service Code. The screenshot establishes the visible title and explanatory copy, not a canonical URL. Doorway relevance remains unevaluated.",
       "rating_out_of_10": null
     }
   ],
