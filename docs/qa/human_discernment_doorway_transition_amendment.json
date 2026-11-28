@@ -1,0 +1,19 @@
+{
+  "amendment_id": "human-discernment-doorway-transition-v2-2026-11-28",
+  "benchmark_id": "general-guide-human-discernment-ai-governance-2026-11-28",
+  "linked_near_miss_benchmark_id": "general-guide-human-discernment-ai-support-near-miss-2026-11-28",
+  "status": "USER_APPROVED_GOLD_STANDARD_SUCCESSOR_AMENDMENT",
+  "approved_at": "2026-11-28",
+  "purpose": "Replace the abrupt Doorway label with a reasoned, visitor-facing transition that connects the answer's governing principle to a relevant next inquiry.",
+  "expected_response": "AI should extend human capacity without acquiring authority over human purposes or decisions. It can help people notice patterns, organize information, compare options, test assumptions, and see questions they might otherwise miss. But its outputs are proposals to examine, not conclusions that become trustworthy simply because they are fluent, fast, or confidently presented. AI can assist with analysis; it cannot take responsibility for deciding what matters or what ought to be done.\n\nHuman discernment begins before the final choice. People must frame the question, identify the values and obligations at stake, understand the context, and ask whose interests or experience may be missing. They must then examine the quality and limits of the AI's contribution: check important claims against reliable evidence, distinguish facts from inference, consider alternative explanations, notice uncertainty and bias, and ask what consequences each option could impose. The greater the stakes or irreversibility, the stronger the evidence and independent scrutiny should be. A useful test is: what would change our assessment, who bears the risk if this is wrong, and what have we not yet considered?\n\nThe division of responsibility must remain clear. AI may inform, challenge, and expand the field of possible action; people and legitimate institutions must determine the purposes, set the boundaries, make or authorize consequential decisions, and remain answerable for their effects. In an organization, that means naming a human decision owner, recording the evidence and reasoning behind consequential uses, providing a way to question or appeal an AI-influenced decision, and monitoring outcomes so errors can be corrected. Human oversight is not meaningful if people merely approve recommendations they cannot understand or challenge. The aim is not to keep humans ceremonially in the loop, but to preserve informed agency, contestability, and accountability. AI should make human judgment better equipped—not make human responsibility disappear.\n\nTo explore the wider implications of this practice, continue with the related Living Archive resource, *Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill*.",
+  "doorway_transition": "To explore the wider implications of this practice, continue with the related Living Archive resource, *Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill*.",
+  "doorway_status": "TITLE_VISIBLE_IN_USER_SUPPLIED_SCREENSHOT; CANONICAL_URL_NOT_INDEPENDENTLY_VERIFIED",
+  "evidence_boundary": "The screenshot supports the visible title and the existence of the related-resource presentation only. This amendment does not invent a URL or claim the resource is the source of every statement in the answer.",
+  "integrity_rules": [
+    "Preserve the original visitor response unchanged as a RECOVERED_REGRESSION_SCENARIO near-miss.",
+    "Keep the successor separate from the near-miss.",
+    "Do not grant exact-answer authority, deterministic fallback, or runtime/adaptive transfer.",
+    "Do not allocate a display serial without separate authorization.",
+    "Treat this amendment as a versioned refinement of the approved response-quality exemplar."
+  ]
+}
