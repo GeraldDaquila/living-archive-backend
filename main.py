@@ -586,10 +586,33 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:consequential|consequence|stakes|significant|matter)\w*\b", text, re.I)
     ):
         return "consequential_action_under_uncertainty"
+    # Digital-archive questions about preserving context need a continuation
+    # that directly addresses the difference between storing records and
+    # connecting knowledge relationally. Require the domain plus a context/
+    # preservation signal; generic mentions of archives alone do not qualify.
+    digital_archive_context_preservation = (
+        re.search(r"\bdigital\s+archives?\b", text, re.I)
+        and re.search(r"\b(?:preserv\w*|retain\w*|maintain\w*)\b", text, re.I)
+        and re.search(r"\b(?:context|provenance|metadata|relationship|relationships|connection|connections)\b", text, re.I)
+    )
+    if digital_archive_context_preservation:
+        return "digital_archive_context_preservation"
+
     return None
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "digital_archive_context_preservation": {
+        "title": "Living Archives: The Future of Knowledge May Be Relational, Not Linear",
+        "url": "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/",
+        "rationale": (
+            "This essay directly contrasts preserving and storing records with connecting knowledge "
+            "in ways that retain meaning and context. It explains how archives preserve records over "
+            "time while showing why relationships among information matter for understanding. It is "
+            "a relevant next step for considering why a digital archive should preserve context, not "
+            "merely accumulate content."
+        ),
+    },
     "stewardship_consent_relational_legitimacy": _stewardship_consent_doorway(),
     "extraordinary_claim_discernment": {
         "title": "Levels of Claim",
@@ -1847,6 +1870,36 @@ def _topic_anchor_groups(text):
     }
 
 
+def _digital_archiving_candidate_fit(query, doc):
+    """Require archival-domain evidence before a digital-archive doorway can qualify.
+
+    Generic words such as context, history, preservation, or systems can occur
+    in unrelated resources. When the visitor's subject is digital archiving,
+    the candidate must independently identify archival practice through a
+    distinctive domain marker in its title or body. This gate is shared by
+    retrieved documents and Guide Node fallbacks.
+    """
+    normalized_query = _normalize_query(query)
+    if not re.search(r"\bdigital\s+archives?\b|\bdigital\s+archiv\w*\b", normalized_query, re.I):
+        return True
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "")
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if not title.strip() or not body.strip():
+        return False
+    candidate = f"{title} {body[:6000]}"
+    # These markers identify the archival domain or a recognized archival
+    # method; generic context/history/system vocabulary is deliberately absent.
+    return bool(re.search(
+        r"\b(?:digital\s+archives?|living\s+archives?|archiv(?:al|es?)|recordkeeping|records\s+management|"
+        r"digital\s+preservation|provenance|metadata|original\s+order|"
+        r"custody\s+history|collection\s+arrangement)\b",
+        candidate,
+        re.I,
+    ))
+
+
 def _topic_specific_candidate_fit(query, doc):
     """Require substantive topic evidence for multi-concept public-system questions.
 
@@ -1953,6 +2006,8 @@ def _evaluate_outward_doc_eligibility(query, doc, profile, *, min_relevance=2):
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False, "invalid_title_or_canonical_url"
+    if not _digital_archiving_candidate_fit(query, doc):
+        return False, "digital_archiving_subject_mismatch"
     bridge_supported = _conceptual_bridge_supported(query, doc)
     if not _topic_specific_candidate_fit(query, doc) and not bridge_supported:
         return False, "topic_fit_missing"
@@ -6542,6 +6597,24 @@ def _guide_restore_verified_doorway(payload, query):
                 safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
                 safe["doorway_selection_evaluated"] = True
                 safe["doorway_selection_source"] = "reviewed_extraordinary_claim_discernment_family"
+                safe["doorway_omission_reason"] = None
+                safe["doorway_omission_exception_reason"] = None
+                return safe
+        if _family == "digital_archive_context_preservation":
+            _family_candidate = _normalize_authoritative_recommendation(
+                _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(_family)
+            )
+            if _family_candidate is not None:
+                safe["recommendation"] = _family_candidate
+                safe["canonical_doorway"] = _family_candidate
+                safe["authoritative_doorway"] = _family_candidate
+                safe["doorway_title"] = _family_candidate["title"]
+                safe["doorway_url"] = _family_candidate["url"]
+                safe["doorway_rationale"] = _family_candidate["rationale"]
+                safe["doorway_decision"] = "selected"
+                safe["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                safe["doorway_selection_evaluated"] = True
+                safe["doorway_selection_source"] = "reviewed_digital_archive_context_preservation_family"
                 safe["doorway_omission_reason"] = None
                 safe["doorway_omission_exception_reason"] = None
                 return safe
