@@ -87,7 +87,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.58"
+CONTRACT_VERSION = "v1.59"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -192,7 +192,10 @@ def _requires_fresh_provider_composition(question: str) -> bool:
         r"\b(?:relationship|relate|related|connection|interplay|interact)\b",
         normalized,
     )
-    return bool(humility and maturity and relational)
+    return bool(
+        (humility and maturity and relational)
+        or is_source_provenance_question(question)
+    )
 
 
 def _composition_cache_key(
@@ -5178,6 +5181,27 @@ def enforce_response_contracts(question: str, response: str) -> str:
                 "One-sided team-conflict response failed the final context contract: "
                 + ",".join(one_sided_conflict_report.get("missing") or [])
             )
+
+    # The provider parser is an early admission check, not the final authority.
+    # Re-evaluate provenance after every deterministic recovery, sanitization,
+    # and visitor-language transformation so no later path can replace a
+    # question-specific answer with a fluent but unrelated response.
+    source_provenance_report = evaluate_source_provenance_response(question, candidate)
+    if source_provenance_report.get("applies") and not source_provenance_report.get("passed"):
+        missing = ",".join(source_provenance_report.get("missing") or [])
+        _emit_guide_outcome(
+            "final_source_provenance_rejected",
+            failed_checks=missing,
+            contract_version=source_provenance_report.get("version"),
+        )
+        raise RuntimeError(
+            "Final visitor response failed the mixed-source provenance contract: " + missing
+        )
+    if source_provenance_report.get("applies"):
+        _emit_guide_outcome(
+            "final_source_provenance_passed",
+            contract_version=source_provenance_report.get("version"),
+        )
     return candidate
 
 
@@ -6185,7 +6209,7 @@ def compose(
                 objective_integrity_instruction=objective_integrity_instruction,
             ),
             max_tokens=750,
-            parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
+            parse=_parse_factory(documents, question, gold_star_quality.get("candidates") if gold_star_quality else None),
             schema=provider_schema,
             deadline_monotonic=provider_deadline_monotonic,
         )
