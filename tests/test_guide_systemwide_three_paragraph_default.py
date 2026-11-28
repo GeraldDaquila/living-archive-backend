@@ -1002,3 +1002,179 @@ def test_technology_solutionism_contract_preserves_complete_provider_composition
     complete = _technology_solutionism_ecological_recovery()
     assert has_technology_solutionism_ecological_explanation(complete)
     assert enforce_response_contracts(query, complete) == complete
+
+
+
+def test_society_resilience_question_family_is_specific_and_does_not_overmatch():
+    from deterministic_answer_recovery import is_society_resilience_question
+
+    assert is_society_resilience_question("What makes a society resilient?")
+    assert is_society_resilience_question("How can social systems recover from disruption and adapt?")
+    assert not is_society_resilience_question("How can I become more personally resilient?")
+    assert not is_society_resilience_question("How can a company improve business continuity?")
+    assert not is_society_resilience_question("What makes an ecosystem resilient after a wildfire?")
+    assert not is_society_resilience_question("How can technology improve workplace productivity?")
+
+
+def test_society_resilience_contract_replaces_factor_list_with_integrative_systems_explanation():
+    from deterministic_answer_recovery import (
+        _society_resilience_recovery,
+        has_society_resilience_explanation,
+        is_society_resilience_question,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "What makes a society resilient?"
+    generic = (
+        "A resilient society has strong institutions, a diversified economy, and good infrastructure. "
+        "It also needs social trust, community support, and access to healthcare and education.\n\n"
+        "These factors help people respond to crises and recover. Flexible governance can change policies "
+        "when conditions shift, while social networks help people support one another.\n\n"
+        "A society should invest in preparedness, learn from disruption, and maintain essential services."
+    )
+    expected = _society_resilience_recovery()
+    assert is_society_resilience_question(query)
+    assert has_society_resilience_explanation(expected)
+    assert enforce_response_contracts(query, generic) == expected
+    assert enforce_response_contracts(query, expected) == expected
+    assert "cascading failures" in expected
+    assert "shared meaning" in expected
+    assert "cultural memory" in expected
+    assert "recovery fairly" in expected
+    assert "does not always mean returning to the previous state" in expected
+
+
+def test_society_resilience_recovery_is_registered_with_verified_archive_doorway():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_society_resilience_question,
+        registered_recovery_recommendation,
+        _society_resilience_recovery,
+    )
+
+    query = "What makes a society resilient?"
+    assert is_society_resilience_question(query)
+    assert has_registered_recovery(query)
+    assert compose_recovery(query) == _society_resilience_recovery()
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/09/28/"
+        "collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    )
+    assert "cultural memory" in doorway["rationale"]
+
+
+def test_society_resilience_deterministic_route_preserves_answer_and_canonical_doorway():
+    from main import _basic_inquiry_round1_deterministic_response
+    from deterministic_answer_recovery import _society_resilience_recovery
+
+    query = "What makes a society resilient?"
+    result = _basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=True
+    )
+    assert result["response"] == _society_resilience_recovery()
+    assert result["recommendation"]["title"] == (
+        "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    )
+    assert result["recommendation"]["url"] == (
+        "https://geralddaquila.com/2026/09/28/"
+        "collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    )
+
+
+def test_society_resilience_provider_prompt_carries_cross_system_reasoning_contract():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert source.count("SOCIETY-LEVEL RESILIENCE:") == 2
+    for term in (
+        "ecological foundations", "diversity, redundancy, modularity", "cascading failures",
+        "unequal exposure", "cultural memory", "fair recovery", "institutional learning",
+    ):
+        assert term in source
+
+
+
+def test_society_resilience_terminal_visitor_boundary_preserves_answer_and_verified_doorway():
+    import main
+    from deterministic_answer_recovery import (
+        _society_resilience_recovery,
+        registered_recovery_recommendation,
+    )
+
+    query = "What makes a society resilient?"
+    doorway = registered_recovery_recommendation(query)
+    provider_payload = {
+        "ok": True,
+        "response": "A resilient society has strong institutions, a diverse economy, and good infrastructure.",
+        "recommendation": doorway,
+        "canonical_doorway": doorway,
+        "doorway_title": doorway["title"],
+        "doorway_url": doorway["url"],
+        "doorway_rationale": doorway["rationale"],
+    }
+    finalized = main._guide_finalize_visitor_payload(provider_payload, query)
+    assert finalized["response"] == _society_resilience_recovery()
+    assert finalized["recommendation"]["title"] == doorway["title"]
+    assert finalized["recommendation"]["url"] == doorway["url"]
+    assert finalized["canonical_doorway"]["url"] == doorway["url"]
+    assert finalized["doorway_url"] == doorway["url"]
+
+
+
+def test_society_resilience_terminal_boundary_preserves_a_provider_answer_that_meets_contract():
+    import main
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "What makes a society resilient?"
+    provider_answer = (
+        "Societal resilience is the capacity to absorb shocks and disruption, keep essential services operating, "
+        "reorganize when needed, and adapt through learning. Ecological systems, economic networks, infrastructure, "
+        "public institutions, and cultural and social relationships are interdependent; no single sector can secure "
+        "resilience on its own.\n\n"
+        "A range of supply sources, backup capacity, and modular services can limit the spread of failures. Trust and "
+        "legitimate coordination allow people to share reliable information and mobilize resources; shared meaning and "
+        "cultural memory help communities interpret events and carry lessons forward. Feedback loops support correction, "
+        "while concentrated dependencies and exclusion can trigger cascading failures and leave unequal exposure and "
+        "recovery.\n\n"
+        "Assess resilience by asking whether essential services can continue, whether alternatives exist, whether affected "
+        "people can access support and shape decisions, and whether institutions learn. Indicators include continuity, "
+        "fair recovery, ecological integrity, adaptation, and whether repeated shocks lead to better arrangements rather "
+        "than restoring harmful conditions."
+    )
+    doorway = registered_recovery_recommendation(query)
+    finalized = main._guide_finalize_visitor_payload(
+        {
+            "ok": True,
+            "response": provider_answer,
+            "recommendation": doorway,
+            "canonical_doorway": doorway,
+        },
+        query,
+    )
+    assert finalized["response"] == provider_answer
+    assert finalized["recommendation"]["url"] == doorway["url"]
+
+
+def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
+    import main
+    from deterministic_answer_recovery import _society_resilience_recovery
+
+    query = "What makes a society resilient?"
+    finalized = main._guide_finalize_visitor_payload(
+        {
+            "ok": True,
+            "response": "A resilient society has strong institutions and good infrastructure.",
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_decision": "omit",
+            "processing": "final_visitor_boundary_explicit_no_handoff",
+            "navigation_suppressed_by_task_contract": True,
+        },
+        query,
+    )
+    assert finalized["response"] == _society_resilience_recovery()
+    assert finalized["recommendation"] is None
+    assert finalized["canonical_doorway"] is None
+    assert finalized["doorway_url"] is None
+    assert finalized["doorway_decision"] == "omit"

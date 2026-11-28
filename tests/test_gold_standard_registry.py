@@ -2711,11 +2711,11 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 157
-    assert len(registry["records"]) == 198
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 157
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 118
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 16
+    assert len(approved) == 158
+    assert len(registry["records"]) == 199
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2831,8 +2831,48 @@ def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star(
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 157
-    assert len(registry["records"]) == 198
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 157
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 118
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 16
+    assert len(approved) == 158
+    assert len(registry["records"]) == 199
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17
+
+
+
+def test_society_resilience_gold_star_registry_record_preserves_verified_successor_and_scope():
+    import json
+
+    path = ROOT / "docs" / "qa" / "gold_standard_registry.json"
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-society-resilience-integrative-systems-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What makes a society resilient?"
+    assert record["expected_response"].startswith("A society is resilient when it can absorb disruption")
+    assert "cascading failures" in record["expected_response"]
+    assert "cultural memory" in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/09/28/collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["provenance"]["canonical_doorway_verification"]["post_id"] == 57155
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.5
+    assert record["rating"] is None
+    assert record["rating_out_of_10"] is None
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 158
+    assert len(registry["records"]) == 199
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 158
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 119
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 17

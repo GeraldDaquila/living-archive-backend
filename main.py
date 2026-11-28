@@ -78,6 +78,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import deterministic_answer_recovery
 import gold_star_evaluation_runner as _gold_star_eval_runner
 
 # The outer visitor boundary and shared finalizer must emit through the same
@@ -8864,6 +8865,63 @@ def _guide_finalize_visitor_payload(payload, query):
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
         finalized = _apply_stewardship_consent_relationship_boundary(query, finalized)
+    from deterministic_answer_recovery import (
+        is_society_resilience_question,
+        has_society_resilience_explanation,
+        _society_resilience_recovery,
+        registered_recovery_recommendation,
+    )
+    if is_society_resilience_question(query):
+        # Terminal society-resilience contract: specialist finalizers above may
+        # rewrite the response after the main composition boundary. Preserve a
+        # substantive provider answer when it meets the contract; repair only a
+        # weak or incomplete candidate at the last visitor-delivery boundary.
+        _society_candidate = _sanitize_basic_inquiry_response(
+            str(finalized.get("response") or finalized.get("answer") or "")
+        )
+        if not has_society_resilience_explanation(
+            _society_candidate
+        ):
+            _society_candidate = _society_resilience_recovery()
+        finalized["response"] = _society_candidate
+        if "answer" in finalized:
+            finalized["answer"] = _society_candidate
+
+        # Answer quality still applies when the visitor explicitly declines a
+        # continuation. Only the doorway is suppressed by that separate choice.
+        _explicit_no_handoff = (
+            finalized.get("processing") == "final_visitor_boundary_explicit_no_handoff"
+            or bool(finalized.get("navigation_suppressed_by_task_contract"))
+        )
+        if _explicit_no_handoff:
+            # Clear any earlier generic fallback doorway; merely declining to add
+            # this family doorway would leave a stale recommendation visible.
+            finalized["recommendation"] = None
+            finalized["canonical_doorway"] = None
+            finalized["authoritative_doorway"] = None
+            finalized["doorway_title"] = None
+            finalized["doorway_url"] = None
+            finalized["doorway_rationale"] = None
+            finalized["doorway_decision"] = "omit"
+            finalized["doorway_selection_status"] = "SUPPRESSED_BY_EXPLICIT_NO_HANDOFF"
+            finalized["doorway_selection_evaluated"] = True
+            finalized["doorway_selection_source"] = "explicit_no_handoff"
+            finalized["doorway_omission_reason"] = "user_requested_no_further_reading"
+            finalized["doorway_omission_exception_reason"] = None
+        else:
+            _society_doorway = registered_recovery_recommendation(query)
+            if _society_doorway:
+                finalized["recommendation"] = _society_doorway
+                finalized["canonical_doorway"] = _society_doorway
+                finalized["doorway_title"] = _society_doorway["title"]
+                finalized["doorway_url"] = _society_doorway["url"]
+                finalized["doorway_rationale"] = _society_doorway["rationale"]
+                finalized["doorway_decision"] = "selected"
+                finalized["doorway_selection_status"] = "VERIFIED_RELEVANT_DESTINATION"
+                finalized["doorway_selection_evaluated"] = True
+                finalized["doorway_selection_source"] = "registered_society_resilience_contract"
+                finalized["doorway_omission_reason"] = None
+                finalized["doorway_omission_exception_reason"] = None
     return _finish_gold_star_delivery_trace(finalized)
 
 
@@ -12787,6 +12845,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # does not pay for general discovery and then discard that work for recovery.
     healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
     trust_stewardship_short_circuit = _is_trust_community_stewardship_question(query)
+    society_resilience_short_circuit = deterministic_answer_recovery.is_society_resilience_question(query)
     # Explicit homepage navigation is a deterministic site-level destination,
     # not a subject-discovery request. Resolve it before retrieval/composition
     # so provider variance cannot suppress a clearly requested homepage.
@@ -12937,6 +12996,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
     # These are answer-first explanatory intents, not pure subject-finding requests.
     if healthy_community_short_circuit or trust_stewardship_short_circuit:
         discovery_subject = ""
+    if society_resilience_short_circuit:
+        discovery_subject = ""
     # Resolve bounded public concepts before retrieval, not after it. A stable
     # orientation answer must never erase the visitor's opportunity to discover
     # how that same concept appears inside the Living Archive.
@@ -13026,6 +13087,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
         # Repeating broad searches cannot improve the already approved destination.
         authoritative_doorway = _normalize_authoritative_recommendation(
             _trust_community_stewardship_canonical_recommendation(query, context_data)
+        )
+    elif society_resilience_short_circuit:
+        # The societal-resilience inquiry has a verified cross-scale continuation.
+        # Keep this distinct from the original, weakly related individual-self doorway.
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            deterministic_answer_recovery.registered_recovery_recommendation(query)
         )
     else:
         _doorway_context = dict(context_data)
@@ -14044,6 +14111,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             # Preserve the early approved doorway; do not clear it merely because
             # the redundant late recovery is intentionally skipped.
             composition_context["authoritative_doorway"] = authoritative_doorway
+
+    if society_resilience_short_circuit:
+        # Reassert the reviewed society-level doorway at the terminal topic boundary.
+        # The answer remains independently validated by enforce_response_contracts below.
+        _society_doorway = deterministic_answer_recovery.registered_recovery_recommendation(query)
+        if _society_doorway:
+            authoritative_doorway = _normalize_authoritative_recommendation(_society_doorway)
+            archive_evidence_unavailable = False
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context.pop("evidence_sufficiency_unavailable", None)
 
     # Single owner for the responsibility-boundary answer contract. This runs
     # after all generation, discovery, sanitization, and topic-specific rewrites,

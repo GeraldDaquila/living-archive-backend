@@ -391,6 +391,16 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "rebound effects, non-technological alternatives, affected communities, accountable governance, monitoring, and correction. "
             "Avoid both techno-utopian claims and blanket rejection."
         )
+    society_resilience = (
+        has(r"\b(?:societ\w*|social systems?|communities|community|civic systems?|public institutions?)\b")
+        and has(r"\b(?:resilien\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\b")
+        and not has(r"\b(?:personal resilience|individual resilience|business continuity|organizational continuity)\b")
+    )
+    if society_resilience:
+        rendered += (
+            "\n\nSOCIETY-LEVEL RESILIENCE:\n"
+            "Define resilience as the capacity to absorb disruption, maintain essential functions, reorganize, and learn/adapt; do not equate it with returning unchanged to a harmful baseline. Explain causal interactions across ecological foundations, economy, infrastructure, institutions, social networks, and culture. Show how diversity, redundancy, modularity, trust, legitimacy, shared meaning, cultural memory, feedback, and learning enable coordination; explain dependencies, cascading failures, unequal exposure, and unequal recovery. Give practical diagnostic indicators for continuity, fair recovery, ecological integrity, adaptation, and institutional learning. Avoid a factor list without mechanisms or a universal prescription."
+        )
     # Attach the reciprocal mechanism directly for this named concept pair;
     # do not rely on optional-module paragraph classification.
     if (
@@ -785,6 +795,9 @@ TASK-DEPENDENT REASONING CONTRACT (system-wide, including recovery paths):
 COMMUNITY PROJECT TRADE-OFF QUESTIONS:
 TECHNOLOGY-SOLUTIONISM / ECOLOGY:
 Say directly: technology can help, but cannot solve ecological crises alone. Connect outcomes to production/consumption, land use, incentives, externalized costs, and governance. Assess life-cycle energy/materials, mining, water, waste, soil, biodiversity, and rebound effects. Compare technical options with demand reduction, practice change, ecosystem protection, and restoration. Keep affected communities, accountability, monitoring, and correction visible; avoid techno-utopian and blanket anti-technology claims.
+
+SOCIETY-LEVEL RESILIENCE:
+For society-level resilience questions, explain how ecological foundations, economic and infrastructure systems, institutions, social networks, and cultural meaning interact. Define resilience as absorbing disruption, maintaining essential functions, reorganizing, and learning/adapting—not automatically restoring the previous state. Explain mechanisms such as diversity, redundancy, modularity, trust, legitimacy, shared meaning, cultural memory, feedback, and institutional learning. Address dependencies, cascading failures, unequal exposure and recovery, and give practical indicators for continuity, fair recovery, ecological integrity, and adaptive capacity. Do not merely list factors or impose a universal formula.
 
 When a visitor asks what questions reveal trade-offs in a community project or infrastructure proposal, do not repeat the question or offer a generic process checklist. Address the dimensions the visitor names. For ecological effects, ask about site, land, water, habitats, biodiversity, full life-cycle impacts, cumulative effects, and decommissioning. For economic effects, ask who finances, owns, pays, receives jobs or revenue, bears risk, and benefits over time. For cultural effects, ask about heritage, identity, customary access, sacred or ancestral places, livelihoods, local knowledge, and whose definition of loss is heard. For governance, ask who proposes and decides, who is represented, whether participation can shape the outcome, what rights and consent apply, how conflicts of interest are handled, and what review or grievance routes exist. Then compare realistic alternatives, including no project, identify who gains and who bears residual costs, distinguish avoidable from irreversible harm, and specify monitoring and conditions for correction. Do not assume the project is beneficial or harmful without case-specific evidence. Organize the response as grouped questions under the relevant ecological, economic, cultural, and governance dimensions, followed by a concise comparison of alternatives, distribution, rights, monitoring, and revisability when that structure serves the request. Keep the questions concrete and answer the visitor's request for questions.
 
@@ -4740,6 +4753,16 @@ def enforce_response_contracts(question: str, response: str) -> str:
         and not has_technology_solutionism_ecological_explanation(candidate)
     ):
         candidate = _technology_solutionism_ecological_recovery()
+    from deterministic_answer_recovery import (
+        is_society_resilience_question,
+        has_society_resilience_explanation,
+        _society_resilience_recovery,
+    )
+    if (
+        is_society_resilience_question(question)
+        and not has_society_resilience_explanation(candidate)
+    ):
+        candidate = _society_resilience_recovery()
     # Preserve an answerable general explanation when a provider over-abstains.
     from guide_answerability import (
         is_reality_vs_ideology_leadership_question,
