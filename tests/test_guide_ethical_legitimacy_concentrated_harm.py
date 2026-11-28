@@ -33,7 +33,7 @@ def test_concentrated_harm_question_gets_ethical_frame_before_boundary_analysis(
 
 def test_trigger_handles_close_paraphrase():
     result = compose_task_specific_recovery(
-        "When a lawful, widely supported policy places disproportionate costs on a small community, "
+        "When a lawful, widely supported policy places disproportionate harm on a minority community, "
         "how can we assess its ethical legitimacy without claiming the Archive decides?"
     )
     assert result is not None
