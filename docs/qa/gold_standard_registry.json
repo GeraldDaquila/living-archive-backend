@@ -10358,7 +10358,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 160,
     "registry_record_count": 201,
-    "review_reconciliation": "Canonical inventory contains 160 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 21 approved non-runtime records, including 18 standalone response-quality exemplars. The organizational-transformation-readiness response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 160 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 21 approved non-runtime records, including 19 approved response-quality exemplars (18 standalone). The organizational-transformation-readiness response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 160 approved Gold Stars; 39 assigned display serials; 121 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this standalone response-quality exemplar.",
@@ -10371,7 +10371,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-organizational-transformation-readiness-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 18
+    "approved_response_quality_exemplar_count": 19
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10472,7 +10472,7 @@
     "last_audit_date": "2026-11-28",
     "approved_gold_star_count": 160,
     "registry_record_count": 201,
-    "review_reconciliation": "Canonical inventory contains 160 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 21 approved non-runtime records, including 18 standalone response-quality exemplars. The organizational-transformation-readiness response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
+    "review_reconciliation": "Canonical inventory contains 160 USER_APPROVED_GOLD_STANDARD records: 139 active runtime-transfer contributors and 21 approved non-runtime records, including 19 approved response-quality exemplars (18 standalone). The organizational-transformation-readiness response is an immutable standalone response-quality exemplar only. Approval does not establish provider invocation provenance, active runtime/adaptive transfer, or measured visitor outcome improvement.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 160 approved Gold Stars; 39 assigned display serials; 121 approved records explicitly UNASSIGNED with reasons. No serial was allocated for this standalone response-quality exemplar.",
@@ -10485,7 +10485,7 @@
     "structural_candidates_pending_live_review": 0,
     "last_approval": "general-guide-organizational-transformation-readiness-2026-11-28 approved by user 2026-11-28",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 18
+    "approved_response_quality_exemplar_count": 19
   },
   "last_reconciled": "2026-11-28"
 }
