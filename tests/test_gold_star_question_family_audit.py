@@ -54,7 +54,7 @@ def test_repeated_question_families_have_explicit_lineage_or_distinct_exemplar_s
         "gs-2026-11-13-04-migrated-canonical-ledger",
         "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
     })]
-    assert systems_map["family_type"] == "explicit_supersession_lineage"
+    assert systems_map["family_type"] == "explicit_successor_and_supersession_lineage"
 
     governance = by_ids[frozenset({
         "general-guide-governance-balance-structural-candidate-2026-11-24",
