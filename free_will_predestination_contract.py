@@ -82,7 +82,7 @@ def free_will_predestination_recovery() -> str:
         "does not automatically mean being forced. At the same time, those influences help form "
         "the very reasons and desires through which a person chooses. Compatibilism therefore "
         "offers an account of agency within causes; it does not show that a person is the "
-        "uncaused origin of every desire or decision, and it is not a settled consensus.\n\n"
+        "uncaused origin of every desire or decision, and its status remains contested; there is no philosophical consensus.\n\n"
         "Incompatibilist views press a different question. If the entire past and the laws of "
         "nature fixed what happens, could the person genuinely have done otherwise under exactly "
         "those same conditions? Some argue that freedom requires such alternative possibilities "
