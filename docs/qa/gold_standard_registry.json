@@ -9781,7 +9781,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "economy_as_dependent_on_life_support_systems",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The answer explains economic dependence on life-support systems, the reciprocal effects of economic organization, and the consequences of degradation or regeneration.",
-        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved answer as a response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and copy, not a canonical URL or verified thematic fit. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved answer as a response-quality exemplar only. The screenshot establishes the visible Continue Exploring title and copy. Do not infer a canonical URL or treat thematic fit as verified. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
