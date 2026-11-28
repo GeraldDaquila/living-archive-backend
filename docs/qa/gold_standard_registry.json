@@ -10763,7 +10763,15 @@
       "elevation_approval_evidence": "The user explicitly instructed “near-miss it is. then fix structurally and turn this into a gold star” on 2026-11-28 after reviewing the original screenshot and assessment. This authorizes the corrected successor as an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation.",
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested."
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+      "question_family_review": {
+        "family_id": "qf-5ae69008b40f59f1",
+        "classification": "NEW_QUESTION_FAMILY",
+        "reviewed_by": "user",
+        "reviewed_at": "2026-11-28",
+        "rationale": "The exact normalized question concerns traceability across direct quotation, paraphrase, and Guide-generated interpretation. The canonical registry contains no matching approved question family. The original screenshot answer is preserved as a near-miss in issue #2208; this corrected successor is the sole approved exemplar for this question family.",
+        "related_benchmark_ids": []
+      }
     }
   ],
   "last_reconciliation_note": "Reconciled 2026-11-28 by record-level union of current main and PR #2198: 209 unique records; 168 approved Gold Stars; 139 active runtime contributors; 27 response-quality exemplars (26 standalone); 39 numbered; 129 explicitly unassigned; zero duplicate benchmark IDs.",
