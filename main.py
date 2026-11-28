@@ -16108,7 +16108,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None, task_recovery=No
             query=query,
             context_data=composition_context,
             history_text=_history_text(history),
-            integrity_recovery=True,
+            integrity_recovery=(
+                _repair_decision.get("failed_criterion") != "supported_semantic_contract_failed"
+            ),
             semantic_repair_checks=_repair_decision.get("failed_checks"),
             deadline_monotonic=request_deadline,
         )
