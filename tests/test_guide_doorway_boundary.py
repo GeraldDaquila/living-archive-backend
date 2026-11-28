@@ -95,7 +95,12 @@ def test_explicit_send_me_to_another_page_instruction_is_terminal_at_json_bounda
     assert __import__("main")._guide_query_explicitly_forbids_handoff(query)
     result = asyncio.run(_capture_json_boundary({
         "query": query,
-        "response": "A complete answer in three paragraphs.",
+        "response": (
+            "Stewardship means caring for what is entrusted to you.\\n\\n"
+            "It matters because ordinary choices affect other people and the future.\\n\\n"
+            "Care has limits; responsibility does not confer ownership.\\n\\n"
+            "The available Archive material does not contain a dedicated treatment of stewardship."
+        ),
         "recommendation": {
             "title": "Unrelated page",
             "url": "https://example.org/unrelated",
