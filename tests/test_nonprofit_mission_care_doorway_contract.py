@@ -87,3 +87,22 @@ def test_trust_centered_successor_is_operationally_complete_and_registry_frozen(
     assert record["numbering_status"] == "UNASSIGNED"
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
+
+
+def test_nonprofit_doorway_test_function_names_are_unique():
+    import ast
+
+    source = Path(__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    names = [
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
+    assert len(names) == len(set(names))
+
+
+def test_trust_centered_gold_star_ledger_entry_is_not_duplicated():
+    ledger = (ROOT / "docs/qa/GOLD_STANDARD_REGISTRY.md").read_text(encoding="utf-8")
+    marker = "## Trust-centered nonprofit mission-care successor — 2026-11-28"
+    assert ledger.count(marker) == 1
