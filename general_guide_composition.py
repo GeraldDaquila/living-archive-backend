@@ -62,6 +62,10 @@ from nonprofit_mission_care_response_contract import (
     evaluate_nonprofit_mission_care_response,
     recover_nonprofit_mission_care_response,
 )
+from developmental_stage_hierarchy_contract import (
+    build_developmental_stage_hierarchy_instruction,
+    evaluate_developmental_stage_hierarchy_response,
+)
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -72,7 +76,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.56"
+CONTRACT_VERSION = "v1.57"
 GOLD_STAR_EVALUATION_PROMPT_FINGERPRINT_VERSION = "v2"
 GOLD_STAR_EVALUATION_GENERATION_CONFIG_VERSION = "v2"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
@@ -528,6 +532,9 @@ def _build_general_guide_system_message(
     nonprofit_mission_care_instruction = build_nonprofit_mission_care_instruction(question)
     if nonprofit_mission_care_instruction:
         parts.append(nonprofit_mission_care_instruction)
+    developmental_stage_instruction = build_developmental_stage_hierarchy_instruction(question)
+    if developmental_stage_instruction:
+        parts.append(developmental_stage_instruction)
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
@@ -3263,6 +3270,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 + ",".join(nonprofit_report.get("missing") or [])
             )
 
+        developmental_report = evaluate_developmental_stage_hierarchy_response(query, response)
+        if developmental_report.get("applies") and not developmental_report.get("passed"):
+            raise ValueError(
+                "developmental-stage answer fails the non-ranking reasoning contract: "
+                + ",".join(developmental_report.get("missing") or [])
+            )
+
         community_rule_report = evaluate_community_rule_response(query, response)
         if community_rule_report.get("applies") and not community_rule_report.get("passed"):
             raise ValueError(
@@ -3684,6 +3698,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                     raise ValueError(
                         "nonprofit mission-care answer is operationally incomplete: "
                         + ",".join(nonprofit_report.get("missing") or [])
+                    )
+                developmental_report = evaluate_developmental_stage_hierarchy_response(query, response)
+                if developmental_report.get("applies") and not developmental_report.get("passed"):
+                    raise ValueError(
+                        "developmental-stage answer fails the non-ranking reasoning contract: "
+                        + ",".join(developmental_report.get("missing") or [])
                     )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
@@ -5113,6 +5133,12 @@ def enforce_response_contracts(question: str, response: str) -> str:
                 "Nonprofit mission-care response contract failed after deterministic recovery: "
                 + ",".join(nonprofit_report.get("missing") or [])
             )
+    developmental_report = evaluate_developmental_stage_hierarchy_response(question, candidate)
+    if developmental_report.get("applies") and not developmental_report.get("passed"):
+        raise RuntimeError(
+            "Developmental-stage response failed the final non-ranking contract: "
+            + ",".join(developmental_report.get("missing") or [])
+        )
     return candidate
 
 

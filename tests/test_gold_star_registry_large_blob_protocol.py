@@ -36,7 +36,7 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     assert len(response_quality) == audit["approved_response_quality_exemplar_count"]
     assert len(numbered) == audit["numbered_gold_star_record_count"]
     assert len(unassigned) == audit["unassigned_approved_gold_star_count"]
-    assert len(standalone) == 25
+    assert len(standalone) == 26
 
     record = next(record for record in approved if record["benchmark_id"] == BENCHMARK_ID)
     assert record["expected_response"] == fixture["expected_response"]
