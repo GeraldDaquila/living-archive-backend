@@ -10623,7 +10623,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "ethical_legitimacy_concentrated_harm",
         "transferable_discipline": "For policy questions involving concentrated harm, separate legal permission and majority support from ethical legitimacy; map affected groups and distributional effects; test evidence, necessity, alternatives, proportionality, safeguards, and accountability; preserve the Archive's non-adjudicative boundary.",
-        "abstention_boundary": "NOT_EVALUATED: Standalone non-runtime exemplar only. Do not issue a verdict without the relevant facts, applicable rights and law, affected people's testimony, and source-grounded principles. Do not invent the Archive's position or infer a canonical doorway.",
+        "abstention_boundary": "NOT_EVALUATED: Standalone non-runtime exemplar only. Do not infer a canonical doorway or URL. Do not issue a verdict without the relevant facts, applicable rights and law, affected people's testimony, and source-grounded principles. Do not invent the Archive's position.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",
