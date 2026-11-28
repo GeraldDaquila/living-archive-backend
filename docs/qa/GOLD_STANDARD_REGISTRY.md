@@ -1,5 +1,11 @@
 ## Newly elevated — 2026-11-28
 
+- **Gold Star:** `general-guide-wise-transition-societal-capacities-2026-11-28` preserves the exact visitor-facing response to “What kinds of capacities must societies cultivate for wise transition?” The user explicitly approved elevation after reviewing the live Guide screenshot. Assistant assessment: **9.5/10** (assistant assessment, not a user-assigned rating). The response identifies collective sense-making, navigating deep uncertainty without collapsing into certainty, intergenerational stewardship, cultural imagination, and collective authorship as capacities for wise transition. The visible Continue Exploring title is **Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill**; the screenshot does not establish a canonical URL or verified thematic fit, so doorway status remains `NOT_EVALUATED`. This is an immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled. Display serial: `UNASSIGNED`.
+
+- **Registry reconciliation:** 198 records; 157 approved Gold Stars; 139 active runtime-transfer contributors; 16 approved response-quality exemplars (15 standalone); 39 numbered records; 118 approved records unassigned a display serial.
+
+## Newly elevated — 2026-11-28
+
 - **Gold Star:** `general-guide-institutional-decline-transition-renewal-2026-11-28` preserves the exact visitor-facing response to “What signs suggest an institution is in decline, transition, or renewal?” The user explicitly approved elevation after reviewing the live Guide screenshot. Assistant assessment: **9.4/10** (assistant assessment, not a user-assigned rating). The response distinguishes decline, transition, and renewal, while clearly limiting its indicators to general observations rather than a validated diagnostic framework or claims about a specific institution. The visible Continue Exploring title is **Where Do We Start?: A Systems Blueprint for Cultural Renewal in the Philippines**; the screenshot does not establish a canonical URL or verified thematic fit, so doorway status remains `NOT_EVALUATED`. This is an immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, and runtime/adaptive transfer remain disabled. Display serial: `UNASSIGNED`.
 
 ## Newly elevated — 2026-11-28
