@@ -1119,3 +1119,60 @@ def test_society_resilience_terminal_visitor_boundary_preserves_answer_and_verif
     assert finalized["recommendation"]["url"] == doorway["url"]
     assert finalized["canonical_doorway"]["url"] == doorway["url"]
     assert finalized["doorway_url"] == doorway["url"]
+
+
+
+def test_society_resilience_terminal_boundary_preserves_a_provider_answer_that_meets_contract():
+    import main
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "What makes a society resilient?"
+    provider_answer = (
+        "Societal resilience is the capacity to absorb shocks and disruption, keep essential services operating, "
+        "reorganize when needed, and adapt through learning. Ecological systems, economic networks, infrastructure, "
+        "public institutions, and cultural and social relationships are interdependent; no single sector can secure "
+        "resilience on its own.\\n\\n"
+        "A range of supply sources, backup capacity, and modular services can limit the spread of failures. Trust and "
+        "legitimate coordination allow people to share reliable information and mobilize resources; shared meaning and "
+        "cultural memory help communities interpret events and carry lessons forward. Feedback loops support correction, "
+        "while concentrated dependencies and exclusion can trigger cascading failures and leave unequal exposure and "
+        "recovery.\\n\\n"
+        "Assess resilience by asking whether essential services can continue, whether alternatives exist, whether affected "
+        "people can access support and shape decisions, and whether institutions learn. Indicators include continuity, "
+        "fair recovery, ecological integrity, adaptation, and whether repeated shocks lead to better arrangements rather "
+        "than restoring harmful conditions."
+    )
+    doorway = registered_recovery_recommendation(query)
+    finalized = main._guide_finalize_visitor_payload(
+        {
+            "ok": True,
+            "response": provider_answer,
+            "recommendation": doorway,
+            "canonical_doorway": doorway,
+        },
+        query,
+    )
+    assert finalized["response"] == provider_answer
+    assert finalized["recommendation"]["url"] == doorway["url"]
+
+
+def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
+    import main
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "What makes a society resilient?"
+    doorway = registered_recovery_recommendation(query)
+    finalized = main._guide_finalize_visitor_payload(
+        {
+            "ok": True,
+            "response": "A resilient society has strong institutions and good infrastructure.",
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_decision": "omit",
+            "processing": "final_visitor_boundary_explicit_no_handoff",
+            "navigation_suppressed_by_task_contract": True,
+        },
+        query,
+    )
+    assert finalized["recommendation"] is None
+    assert finalized["doorway_decision"] == "omit"
