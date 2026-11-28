@@ -22,6 +22,8 @@ on:
       - "tests/test_direct_attribute_evidence_boundary.py"
       - "general_guide_composition.py"
       - "nonprofit_mission_care_contract.py"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28.json"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-nearmiss-2026-11-28.json"
       - "tests/test_nonprofit_mission_care_doorway_contract.py"
       - "tests/test_guide_archive_cosmology_continuation.py"
       - "tests/test_general_guide_conceptual_relationship.py"
