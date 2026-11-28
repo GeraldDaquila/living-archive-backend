@@ -2195,3 +2195,16 @@ The current canonical registry is the record-level union of `main` and PR #2198.
 
 - **Canonical totals:** 209 unique registry records; 168 approved Gold Stars; 139 active runtime contributors; 29 approved non-runtime records; 27 response-quality exemplars, of which 26 are standalone; 39 numbered records; 129 explicitly unassigned records.
 - **Integrity:** zero duplicate benchmark IDs; 207 shared records match exactly; no display serial has been allocated by this reconciliation.
+
+
+## One-sided team-conflict contextual recovery — 2026-11-28
+
+- **Gold Star:** `general-guide-one-sided-team-conflict-contextual-recovery-2026-11-28` preserves the exact corrected visitor-facing response to “A visitor wants to apply an Archive idea to a team conflict but has provided only one person's account. What context should the Guide ask for before offering a frame?” as an immutable standalone response-quality exemplar.
+- **Assessment:** 9.7/10 (assistant assessment, not a user-assigned rating).
+- **Near-miss preservation:** the original visitor response remains preserved in GitHub issue #2210 and is not reclassified or counted as approved.
+- **Question-family review:** `NEW_QUESTION_FAMILY`; no other approved record has the same normalized exact question. Family ID: `qf-8f6e579a6485d012`.
+- **Doorway:** **Building Trust-Centered Organizations**; verified canonical URL: https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/. The visible Continue Exploring copy is preserved separately from the substantive answer.
+- **Governance:** standalone response-quality exemplar only. Exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, and display serial remain disabled/unassigned.
+- **Evidence boundary:** the screenshot establishes the exact visitor-facing answer and doorway; it does not establish provider invocation provenance, adaptive transfer, or measured visitor outcomes. The ASGI request-boundary regressions passed in PR #2212, merged as `27a2fec`.
+
+- **Reconciled canonical registry:** 210 records; 169 approved Gold Stars; 139 active runtime contributors; 28 response-quality exemplars (27 standalone); 39 numbered; 130 unassigned; zero duplicate benchmark IDs.
