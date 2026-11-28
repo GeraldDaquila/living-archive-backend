@@ -3259,6 +3259,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             )
 
         if (
+            re.search(r"\breverence\b", query, re.I)
+            and re.search(r"\bcredulity\b", query, re.I)
+            and is_conceptual_relationship_question(query)
+            and not _has_reverence_credulity_distinction(response)
+        ):
+            raise ValueError(
+                "reverence-credulity answer must distinguish respect from uncritical belief and preserve evidence-based scrutiny"
+            )
+
+        if (
             re.search(r"\btransparency\b", query, re.I)
             and re.search(r"\btrust\b", query, re.I)
             and is_conceptual_relationship_question(query)
@@ -3503,6 +3513,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
             # do not let the generic hard-integrity compatibility lane re-admit a
             # one-way answer after the strict relational contract rejected it.
             if (
+                re.search(r"\breverence\b", query, re.I)
+                and re.search(r"\bcredulity\b", query, re.I)
+                and is_conceptual_relationship_question(query)
+                and not _has_reverence_credulity_distinction(candidate_for_comparison)
+            ):
+                raise strict_exc
+            if (
                 re.search(r"\btransparency\b", query, re.I)
                 and re.search(r"\btrust\b", query, re.I)
                 and is_conceptual_relationship_question(query)
@@ -3702,6 +3719,12 @@ def _has_grounded_illustrative_example(response: str) -> bool:
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
+    if (
+        re.search(r"\breverence\b", question, re.I)
+        and re.search(r"\bcredulity\b", question, re.I)
+        and is_conceptual_relationship_question(question)
+    ):
+        return _has_reverence_credulity_distinction(response)
     # A narrower task-specific relational contract is authoritative when it
     # applies. Do not let the generic mechanism lexicon reject a complete
     # humility/spiritual-maturity answer merely because it uses a valid
@@ -3953,9 +3976,39 @@ def _open_question_orientation_recovery(question: str) -> Optional[str]:
     return None
 
 
+def _has_reverence_credulity_distinction(response: str) -> bool:
+    """Require a direct, evidence-aware distinction when this concept pair is asked about."""
+    text = _normalize_space(response).casefold()
+    return bool(
+        len(text.split()) >= 45
+        and re.search(r"\breverence\b", text)
+        and re.search(r"\bcredulity\b", text)
+        and re.search(r"\b(?:respect|regard|esteem)\b", text)
+        and re.search(r"\b(?:belief|believe|acceptance|accept)\b", text)
+        and re.search(r"\b(?:evidence|scrutiny|question|examination|discernment)\b", text)
+        and re.search(r"\b(?:but|whereas|while|rather than|does not mean|not the same)\b", text)
+    )
+
+
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
+
+    # Reverence and credulity must not be collapsed into one another. Reverence
+    # is a stance of respect; credulity is an epistemic readiness to accept claims
+    # without proportionate scrutiny. This bounded answer is general conceptual
+    # orientation, not an Archive-doctrine attribution or exact-answer authority.
+    if (
+        re.search(r"\breverence\b", normalized)
+        and re.search(r"\bcredulity\b", normalized)
+        and is_conceptual_relationship_question(question)
+    ):
+        return (
+            "Reverence and credulity are fundamentally different in their relationship to judgment. Reverence is a posture of deep respect, regard, or esteem toward a person, tradition, practice, or subject considered valuable. Credulity is a tendency to accept claims too readily, without asking whether the evidence is sufficient. Reverence concerns how seriously or respectfully something is approached; credulity concerns how readily a claim is believed.\n\n"
+            "Reverence does not require unquestioning agreement. A person can honor a tradition, listen carefully to a teacher, or treat a profound experience with seriousness while still examining its claims, asking for evidence, and recognizing uncertainty. In fact, careful inquiry can be an expression of respect when it seeks to understand something accurately rather than dismissing it casually.\n\n"
+            "Credulity begins when respect or emotional significance is allowed to substitute for examination. A claim may be accepted because it comes from an admired person, belongs to a cherished tradition, or offers a reassuring explanation, even when its supporting evidence is weak. The problem is not openness or willingness to learn; it is treating the importance of the source or subject as proof that a particular claim is true.\n\n"
+            "The practical distinction is whether respect remains compatible with discernment. Reverence can coexist with questions, proportionate evidence, and the possibility of correction. Credulity bypasses those checks and makes acceptance too easy. One can therefore hold something in high regard without believing every claim made in its name. This is a general conceptual explanation, not a claim that the Living Archive states a formal definition of either term."
+        )
 
     # When composition providers are exhausted, this recognized question family
     # still needs a concrete causal explanation. Keep the recovery narrow to the
