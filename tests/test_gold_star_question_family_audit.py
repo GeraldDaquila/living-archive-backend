@@ -73,7 +73,7 @@ def test_repeated_question_families_have_explicit_lineage_or_distinct_exemplar_s
         "general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28",
         "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28",
     })]
-    assert nonprofit["family_type"] == "multiple_standalone_response_quality_exemplars"
+    assert nonprofit["family_type"] == "explicit_paired_response_quality_exemplar"
     assert nonprofit["distinct_response_count"] == 3
 
 

@@ -36,17 +36,27 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     assert len(response_quality) == audit["approved_response_quality_exemplar_count"]
     assert len(numbered) == audit["numbered_gold_star_record_count"]
     assert len(unassigned) == audit["unassigned_approved_gold_star_count"]
-    assert len(standalone) == 22
+    assert len(standalone) == 19
 
     record = next(record for record in approved if record["benchmark_id"] == BENCHMARK_ID)
     assert record["expected_response"] == fixture["expected_response"]
     assert record["query"] == fixture["query"]
     assert record["runtime_transfer"] is False
+    assert record["paired_active_benchmark_id"] == "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28"
     assert record["numbering_status"] == "UNASSIGNED"
     assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["gold_star_capabilities"]["active_quality_contributor"] is False
-    assert record["gold_star_capabilities"]["standalone_response_quality_exemplar"] is True
+    assert record["gold_star_capabilities"]["standalone_response_quality_exemplar"] is False
+
+    active_record = next(item for item in approved if item["benchmark_id"] == "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28")
+    assert active_record["runtime_transfer"] is True
+    assert active_record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert active_record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert active_record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert "NOT_EVALUATED" in active_record["transfer_boundary"]
+    review_registry = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    assert any(item["benchmark_id"] == active_record["benchmark_id"] and item["activation"] == "active_quality_contributor" for item in review_registry["entries"])
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
 
