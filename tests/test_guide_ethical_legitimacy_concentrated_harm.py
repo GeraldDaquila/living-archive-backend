@@ -75,3 +75,33 @@ def test_corrected_exemplar_is_separate_and_has_no_automatic_runtime_authority()
     assert fixture["runtime_transfer"] is False
     assert fixture["exact_answer_authority"] is False
     assert fixture["deterministic_fallback_eligible"] is False
+
+
+def test_canonical_registry_contains_only_the_corrected_standalone_successor():
+    registry = json.loads(
+        (ROOT / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
+    )
+    corrected = [
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-ethical-legitimacy-concentrated-harm-2026-11-28"
+    ]
+    original = [
+        item for item in registry["records"]
+        if item["benchmark_id"] == "near-miss-policy-legality-minority-harm-2026-11-28"
+    ]
+    assert len(corrected) == 1
+    assert original == []
+    record = corrected[0]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["user_reviewed_response"] is True
+    assert record["runtime_transfer"] is False
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["question_family_review"]["family_id"] == "qf-d2637dc092092951"
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 167
+    assert registry["integrity_audit"]["registry_record_count"] == 208
+    assert registry["integrity_audit"]["active_quality_contributor_count"] == 139
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 26
