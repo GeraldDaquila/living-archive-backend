@@ -1041,7 +1041,7 @@ def test_society_resilience_contract_replaces_factor_list_with_integrative_syste
     assert "shared meaning" in expected
     assert "cultural memory" in expected
     assert "recovery fairly" in expected
-    assert "returning to the previous state" not in expected
+    assert "does not always mean returning to the previous state" in expected
 
 
 def test_society_resilience_recovery_is_registered_with_verified_archive_doorway():
