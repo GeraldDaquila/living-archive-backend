@@ -4,6 +4,11 @@ from guide_source_provenance_contract import (
     evaluate_source_provenance_response,
     is_source_provenance_question,
 )
+from general_guide_composition import (
+    _requires_fresh_provider_composition,
+    apply_terminal_response_contract,
+    enforce_response_contracts,
+)
 
 
 QUESTION = (
@@ -74,3 +79,42 @@ def test_interpretation_must_not_be_misattributed():
     report = evaluate_source_provenance_response(QUESTION, response)
     assert report["passed"] is False
     assert "no_false_attribution" in report["missing"]
+
+
+
+OFF_TOPIC_GOVERNANCE_RESPONSE = (
+    "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+    "and the people who will live with its consequences. Then compare realistic options against those "
+    "requirements rather than assuming the proposed course is the only one.\\n\\n"
+    "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence "
+    "would justify changing direction. Include the knowledge of people affected by the decision, especially "
+    "where they will carry consequences they did not choose.\\n\\n"
+    "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+)
+
+
+def test_mixed_provenance_question_bypasses_composition_cache():
+    assert _requires_fresh_provider_composition(QUESTION)
+
+
+def test_off_topic_governance_response_is_rejected_by_final_contract():
+    with pytest.raises(
+        RuntimeError,
+        match="Final visitor response failed the mixed-source provenance contract",
+    ):
+        enforce_response_contracts(QUESTION, OFF_TOPIC_GOVERNANCE_RESPONSE)
+
+
+def test_off_topic_response_cannot_escape_through_terminal_payload_contract():
+    with pytest.raises(
+        RuntimeError,
+        match="Final visitor response failed the mixed-source provenance contract",
+    ):
+        apply_terminal_response_contract(
+            QUESTION,
+            {"response": OFF_TOPIC_GOVERNANCE_RESPONSE, "intent": "TOPICAL_INQUIRY"},
+        )
+
+
+def test_compliant_provenance_response_survives_final_contract():
+    assert enforce_response_contracts(QUESTION, PASSING) == PASSING
