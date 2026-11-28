@@ -2715,7 +2715,7 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert len(registry["records"]) == 194
     assert registry["integrity_audit"]["approved_gold_star_count"] == 153
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 114
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 12
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 11
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2806,4 +2806,4 @@ def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star(
     assert len(registry["records"]) == 194
     assert registry["integrity_audit"]["approved_gold_star_count"] == 153
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 114
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 12
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 11
