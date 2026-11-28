@@ -666,7 +666,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_without_global
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "never requires three paragraphs or any fixed number of response units" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" not in composition_source
-    assert 'CONTRACT_VERSION = "v1.56"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.55"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != general_guide_composition.CONTRACT_VERSION' in main_source
@@ -2711,11 +2711,11 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     approved = [item for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 151
-    assert len(registry["records"]) == 192
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 151
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 112
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 10
+    assert len(approved) == 152
+    assert len(registry["records"]) == 193
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 152
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 113
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 11
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2748,3 +2748,27 @@ def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert latest["numbering_status"] == "UNASSIGNED"
     assert latest["provenance"]["visible_continuation_title"] == "Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill"
+
+
+def test_externalities_stewardship_response_is_frozen_standalone_gold_star():
+    registry = _registry()
+    record = next(item for item in registry["records"] if item["benchmark_id"] == "general-guide-externalities-stewardship-governance-2026-11-28")
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How do externalities reveal failures of stewardship?"
+    assert record["expected_response"].startswith("Externalities reveal failures of stewardship when the responsible party")
+    assert "an erosion of trust" in record["expected_response"]
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.2
+    assert record["rating_out_of_10"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["provenance"]["visible_continuation_title"] == "The Stewardship Age"
+    assert record["runtime_transfer"] is False
+    capabilities = record["gold_star_capabilities"]
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
