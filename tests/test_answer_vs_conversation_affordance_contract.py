@@ -32,7 +32,7 @@ def test_live_guide_controller_has_independent_renderers_and_can_render_both():
 
     assert "archive-recommendation" in resource_renderer
     assert "archive-inline-recommendation" in resource_renderer
-    assert "archive-ordinary-followup" not in resource_renderer
+    assert "renderOrdinaryFollowupPanel(" not in resource_renderer
     assert "archive-ordinary-followup" in reply_renderer
     assert "archive-recommendation" not in reply_renderer
     assert "invitesReply" in reply_renderer
