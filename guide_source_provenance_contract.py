@@ -81,7 +81,7 @@ def evaluate_source_provenance_response(query: Any, response: Any) -> Dict[str, 
             and re.search(r"\b(?:source|locator|location|metadata)\b", text)
         ),
         "no_false_attribution": bool(
-            re.search(r"\b(?:do not|don't|never)\b.{0,100}\b(?:attribute|imply|invent|fabricat)\w*\b", text)
+            re.search(r"\b(?:do not|don't|never|must not|should not)\b.{0,100}\b(?:attribute|imply|invent|fabricat|lend)\w*\b", text)
             or re.search(r"\bnot (?:the source's|the source’s|the author's|the author’s)\b", text)
         ),
     }
