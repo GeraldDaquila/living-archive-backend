@@ -1175,4 +1175,6 @@ def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
     )
     assert finalized["response"] == _society_resilience_recovery()
     assert finalized["recommendation"] is None
+    assert finalized["canonical_doorway"] is None
+    assert finalized["doorway_url"] is None
     assert finalized["doorway_decision"] == "omit"
