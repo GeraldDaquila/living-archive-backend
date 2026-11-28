@@ -2763,8 +2763,11 @@ def test_externalities_stewardship_response_is_frozen_standalone_gold_star():
     assert record["explicit_user_elevation_approval"] is True
     assert record["assistant_assessment_out_of_10"] == 9.2
     assert record["rating_out_of_10"] is None
-    assert record["expected_doorway"] is None
-    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] == fixture["expected_doorway"]
+    assert record["doorway_status"] == fixture["doorway_status"] == "VERIFIED"
+    assert record["expected_doorway"]["title"] == "Levels of Claim"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/levels-of-claim/"
+    assert "not evidence for any particular quotation" in record["expected_doorway"]["rationale"]
     assert record["provenance"]["visible_continuation_title"] == "The Stewardship Age"
     assert record["runtime_transfer"] is False
     capabilities = record["gold_star_capabilities"]
