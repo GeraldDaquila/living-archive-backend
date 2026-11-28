@@ -3699,6 +3699,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                         "nonprofit mission-care answer is operationally incomplete: "
                         + ",".join(nonprofit_report.get("missing") or [])
                     )
+                developmental_report = evaluate_developmental_stage_hierarchy_response(query, response)
+                if developmental_report.get("applies") and not developmental_report.get("passed"):
+                    raise ValueError(
+                        "developmental-stage answer fails the non-ranking reasoning contract: "
+                        + ",".join(developmental_report.get("missing") or [])
+                    )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
                     raise ValueError("provider response exposed internal implementation language")
@@ -5127,6 +5133,12 @@ def enforce_response_contracts(question: str, response: str) -> str:
                 "Nonprofit mission-care response contract failed after deterministic recovery: "
                 + ",".join(nonprofit_report.get("missing") or [])
             )
+    developmental_report = evaluate_developmental_stage_hierarchy_response(question, candidate)
+    if developmental_report.get("applies") and not developmental_report.get("passed"):
+        raise RuntimeError(
+            "Developmental-stage response failed the final non-ranking contract: "
+            + ",".join(developmental_report.get("missing") or [])
+        )
     return candidate
 
 
