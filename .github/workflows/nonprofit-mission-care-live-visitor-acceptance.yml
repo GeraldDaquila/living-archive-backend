@@ -1,0 +1,132 @@
+name: Nonprofit mission-care live visitor acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/nonprofit-mission-care-live-visitor-acceptance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nonprofit-mission-care-live-visitor-acceptance
+  cancel-in-progress: false
+
+jobs:
+  production-visitor-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install browser runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify exact production revision and submit real visitor question
+        env:
+          BASE_URL: https://living-archive-backend.onrender.com
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json, os, re, time, urllib.request
+          from playwright.sync_api import sync_playwright
+
+          base = os.environ["BASE_URL"].rstrip("/")
+          expected = os.environ["EXPECTED_COMMIT"]
+
+          def get_audit():
+              req = urllib.request.Request(base + "/api/integration-audit", headers={"Accept":"application/json"})
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  return response.status, json.loads(response.read().decode())
+
+          deadline = time.time() + 600
+          audit = None
+          last_error = None
+          while time.time() < deadline:
+              try:
+                  status, candidate = get_audit()
+                  if status == 200 and candidate.get("deployment_commit_sha") == expected:
+                      audit = candidate
+                      break
+                  last_error = f"status={status}, commit={candidate.get('deployment_commit_sha')}"
+              except Exception as exc:
+                  last_error = repr(exc)
+              print(f"Waiting for production deployment {expected}: {last_error}")
+              time.sleep(15)
+          if audit is None:
+              raise SystemExit(f"Production revision did not converge to {expected}: {last_error}")
+          if audit.get("ok") is not True:
+              raise SystemExit("Production integration audit is not healthy")
+
+          question = "A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?"
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              root = page.goto(base, wait_until="domcontentloaded", timeout=90000)
+              if root is None or root.status != 200:
+                  raise SystemExit(f"Production visitor origin did not load: {root.status if root else 'no response'}")
+              page.evaluate("""() => {
+                document.body.innerHTML = '<main><h1>Live visitor acceptance</h1><form id="ask"><label for="q">Question</label><textarea id="q"></textarea><button type="submit">Ask</button></form><pre id="result" data-state="idle"></pre></main>';
+                document.querySelector('#ask').addEventListener('submit', async e => {
+                  e.preventDefault();
+                  const r = await fetch('/api/query', {method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({query:document.querySelector('#q').value})});
+                  const body = await r.json();
+                  const out = document.querySelector('#result');
+                  out.dataset.status = String(r.status);
+                  out.textContent = JSON.stringify(body);
+                  out.dataset.state = 'done';
+                });
+              }""")
+              page.locator("#q").fill(question)
+              page.locator("button[type=submit]").click()
+              page.wait_for_function("() => document.querySelector('#result')?.dataset.state === 'done'", timeout=180000)
+              status = int(page.locator("#result").get_attribute("data-status"))
+              body = json.loads(page.locator("#result").inner_text())
+              browser.close()
+
+          answer = str(body.get("response") or body.get("answer") or "")
+          low = answer.casefold()
+          checks = {
+            "http_200": status == 200,
+            "api_ok": body.get("ok") is True,
+            "substantive_answer": len(answer.split()) >= 180,
+            "immediate_staff_protection_and_voice": bool(re.search(r"protect|stabiliz|pause|overload", low)) and bool(re.search(r"staff|people", low)),
+            "commitment_capacity_mapping": bool(re.search(r"commitments|capacity|workload|staffing", low)) and bool(re.search(r"map|compare|review|list", low)),
+            "explicit_tradeoffs": all(term in low for term in ["stop", "defer"]) or bool(re.search(r"simplify|redistribute|trade-?offs?", low)),
+            "roles_authority_accountability": bool(re.search(r"authority|decision owner|decision rights|accountab", low)),
+            "staff_or_governance_feedback": bool(re.search(r"review|feedback|governance", low)) and bool(re.search(r"staff|people", low)),
+            "concrete_next_action": bool(re.search(r"convene|first step|practical next step|capacity-and-commitment review", low)),
+          }
+          report = {
+            "expected_commit": expected,
+            "deployment_commit": audit.get("deployment_commit_sha"),
+            "version": audit.get("version"),
+            "fingerprint": audit.get("fingerprint"),
+            "visitor_http_status": status,
+            "request_id": body.get("request_id"),
+            "response_chars": len(answer),
+            "checks": checks,
+            "passed": all(checks.values()),
+            "response": answer,
+          }
+          with open("nonprofit-mission-care-live-visitor-acceptance.json", "w", encoding="utf-8") as evidence:
+              json.dump(report, evidence, ensure_ascii=False, indent=2)
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          if not report["passed"]:
+              raise SystemExit("Nonprofit mission-care live visitor acceptance failed")
+          PY
+      - name: Upload live visitor evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nonprofit-mission-care-live-visitor-acceptance
+          path: |
+            nonprofit-mission-care-live-visitor-acceptance.json
+          if-no-files-found: ignore
+          retention-days: 30
