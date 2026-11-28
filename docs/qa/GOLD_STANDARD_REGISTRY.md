@@ -2137,3 +2137,13 @@ The canonical JSON ledger is large enough that the ordinary Contents-file interf
 - **Canonical reconciliation:** 202 registry records; 161 approved Gold Stars; 139 active runtime-transfer contributors; 20 approved response-quality exemplars, 19 explicitly standalone; 39 assigned serials; 122 approved records unassigned; zero documented numbering gaps. The canonical JSON registry remains the sole source of these counts.
 - **Evidence boundary:** approval and fixture tests do not establish provider provenance, live deployment, adaptive transfer, or measured visitor outcome improvement.
 
+
+
+## Newly elevated — 2026-11-28
+
+- **Gold Star:** `general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28` is a distinct successor to the compressed visitor-facing answer. It connects mission priorities, institutional care, role and authority design, funded capacity, explicit tradeoffs, accountable ownership, and staff/governance review; its doorway is a concrete capacity-and-commitment map.
+- **Assessment:** 9.8/10 (assistant assessment, not a user-assigned rating).
+- **Near-miss preservation:** compressed screenshot preserved in issue #2181; earlier baseline remains in #2177. Both are separate from this approved successor.
+- **Doorway:** actionable next step is a staff-informed one-page capacity-and-commitment map. **Infrastructure Before Ideology** remains screenshot evidence only; no canonical URL is inferred.
+- **Governance:** standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, and display serial remain disabled.
+- **Reconciled registry:** 204 records; 163 approved Gold Stars; 139 active runtime contributors; 22 response-quality exemplars (21 standalone); 39 numbered; 124 unassigned.
