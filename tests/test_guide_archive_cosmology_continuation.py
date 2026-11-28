@@ -71,7 +71,7 @@ def test_no_archive_cosmology_evidence_frame_means_no_forced_continuation():
 def test_existing_relevant_claim_examination_question_is_not_duplicated():
     response = (
         BASE_RESPONSE
-        + "\\n\\nWhich source claim would you like to examine first?"
+        + "\n\nWhich source claim would you like to examine first?"
     )
     result = composition.enforce_response_contracts(QUERY, response)
 
