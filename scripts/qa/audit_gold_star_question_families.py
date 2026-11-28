@@ -16,7 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_REGISTRY = ROOT / "docs" / "qa" / "gold_star_registry.json"
+DEFAULT_REGISTRY = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 APPROVED_STATUS = "USER_APPROVED_GOLD_STANDARD"
 QUALITY_CLASS = "user_approved_response_quality_exemplar"
 
