@@ -2648,3 +2648,39 @@ def test_user_approved_digital_humanism_response_is_frozen_response_quality_exem
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+def test_user_approved_engagement_optimization_response_is_frozen_response_quality_exemplar():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-engagement-optimization-knowledge-system-exemplar-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What are the risks of optimizing engagement in a knowledge system?"
+    answer = record["expected_response"]
+    for phrase in (
+        "Content quality erosion",
+        "Echo-chamber amplification",
+        "User fatigue and burnout",
+        "Misaligned incentives",
+        "Privacy and ethical concerns",
+        "Systemic instability",
+        "content integrity, user well-being, and ethical data practices",
+    ):
+        assert phrase in answer
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.1
+    assert record["rating_out_of_10"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] is None
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
+    assert record["numbering_status"] == "UNASSIGNED"
