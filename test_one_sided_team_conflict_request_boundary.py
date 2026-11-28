@@ -56,6 +56,9 @@ async def _post_query(query):
 
 
 def _install_controlled_runtime(monkeypatch, response):
+    # Force the request through the fresh provider seam. Earlier test cases in
+    # this worker may have populated the process-local composition cache.
+    general_guide_composition._COMPOSITION_CACHE.clear()
     context = {
         "intent": "TOPICAL_INQUIRY",
         "authoritative_doorway": DECOY,
