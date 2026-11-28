@@ -1158,7 +1158,7 @@ def test_society_resilience_terminal_boundary_preserves_a_provider_answer_that_m
 
 def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
     import main
-    from deterministic_answer_recovery import registered_recovery_recommendation
+    from deterministic_answer_recovery import _society_resilience_recovery
 
     query = "What makes a society resilient?"
     finalized = main._guide_finalize_visitor_payload(
@@ -1173,5 +1173,6 @@ def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
         },
         query,
     )
+    assert finalized["response"] == _society_resilience_recovery()
     assert finalized["recommendation"] is None
     assert finalized["doorway_decision"] == "omit"
