@@ -57,3 +57,38 @@ def test_digital_archive_query_fails_closed_when_candidate_has_only_generic_voca
 def test_archival_gate_does_not_capture_a_direct_nesara_question():
     query = "What Is NESARA and GESARA? What are the origins and claims?"
     assert main._digital_archiving_candidate_fit(query, NESARA_DECOY) is True
+
+def test_digital_archive_context_query_selects_the_verified_relational_archives_resource():
+    family = main._select_verified_doorway_conceptual_family(QUERY)
+    assert family == "digital_archive_context_preservation"
+    doorway = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS[family]
+    assert doorway["title"] == "Living Archives: The Future of Knowledge May Be Relational, Not Linear"
+    assert doorway["url"] == "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/"
+
+
+def test_digital_archive_context_restore_replaces_an_unrelated_upstream_doorway():
+    decoy = {
+        "title": NESARA_DECOY["title"],
+        "url": NESARA_DECOY["url"],
+        "rationale": "Unrelated resource.",
+    }
+    result = main._guide_restore_verified_doorway(
+        {"response": "A complete answer.", "recommendation": decoy}, QUERY
+    )
+    assert result["recommendation"]["title"] == "Living Archives: The Future of Knowledge May Be Relational, Not Linear"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/2026/06/04/living-archives-the-future-of-knowledge-may-be-relational-not-linear/"
+    assert result["doorway_selection_status"] == "VERIFIED_RELEVANT_DESTINATION"
+    assert result["doorway_selection_evaluated"] is True
+    assert result["doorway_selection_source"] == "reviewed_digital_archive_context_preservation_family"
+
+
+def test_digital_archive_family_requires_subject_and_context_signals():
+    assert main._select_verified_doorway_conceptual_family(
+        "How can a digital archive preserve provenance and contextual relationships?"
+    ) == "digital_archive_context_preservation"
+    assert main._select_verified_doorway_conceptual_family(
+        "What are the latest digital archive storage products?"
+    ) is None
+    assert main._select_verified_doorway_conceptual_family(
+        "How can context be preserved in a community?"
+    ) is None
