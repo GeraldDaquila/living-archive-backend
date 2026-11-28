@@ -154,3 +154,53 @@ def test_composer_exception_is_bounded_to_one_attempt_and_preserves_original():
     assert outcome["attempts"] == 1
     assert outcome["failure_type"] == "RuntimeError"
     assert result["response"] == "Original."
+
+
+def test_exact_economy_life_relationship_failure_exposes_bounded_check_ids_for_repair():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    from gold_star_bounded_repair import repair_eligibility
+
+    question = "What is the relationship between economy and the conditions that sustain life?"
+    candidate = {
+        "ok": True,
+        "response": (
+            "Economic activity organizes production, exchange, and distribution. "
+            "It shapes communities and influences how resources are used."
+        ),
+    }
+    semantic = evaluate_semantic_contract(question, candidate)
+    assert semantic["status"] == "fail"
+    assert set(semantic["failed_checks"]) == {
+        "relationship_subjects_covered",
+        "connecting_mechanism_explained",
+        "relationship_direction_or_boundary",
+    }
+    floor = {
+        "status": "fail",
+        "reason": "supported_semantic_contract_failed",
+        "semantic_enforcement": {"failed_checks": semantic["failed_checks"]},
+    }
+    decision = repair_eligibility(
+        floor, "guide_basic_inquiry", "normal",
+        True, False, 100.0, now=90.0,
+    )
+    assert decision["eligible"] is True
+    assert decision["failed_checks"] == semantic["failed_checks"]
+
+
+def test_exact_economy_life_relationship_valid_reciprocal_answer_passes_contract():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+
+    question = "What is the relationship between economy and the conditions that sustain life?"
+    candidate = {
+        "ok": True,
+        "response": (
+            "The economy depends on the conditions that sustain life: healthy ecosystems, "
+            "stable communities, and the capacities people need to produce and exchange "
+            "what they use. The relationship is reciprocal, but not automatic; economic "
+            "choices can either renew those conditions or erode them."
+        ),
+    }
+    result = evaluate_semantic_contract(question, candidate)
+    assert result["status"] == "review_required"
+    assert result["failed_checks"] == []
