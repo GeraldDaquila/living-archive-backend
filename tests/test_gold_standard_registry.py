@@ -2684,3 +2684,29 @@ def test_user_approved_engagement_optimization_response_is_frozen_response_quali
     assert capabilities["standalone_response_quality_exemplar"] is True
     assert "NOT_EVALUATED" in capabilities["abstention_boundary"]
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+def test_user_approved_human_discernment_successor_is_frozen_response_quality_exemplar():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-human-discernment-ai-governance-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.7
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["runtime_transfer"] is False
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    near_miss = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-human-discernment-ai-support-near-miss-2026-11-28"
+    )
+    assert near_miss["status"] == "RECOVERED_REGRESSION_SCENARIO"
+    assert near_miss["freeze_policy"].startswith("Preserve the exact original response unchanged")
