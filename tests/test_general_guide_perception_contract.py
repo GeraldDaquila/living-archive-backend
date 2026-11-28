@@ -1,5 +1,6 @@
 """Regression contract preserving the established General Guide writer."""
 
+import pytest
 import general_guide_composition as guide
 
 
@@ -551,3 +552,45 @@ def test_mixed_source_provenance_contract_rejects_false_interpretive_attribution
     report = evaluate_source_provenance_response(query, response)
     assert report["passed"] is False
     assert "no_false_attribution" in report["missing"]
+
+
+def test_mixed_source_provenance_questions_bypass_cached_composition():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    assert guide._requires_fresh_provider_composition(question)
+
+
+def test_final_visitor_boundary_rejects_unrelated_governance_answer():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one.\\n\\n"
+        "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction. Include the knowledge of people affected by the decision, especially "
+        "where they will carry consequences they did not choose.\\n\\n"
+        "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+    )
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.enforce_response_contracts(question, unrelated)
+
+
+def test_terminal_payload_revalidates_mixed_source_provenance():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one."
+    )
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.apply_terminal_response_contract(
+            question, {"response": unrelated, "intent": "TOPICAL_INQUIRY"}
+        )
