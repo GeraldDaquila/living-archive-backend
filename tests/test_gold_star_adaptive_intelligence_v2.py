@@ -69,9 +69,9 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
     assert approved
     assert len(active) <= len(approved)
     # The approved ledger retains fourteen non-contributing records:
-    # historical/exact-query-only records plus eleven standalone user-approved
-    # response-quality exemplars. Keep this exact set synchronized with the
-    # canonical registry; none of these records is runtime-transfer eligible.
+    # historical/exact-query-only records, one paired governance exemplar, and
+    # eleven standalone user-approved response-quality exemplars. Keep this exact
+    # set synchronized with the canonical registry; none is runtime-transfer eligible.
     assert len({item["benchmark_id"] for item in approved}) == len(approved)
     assert len({item["benchmark_id"] for item in active}) == len(active)
     assert {
