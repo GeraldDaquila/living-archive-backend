@@ -5984,7 +5984,9 @@ def compose(
         question, use_core, context_data
     )
     corrected_subject = correction_subject(question)
-    effective_question = corrected_subject or question
+    effective_question = (
+        question if is_source_provenance_question(question) else (corrected_subject or question)
+    )
     shape = _question_shape(effective_question)
     source_trace_instruction = (
         "The visitor asks for the exact source of a prior claim. Treat this as a provenance task, not a general topic question. "
@@ -6216,7 +6218,7 @@ def compose(
                 objective_integrity_instruction=objective_integrity_instruction,
             ),
             max_tokens=750,
-            parse=_parse_factory(documents, question, gold_star_quality.get("candidates") if gold_star_quality else None),
+            parse=_parse_factory(documents, effective_question, gold_star_quality.get("candidates") if gold_star_quality else None),
             schema=provider_schema,
             deadline_monotonic=provider_deadline_monotonic,
         )
