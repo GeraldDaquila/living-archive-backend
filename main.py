@@ -930,7 +930,7 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     return None
 
 def _guide_query_explicitly_forbids_handoff(query):
-    """Recognize direct no-link instructions without mistaking answer-first wording for refusal."""
+    """Recognize direct no-link instructions, including "send me to another page", without mistaking answer-first wording for refusal."""
     value = str(query or "")
     patterns = (
         r"\b(?:do not|don't|please don't)\s+send me to another page\b",
