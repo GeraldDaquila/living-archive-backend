@@ -154,6 +154,9 @@ on:
       - "tests/test_guide_incomplete_knowledge.py"
       - "guide_runtime.py"
       - "general_guide_composition.py"
+      - "guide_source_provenance_contract.py"
+      - "tests/test_source_provenance_terminal_gate.py"
+      - "test_source_provenance_request_boundary.py"
       - "developmental_stage_hierarchy_contract.py"
       - "tests/test_developmental_stage_hierarchy_contract.py"
       - "free_will_predestination_contract.py"
@@ -297,6 +300,8 @@ jobs:
         run: python -m pytest -q test_one_sided_team_conflict_contract.py
       - name: Run one-sided team-conflict ASGI request-boundary regressions
         run: python -m pytest -q test_one_sided_team_conflict_request_boundary.py
+      - name: Run mixed-source provenance contract and final-boundary regressions
+        run: python -m pytest -q test_guide_source_provenance_contract.py tests/test_source_provenance_terminal_gate.py test_source_provenance_request_boundary.py
       - name: Run mixed-source provenance contract and final-boundary regressions
         run: python -m pytest -q test_guide_source_provenance_contract.py tests/test_source_provenance_terminal_gate.py test_source_provenance_request_boundary.py
       - name: Run central gold-standard registry contracts
