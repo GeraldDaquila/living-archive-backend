@@ -9712,7 +9712,7 @@
       "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR RESPONSE REVIEWED; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
       "user_approved_at": "2026-11-28",
       "elevation_approval_evidence": "The user explicitly instructed “elevate to gold star” on 2026-11-28 after reviewing the exact live Guide visitor-facing screenshot. This authorizes immutable response-quality exemplar status only.",
-      "freeze_policy": "Preserve approved expected_response unchanged. Change only with explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
       "runtime_transfer": false,
       "reasoning_family": "externalities-and-stewardship-accountability",
       "transferable_lesson": "Externalities can reveal a stewardship failure when decision-makers do not bear or manage the wider consequences of their choices. Responsible stewardship requires attention to affected people, ecosystems, future conditions, burden allocation, and incentives that otherwise reward shifting costs onto others.",
@@ -9725,7 +9725,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "externalities_and_stewardship_accountability",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. The answer connects externalized costs to the failure to attend to the full scope of decision-makers' responsibilities.",
-        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. Do not copy the exact answer to unrelated questions. The screenshot establishes the visible continuation title and copy, not a canonical URL. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved response as a response-quality exemplar only. Do not copy the exact answer to unrelated questions. Do not infer a canonical URL from the visible doorway title; the screenshot establishes the visible title and explanatory copy, not a canonical URL. No exact-answer authority, deterministic fallback, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
