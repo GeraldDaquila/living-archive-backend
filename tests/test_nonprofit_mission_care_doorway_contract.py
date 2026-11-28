@@ -35,3 +35,17 @@ def test_question_contract_is_narrow_and_excludes_adjacent_questions():
     assert not contract.is_nonprofit_mission_care_question("What is the history of nonprofit organizations?")
     assert not contract.is_nonprofit_mission_care_question("How can a company improve staff morale?")
     assert contract.build_nonprofit_mission_care_instruction("What is the history of nonprofit organizations?") == ""
+
+
+def test_nonprofit_contract_is_injected_into_actual_provider_system_message():
+    import general_guide_composition as composition
+    question = "A nonprofit is mission-driven but burning out its staff. How should the Guide connect care, structure, purpose, and operational reality?"
+    message = composition._build_general_guide_system_message(question)
+    assert "NONPROFIT MISSION-CARE OPERATIONAL COMPLETION" in message
+    assert "capacity-and-commitment map" in message
+
+
+def test_nonprofit_contract_does_not_capture_unrelated_questions():
+    import general_guide_composition as composition
+    message = composition._build_general_guide_system_message("What is the history of nonprofit organizations?")
+    assert "NONPROFIT MISSION-CARE OPERATIONAL COMPLETION" not in message
