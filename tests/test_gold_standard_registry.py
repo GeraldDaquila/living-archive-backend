@@ -2592,3 +2592,30 @@ def test_user_approved_extraordinary_claims_response_is_frozen_response_quality_
     assert record["gold_star_capabilities"]["active_quality_contributor"] is False
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
+
+
+def test_user_approved_reverence_credulity_response_is_frozen_response_quality_exemplar():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-reverence-credulity-2026-11-28"
+    )
+    capabilities = record["gold_star_capabilities"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What is the difference between reverence and credulity?"
+    assert record["expected_response"].startswith("Reverence is deep respect or awe")
+    assert "leaves room for evidence, doubt, and correction" in record["expected_response"]
+    assert "The Difference Between Intelligence and Consciousness" in record["expected_response"]
+    assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_doorway"] is None
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["assistant_assessment_out_of_10"] == 9.3
+    assert record.get("rating") is None
+    assert record["runtime_transfer"] is False
+    assert capabilities["generation_class"] == "user_approved_response_quality_exemplar"
+    assert capabilities["exact_answer_authority"] is False
+    assert capabilities["active_quality_contributor"] is False
+    assert capabilities["deterministic_fallback_eligible"] is False
+    assert capabilities["standalone_response_quality_exemplar"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
