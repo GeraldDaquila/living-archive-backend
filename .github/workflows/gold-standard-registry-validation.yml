@@ -26,6 +26,8 @@ on:
       - "tests/test_gold_star_registry_large_blob_protocol.py"
       - "tests/test_nonprofit_mission_care_doorway_contract.py"
       - "tests/fixtures/general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28.json"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-nearmiss-2026-11-28.json"
+      - "tests/fixtures/general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28.json"
       - "tests/test_general_guide_wise_transition_societal_capacities_2026_11_28_gold_star.py"
       - "docs/qa/SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md"
       - "tests/test_system_wide_orientation_standard.py"
