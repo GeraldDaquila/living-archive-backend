@@ -90,6 +90,22 @@ def test_abstract_consequential_uncertainty_keeps_its_verified_doorway():
 
 
 
+def test_explicit_send_me_to_another_page_instruction_is_terminal_at_json_boundary():
+    query = "Explain stewardship, but do not send me to another page yet."
+    assert __import__("main")._guide_query_explicitly_forbids_handoff(query)
+    result = asyncio.run(_capture_json_boundary({
+        "query": query,
+        "response": "A complete answer in three paragraphs.",
+        "recommendation": {
+            "title": "Unrelated page",
+            "url": "https://example.org/unrelated",
+            "rationale": "An incidental recommendation.",
+        },
+    }))
+    assert result["recommendation"] is None
+    assert result["doorway_decision"] == "omit"
+
+
 def test_explicit_no_doorway_request_overrides_community_rule_family_mapping():
     import main
 
