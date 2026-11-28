@@ -380,13 +380,13 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
     # Keep this specialist reasoning contract out of every unrelated provider
     # prompt; attach it only to the ecological technology-solutionism family.
     technology_solutionism_ecological = (
-        has(r"\\b(?:ecolog(?:y|ical)|environment(?:al)?|climate|biodiversity|ecosystem(?:s)?|planetary)\\b")
-        and has(r"\\b(?:technolog(?:y|ical)|innovation|engineering|artificial intelligence|ai|geoengineering|automation)\\b")
-        and has(r"\\b(?:alone|by itself|on its own|sole solution|silver bullet|panacea|will solve|can solve|solve .* crisis|solve .* problem)\\b")
+        has(r"\b(?:ecolog(?:y|ical)|environment(?:al)?|climate|biodiversity|ecosystem(?:s)?|planetary)\b")
+        and has(r"\b(?:technolog(?:y|ical)|innovation|engineering|artificial intelligence|ai|geoengineering|automation)\b")
+        and has(r"\b(?:alone|by itself|on its own|sole solution|silver bullet|panacea|will solve|can solve|solve .* crisis|solve .* problem)\b")
     )
     if technology_solutionism_ecological:
         rendered += (
-            "\\n\\nTECHNOLOGY-SOLUTIONISM / ECOLOGY:\\n"
+            "\n\nTECHNOLOGY-SOLUTIONISM / ECOLOGY:\n"
             "Technology can help, but cannot solve ecological crises alone. Assess systemic drivers, full life-cycle impacts, "
             "rebound effects, non-technological alternatives, affected communities, accountable governance, monitoring, and correction. "
             "Avoid both techno-utopian claims and blanket rejection."
