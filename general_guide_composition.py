@@ -58,6 +58,12 @@ from free_will_predestination_contract import (
     free_will_predestination_recovery,
 )
 from nonprofit_mission_care_contract import build_nonprofit_mission_care_instruction
+from one_sided_team_conflict_contract import (
+    build_one_sided_team_conflict_instruction,
+    evaluate_one_sided_team_conflict_response,
+    is_one_sided_team_conflict_question,
+    recover_one_sided_team_conflict_response,
+)
 from nonprofit_mission_care_response_contract import (
     evaluate_nonprofit_mission_care_response,
     recover_nonprofit_mission_care_response,
@@ -535,6 +541,9 @@ def _build_general_guide_system_message(
     developmental_stage_instruction = build_developmental_stage_hierarchy_instruction(question)
     if developmental_stage_instruction:
         parts.append(developmental_stage_instruction)
+    one_sided_conflict_instruction = build_one_sided_team_conflict_instruction(question)
+    if one_sided_conflict_instruction:
+        parts.append(one_sided_conflict_instruction)
     if incomplete_knowledge_plan:
         parts.append(incomplete_knowledge_plan.get("architectural_contract", ""))
     if _is_community_liberty_limit_question(question):
@@ -3270,6 +3279,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = "", gold_star_c
                 + ",".join(nonprofit_report.get("missing") or [])
             )
 
+        one_sided_conflict_report = evaluate_one_sided_team_conflict_response(query, response)
+        if one_sided_conflict_report.get("applies") and not one_sided_conflict_report.get("passed"):
+            raise ValueError(
+                "one-sided team-conflict answer is contextually incomplete: "
+                + ",".join(one_sided_conflict_report.get("missing") or [])
+            )
+
         developmental_report = evaluate_developmental_stage_hierarchy_response(query, response)
         if developmental_report.get("applies") and not developmental_report.get("passed"):
             raise ValueError(
@@ -5139,6 +5155,15 @@ def enforce_response_contracts(question: str, response: str) -> str:
             "Developmental-stage response failed the final non-ranking contract: "
             + ",".join(developmental_report.get("missing") or [])
         )
+    one_sided_conflict_report = evaluate_one_sided_team_conflict_response(question, candidate)
+    if one_sided_conflict_report.get("applies") and not one_sided_conflict_report.get("passed"):
+        candidate = recover_one_sided_team_conflict_response()
+        one_sided_conflict_report = evaluate_one_sided_team_conflict_response(question, candidate)
+        if not one_sided_conflict_report.get("passed"):
+            raise RuntimeError(
+                "One-sided team-conflict response failed the final context contract: "
+                + ",".join(one_sided_conflict_report.get("missing") or [])
+            )
     return candidate
 
 
