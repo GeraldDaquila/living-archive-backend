@@ -1178,3 +1178,65 @@ def test_society_resilience_terminal_boundary_respects_explicit_no_handoff():
     assert finalized["canonical_doorway"] is None
     assert finalized["doorway_url"] is None
     assert finalized["doorway_decision"] == "omit"
+
+
+
+def test_society_resilience_shared_json_sender_reasserts_verified_doorway():
+    import asyncio
+    import json
+    import main
+    from deterministic_answer_recovery import _society_resilience_recovery
+
+    query = "What makes a society resilient?"
+    events = []
+
+    async def send(event):
+        events.append(event)
+
+    payload = {
+        "ok": True,
+        "intent": "TOPICAL_INQUIRY",
+        "query": query,
+        "response": _society_resilience_recovery(),
+        "recommendation": None,
+        "canonical_doorway": None,
+        "doorway_decision": "omit",
+    }
+    asyncio.run(main._use_send_json(send, payload, 200))
+    body = next(event["body"] for event in events if event["type"] == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+    assert result["recommendation"]["title"] == "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/2026/09/28/collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    assert result["doorway_decision"] == "selected"
+
+
+def test_society_resilience_shared_json_sender_clears_stale_doorway_on_no_handoff():
+    import asyncio
+    import json
+    import main
+    from deterministic_answer_recovery import _society_resilience_recovery
+
+    query = "What makes a society resilient? No links, please."
+    events = []
+
+    async def send(event):
+        events.append(event)
+
+    payload = {
+        "ok": True,
+        "intent": "TOPICAL_INQUIRY",
+        "query": query,
+        "response": "A resilient society has strong institutions and good infrastructure.",
+        "recommendation": {"title": "Stale doorway", "url": "https://geralddaquila.com/stale/"},
+        "canonical_doorway": {"title": "Stale doorway", "url": "https://geralddaquila.com/stale/"},
+        "doorway_decision": "selected",
+        "processing": "final_visitor_boundary_explicit_no_handoff",
+        "navigation_suppressed_by_task_contract": True,
+    }
+    asyncio.run(main._use_send_json(send, payload, 200))
+    body = next(event["body"] for event in events if event["type"] == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+    assert result["response"] == _society_resilience_recovery()
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_decision"] == "omit"
