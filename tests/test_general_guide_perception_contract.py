@@ -416,3 +416,32 @@ def test_explicit_practical_application_questions_remain_practical():
     assert guide.is_practical_application_question(
         "What would our organization actually do differently to practice trust?"
     )
+
+
+def test_developmental_stage_hierarchy_instruction_is_question_scoped():
+    target = (
+        "A visitor describes a developmental stage as 'higher' than another. "
+        "How can the Guide examine the claim while avoiding a ranking of people?"
+    )
+    prompt = guide._build_general_guide_system_message(target)
+    assert "DEVELOPMENTAL-STAGE CLAIMS — DISTINGUISH DEVELOPMENT FROM HUMAN RANK" in prompt
+    assert "Answer the developmental claim itself" in prompt
+
+    adjacent = guide._build_general_guide_system_message(
+        "What is the difference between growth, adaptation, maturity, and integration?"
+    )
+    assert "DEVELOPMENTAL-STAGE CLAIMS — DISTINGUISH DEVELOPMENT FROM HUMAN RANK" not in adjacent
+
+
+def test_final_response_boundary_accepts_the_approved_nonranking_screenshot_answer():
+    import json
+    from pathlib import Path
+
+    fixture_path = (
+        Path(__file__).resolve().parents[1]
+        / "tests/fixtures/general-guide-developmental-stage-hierarchy-nonranking-2026-11-28.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert guide.enforce_response_contracts(
+        fixture["query"], fixture["expected_response"]
+    ) == fixture["expected_response"]

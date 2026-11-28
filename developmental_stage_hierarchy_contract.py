@@ -9,7 +9,7 @@ def is_developmental_stage_hierarchy_question(question: str) -> bool:
     if re.search(r"\b(?:school|grade level|academic year|software|technology|product|project)\b", text, re.I):
         return False
     stage = re.search(r"\b(?:developmental stage|stages of development|stage of development|developmental level|developmental progression)\b", text, re.I)
-    hierarchy = re.search(r"\b(?:higher|lower|advanced|superior|inferior|rank(?:ing)?|hierarchy|more developed|less developed)\b", text, re.I)
+    hierarchy = re.search(r"\b(?:higher|lower|advanced|superior|inferior|rank(?:ing)?|hierarchy|more developed|less developed|better person|worse person|more valuable|less valuable)\b", text, re.I)
     human = re.search(r"\b(?:person|people|human|adult|child|individual|maturity|consciousness|capacity|development)\b", text, re.I)
     return bool(stage and hierarchy and human)
 

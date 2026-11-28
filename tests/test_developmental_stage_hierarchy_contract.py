@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from developmental_stage_hierarchy_contract import (
@@ -61,3 +64,37 @@ def test_generic_governance_answer_fails_target_contract():
     assert report["applies"] is True
     assert report["passed"] is False
     assert "separates_capacity_from_worth" in report["missing"]
+
+
+def test_better_person_question_triggers_nonranking_contract():
+    question = "Does a later developmental stage make someone a better person?"
+    assert is_developmental_stage_hierarchy_question(question)
+    instruction = build_developmental_stage_hierarchy_instruction(question)
+    assert "worth, dignity, rights" in instruction
+    assert "no stage makes a person more worthy" in instruction
+
+
+def test_archive_specific_stage_question_preserves_source_boundary():
+    question = "Does the Living Archive describe a developmental stage as higher?"
+    assert is_developmental_stage_hierarchy_question(question)
+    instruction = build_developmental_stage_hierarchy_instruction(question)
+    assert "separate verified source claims from general interpretation" in instruction
+    assert "do not invent doctrine" in instruction
+
+
+def test_exact_user_approved_screenshot_response_passes_nonranking_contract():
+    fixture_path = (
+        Path(__file__).resolve().parents[1]
+        / "tests/fixtures/general-guide-developmental-stage-hierarchy-nonranking-2026-11-28.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    report = evaluate_developmental_stage_hierarchy_response(
+        fixture["query"], fixture["expected_response"]
+    )
+    assert report == {"applies": True, "passed": True, "missing": []}
+
+
+def test_model_instruction_rejects_stage_assignment_from_single_behavior():
+    instruction = build_developmental_stage_hierarchy_instruction(TARGET)
+    assert "Do not assign a stage to a person from one behavior or label" in instruction
+    assert "uneven or domain-specific development" in instruction
