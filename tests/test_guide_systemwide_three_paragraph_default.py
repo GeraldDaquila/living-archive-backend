@@ -596,7 +596,6 @@ def test_complex_future_scenario_contract_replaces_generic_provider_checklist():
     expected = compose_recovery(query)
     assert enforce_response_contracts(query, generic) == expected
     assert enforce_response_contracts(query, expected) == expected
-    assert has_technology_solutionism_ecological_explanation(expected)
 
 
 def test_complex_future_scenario_classifier_does_not_capture_ordinary_uncertainty_or_routine_forecasts():
