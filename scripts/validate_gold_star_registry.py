@@ -865,6 +865,18 @@ def main():
     validate_numbering_metadata(registry, records)
     base_numbers, current_numbers = validate_numbering_against_base(records, registry)
 
+    # Every newly approved record must carry a user-reviewed exact-question
+    # family disposition against canonical main. Existing approvals are
+    # grandfathered; the family audit never edits registry records.
+    family_review = subprocess.run(
+        ["python", str(ROOT / "scripts/qa/audit_gold_star_question_families.py"),
+         "--enforce-new-approvals"],
+        cwd=ROOT, check=False, capture_output=True, text=True,
+    )
+    if family_review.returncode != 0:
+        detail = (family_review.stdout + "\\n" + family_review.stderr).strip()
+        fail("mandatory question-family elevation review failed: " + detail)
+
     # Audit metadata is descriptive only. When present, it must match the
     # record-level inventory; it is never consulted to select a number.
     audit = registry.get("integrity_audit") or {}
