@@ -3009,7 +3009,7 @@ def test_developmental_stage_hierarchy_gold_star_matches_frozen_fixture_and_pres
     assert len(approved) == 168
     assert len(registry["records"]) == 209
     assert registry["integrity_audit"]["approved_gold_star_count"] == 168
-    assert registry["integrity_audit"]["registry_record_count"] == 208
+    assert registry["integrity_audit"]["registry_record_count"] == 209
     assert registry["integrity_audit"]["active_quality_contributor_count"] == 139
     assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 27
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 39
