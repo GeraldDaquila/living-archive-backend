@@ -50,6 +50,19 @@ def test_canonical_registry_and_fixture_reconcile_for_nonprofit_gold_star():
     assert record["doorway_status"] == "NOT_EVALUATED"
     assert record["expected_doorway"] is None
 
+    doorway_fixture = json.loads(
+        (ROOT / "tests/fixtures/general-guide-nonprofit-mission-care-operational-capacity-doorway-2026-11-28.json").read_text(encoding="utf-8")
+    )
+    doorway_record = next(
+        record for record in approved
+        if record["benchmark_id"] == doorway_fixture["benchmark_id"]
+    )
+    assert doorway_record["expected_response"] == doorway_fixture["expected_response"]
+    assert doorway_record["expected_doorway"] == doorway_fixture["expected_doorway"]
+    assert doorway_record["doorway_status"] == "ACTIONABLE_CONTEXTUAL_CONTINUATION"
+    assert doorway_record["runtime_transfer"] is False
+    assert doorway_record["numbering_status"] == "UNASSIGNED"
+
 
 def test_large_registry_git_database_runbook_is_present_and_complete():
     guide = RUNBOOK.read_text(encoding="utf-8")
