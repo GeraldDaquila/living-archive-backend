@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "general-guide-one-sided-team-conflict-contextual-recovery-2026-11-28",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "subsystem": "general-purpose-guide",
+  "query": "A visitor wants to apply an Archive idea to a team conflict but has provided only one person's account. What context should the Guide ask for before offering a frame?",
+  "expected_response": "Before applying an Archive idea, I would treat this as one person's account of a shared situation—not as the whole record, while still taking that person's experience seriously. First, separate what happened from what each person thinks it means: what was said or done, what was directly observed, what is inferred about intent, and what remains unknown. Then establish the relationship and decision context: each person's role and authority, any dependency or power difference, relevant history, prior agreements, and applicable team policies or governance arrangements. It is also important to consider whether direct dialogue or seeking the other person's account is safe and appropriate; where there is coercion, harassment, retaliation risk, or a serious power imbalance, a confidential, facilitated, or formal channel may be safer. Finally, clarify what is needed now—understanding, repair, a boundary, a decision, or accountability—before choosing a frame. We can start with one question: What happened, in concrete terms, and which parts of your account are direct observations versus interpretations of the other person's intentions?",
+  "expected_doorway": {
+    "title": "Building Trust-Centered Organizations",
+    "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+    "rationale": "This Archive essay examines how leadership signals, shared cultural norms, trust, power, and accountability shape organizational life. It offers a relevant continuation from a team conflict to the conditions that make an organization trustworthy and answerable in practice."
+  },
+  "assertions": [
+    "Treat the visitor's account as important but not as the complete shared record.",
+    "Separate reported events, directly observed facts, interpretations of intent, and what remains unknown.",
+    "Ask about each person's role and authority, dependencies, power differences, relevant history, prior agreements, and applicable team policies or governance arrangements.",
+    "Assess whether direct dialogue or seeking the other person's account is safe and appropriate.",
+    "Recognize coercion, harassment, retaliation risk, and serious power imbalance as reasons to consider confidential, facilitated, or formal channels.",
+    "Clarify whether the immediate need is understanding, repair, a boundary, a decision, or accountability before selecting a frame.",
+    "Close with one concrete question that distinguishes direct observations from interpretations of the other person's intentions.",
+    "Keep the separate Continue Exploring card distinct from the substantive answer and preserve its verified trust-centered destination.",
+    "Do not claim provider invocation provenance, active runtime/adaptive transfer, held-out transfer, or measured visitor outcomes."
+  ],
+  "provenance": {
+    "source": "User-supplied screenshot of the corrected live Guide visitor-facing Search response, followed by explicit instruction to elevate it to Gold Star.",
+    "source_path": "conversation attachment image(20261128-130210).png",
+    "source_date": "2026-11-28",
+    "source_ref": "GitHub PR #2212 merged as 27a2fecb28e845e1a732343695880b5d2801e7b0; structural repair in PR #2211.",
+    "live_surface": "Guide visitor-facing Search response",
+    "evidence_boundary": "The screenshot establishes the exact displayed question, complete substantive answer, and separate Continue Exploring card title, copy, and destination. The destination was also verified as the published Archive article. The screenshot does not establish provider invocation provenance, active runtime/adaptive transfer, held-out transfer, or measured visitor outcomes.",
+    "original_near_miss": "The original visitor response is preserved as a near-miss in GitHub issue #2210 and was not overwritten or reclassified as approved.",
+    "review_assessment": "Assistant assessment: 9.7/10. This is an assistant assessment, not a user-assigned numerical rating.",
+    "visible_continuation_title": "Building Trust-Centered Organizations",
+    "visible_continuation_copy": "This Archive essay examines how leadership signals, shared cultural norms, trust, power, and accountability shape organizational life. It offers a relevant continuation from a team conflict to the conditions that make an organization trustworthy and answerable in practice."
+  },
+  "rating": null,
+  "freeze_policy": "immutable_user_approved_gold_standard",
+  "doorway_status": "VERIFIED",
+  "assistant_assessment_out_of_10": 9.7,
+  "user_reviewed_response": true,
+  "explicit_user_elevation_approval": true,
+  "approval_state": "USER APPROVED GOLD STAR — EXACT CORRECTED VISITOR RESPONSE REVIEWED; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
+  "runtime_transfer": false,
+  "reasoning_family": "one_sided_team_conflict_contextual_recovery",
+  "transferable_lesson": "When a visitor presents one account of a team conflict, take the experience seriously without treating it as the complete record. Separate events, observations, interpretations, and unknowns; gather relational, authority, history, agreement, and governance context; assess safety and power before recommending direct dialogue; and clarify the desired outcome before selecting a frame.",
+  "transfer_boundary": "Immutable standalone response-quality exemplar only. Transfer the disciplined context-gathering and safety-aware sequencing, not the exact answer or an assumed diagnosis of the conflict. Do not presume both parties have equal power, that direct confrontation is safe, or that one account establishes the whole record. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized.",
+  "known_theme": "one-sided conflict account; epistemic humility; team conflict; power imbalance; role authority; safety; facilitated dialogue; organizational trust; accountability",
+  "gold_star_capabilities": {
+    "generation_class": "user_approved_response_quality_exemplar",
+    "exact_answer_authority": false,
+    "active_quality_contributor": false,
+    "deterministic_fallback_eligible": false,
+    "reasoning_family": "one_sided_team_conflict_contextual_recovery",
+    "transferable_discipline": "Separate events, direct observations, interpretations, and unknowns; establish relational and governance context; assess safety and power before recommending dialogue; clarify the desired outcome before offering a frame.",
+    "abstention_boundary": "Standalone response-quality exemplar only. Do not infer the full conflict from one account, assume equal power, or recommend direct confrontation where coercion, harassment, retaliation risk, or serious power imbalance may make it unsafe. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer.",
+    "standalone_response_quality_exemplar": true
+  },
+  "user_approved_at": "2026-11-28",
+  "elevation_approval_evidence": "The user reviewed the exact corrected live visitor-facing response and explicitly instructed “elevate to gold star” on 2026-11-28. This authorizes an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation.",
+  "numbering_status": "UNASSIGNED",
+  "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+  "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+  "rating_out_of_10": null,
+  "question_family_review": {
+    "family_id": "qf-8f6e579a6485d012",
+    "classification": "NEW_QUESTION_FAMILY",
+    "reviewed_by": "user",
+    "reviewed_at": "2026-11-28",
+    "rationale": "The exact question concerns the context and safeguards required when a visitor presents only one person's account of a team conflict. The canonical registry contains no other record with the same normalized exact question; the original near-miss in issue #2210 is preserved separately and is not an approved registry record.",
+    "related_benchmark_ids": []
+  },
+  "doorway_note": "This Archive essay examines how leadership signals, shared cultural norms, trust, power, and accountability shape organizational life. It offers a relevant continuation from a team conflict to the conditions that make an organization trustworthy and answerable in practice."
+}
