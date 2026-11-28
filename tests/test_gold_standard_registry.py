@@ -2717,7 +2717,7 @@ def test_user_approved_digital_archive_context_preservation_gold_star_is_registe
     assert len(registry["records"]) == 207
     assert registry["integrity_audit"]["approved_gold_star_count"] == 166
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 127
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 24
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 25
 
 
 def test_human_discernment_successors_are_distinct_immutable_gold_star_exemplars():
@@ -2837,7 +2837,7 @@ def test_user_approved_economy_life_relationship_is_frozen_standalone_gold_star(
     assert len(registry["records"]) == 207
     assert registry["integrity_audit"]["approved_gold_star_count"] == 166
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 127
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 24
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 25
 
 
 
@@ -2877,7 +2877,7 @@ def test_society_resilience_gold_star_registry_record_preserves_verified_success
     assert len(registry["records"]) == 207
     assert registry["integrity_audit"]["approved_gold_star_count"] == 166
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 127
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 24
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 25
 
 
 def test_ethical_future_vision_credibility_gold_star_is_frozen_standalone_exemplar():
@@ -2914,7 +2914,7 @@ def test_ethical_future_vision_credibility_gold_star_is_frozen_standalone_exempl
     assert len(registry["records"]) == 207
     assert registry["integrity_audit"]["approved_gold_star_count"] == 166
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 127
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 24
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 25
 
 
 
@@ -2952,7 +2952,7 @@ def test_organizational_transformation_readiness_gold_star_is_approved_frozen_an
     assert len(registry["records"]) == 207
     assert registry["integrity_audit"]["approved_gold_star_count"] == 166
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 127
-    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 24
+    assert registry["integrity_audit"]["approved_response_quality_exemplar_count"] == 25
 
 
 def test_vulnerable_group_exploitation_refusal_gold_star_matches_frozen_fixture():
