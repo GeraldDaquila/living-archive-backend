@@ -10240,7 +10240,7 @@
       "approval_state": "USER APPROVED GOLD STAR — CORRECTED SUCCESSOR; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
       "user_approved_at": "2026-11-28",
       "elevation_approval_evidence": "The user explicitly instructed “fix structurally and turn this into a gold star” on 2026-11-28 after reviewing the original visitor-facing screenshot and the structural assessment. The corrected successor was authored as a separate response-quality exemplar; the original screenshot remains a near-miss baseline.",
-      "freeze_policy": "Preserve approved expected_response. Changes require explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
       "runtime_transfer": false,
       "reasoning_family": "nonprofit_mission_care_structure_and_operational_capacity",
       "transferable_lesson": "Connect mission priorities, institutional care, role and authority design, actual operating capacity, and governance feedback. Explain the reinforcing overload mechanism as a pattern to investigate rather than a universal diagnosis. Require explicit stop/defer/simplify/fund/redistribute/phase tradeoffs, accountable redesign, and review of staff experience and mission outcomes.",
@@ -10253,7 +10253,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "nonprofit_mission_care_structure_and_operational_capacity",
         "transferable_discipline": "Connect mission priorities, institutional care, role and authority design, actual operating capacity, and governance feedback; identify reinforcing overload mechanisms and require explicit tradeoffs and corrective action.",
-        "abstention_boundary": "Standalone response-quality exemplar only. Do not copy the exact answer to unrelated questions. The visible continuation title is screenshot evidence only; no canonical URL is inferred. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: The screenshot establishes the visible Continue Exploring title, Infrastructure Before Ideology, but does not establish a canonical URL or independent thematic verification of the destination. Do not infer a canonical URL or verify thematic fit from the screenshot alone. Standalone response-quality exemplar only. Do not copy the exact answer to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
