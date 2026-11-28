@@ -4721,9 +4721,13 @@ def enforce_response_contracts(question: str, response: str) -> str:
     candidate = _sanitize_candidate(response)
     from deterministic_answer_recovery import (
         is_technology_solutionism_ecological_question,
+        has_technology_solutionism_ecological_explanation,
         _technology_solutionism_ecological_recovery,
     )
-    if is_technology_solutionism_ecological_question(question):
+    if (
+        is_technology_solutionism_ecological_question(question)
+        and not has_technology_solutionism_ecological_explanation(candidate)
+    ):
         candidate = _technology_solutionism_ecological_recovery()
     # Preserve an answerable general explanation when a provider over-abstains.
     from guide_answerability import (
