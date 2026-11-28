@@ -613,3 +613,22 @@ def test_complete_mixed_source_answer_passes_final_visitor_boundary():
         "disclose that limitation. Do not invent source details or attribute the Guide's inference to the author."
     )
     assert guide.enforce_response_contracts(question, complete) == complete
+
+
+def test_navigation_suppression_never_bypasses_answer_validation():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    unrelated = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options against those "
+        "requirements rather than assuming the proposed course is the only one."
+    )
+    payload = {
+        "response": unrelated,
+        "intent": "TOPICAL_INQUIRY",
+        "navigation_suppressed_by_task_contract": True,
+    }
+    with pytest.raises(RuntimeError, match="Final visitor response failed the mixed-source provenance contract"):
+        guide.apply_terminal_response_contract(question, payload)
