@@ -3001,7 +3001,7 @@ def test_developmental_stage_hierarchy_gold_star_matches_frozen_fixture_and_pres
     assert capabilities["active_quality_contributor"] is False
     assert capabilities["deterministic_fallback_eligible"] is False
     assert record["question_family_review"]["classification"] == "NEW_QUESTION_FAMILY"
-    assert record["question_family_review"]["family_id"] == "qf-3e0269910e85b3a8"
+    assert record["question_family_review"]["family_id"] == "qf-cd6550fcd889c285"
     assert record["question_family_review"]["related_benchmark_ids"] == []
     assert "issue #2197" in record["provenance"]["original_near_miss"]
     assert "The Resonance & Coherence Assessment" == record["provenance"]["visible_continuation_title"]
