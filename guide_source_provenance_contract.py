@@ -92,3 +92,29 @@ def evaluate_source_provenance_response(query: Any, response: Any) -> Dict[str, 
         "missing": missing,
         "version": CONTRACT_VERSION,
     }
+
+
+
+def build_source_provenance_recovery_response() -> str:
+    """Answer the mixed-source traceability task when provider composition is unavailable.
+
+    This is a bounded task-family recovery, not a Gold Star fixture lookup or
+    exact-answer fallback. It teaches the reusable method without inventing
+    source text, locators, or Archive-specific authority.
+    """
+    return (
+        "Keep the three layers distinguishable at the smallest practical claim-bearing span. "
+        "A single citation at the end of a mixed sentence can blur who is responsible for each claim, "
+        "so mark the clauses separately or split the sentence when the boundaries are unclear.\\n\\n"
+        "For a direct quotation, reproduce the exact wording in quotation marks and identify the author, "
+        "work or version, and precise locator available in the source—such as a page, section, paragraph, "
+        "or timestamp. Mark omissions, insertions, and editorial emphasis. For a paraphrase, use the "
+        "Guide's own words and cite the passage being restated; preserve its scope, qualifications, "
+        "conditions, modality, and degree of certainty.\\n\\n"
+        "For interpretation, identify it as the Guide's own analysis, name the quoted or paraphrased claims "
+        "it builds on, and explain the reasoning that connects them. A citation should support only the "
+        "source-derived claim it establishes; it must not lend the source's authority to the Guide's inference. "
+        "If the source text or precise locator is unavailable or cannot be verified, disclose that limit rather "
+        "than inventing a quotation or metadata. A reader should be able to identify what the source says, "
+        "what the Guide restates, and where the Guide's inference begins."
+    )
