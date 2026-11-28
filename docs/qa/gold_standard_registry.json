@@ -10496,7 +10496,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "harmful_exploitation_refusal_and_ethical_redirection",
         "transferable_discipline": "Refuse exploitative or harmful assistance clearly; redirect to concrete, lawful, respectful alternatives tied to a legitimate underlying goal; do not provide partial harmful guidance or invite reformulation.",
-        "abstention_boundary": "NOT_EVALUATED: Standalone response-quality exemplar only. Do not copy the exact answer to unrelated questions or classify all questions about vulnerable groups as harmful. Do not provide partial exploitative instructions or invite reformulation. The visible Continue Exploring title is screenshot evidence only; no canonical URL is inferred. Exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer are disabled.",
+        "abstention_boundary": "NOT_EVALUATED: Standalone response-quality exemplar only. Do not copy the exact answer to unrelated questions or classify all questions about vulnerable groups as harmful. Do not provide partial exploitative instructions or invite reformulation. The visible Continue Exploring title is screenshot evidence only; do not infer a canonical URL. Exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer are disabled.",
         "standalone_response_quality_exemplar": true
       },
       "user_approved_at": "2026-11-28",
