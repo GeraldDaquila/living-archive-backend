@@ -391,6 +391,16 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "rebound effects, non-technological alternatives, affected communities, accountable governance, monitoring, and correction. "
             "Avoid both techno-utopian claims and blanket rejection."
         )
+    society_resilience = (
+        has(r"\\b(?:societ\\w*|social systems?|communities|community|civic systems?|public institutions?)\\b")
+        and has(r"\\b(?:resilien\\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\\b")
+        and not has(r"\\b(?:personal resilience|individual resilience|business continuity|organizational continuity)\\b")
+    )
+    if society_resilience:
+        rendered += (
+            "\\n\\nSOCIETY-LEVEL RESILIENCE:\\n"
+            "Define resilience as the capacity to absorb disruption, maintain essential functions, reorganize, and learn/adapt; do not equate it with returning unchanged to a harmful baseline. Explain causal interactions across ecological foundations, economy, infrastructure, institutions, social networks, and culture. Show how diversity, redundancy, modularity, trust, legitimacy, shared meaning, cultural memory, feedback, and learning enable coordination; explain dependencies, cascading failures, unequal exposure, and unequal recovery. Give practical diagnostic indicators for continuity, fair recovery, ecological integrity, adaptation, and institutional learning. Avoid a factor list without mechanisms or a universal prescription."
+        )
     # Attach the reciprocal mechanism directly for this named concept pair;
     # do not rely on optional-module paragraph classification.
     if (
@@ -4740,6 +4750,16 @@ def enforce_response_contracts(question: str, response: str) -> str:
         and not has_technology_solutionism_ecological_explanation(candidate)
     ):
         candidate = _technology_solutionism_ecological_recovery()
+    from deterministic_answer_recovery import (
+        is_society_resilience_question,
+        has_society_resilience_explanation,
+        _society_resilience_recovery,
+    )
+    if (
+        is_society_resilience_question(question)
+        and not has_society_resilience_explanation(candidate)
+    ):
+        candidate = _society_resilience_recovery()
     # Preserve an answerable general explanation when a provider over-abstains.
     from guide_answerability import (
         is_reality_vs_ideology_leadership_question,
