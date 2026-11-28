@@ -10571,10 +10571,12 @@
       "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
       "rating_out_of_10": null,
       "question_family_review": {
+        "family_id": "qf-3696c7c39e394831",
         "classification": "NEW_QUESTION_FAMILY",
         "reviewed_by": "user",
         "reviewed_at": "2026-11-28",
-        "rationale": "The exact question concerns mapping benefit and cost distribution, decision power, consent, and accountability before evaluating a proposed intervention. No existing approved exact-question match was identified in the canonical registry audit."
+        "rationale": "The exact question concerns mapping benefit and cost distribution, decision power, consent, and accountability before evaluating a proposed intervention. The canonical question-family audit found no existing exact normalized-question match.",
+        "related_benchmark_ids": []
       }
     }
   ],
