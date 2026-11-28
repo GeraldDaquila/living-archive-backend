@@ -675,7 +675,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
         "CORE requires boundary fit; CONDITIONAL requires activation. An unclassified role is not disqualifying. "
         "Prefer the narrowest matching reasoning family; thematic overlap is not redundancy. Check task fit, contribution, and boundary. "
         "Decide before drafting. Select the smallest sufficient set; prefer one specific candidate when it covers the task. "
-        "Apply selected reasoning in the answer; never copy exemplar wording. Return exact 12–120-character response offsets; rejected IDs use 0,0. Reject if no range. "
+        "apply selected reasoning in the answer; never copy exemplar wording. Return exact 12–120-character response offsets; rejected IDs use 0,0. Reject if no range. "
         "Community rules: state legitimate shared purpose and evidence of need; majority preference is not proof. "
         "Combine only when each adds a distinct, necessary, compatible operation not already covered. Reject all when none improves the answer or relevance is merely lexical. Candidates are not approved selections. Never transfer exemplar content or doorways, or override the question, evidence, or response form. "
         "If none qualifies, answer normally.\n"
