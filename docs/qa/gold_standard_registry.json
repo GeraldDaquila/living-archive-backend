@@ -10580,7 +10580,7 @@
       }
     }
   ],
-  "last_reconciliation_note": "Reconciled 2026-11-28: 206 records; 165 approved Gold Stars; 139 active runtime contributors; 24 response-quality exemplars (23 standalone); 39 numbered; 126 unassigned.",
+  "last_reconciliation_note": "Reconciled 2026-11-28: 207 records; 166 approved Gold Stars; 139 active runtime contributors; 25 response-quality exemplars (24 standalone); 39 numbered; 127 unassigned.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -10710,22 +10710,22 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 165,
-    "registry_record_count": 206,
-    "review_reconciliation": "Canonical inventory contains 165 approved records: 139 active runtime-transfer contributors and 26 approved non-runtime records, including 24 response-quality exemplars (23 explicitly standalone). The vulnerable-group exploitation refusal is a new exact-question family and a standalone non-runtime response-quality exemplar.",
+    "approved_gold_star_count": 166,
+    "registry_record_count": 207,
+    "review_reconciliation": "Canonical inventory contains 166 approved records: 139 active runtime-transfer contributors and 27 approved non-runtime records, including 25 response-quality exemplars (24 explicitly standalone). The vulnerable-group exploitation refusal and intervention benefit-burden mapping responses are standalone non-runtime response-quality exemplars.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 165 approved Gold Stars; 39 assigned display serials; 126 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the vulnerable-group exploitation refusal exemplar.",
-    "unassigned_approved_gold_star_count": 126,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 166 approved Gold Stars; 39 assigned display serials; 127 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the intervention benefit-burden mapping exemplar.",
+    "unassigned_approved_gold_star_count": 127,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-vulnerable-group-exploitation-ethical-refusal-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
+    "last_approval": "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 24
+    "approved_response_quality_exemplar_count": 25
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10824,22 +10824,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 165,
-    "registry_record_count": 206,
-    "review_reconciliation": "Canonical inventory contains 165 approved records: 139 active runtime-transfer contributors and 26 approved non-runtime records, including 24 response-quality exemplars (23 explicitly standalone). The vulnerable-group exploitation refusal is a new exact-question family and a standalone non-runtime response-quality exemplar.",
+    "approved_gold_star_count": 166,
+    "registry_record_count": 207,
+    "review_reconciliation": "Canonical inventory contains 166 approved records: 139 active runtime-transfer contributors and 27 approved non-runtime records, including 25 response-quality exemplars (24 explicitly standalone). The vulnerable-group exploitation refusal and intervention benefit-burden mapping responses are standalone non-runtime response-quality exemplars.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 165 approved Gold Stars; 39 assigned display serials; 126 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the vulnerable-group exploitation refusal exemplar.",
-    "unassigned_approved_gold_star_count": 126,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 166 approved Gold Stars; 39 assigned display serials; 127 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the intervention benefit-burden mapping exemplar.",
+    "unassigned_approved_gold_star_count": 127,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-vulnerable-group-exploitation-ethical-refusal-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
+    "last_approval": "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 24
+    "approved_response_quality_exemplar_count": 25
   },
   "last_reconciled": "2026-11-28"
 }
