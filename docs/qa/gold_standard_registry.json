@@ -10369,7 +10369,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "nonprofit_mission_care_structure_and_operational_capacity",
         "transferable_discipline": "Connect mission priorities, institutional care, role and authority design, funded operating capacity, explicit tradeoffs, and governance feedback. Close with a concrete next action appropriate to the visitor's task.",
-        "abstention_boundary": "Standalone response-quality exemplar only. Do not copy exact answer wording, examples, or doorway to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized."
+        "abstention_boundary": "Standalone response-quality exemplar only. Do not copy exact answer wording, examples, or doorway to unrelated questions. No exact-answer authority, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial is authorized. Doorway status is NOT_EVALUATED; do not infer or invent a canonical destination."
       },
       "assertions": [
         "Mission purpose is distinguished from accumulated activity.",
