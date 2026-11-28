@@ -2108,3 +2108,8 @@ The approved additive quality umbrella is [Gold Star Adaptive Intelligence Stand
 - **Governance:** immutable standalone response-quality exemplar only; exact-answer authority, deterministic fallback, active quality contribution, and runtime/adaptive transfer remain disabled. Display serial remains unassigned.
 - **Canonical reconciliation:** 201 registry records; 160 approved Gold Stars; 139 active runtime-transfer contributors; 19 approved response-quality exemplars, 18 explicitly standalone; 39 assigned serials; 121 approved records unassigned; zero documented numbering gaps. The canonical JSON registry remains the sole source of these counts.
 - **Evidence boundary:** approval and fixture tests do not establish provider provenance, live deployment, adaptive transfer, or measured visitor outcome improvement.
+
+
+## Canonical registry transport and maintenance
+
+The canonical JSON ledger is large enough that the ordinary Contents-file interface may return an incomplete or empty payload. For complete reads and safe updates, follow the Git Database API procedure in [Large canonical Gold Star registry: read, verify, and update](GOLD_STAR_REGISTRY_LARGE_FILE_OPERATIONS.md). The procedure preserves this JSON file as the sole authority and uses blob SHA, base tree, parent commit, and an expected branch-head SHA to prevent partial reads and lost updates.
