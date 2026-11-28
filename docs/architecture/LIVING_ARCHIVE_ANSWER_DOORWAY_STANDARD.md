@@ -29,6 +29,37 @@ A doorway item is:
 
 Incomplete, unverified, unrelated, or unsafe items are omitted. Never invent a destination or rationale to fill the panel. No doorway is a valid result.
 
+
+## Canonical resource doorway and conversational continuation are separate affordances
+
+The canonical resource doorway and a conversational reply panel serve different visitor actions. They are independent and may coexist; neither substitutes for the other.
+
+### Canonical resource doorway decision
+
+For every eligible substantive Guide answer, evaluate the bounded canonical selector independently of answer formation. The backend must preserve an explicit, auditable decision state:
+
+- `selected`: one verified, materially relevant canonical destination is available. Render it using the shared **CONTINUE EXPLORING** resource presentation.
+- `omit` with `NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH`: the bounded selector completed and no candidate passed relevance and authority checks. This is an intentional, evaluated omission.
+- `omit` with `AUTHORIZED_OMISSION`: a specific policy authority applies, such as explicit visitor refusal, a reviewed Gold Star exception, or a safety/protected-access override. Preserve the authority/source in the decision metadata.
+- `omit` with `RETRIEVAL_OR_VERIFICATION_FAILURE`: selection could not be completed or verified. This is a failure state, not proof that no relevant destination exists; it must not be certified or described as an intentional omission.
+
+The response contract should retain the decision, status, whether selection was evaluated, source, and a concise omission/failure reason where applicable. A selected doorway must carry its validated title, canonical URL, and grounded rationale. Never infer a URL or rationale from the answer text or from the presence of a conversational question.
+
+### Conversational continuation affordance
+
+The reply panel is a separate interaction affordance. Render it only when the final answer genuinely invites a reply and the visitor has not declined conversational follow-up. It is not a canonical Archive resource, does not count toward the one-resource-doorway limit, and must not be presented or logged as a successful canonical selection.
+
+### Coexistence and precedence
+
+- A selected canonical resource doorway and a genuine conversational invitation may appear together: the standard resource card remains in its dedicated recommendation container, while the reply panel remains in the response conversation surface.
+- If no materially relevant verified destination exists, omit the resource card. A genuine conversational invitation may still render its reply panel.
+- If canonical selection or verification fails, omit the resource card and retain an explicit failure state. Do not silently downgrade the failure to `NO_RELEVANT_DESTINATION_AFTER_BOUNDED_SEARCH`. A reply panel may still render if independently warranted and safe.
+- Explicit refusal of a resource doorway suppresses the resource card. Explicit refusal of conversational follow-up suppresses the reply panel. These are distinct visitor choices; one must not be inferred from the other.
+- Safety and protected-access handoffs retain precedence over ordinary resource cards and conversational continuation.
+- At most one canonical resource doorway is rendered per Guide answer. The reply panel is not a doorway and does not violate this invariant.
+
+The standard visitor presentation remains the default for a verified canonical destination. The conversational presentation is complementary, not an alternative resource-doorway template. Presentation follows the visitor's next useful action while the canonical resource contract remains stable.
+
 ## Module adapters preserve meaning
 - **The Guide / USE:** adapt its authoritative `recommendation` / `doorway` object. Preserve registry-authored rationale and canonical selection authority.
 - **HRN:** adapt a selected canonical resource plus its grounded resource introduction. Do not turn conversational prompts, junction controls, or safety resources into ordinary Archive doorways.
