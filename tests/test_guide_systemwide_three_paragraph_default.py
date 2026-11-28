@@ -1002,3 +1002,75 @@ def test_technology_solutionism_contract_preserves_complete_provider_composition
     complete = _technology_solutionism_ecological_recovery()
     assert has_technology_solutionism_ecological_explanation(complete)
     assert enforce_response_contracts(query, complete) == complete
+
+
+
+def test_society_resilience_question_family_is_specific_and_does_not_overmatch():
+    from deterministic_answer_recovery import is_society_resilience_question
+
+    assert is_society_resilience_question("What makes a society resilient?")
+    assert is_society_resilience_question("How can social systems recover from disruption and adapt?")
+    assert not is_society_resilience_question("How can I become more personally resilient?")
+    assert not is_society_resilience_question("How can a company improve business continuity?")
+    assert not is_society_resilience_question("What makes an ecosystem resilient after a wildfire?")
+    assert not is_society_resilience_question("How can technology improve workplace productivity?")
+
+
+def test_society_resilience_contract_replaces_factor_list_with_integrative_systems_explanation():
+    from deterministic_answer_recovery import (
+        _society_resilience_recovery,
+        has_society_resilience_explanation,
+        is_society_resilience_question,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "What makes a society resilient?"
+    generic = (
+        "A resilient society has strong institutions, a diversified economy, and good infrastructure. "
+        "It also needs social trust, community support, and access to healthcare and education.\n\n"
+        "These factors help people respond to crises and recover. Flexible governance can change policies "
+        "when conditions shift, while social networks help people support one another.\n\n"
+        "A society should invest in preparedness, learn from disruption, and maintain essential services."
+    )
+    expected = _society_resilience_recovery()
+    assert is_society_resilience_question(query)
+    assert has_society_resilience_explanation(expected)
+    assert enforce_response_contracts(query, generic) == expected
+    assert enforce_response_contracts(query, expected) == expected
+    assert "cascading failures" in expected
+    assert "shared meaning" in expected
+    assert "cultural memory" in expected
+    assert "recovery fairly" in expected
+    assert "returning to the previous state" not in expected
+
+
+def test_society_resilience_recovery_is_registered_with_verified_archive_doorway():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_society_resilience_question,
+        registered_recovery_recommendation,
+        _society_resilience_recovery,
+    )
+
+    query = "What makes a society resilient?"
+    assert is_society_resilience_question(query)
+    assert has_registered_recovery(query)
+    assert compose_recovery(query) == _society_resilience_recovery()
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/09/28/"
+        "collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    )
+    assert "cultural memory" in doorway["rationale"]
+
+
+def test_society_resilience_provider_prompt_carries_cross_system_reasoning_contract():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert "SOCIETY-LEVEL RESILIENCE:" in source
+    for term in (
+        "ecological foundations", "diversity, redundancy, modularity", "cascading failures",
+        "unequal exposure", "cultural memory", "fair recovery", "institutional learning",
+    ):
+        assert term in source
