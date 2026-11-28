@@ -68,9 +68,9 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
     active = [item for item in approved if item.get("runtime_transfer") is True]
     assert approved
     assert len(active) <= len(approved)
-    # The approved ledger retains twenty-six non-contributing records:
+    # The approved ledger retains twenty-seven non-contributing records:
     # historical/exact-query-only records, one paired governance exemplar, and
-    # twenty-three standalone user-approved response-quality exemplars. Keep this exact
+    # twenty-four standalone user-approved response-quality exemplars. Keep this exact
     # set synchronized with the canonical registry; none is runtime-transfer eligible.
     assert len({item["benchmark_id"] for item in approved}) == len(approved)
     assert len({item["benchmark_id"] for item in active}) == len(active)
@@ -103,6 +103,7 @@ def test_existing_approved_inventory_and_active_contributor_counts_are_preserved
         "general-guide-nonprofit-mission-care-trust-centered-gold-star-2026-11-28",
         "general-guide-archive-cosmology-epistemic-discernment-2026-11-28",
         "general-guide-vulnerable-group-exploitation-ethical-refusal-2026-11-28",
+        "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28",
     }
 
 

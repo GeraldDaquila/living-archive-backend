@@ -10513,6 +10513,69 @@
         "rationale": "The normalized exact question has no other approved registry match. It is a new exact-question family, with no predecessor, successor, or paired record.",
         "related_benchmark_ids": []
       }
+    },
+    {
+      "benchmark_id": "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A visitor asks who benefits from a proposed intervention and who bears its costs. How should the Guide map power, consent, and responsibility before judging it?",
+      "expected_response": "The Guide does not have enough information about the specific intervention to name its beneficiaries or cost-bearers. That mapping must come from the people proposing, reviewing, or affected by it.\n\nWhat the Guide can offer is a practical way to structure that mapping before any judgment is made, using three distinctions drawn from the Archive's treatment of stewardship and consent: stewardship is a responsibility to care for something entrusted to one's role; consent concerns whether affected people may legitimately participate in, or refuse, what is being done to them; and responsibility names who answers for outcomes, not merely who holds formal authority. Responsibility without legitimate authority can become control, while consent helps keep stewardship answerable to those affected.\n\nTransparency can support justified trust by making decisions, reasons, evidence, and conduct open to scrutiny and correction, but disclosure does not make poor conduct trustworthy, and trust does not remove the need for accountability. This reciprocity is conditional, not automatic. A responsible mapping would therefore ask: who is formally authorized to decide, who is affected, whose participation or refusal matters, who will answer if things go wrong, and what information would let affected people judge the intervention for themselves. Only after those answers are gathered can the Guide weigh whether benefits and costs are distributed justly or whether the intervention concentrates power while dispersing harm.",
+      "expected_doorway": null,
+      "assertions": [
+        "Do not name actual beneficiaries or cost-bearers without information about the specific intervention from people proposing, reviewing, or affected by it.",
+        "Structure the mapping before judgment using stewardship, consent, and responsibility as distinct concepts.",
+        "Stewardship is a responsibility to care for something entrusted to one's role.",
+        "Consent concerns whether affected people may legitimately participate in, or refuse, what is being done to them.",
+        "Responsibility identifies who answers for outcomes, not merely who holds formal authority.",
+        "Recognize that responsibility without legitimate authority can become control.",
+        "Treat transparency as support for scrutiny and correction, not proof of trustworthy conduct or a replacement for accountability.",
+        "Ask who is authorized to decide, who is affected, whose participation or refusal matters, who answers if things go wrong, and what information affected people need to judge the intervention.",
+        "Only after gathering those answers assess whether benefits and costs are distributed justly or power is concentrated while harm is dispersed.",
+        "Keep the separate Continue Exploring card distinct from the substantive answer; do not infer its canonical URL."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit Gold Star elevation approval.",
+        "source_path": "conversation attachment image(20261128-091420).png",
+        "source_date": "2026-11-28",
+        "live_surface": "Guide visitor-facing Search response",
+        "evidence_boundary": "The screenshot establishes the displayed question, complete substantive answer, and separate Continue Exploring card titled Language Arrives Last. The answer is preserved verbatim as the approved benchmark. The screenshot does not establish provider invocation provenance, adaptive application, held-out transfer, measured visitor outcomes, or a canonical destination URL.",
+        "review_assessment": "Assistant assessment: 9.6/10. This is an assistant assessment, not a user-assigned numerical rating.",
+        "visible_continuation_title": "Language Arrives Last"
+      },
+      "rating": null,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "assistant_assessment_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — EXACT VISITOR RESPONSE REVIEWED; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
+      "runtime_transfer": false,
+      "reasoning_family": "intervention_benefit_burden_power_consent_and_accountability",
+      "transferable_lesson": "Before judging a proposed intervention, map its distribution of benefits and costs with affected people and distinguish stewardship, consent, and responsibility. Identify who is authorized to decide, who is affected, whose participation or refusal matters, who answers for outcomes, and what evidence affected people need to judge the intervention. Treat transparency as support for scrutiny and correction, not as a substitute for trustworthy conduct or accountability.",
+      "transfer_boundary": "Immutable standalone response-quality exemplar only. Transfer the disciplined mapping questions, not the exact answer or a presumed judgment about any intervention. Do not name actual beneficiaries or cost-bearers without evidence from people proposing, reviewing, or affected by the intervention. Do not equate formal authority with legitimate authority, participation with consent, disclosure with trustworthiness, or trust with accountability. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer is authorized. Doorway status is NOT_EVALUATED; do not infer a canonical URL from the visible title.",
+      "known_theme": "intervention appraisal; benefit and cost distribution; power mapping; stewardship; consent; responsibility; legitimacy; transparency; accountability; concentrated power; dispersed harm",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "intervention_benefit_burden_power_consent_and_accountability",
+        "transferable_discipline": "Map benefits, costs, decision authority, affected parties, meaningful participation or refusal, answerability for outcomes, and information needed for affected people to judge an intervention. Do not make a project-specific distributional judgment without evidence.",
+        "abstention_boundary": "Standalone response-quality exemplar only. Do not invent beneficiaries, cost-bearers, consent, authority, or outcomes. Distinguish stewardship, consent, and responsibility; transparency does not itself establish trustworthiness or accountability. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer. The visible Continue Exploring title is screenshot evidence only; do not infer a canonical URL.",
+        "standalone_response_quality_exemplar": true
+      },
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user reviewed the exact live Guide visitor-facing response and explicitly instructed “elevate to gold star” on 2026-11-28. This authorizes an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+      "rating_out_of_10": null,
+      "question_family_review": {
+        "classification": "NEW_QUESTION_FAMILY",
+        "reviewed_by": "user",
+        "reviewed_at": "2026-11-28",
+        "rationale": "The exact question concerns mapping benefit and cost distribution, decision power, consent, and accountability before evaluating a proposed intervention. No existing approved exact-question match was identified in the canonical registry audit."
+      }
     }
   ],
   "last_reconciliation_note": "Reconciled 2026-11-28: 206 records; 165 approved Gold Stars; 139 active runtime contributors; 24 response-quality exemplars (23 standalone); 39 numbered; 126 unassigned.",
