@@ -1066,9 +1066,27 @@ def test_society_resilience_recovery_is_registered_with_verified_archive_doorway
     assert "cultural memory" in doorway["rationale"]
 
 
+def test_society_resilience_deterministic_route_preserves_answer_and_canonical_doorway():
+    from main import _basic_inquiry_round1_deterministic_response
+    from deterministic_answer_recovery import _society_resilience_recovery
+
+    query = "What makes a society resilient?"
+    result = _basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=True
+    )
+    assert result["response"] == _society_resilience_recovery()
+    assert result["recommendation"]["title"] == (
+        "Collective Nervous Systems: How Cultures Regulate Human Coherence"
+    )
+    assert result["recommendation"]["url"] == (
+        "https://geralddaquila.com/2026/09/28/"
+        "collective-nervous-systems-how-cultures-regulate-human-coherence/"
+    )
+
+
 def test_society_resilience_provider_prompt_carries_cross_system_reasoning_contract():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
-    assert "SOCIETY-LEVEL RESILIENCE:" in source
+    assert source.count("SOCIETY-LEVEL RESILIENCE:") == 2
     for term in (
         "ecological foundations", "diversity, redundancy, modularity", "cascading failures",
         "unequal exposure", "cultural memory", "fair recovery", "institutional learning",
