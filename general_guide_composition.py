@@ -667,7 +667,7 @@ def _build_gold_star_quality_instruction(gold_star_quality: Any) -> str:
             f"activation={activation_value or 'none'}; "
             f"score={score_label}; family={_compact_gold_star_prompt_field(family, 32)}; "
             f"discipline={_compact_gold_star_prompt_field(discipline_text, 420 if (community_rule_projection or community_freedom_projection or relational_synthesis_projection or public_commons_projection) else 180)}; "
-            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if (community_rule_projection or relational_synthesis_projection) else (100 if community_freedom_projection else 56))}"
+            f"boundary={_compact_gold_star_prompt_field(boundary_text, 260 if (community_rule_projection or relational_synthesis_projection) else 100)}"
         )
     candidate_evidence = "\n".join(candidate_lines)
     instruction = (
