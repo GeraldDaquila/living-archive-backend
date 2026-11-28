@@ -2699,6 +2699,7 @@ def test_user_approved_human_discernment_successor_is_frozen_response_quality_ex
     assert record["assistant_assessment_out_of_10"] == 9.7
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "NOT_EVALUATED"
+    assert record["expected_response"].endswith("To explore the wider implications of this practice, continue with the related Living Archive resource, *Truth in the Age of AI: Why Discernment Is Becoming a Survival Skill*.")
     assert record["runtime_transfer"] is False
     assert capabilities["exact_answer_authority"] is False
     assert capabilities["deterministic_fallback_eligible"] is False
