@@ -4740,6 +4740,77 @@ def _community_project_tradeoff_recovery() -> str:
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def _requires_archive_cosmology_evidence_continuation(question: str) -> bool:
+    """Recognize Archive-cosmology inquiries that naturally invite claim examination.
+
+    This is a reusable question-family decision, not an exact-query answer or
+    a rule to append a follow-up to every complete response.
+    """
+    q = _normalize_space(question).casefold()
+    has_archive_subject = bool(re.search(
+        r"\b(?:living\s+archive|archive|corpus)\b", q
+    ))
+    has_cosmology_frame = bool(re.search(
+        r"\b(?:cosmolog\w*|worldview|worldviews)\b", q
+    ))
+    has_epistemic_task = bool(re.search(
+        r"\b(?:proof|prove|proves|true|truth|evidence|metaphysical|"
+        r"coherence|usefulness|justification)\b", q
+    ))
+    return has_archive_subject and has_cosmology_frame and has_epistemic_task
+
+
+def _visitor_declines_contextual_continuation(question: str) -> bool:
+    """Respect explicit requests not to receive a conversational next step."""
+    q = _normalize_space(question).casefold()
+    patterns = (
+        r"\bno\s+(?:more\s+)?(?:follow[- ]?ups?|next[- ]?steps?|"
+        r"doorways?|links?|further reading|additional questions?)\b",
+        r"\b(?:do not|don't|please don't)\s+(?:ask|offer|include|show|"
+        r"provide|suggest)\b.{0,100}\b(?:follow[- ]?ups?|next[- ]?steps?|"
+        r"doorways?|links?|further reading|questions?)\b",
+        r"\bwithout\s+(?:a\s+)?(?:follow[- ]?up|next step|doorway|link)\b",
+    )
+    return any(re.search(pattern, q, re.I) for pattern in patterns)
+
+
+def _append_archive_cosmology_evidence_continuation(
+    question: str, response: str
+) -> str:
+    """Offer one optional in-Guide claim-examination move when it is useful."""
+    candidate = str(response or "").rstrip()
+    if (
+        not candidate
+        or not _requires_archive_cosmology_evidence_continuation(question)
+        or _visitor_declines_contextual_continuation(question)
+    ):
+        return candidate
+
+    tail = candidate[-500:]
+    already_has_relevant_question = bool(
+        re.search(r"\?\s*$", tail)
+        and re.search(
+            r"\b(?:which|what)\b.{0,180}\b(?:claim|source|passage|evidence)\b"
+            r".{0,120}\b(?:examine|trace|compare|assess|inspect)\b",
+            tail,
+        )
+    )
+    if (
+        "put this distinction to work" in candidate.casefold()
+        or already_has_relevant_question
+    ):
+        return candidate
+
+    return (
+        candidate
+        + "\n\n**Put this distinction to work**\n\n"
+        + "We can examine what a source directly establishes, what relationships "
+        + "across multiple sources support as synthesis, and what remains "
+        + "interpretation or metaphysical commitment. Which specific claim from "
+        + "the Living Archive would you like to examine first?"
+    )
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
@@ -4944,6 +5015,7 @@ def enforce_response_contracts(question: str, response: str) -> str:
                 raise RuntimeError("Ethical trade-off response contract failed after final recovery.")
 
     candidate = _remove_visitor_meta_commentary(candidate)
+    candidate = _append_archive_cosmology_evidence_continuation(question, candidate)
     # Source excerpts are grounding evidence, never a substitute for synthesis.
     # If the final boundary removes an excerpt-only response, fail closed rather
     # than returning an empty answer or letting the visitor see a source dump.
