@@ -9781,7 +9781,7 @@
         "deterministic_fallback_eligible": false,
         "reasoning_family": "technology-solutionism-and-ecological-stewardship",
         "transferable_discipline": "Standalone response-quality exemplar only; no active runtime/adaptive transfer is approved. Distinguish technical capability from ecological outcomes and assess technology within systemic, life-cycle, and accountable-stewardship conditions.",
-        "abstention_boundary": "Preserve the exact approved successor as a response-quality exemplar only. Do not copy it verbatim to unrelated questions. Do not infer a canonical URL from the visible Continue Exploring title. No exact-answer authority, deterministic fallback, or active runtime/adaptive transfer is authorized.",
+        "abstention_boundary": "NOT_EVALUATED: Preserve the exact approved successor as a response-quality exemplar only. Do not copy it verbatim to unrelated questions. Do not infer a canonical URL from the visible Continue Exploring title. No exact-answer authority, deterministic fallback, or active runtime/adaptive transfer is authorized.",
         "standalone_response_quality_exemplar": true
       },
       "assertions": [
