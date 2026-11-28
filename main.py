@@ -8865,7 +8865,11 @@ def _guide_finalize_visitor_payload(payload, query):
     # preserve the answer-first relationship repair after the event and concept boundaries.
     if is_stewardship_consent_relationship_question(query):
         finalized = _apply_stewardship_consent_relationship_boundary(query, finalized)
-    if deterministic_answer_recovery.is_society_resilience_question(query):
+    if (
+        deterministic_answer_recovery.is_society_resilience_question(query)
+        and finalized.get("processing") != "final_visitor_boundary_explicit_no_handoff"
+        and not finalized.get("navigation_suppressed_by_task_contract")
+    ):
         # Terminal society-resilience contract: specialist finalizers above may
         # rewrite the response after the main composition boundary. Preserve a
         # substantive provider answer when it meets the contract; repair only a
