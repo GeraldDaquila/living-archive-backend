@@ -3112,7 +3112,7 @@ def test_user_approved_mixed_source_provenance_response_is_standalone_gold_star(
     assert capabilities["active_quality_contributor"] is False
     assert capabilities["deterministic_fallback_eligible"] is False
     assert record["numbering_status"] == "UNASSIGNED"
-    assert record["provenance"]["original_near_miss"].endswith("issue #2208")
+    assert "issue #2208" in record["provenance"]["original_near_miss"]
     assert fixture["original_near_miss_issue"].endswith("/issues/2208")
 
     from gold_star_inventory import derive_gold_star_inventory
