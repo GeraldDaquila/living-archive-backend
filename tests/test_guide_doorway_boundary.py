@@ -109,7 +109,7 @@ def test_explicit_send_me_to_another_page_instruction_is_terminal_at_json_bounda
     }))
     assert result["recommendation"] is None
     assert result["doorway_decision"] == "omit"
-    assert len(result["response"].split("\\n\\n")) == 3
+    assert len(result["response"].split("\n\n")) == 3
 
 
 def test_explicit_no_doorway_request_overrides_community_rule_family_mapping():
