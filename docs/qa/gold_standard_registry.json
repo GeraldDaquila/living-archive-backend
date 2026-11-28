@@ -10578,9 +10578,71 @@
         "rationale": "The exact question concerns mapping benefit and cost distribution, decision power, consent, and accountability before evaluating a proposed intervention. The canonical question-family audit found no existing exact normalized-question match.",
         "related_benchmark_ids": []
       }
+    },
+    {
+      "benchmark_id": "general-guide-ethical-legitimacy-concentrated-harm-2026-11-28",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A policy is legal and popular but may impose concentrated harm on a minority. How should the Guide frame the ethical question without pretending the Archive supplies a verdict?",
+      "expected_response": "The ethical question is not settled by showing that a policy is legal or popular. Legality tells us what the current legal order permits; popularity tells us what a majority supports. Neither, by itself, establishes whether the policy's purposes, means, and consequences are ethically defensible—especially when serious burdens fall disproportionately on a minority. The Guide should keep those questions distinct rather than treating majority approval as a substitute for examining harm.\n\nStart by making the distribution of effects visible. Who receives the policy's benefits, who bears its direct and indirect costs, and how severe, lasting, or reversible are those costs? Ask whether the affected minority has meaningful voice in the decision, whether its rights, dignity, safety, or essential interests are put at risk, and whether the evidence has been disaggregated enough to reveal unequal effects that an overall average could hide. Then examine the policy's stated public purpose, the evidence that the policy is necessary to achieve it, less harmful workable alternatives, proportionality between the public benefit and the burdens imposed, and safeguards such as accommodation, remedy, appeal, independent review, and a time-bound reassessment.\n\nThe Archive can help make the relevant principles, tensions, affected interests, and unanswered questions visible; it should not be presented as having issued a verdict unless a specific, authoritative source actually establishes one. The Guide should identify which principles are being weighed, what evidence supports each claim, whose testimony is missing, and where reasonable disagreement remains. It can then help people ask what would make the policy more justifiable, what evidence could change the assessment, and who is accountable for reviewing the harm. The judgment remains with the responsible people and institutions, subject to the rights, laws, and accountability processes that genuinely apply.",
+      "expected_doorway": null,
+      "assertions": [
+        "Do not treat legality as proof of ethical legitimacy.",
+        "Do not treat majority popularity as a substitute for examining concentrated harm.",
+        "Distinguish what law permits, what a majority supports, and whether purposes, means, and consequences are ethically defensible.",
+        "Map beneficiaries and cost-bearers, including severity, duration, reversibility, and indirect effects.",
+        "Examine the affected minority's meaningful voice and risks to rights, dignity, safety, or essential interests.",
+        "Disaggregate evidence so aggregate averages do not conceal unequal burdens.",
+        "Test public purpose, necessity, less harmful alternatives, proportionality, and safeguards.",
+        "Present the Archive as a source of principles and questions, not as an adjudicator absent a specific authoritative source.",
+        "Identify missing testimony, uncertainty, reasonable disagreement, and accountable review."
+      ],
+      "provenance": {
+        "source": "User-supplied screenshot of the live Guide visitor-facing Search response, followed by explicit instruction to preserve it as a near-miss, repair the reasoning structurally, and elevate the corrected successor.",
+        "source_path": "conversation attachment image(20261128-093617).png; corrected response and regression fixture in tests/fixtures/general_guide_policy_legality_minority_harm_gold_star.json",
+        "source_date": "2026-11-28",
+        "live_surface": "Guide visitor-facing Search response",
+        "evidence_boundary": "The screenshot establishes the visitor's exact question and the original boundary-focused response. The corrected response is a separately authored structural successor. The screenshot does not establish provider invocation provenance, adaptive transfer, measured visitor outcomes, or a canonical doorway."
+      },
+      "rating": null,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "doorway_status": "NOT_EVALUATED",
+      "assistant_assessment_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER APPROVED GOLD STAR — CORRECTED RESPONSE REVIEWED; STANDALONE RESPONSE-QUALITY EXEMPLAR ONLY",
+      "runtime_transfer": false,
+      "reasoning_family": "ethical_legitimacy_concentrated_harm",
+      "transferable_lesson": "Distinguish legality, majority support, and ethical legitimacy; map who benefits and who bears concentrated costs; test minority voice, evidence, purpose, necessity, alternatives, proportionality, safeguards, and accountable review without claiming the Archive issues a verdict.",
+      "transfer_boundary": "Immutable standalone response-quality exemplar only. Do not reuse this answer, its claims, examples, or wording as an answer to other questions. Do not infer that legality or majority support settles legitimacy, or presume a policy's effects without evidence. The Archive supplies orientation and source-grounded principles, not an automatic moral verdict. No exact-answer authority, deterministic fallback, active quality contribution, or runtime/adaptive transfer is authorized. Doorway status is NOT_EVALUATED.",
+      "known_theme": "ethical legitimacy; lawful and popular policy; concentrated minority harm; benefit-burden distribution; minority voice; proportionality; alternatives; safeguards; institutional accountability; Archive authority boundary",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_response_quality_exemplar",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "ethical_legitimacy_concentrated_harm",
+        "transferable_discipline": "For policy questions involving concentrated harm, separate legal permission and majority support from ethical legitimacy; map affected groups and distributional effects; test evidence, necessity, alternatives, proportionality, safeguards, and accountability; preserve the Archive's non-adjudicative boundary.",
+        "abstention_boundary": "NOT_EVALUATED: Standalone non-runtime exemplar only. Do not infer a canonical doorway or URL. Do not issue a verdict without the relevant facts, applicable rights and law, affected people's testimony, and source-grounded principles. Do not invent the Archive's position.",
+        "standalone_response_quality_exemplar": true
+      },
+      "user_approved_at": "2026-11-28",
+      "elevation_approval_evidence": "The user reviewed the original visitor-facing response and explicitly instructed: preserve it as a near-miss, structurally repair it, and turn the corrected successor into a Gold Star on 2026-11-28. This authorizes an immutable standalone response-quality exemplar only; it does not authorize exact-answer enforcement, deterministic fallback, active quality contribution, runtime/adaptive transfer, or display serial allocation.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "Gold Star elevation was authorized; no human-facing display serial allocation was requested.",
+      "rating_out_of_10": null,
+      "question_family_review": {
+        "family_id": "qf-d2637dc092092951",
+        "classification": "NEW_QUESTION_FAMILY",
+        "reviewed_by": "user",
+        "reviewed_at": "2026-11-28",
+        "rationale": "The exact question concerns the ethical framing of a legal and popular policy that concentrates harm on a minority. The canonical registry contains no other record with the same normalized exact question.",
+        "related_benchmark_ids": []
+      }
     }
   ],
-  "last_reconciliation_note": "Reconciled 2026-11-28: 207 records; 166 approved Gold Stars; 139 active runtime contributors; 25 response-quality exemplars (24 standalone); 39 numbered; 127 unassigned.",
+  "last_reconciliation_note": "Reconciled 2026-11-28: 208 records; 167 approved Gold Stars; 139 active runtime contributors; 26 response-quality exemplars (25 standalone); 39 numbered; 128 unassigned.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -10710,22 +10772,22 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 166,
-    "registry_record_count": 207,
-    "review_reconciliation": "Canonical inventory contains 166 approved records: 139 active runtime-transfer contributors and 27 approved non-runtime records, including 25 response-quality exemplars (24 explicitly standalone). The vulnerable-group exploitation refusal and intervention benefit-burden mapping responses are standalone non-runtime response-quality exemplars.",
+    "approved_gold_star_count": 167,
+    "registry_record_count": 208,
+    "review_reconciliation": "Canonical inventory contains 167 approved records: 139 active runtime-transfer contributors and 28 approved non-runtime records, including 26 response-quality exemplars (25 explicitly standalone).",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 166 approved Gold Stars; 39 assigned display serials; 127 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the intervention benefit-burden mapping exemplar.",
-    "unassigned_approved_gold_star_count": 127,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 167 approved Gold Stars; 39 assigned display serials; 128 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the ethical legitimacy concentrated-harm exemplar.",
+    "unassigned_approved_gold_star_count": 128,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
+    "last_approval": "general-guide-ethical-legitimacy-concentrated-harm-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 25
+    "approved_response_quality_exemplar_count": 26
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -10824,22 +10886,22 @@
   ],
   "audit": {
     "last_audit_date": "2026-11-28",
-    "approved_gold_star_count": 166,
-    "registry_record_count": 207,
-    "review_reconciliation": "Canonical inventory contains 166 approved records: 139 active runtime-transfer contributors and 27 approved non-runtime records, including 25 response-quality exemplars (24 explicitly standalone). The vulnerable-group exploitation refusal and intervention benefit-burden mapping responses are standalone non-runtime response-quality exemplars.",
+    "approved_gold_star_count": 167,
+    "registry_record_count": 208,
+    "review_reconciliation": "Canonical inventory contains 167 approved records: 139 active runtime-transfer contributors and 28 approved non-runtime records, including 26 response-quality exemplars (25 explicitly standalone).",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 166 approved Gold Stars; 39 assigned display serials; 127 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the intervention benefit-burden mapping exemplar.",
-    "unassigned_approved_gold_star_count": 127,
+    "numbering_reconciliation": "Record-derived reconciliation on 2026-11-28: 167 approved Gold Stars; 39 assigned display serials; 128 approved records explicitly UNASSIGNED with reasons. No serial was allocated for the ethical legitimacy concentrated-harm exemplar.",
+    "unassigned_approved_gold_star_count": 128,
     "documented_numbering_gap_count": 0,
     "active_quality_contributor_count": 139,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1,
     "structural_candidates_pending_live_review": 0,
-    "last_approval": "general-guide-intervention-benefit-burden-power-consent-accountability-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
+    "last_approval": "general-guide-ethical-legitimacy-concentrated-harm-2026-11-28 approved by user 2026-11-28 as a standalone response-quality exemplar",
     "calibration_candidates_pending_user_review": 0,
-    "approved_response_quality_exemplar_count": 25
+    "approved_response_quality_exemplar_count": 26
   },
   "last_reconciled": "2026-11-28"
 }

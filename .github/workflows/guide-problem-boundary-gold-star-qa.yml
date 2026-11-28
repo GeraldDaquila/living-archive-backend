@@ -8,6 +8,7 @@ on:
       - "deterministic_answer_recovery.py"
       - "docs/qa/gold_standard_registry.json"
       - "tests/test_guide_problem_boundary_gold_star.py"
+      - "tests/test_guide_ethical_legitimacy_concentrated_harm.py"
       - "scripts/guide_problem_boundary_api_smoke.py"
       - ".github/workflows/guide-problem-boundary-gold-star-qa.yml"
   workflow_dispatch:
@@ -40,6 +41,7 @@ jobs:
         run: |
           PYTHONPATH=. python -m pytest -q \
             tests/test_guide_problem_boundary_gold_star.py \
+            tests/test_guide_ethical_legitimacy_concentrated_harm.py \
             tests/test_gold_standard_registry.py \
             tests/test_gold_star_remedy_selection.py \
             tests/test_gold_star_qualitative_transfer_review.py \
