@@ -8624,6 +8624,7 @@
         "active_quality_contributor": false,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "consequence_aware_governance_tradeoff_and_accountability",
+        "standalone_response_quality_exemplar": true,
         "transferable_discipline": "For consequential governance questions, begin with the outcome sought, non-negotiable responsibilities, and the people who will bear the consequences. Compare realistic alternatives rather than presuming one course; examine benefits, harms, cost-bearers, affected-party knowledge, and evidence that would justify changing direction. Make reasoning and limits visible, preserve accountability, and keep AI in an advisory role rather than transferring decision authority to it.",
         "abstention_boundary": "The doorway state remains NOT_EVALUATED because the screenshot does not establish a canonical destination URL. Do not infer or invent a canonical doorway or destination. Apply to governance and institutional decision-making questions involving consequential change, trade-offs, affected parties, and accountability. Do not treat this as a universal decision procedure or substitute it for institution-specific constitutional, legal, or factual analysis. Do not infer that participation alone confers consent or authority. Do not transfer the exact answer to unrelated questions, and do not grant deterministic fallback eligibility."
       },
