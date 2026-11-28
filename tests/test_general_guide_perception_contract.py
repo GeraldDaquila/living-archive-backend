@@ -594,3 +594,23 @@ def test_terminal_payload_revalidates_mixed_source_provenance():
         guide.apply_terminal_response_contract(
             question, {"response": unrelated, "intent": "TOPICAL_INQUIRY"}
         )
+
+
+def test_complete_mixed_source_answer_passes_final_visitor_boundary():
+    question = (
+        "For a sentence that combines a direct quotation, a paraphrase, and an "
+        "interpretation, how should the Guide make each layer traceable?"
+    )
+    complete = (
+        "To make all three layers traceable, annotate them at the smallest practical claim-bearing span. "
+        "For a direct quotation, preserve the exact wording and identify the source or work and a precise "
+        "page, section, paragraph, or timestamp locator; mark omissions and insertions. For a paraphrase, "
+        "use the Guide's own words and cite the exact passage it restates, preserving the source's scope, "
+        "qualifications, conditions, and degree of certainty. For interpretation, identify it as the Guide's "
+        "own analysis, name the quoted or paraphrased claims it builds on, and explain the reasoning behind "
+        "the inference. If the layers are interwoven, separate each claim-bearing clause or split the sentence. "
+        "A citation must support only the claim it establishes. If the source or locator is unavailable, "
+        "disclose that limitation rather than inventing source details or attributing the Guide's inference "
+        "to the author."
+    )
+    assert guide.enforce_response_contracts(question, complete) == complete
