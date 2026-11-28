@@ -392,13 +392,13 @@ def _build_general_guide_system_prompt(question: str, *, gold_star_guidance: boo
             "Avoid both techno-utopian claims and blanket rejection."
         )
     society_resilience = (
-        has(r"\\b(?:societ\\w*|social systems?|communities|community|civic systems?|public institutions?)\\b")
-        and has(r"\\b(?:resilien\\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\\b")
-        and not has(r"\\b(?:personal resilience|individual resilience|business continuity|organizational continuity)\\b")
+        has(r"\b(?:societ\w*|social systems?|communities|community|civic systems?|public institutions?)\b")
+        and has(r"\b(?:resilien\w*|withstand(?:ing)? shocks?|recover(?:y|ing)? from disruption|adapt(?:ing)? to disruption)\b")
+        and not has(r"\b(?:personal resilience|individual resilience|business continuity|organizational continuity)\b")
     )
     if society_resilience:
         rendered += (
-            "\\n\\nSOCIETY-LEVEL RESILIENCE:\\n"
+            "\n\nSOCIETY-LEVEL RESILIENCE:\n"
             "Define resilience as the capacity to absorb disruption, maintain essential functions, reorganize, and learn/adapt; do not equate it with returning unchanged to a harmful baseline. Explain causal interactions across ecological foundations, economy, infrastructure, institutions, social networks, and culture. Show how diversity, redundancy, modularity, trust, legitimacy, shared meaning, cultural memory, feedback, and learning enable coordination; explain dependencies, cascading failures, unequal exposure, and unequal recovery. Give practical diagnostic indicators for continuity, fair recovery, ecological integrity, adaptation, and institutional learning. Avoid a factor list without mechanisms or a universal prescription."
         )
     # Attach the reciprocal mechanism directly for this named concept pair;
